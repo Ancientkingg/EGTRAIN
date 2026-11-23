@@ -17,7 +17,7 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 | `rolling_stock.json` | yes | train units and compositions |
 | `services.json` | yes | services and planned timetables |
 | `scenarios.json` | no | `default_scenario_id` and named scenarios; `SceneWriter` always writes it |
-| `passengers.json` | no | passenger journeys and legs |
+| `passengers.json` | no | passenger journeys, legs and demand slices |
 | `views.json` | no | display preferences; not simulation input |
 
 `legacy/` is not part of the runnable V1 contract. The importer may read a
@@ -44,7 +44,28 @@ Optional keys:
   `speed: "m/s"` when present.
 - `simulation_settings`: object with optional numeric
   `duration_seconds`, `buffer_time_seconds`, and
-  `recovery_time_percent`.
+  `recovery_time_percent`, and an optional integer `passenger_max_transfers`
+  from 0 to 10 (default 2) that limits the transfers of a planned passenger
+  journey. The writer leaves it out while it has the default. Four optional
+  keys set the passenger-dependent dwell model; a key that is absent keeps the
+  value below, and the writer leaves a key out while it is absent:
+  `passenger_dwell_coefficients` is an array of exactly 8 numbers from 0 to
+  1,000,000, the coefficients beta0 to beta7 in model order (default
+  `[7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562]`). beta0 is the fixed time
+  of a stop, beta1 is added when the platform is crowded, beta2 is the time per
+  boarding passenger at a door, beta3 and beta4 are added to the boarding time
+  of a door when the platform or the car is crowded, beta5 and beta6 give the
+  time per alighting passenger at a door, and beta7 is added to the alighting
+  time of a door when the train is crowded. `passenger_platform_crowding_threshold`
+  (default 0.65) and `passenger_onboard_crowding_threshold` (default 0.7) are
+  occupancy rates from 0 to 1, and `passenger_car_boarding_threshold` (default
+  15) is a whole number of boarding passengers per car, 0 or more. Each
+  crowding flag applies when the value is above its threshold. The occupancy
+  rate of a platform counts the passengers who waited there before the train
+  let anyone off and those who alight, each once, against the capacity of the
+  platform. The legacy
+  export cannot hold `passenger_max_transfers` or the four dwell keys, so it
+  leaves them out with a warning and a legacy run uses the built-in values.
 - `import_report`: array of conversion rows.
 
 Inside a case file, `format` is the required string `"egscene"` and
@@ -241,6 +262,7 @@ Each train unit has an `id` and may have:
   `max_speed_ms`, `max_deceleration_ms2`, `frontal_area_m2`,
   `resistance_coefficient`, `jerk_ms3`, and `length_m`.
 - `traction_curve`: an array of five-number rows `[v_lower, v_upper, c0, c1, c2]`.
+- `passenger_capacity`: an integer from 0 to 100,000, the passengers the unit carries.
 - `source`: an object whose independent string keys are `data_file` and
   `traction_file`.
 
@@ -248,6 +270,11 @@ The two source paths are explicit relationships. A `data_file` does not imply
 a matching name, prefix, or `T_` file; the same applies in the other direction.
 
 Each composition has `id` and a string-array `units` of train-unit IDs.
+
+A train carries the sum of the passenger capacities of its units when every
+unit has one. Otherwise it carries 300 plus 300 per wagon, and a composition
+whose units only partly have a capacity gets a warning. The legacy export has
+no field for the capacity and leaves it out with a warning.
 
 ## `services.json`
 
@@ -428,7 +455,8 @@ difference and the recorded direct incident evidence, and never states a cause.
 The checks, formulas and limits are in
 [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline).
 The incident IDs, first direct time and location, and termination outcome of
-each train are in `run_summary.csv`.
+each train are in `run_summary.csv`, and so are the most passengers on board and
+their average, for a run with passengers.
 
 ## `passengers.json`
 
@@ -448,9 +476,44 @@ it never constructs a partial journey. Legacy-import provenance downgrades a
 historical reverse leg to an actionable warning and native staging omits the
 whole affected journey.
 
-Journey and leg IDs are stable across the scene. A journey may have an empty
-`legs` array when the active legacy route-choice file has no row for it; this
-is reported as a warning rather than inventing a route.
+Journey and leg IDs are stable across the scene. A journey with an empty `legs`
+array is live: when the passenger appears on the platform, the run plans the
+earliest arrival at the destination on the timetable of the moment, with at
+most `simulation_settings.passenger_max_transfers` transfers, and plans again
+when the passenger misses a train or finds it full. A journey with legs follows
+them until one cannot be taken and is then planned the same way. A journey for
+which no train reaches the destination ends with the outcome `no_route`, and the
+passenger leaves the network at the station it is at. A journey that comes from
+a legacy route-choice file without a row for it has an empty `legs` array and
+is a live journey like any other.
+
+The optional root key `demand` holds origin-destination demand slices. A slice
+has `id`, numeric `start_seconds` and `end_seconds` (absolute seconds from
+midnight, like the journey windows) and a `cells` array. A cell has `origin`
+and `destination` station IDs and an integer `count` of at least 1. Slices must
+not overlap, a period must end after it starts and by 24:00:00, a cell may not
+join a station to itself, and a slice holds at most one cell per station pair.
+All slices together hold at most 1,000,000 passengers. The ID that a cell gives
+its passengers (below) must be the ID of no other cell and of no passenger of
+`passengers`. A slice that starts before the base time or ends after the end of
+the run (the base time plus the duration) gets a warning: its passengers before
+the base time all appear in the first step, and those after the end never appear.
+A scene without slices is written without the key, and the legacy export leaves
+the slices out with a warning.
+
+A run adds one passenger per counted passenger after the passengers of the
+scene. It adds them slice by slice in the order of their start (a tie by ID) and,
+within a slice, cell by cell in the order of the origin station and then of the
+destination station in `stations.json`, whatever the order in the file. The
+passengers of a cell with count n appear at start + i * (end - start) / n for
+i = 0 to n - 1, each with one live journey. A passenger's ID is
+`<slice>:<origin>><destination>#<i>`, and its journey ID adds `.1`.
+
+The matrix of one slice can be read from and written to CSV. The first row
+`Time Reference,<seconds>` is optional, the next row lists the destination
+stations after one label cell, and each further row starts with an origin
+station and holds a count per destination; an empty count is 0. Stations are
+matched by ID, then by name.
 
 Random draws and simulation results are not scene input. The explicit legacy
 importer recognizes passenger data only when both exact source files
@@ -571,7 +634,7 @@ scenario, and passengers are built directly from `SceneModel` in memory.
 | `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
-| `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
+| `passengers.json` | optional | journeys, absolute midnight-second windows, legs, and demand slices |
 | `views.json` | optional display metadata | authored track levels/regions, double switch drawing and station display geometry; preserved in case folders and case files |
 
 Signalling areas in `signalling.json` give runtime sections their signalling
@@ -609,6 +672,18 @@ for an upgrade. An upgrade to a copy is offered only for a scene version that
 has a registered migration, and none exists today; when one is offered, the
 original directory or ZIP remains unchanged. Newer `schema_version` or `bundle_version` values
 require a newer app.
+
+The passenger keys that came after release 1.0.9 are part of schema version 1:
+`demand` in `passengers.json`, `passenger_capacity` of a train unit, and
+`passenger_max_transfers`, `passenger_dwell_coefficients` and the three passenger
+thresholds in `simulation_settings`. Release 1.0.9 and older releases read
+version 1 and skip a key they do not know, so they open a case that has these
+keys without a message. They run it without the demand passengers and with the
+built-in capacity and dwell values, and they leave the keys out when they save
+the case. A case with demand and no listed passenger is then saved without
+`passengers.json`. Those releases also report a journey without legs, which the
+run now plans by itself, with the warning `scene.passenger.legs.empty`. Keep a
+copy of a case with these keys before you save it with an older release.
 
 ## Case files
 
@@ -953,9 +1028,16 @@ service's ordered stop pattern. Repeated stations are resolved as the first
 ordered pair that satisfies that rule. Legacy-import scenes retain an invalid
 historical leg as a warning, but native staging omits that whole journey.
 
-Journey and leg IDs are scene-wide stable IDs. An empty `legs` array preserves
-a DAS journey for which the legacy route-choice input has no matching row; the
-validator warns instead of guessing a route.
+The validator also warns, without blocking a run, when a planned arrival window
+ends before the planned departure window starts, and when a leg's service
+leaves its origin before the previous leg's service arrives there. That check
+uses the planned times of the stops, shifted by the headways of a later
+occurrence, and skips a leg whose stops have no planned time.
+
+Journey and leg IDs are scene-wide stable IDs. An empty `legs` array is a live
+journey: it preserves a DAS journey for which the legacy route-choice input has
+no matching row, and the run plans its route when the passenger appears. The
+validator reports nothing for it.
 
 Passenger JSON is native runtime input. The explicit legacy importer recognizes
 DAS and RouteChoice only when both exact files exist:

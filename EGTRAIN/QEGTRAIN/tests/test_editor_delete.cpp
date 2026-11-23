@@ -70,7 +70,7 @@ static SceneModel deleteScene() {
 	SceneScenario base;
 	base.id = "base";
 	base.name = "Baseline";
-	base.incidents = {{"i1", "train_breakdown", "s1", 10.0, 20.0}};
+	base.incidents = {{"i1", IncidentType::TrainBreakdown, "s1", 10.0, 20.0}};
 	SceneEntranceDelay delay;
 	delay.serviceId = "s1";
 	delay.stationId = "A";

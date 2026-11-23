@@ -4,6 +4,7 @@
 #include "scene/SceneModel.h"
 
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -74,7 +75,7 @@ public:
 	// Reports a problem with its own code, for a check that is not about the type of one field. It is an error unless
 	// severity says otherwise.
 	void report(const char* code, const std::string& message, const std::string& path,
-		SceneSeverity severity = SceneSeverity::Error) const;
+		SceneSeverity severity = SceneSeverity::Error, const std::string& suggestedFix = {}) const;
 
 private:
 	std::string_view file_;
@@ -83,8 +84,9 @@ private:
 };
 
 // Reads an incident or an entrance delay of a scenario. The reader reports each field that is absent or invalid, in the
-// order of the file schema, and the result keeps the defaults of the fields that it could not read.
-SceneIncident decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
+// order of the file schema, and the result keeps the defaults of the fields that it could not read. An incident type that
+// is not one of the two is reported as scene.incident.type and gives no incident.
+std::optional<SceneIncident> decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 
 // Reads the scenario file: one scenario object. A name that the file does not allow is an error. The reader must belong to
@@ -124,6 +126,6 @@ void decodeScenarios(const SceneFieldReader& reader, const nlohmann::json& root,
 /// Reads incidents.json, the historical incidents file of a case without scenarios.json, into the default scenario of
 /// scene.
 void decodeHistoricalIncidents(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
-/// Reads passengers.json. A journey needs both planned windows, a leg without an occurrence has occurrence 1, and a
-/// simulation result in the input is an error.
+/// Reads passengers.json: the passengers and the optional demand slices. A journey needs both planned windows, a leg
+/// without an occurrence has occurrence 1, and a simulation result in the input is an error.
 void decodePassengers(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);

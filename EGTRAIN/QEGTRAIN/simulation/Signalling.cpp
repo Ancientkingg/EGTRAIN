@@ -77,10 +77,10 @@ bool resolveDoubleSwitchSections(SimulationRun& run, const Section& current, con
 
 TrainEvent::TrainEvent() {
 	Time = Time2 = Position = Acceleration = -10000;
-	trainDescription = "None";
-	SuccessorID = CurrentSectionID = NextSectionID = "None";
+	trainDescription = kNoneId;
+	SuccessorID = CurrentSectionID = NextSectionID = kNoneId;
 	TrainSpeed = -1;
-	InfraElemStatus = "None";
+	InfraElemStatus = SwitchPosition::NotASwitch;
 }
 
 // Function to order Trains in a list where time events are also equal
@@ -97,7 +97,7 @@ void orderListOfTrainEvents(list<TrainEvent>& OutputList) {
 
 InfraEvent::InfraEvent() {
 	ElementInfo.GeoXCoord = ElementInfo.GeoYCoord = ElementInfo.XCoordinate = ElementInfo.YCoordinate = -1;
-	ElementInfo.ID = ElementInfo.SectionID = ElementInfo.stationName = "None";
+	ElementInfo.ID = ElementInfo.SectionID = ElementInfo.stationName = kNoneId;
 	ElementInfo.IsSignal = ElementInfo.isStation = ElementInfo.IsSwitch = ElementInfo.IsTrackDetSecBorder = false;
 	// The list of Recorded event is empty by default
 }
@@ -121,7 +121,7 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 				if (i->XCoordinate > PositionLastRouteInfraElement) {	  // With this condition we avoid recording events for two infraelement having the same exact coordinate as it happens when we have ending edges of diverging switches coinciding with starting edges of another diverging switch. With this condition we avoid recording events for the same infraelement at the same time
 
 					if ((i->IsSwitch == 1) && (i->withSwitchDiv == 1)) {
-						if (i->SwitchName == "None") { // throw a warning if it does not have Switch Name
+						if (isNoneId(i->SwitchName)) { // throw a warning if it does not have Switch Name
 							EG_LOG(SimSetup, Warning) << "Warning: Diverging Switch: " << i->ID << "at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no SwitchName. Please investigate on it\n";
 						} else { // in the case it has a SwitchName, then the Switchname will be the ID of the InfraElement
 							InfraElementID = i->SwitchName;
@@ -130,7 +130,7 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 					}
 
 					else {					   // for all the other cases just consider the ID of the element
-						if (i->ID == "None") { // throw a warning in case the infra element does not have a name
+						if (isNoneId(i->ID)) { // throw a warning in case the infra element does not have a name
 							EG_LOG(SimSetup, Warning) << "Warning: Infrastructure Element at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no ID. Please investigate on it\n";
 						} else { // in the case it has a regular name then InfraElement ID is the ID of the element itself
 							InfraElementID = i->ID;
@@ -140,20 +140,20 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 					list<InfraElement>::const_iterator LastRouteInfraElementOnRoute = RouteInfrastructureElements.end();
 					LastRouteInfraElementOnRoute--; // this one is the last infra element on the route
 					// ID of the successor InfraElement after i on the RouteInfrastructureElements List
-					string SuccessorInfraElement = "None";
+					string SuccessorInfraElement = kNoneId;
 					// SuccessorInfraElement shall not be a VirtualTDSB since VirtualTDSB are not considered in the blocking times of trains
 					if (i == LastRouteInfraElementOnRoute) { // if i is the last element of Route Infra then put SuccessorInfraElement as None
-						SuccessorInfraElement = "None";
+						SuccessorInfraElement = kNoneId;
 					} else { // if i is not the last infra element of the route then put the ID of the successor as SuccessorInfraElement
 						list<InfraElement>::const_iterator successor = i;
 						successor++; // taking the infrastructure element of the route coming after element i
 						SuccessorInfraElement = successor->ID;
-						if ((successor->ID == "VirtualTDSB") && (successor != LastRouteInfraElementOnRoute)) { // in case the successor of i is a VirtualTDSB then put the element after successor as SuccessorInfraElement
+						if ((successor->ID == virtualTdsbId) && (successor != LastRouteInfraElementOnRoute)) { // in case the successor of i is a VirtualTDSB then put the element after successor as SuccessorInfraElement
 							list<InfraElement>::const_iterator secondsuccessor = successor;
 							secondsuccessor++;
 							SuccessorInfraElement = secondsuccessor->ID;
-						} else if ((successor->ID == "VirtualTDSB") && (successor == LastRouteInfraElementOnRoute)) { // in case the successor is a VirtualTDSB and it is also the last element of the route then put SuccessorInfraElement as "None"
-							SuccessorInfraElement = "None";
+						} else if ((successor->ID == virtualTdsbId) && (successor == LastRouteInfraElementOnRoute)) { // in case the successor is a VirtualTDSB and it is also the last element of the route then put SuccessorInfraElement as "None"
+							SuccessorInfraElement = kNoneId;
 						}
 					}
 
@@ -172,28 +172,28 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 								if (i->XCoordinate < i->XConnectedPoint) {
 									// Then activate the switch only at the starting point of the beam, since at the toe (i.e. the starting point) of the beam there is the point machine while the outer edge remain fixed in straight position
 
-									P.InfraElemStatus = "Diverging";
+									P.InfraElemStatus = SwitchPosition::Diverging;
 								}
 
 								else { // if the infra element is the outer edge of the beam ( i.e. i->XCoordinate> PositionConnectedPoint, so if infra element i is the second point coming in the moving direction of the train) then
 									   // if the end of the beam does not concide with any starting edge of diverging beam it is in the straight position since only the starting edge of the beam is moved
-									P.InfraElemStatus = "Straight";
+									P.InfraElemStatus = SwitchPosition::Straight;
 
 									if (i->isEndOfDivSwitchStartOfADivSwitch == 1) {
 										// if the ending edge of the beam coincides with the starting edge of another diverging switch, then of course the position of the infra element is diverging
-										P.InfraElemStatus = "Diverging";
+										P.InfraElemStatus = SwitchPosition::Diverging;
 									}
 								}
 							} else {
 								EG_LOG(SimSetup, Warning) << "Warning: Position not found for connected Point of Switch: " << i->ID << " on Route of Train" << TrainName << "\n";
 							}
 						} else {
-							P.InfraElemStatus = "Straight";
+							P.InfraElemStatus = SwitchPosition::Straight;
 						}
 					}
 
 					else {
-						// If the InfraElement is not a Switch then its status must always be set to "None" that is the default value of the variable InfraElemStatus
+						// If the InfraElement is not a Switch then its status must always be set to NotASwitch that is the default value of the variable InfraElemStatus
 					}
 
 					for (list<InfraEvent>::iterator e = run.infra.infraEvents.begin(); e != run.infra.infraEvents.end(); e++) {
@@ -249,8 +249,8 @@ Section::Section() {
 }
 
 // Function to cut the block section
-//  the variable CutPart can be "CutEnd" to eliminate the part from CuttingAbscissa to the End Node or "CutBegin" to eliminate the part from the Start Node to the CuttingAbscissa
-void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
+//  the variable part can be CutPart::End to eliminate the part from CuttingAbscissa to the End Node or CutPart::Begin to eliminate the part from the Start Node to the CuttingAbscissa
+void Section::CutBlockSection(CutPart part, double CuttingAbscissa) {
 	list<Arc> listarcs;
 	list<Node> listnode;
 	Section CutSection;
@@ -262,7 +262,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 		EG_LOG(SimSetup, Error) << "ERROR: The Block Section " << this->ID << " cannot be cut in the inserted abscissa " << CuttingAbscissa << "\n\n";
 	}
 	if (IsCutValid == 1) {
-		if (CutPart == "CutEnd") {
+		if (part == CutPart::End) {
 			// Setting the beginning and end nodes and all the main attributes
 
 			CutSection.ID = this->ID;
@@ -309,7 +309,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					Node CutEndingNode;
 					CutEndingNode.X = CuttingAbscissa;
 					CutEndingNode.Y = arcs_in_signalling_block_section[i].endNode.Y;
-					CutEndingNode.tdsbId = "VirtualTDSB";
+					CutEndingNode.tdsbId = virtualTdsbId;
 					modArc.endNode = CutEndingNode;
 					modArc.length = modArc.endNode.X - modArc.startNode.X;
 					listarcs.push_back(modArc);
@@ -346,7 +346,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 
 		}
 
-		else if (CutPart == "CutBegin") {
+		else if (part == CutPart::Begin) {
 			// Setting all the main attributes
 			CutSection.ID = this->ID;
 			CutSection.trackLineId = this->trackLineId;
@@ -397,7 +397,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					Node CutStartingNode;
 					CutStartingNode.X = CuttingAbscissa;
 					CutStartingNode.Y = arcs_in_signalling_block_section[i].startNode.Y;
-					CutStartingNode.tdsbId = "VirtualTDSB";
+					CutStartingNode.tdsbId = virtualTdsbId;
 					modArc.startNode = CutStartingNode;
 					modArc.length = modArc.endNode.X - modArc.startNode.X;
 					listarcs.push_back(modArc);
@@ -747,9 +747,9 @@ void setAllConnections(SimulationRun& run) {
 }
 
 // This function create a list of section which have the string "input" in their ID
-void setList(SimulationRun& run, string input, list<Section>& BSConnected) {
+void setList(SimulationRun& run, const string& input, list<Section>& BSConnected) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
-		if (run.infra.sections[i].ID.find(input, 0) != -1) {
+		if (run.infra.sections[i].ID.find(input, 0) != string::npos) {
 			BSConnected.push_back(run.infra.sections[i]);
 		}
 	}
@@ -759,7 +759,7 @@ void setList(SimulationRun& run, string input, list<Section>& BSConnected) {
 void setDependenciesBetweenBlocks(SimulationRun& run) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
 		auto& section = run.infra.sections[i];
-		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
+		const auto maxConnectedBlocks = static_cast<int>(std::size(section.IDConnectedBS));
 		auto addConnection = [&](const string& id) {
 			if (section.N_ConnectedBS >= maxConnectedBlocks) {
 				EG_LOG(SimSetup, Error) << "ERROR: Block section " << section.ID << " has more than "
@@ -1282,7 +1282,7 @@ void setGeoCoordinates(Section* BS, int N_BS) {
 
 
 Route::Route() {
-	ID = "None";
+	ID = kNoneId;
 	N_Block_Sections = 0;
 	x_of_start_node = 0;
 	x_of_end_node = 0;
@@ -1417,8 +1417,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 				}
 
 				if ((arc.endNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.endNode, TEMP_Elem)) {
-					EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << arc.endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																										  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << arc.endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -1437,8 +1436,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 				}
 
 				if ((arc.startNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.startNode, TEMP_Elem)) {
-					EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << arc.startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																												" is a diverging switch with less than 4 characters in its name. Please check why...\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << arc.startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -1452,8 +1450,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 		InfraElement TEMP_Elem = infraElementAtNode(BS, BS.end_node);
 		TEMP_Elem.IsTrackDetSecBorder = true;
 		if ((BS.end_node.numConnections > 0) && !setSwitchOfInfraElement(BS, BS.end_node, TEMP_Elem)) {
-			EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																					   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+			EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 		}
 
 		// Increase the locations of 1 element if it is not already in the list
@@ -1471,7 +1468,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 			for (list<InfraElement>::iterator h = this->InfrastructureElements.begin(); h != this->InfrastructureElements.end(); h++) {
 				if ((y->IsSwitch == 1) && (y->withSwitchDiv == 1)) { // if y in the list of TEMP Elem is a diverging switch
 																	 // IsAlready There becomes true only if two switches have the same ID, switch name, geopositionX and if they are connected to the same switch edge. In case even one of this conditions is not true then the Node shall be included
-					if ((y->ID == h->ID) && (y->SwitchName == h->SwitchName) && (y->ConnectedPoint == h->ConnectedPoint) && (y->GeoXCoord == y->GeoXCoord)) {
+					if ((y->ID == h->ID) && (y->SwitchName == h->SwitchName) && (y->ConnectedPoint == h->ConnectedPoint) && (y->GeoXCoord == h->GeoXCoord)) {
 						IsAlreadyInRouteInfaElem = true;
 						break;
 					}
@@ -1510,7 +1507,7 @@ void Route::identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<Inf
 
 void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::string>& blockIds, int direction) {
 	// Reset scalar/list state in place.
-	ID = "None";
+	ID = kNoneId;
 	N_Block_Sections = 0;
 	sequence_of_block_sections.clear();
 	x_of_start_node = 0;
@@ -1566,8 +1563,8 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 					if ((AreBlocksOverlapped == 1) && (it->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
 						double CuttingPosition = 0;
 						CuttingPosition = (p->XStartSwitch - it->XEndSwitch) / 2 + it->XEndSwitch;
-						it->CutBlockSection("CutEnd", CuttingPosition);
-						p->CutBlockSection("CutBegin", CuttingPosition);
+						it->CutBlockSection(CutPart::End, CuttingPosition);
+						p->CutBlockSection(CutPart::Begin, CuttingPosition);
 					}
 				}
 				sequence_of_block_sections[i] = *it;
@@ -1593,8 +1590,8 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 				if ((AreBlocksOverlapped == 1) && (q->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
 					double CuttingPosition = 0;
 					CuttingPosition = (q->XStartSwitch - p->XEndSwitch) / 2 + p->XEndSwitch;
-					q->CutBlockSection("CutBegin", CuttingPosition);
-					p->CutBlockSection("CutEnd", CuttingPosition);
+					q->CutBlockSection(CutPart::Begin, CuttingPosition);
+					p->CutBlockSection(CutPart::End, CuttingPosition);
 				}
 			}
 
@@ -1666,7 +1663,7 @@ void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
 			if (run.infra.routes[i].InfrastructureElements.size() > 0) {
 				for (list<InfraElement>::iterator b = run.infra.routes[i].InfrastructureElements.begin();
 					b != run.infra.routes[i].InfrastructureElements.end(); b++) {
-					if (b->ID != "VirtualTDSB") { // The element can be inserted only if it is not a Virtual TDSB (which has been created to separate two adjacent diverging switches) but a real infrastructure element
+					if (b->ID != virtualTdsbId) { // The element can be inserted only if it is not a Virtual TDSB (which has been created to separate two adjacent diverging switches) but a real infrastructure element
 						InfraEvent TEMP_InfraEvent;
 						TEMP_InfraEvent.ElementInfo = *b;
 						// Changing the ID of the of TEMP_InfraEvent with the SwitchName of b in case b is a Diverging Switch
@@ -1698,12 +1695,23 @@ void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
 	}
 }
 
+const char* authorityTrainEndName(AuthorityTrainEnd end) {
+	switch (end) {
+		case AuthorityTrainEnd::Front:
+			return "Front";
+		case AuthorityTrainEnd::Tale:
+			return "Tale";
+		case AuthorityTrainEnd::None:
+			break;
+	}
+	return "None";
+}
+
 // Class constructor
 MovementAuthority::MovementAuthority() {
-	BSID = "None";
+	BSID = kNoneId;
 	ReversedDirection = false;
 	AbsPosEoA = RelativePosEoA = EoA_Dist_From_BSID_Beg = -1;
-	type = typePart = "None";
 }
 
 // Function to Occupy a Block Section and all the Block sections connected with it
@@ -1774,8 +1782,6 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 			int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 			// The section and the sections connected to it, to add to BlocksOccupied
 			std::vector<string> IDToAdd(NumBlocksToFind);
-			string IDToFree[20];
-			bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 			IDToAdd[0] = BLS.ID;
 			for (int i = 1; i < NumBlocksToFind; i++) {
 				IDToAdd[i] = BLS.IDConnectedBS[i - 1];
@@ -1837,8 +1843,6 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 				int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 				// The section and the sections connected to it, to add to BlocksOccupied
 				std::vector<string> IDToAdd(NumBlocksToFind);
-				string IDToFree[20];
-				bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 				IDToAdd[0] = BLS.ID;
 				for (int i = 1; i < NumBlocksToFind; i++) {
 					IDToAdd[i] = BLS.IDConnectedBS[i - 1];
@@ -2025,7 +2029,7 @@ void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int Tr
 }
 
 // Function to Activate blocks connected with block sections having switches in diverging position
-void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S) {
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS) {
 	ConnectedSectionIdentity identity;
 	if (!parseConnectedSectionIdentity(BS.ID, identity))
 		return;
@@ -2169,7 +2173,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 		if (ListBlocksConnected.size() > 0) {
 			for (list<string>::iterator h = ListBlocksConnected.begin(); h != ListBlocksConnected.end(); h++) {
 				MovementAuthority MA1, MA2, MA3;
-				string ConnectedBlockName = *h;
+				const string& ConnectedBlockName = *h;
 				ConnectedSectionIdentity identity;
 				if (!parseConnectedSectionIdentity(ConnectedBlockName, identity))
 					continue;
@@ -2197,7 +2201,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA1.TrainInfo.TrainSpeed = V_i;
 				MA1.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA1.TrainInfo.NextSectionID = NextSectionID;
-				MA1.type = "DivergingSwitchOccupied";
+				MA1.type = AuthorityKind::DivergingSwitchOccupied;
 				MA1.TrainInfo.Acceleration = Acc_i;
 				// Defining MA3 on Connected Block With Switch Div
 				MA2.BSID = *h;
@@ -2207,7 +2211,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA2.TrainInfo.TrainSpeed = V_i;
 				MA2.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA2.TrainInfo.NextSectionID = NextSectionID;
-				MA2.type = "DivergingSwitchOccupied";
+				MA2.type = AuthorityKind::DivergingSwitchOccupied;
 				MA2.TrainInfo.Acceleration = Acc_i;
 				// Defining MA4 on Connected Block With Switch Div
 				MA3.BSID = *h;
@@ -2217,7 +2221,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA3.TrainInfo.TrainSpeed = V_i;
 				MA3.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA3.TrainInfo.NextSectionID = NextSectionID;
-				MA3.type = "DivergingSwitchOccupied";
+				MA3.type = AuthorityKind::DivergingSwitchOccupied;
 				MA3.TrainInfo.Acceleration = Acc_i;
 				// Send these MAs to the ETCS List of MAs
 				list<MovementAuthority> ListofMA;
@@ -2248,7 +2252,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 }
 
 // Function to Process Train Position and compute Movement Authorities
-void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const string& type, const string& typePart) {
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, AuthorityKind type, AuthorityTrainEnd typePart) {
 	MovementAuthority MA;
 	if (IsRouteReversed == 0) { // if the train route is not reversed
 		MA.ReversedDirection = false;
@@ -2313,7 +2317,7 @@ void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, c
 }
 
 // Function to Elaborate the MA on block sections with switches in diverging position
-void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart) {
 	// the string of the next block section ID
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2326,7 +2330,7 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
 		if (TrainRoute.sequence_of_block_sections[b].ID == BS.ID) {
 			if (b == TrainRoute.N_Block_Sections - 1) {
-				NextSectionID = "None";
+				NextSectionID = kNoneId;
 			} else {
 				NextSectionID = TrainRoute.sequence_of_block_sections[b + 1].ID;
 			}
@@ -2347,8 +2351,8 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Section Block1;
 		Block1 = BS;
 		Block1.ID = BlockID1;
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
 	}
 	// if the abscissa S_i is on the diverging switch then occupy all of the three block sections
 	else if ((S_i >= BS.XStartSwitch * 1000) && (S_i < BS.XEndSwitch * 1000)) {
@@ -2361,9 +2365,9 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Block2 = BS;
 		Block2.ID = BlockID2;
 
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the second block section
 
 	}
 	// else if the abscissa S is after the XEnd of the switch occupy the section with the diverging switch and the second block section
@@ -2371,13 +2375,13 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Section Block2;
 		Block2 = BS;
 		Block2.ID = BlockID2;
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the Second block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the Second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
 	}
 }
 
 // Function to Block Switches when trains traverse them in the diverging position
-void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart) {
 	// Defining the next block section ID on the route of the train after BLS
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2390,7 +2394,7 @@ void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, dou
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
 		if (TrainRoute.sequence_of_block_sections[b].ID == BLS.ID) {
 			if (b == TrainRoute.N_Block_Sections - 1) {
-				NextSectionID = "None";
+				NextSectionID = kNoneId;
 			} else {
 				NextSectionID = TrainRoute.sequence_of_block_sections[b + 1].ID;
 			}
@@ -2441,13 +2445,13 @@ void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, dou
 		}
 
 		// locking start and end of the switch on the signalling_block_sections with SwitchDiv
-		elaborateRbcMas(run, BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
-		elaborateRbcMas(run, BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::DivergingSwitchOccupied, typePart);
+		elaborateRbcMas(run, BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::DivergingSwitchOccupied, typePart);
 		// Blocking the access to the beginning of the switch on Block 1 and connected to Block 1 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(run, AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);			 // IsRouteReversed=0: blocks from AllBlocks list are not reversed
-		lockSwitchesOnAllConnectedSections(run, (AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
+		elaborateRbcMas(run, AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, AuthorityKind::DivergingSwitchOccupied, typePart); // IsRouteReversed=0: blocks from AllBlocks list are not reversed
+		lockSwitchesOnAllConnectedSections(run, (AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID);   // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
 		// Blocking the access to the beginning of the switch on Block 2 and connected to Block 2 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(run, AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, AuthorityKind::DivergingSwitchOccupied, typePart);
 		lockSwitchesOnAllConnectedSections(run, (AbsEndSwitchPos + 10), (AbsEndSwitchPos - 10), V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block2 is not reversed since we are taking it directly from the AllBlockSections
 	}
 }
@@ -2809,7 +2813,7 @@ void releaseMixedSignallingSystem(SimulationRun& run) {
 }
 
 // Function to Release the last block section in mixed signalling
-void relLastSectionMixedSignalling(SimulationRun& run, string blockID) {
+void relLastSectionMixedSignalling(SimulationRun& run, const string& blockID) {
 	// check all routes
 	for (int r = 0; r < run.infra.numRoutes; r++) {
 		for (int b = 0; b < run.infra.routes[r].N_Block_Sections; b++) {
@@ -3010,7 +3014,7 @@ void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionInde
 		}
 
 		// block entrance if any signalling_block_sections ahead is occupied
-		for (int i = 0; i < sectionsAhead.size(); i++) {
+		for (int i = 0; i < static_cast<int>(sectionsAhead.size()); i++) {
 			for (auto occ = run.blocksOccupied.begin(); occ != run.blocksOccupied.end(); ++occ) {
 				if (sectionsAhead[i] == *occ) {
 					needToBlock = true;
@@ -3070,7 +3074,7 @@ bool breakdownMatchesTrain(const SimulationIncident& incident, const std::string
 
 bool breakdownActive(const SimulationIncident& incident, const std::string& trainDesc,
 	int timestepIndex) {
-	if (incident.type != "train_breakdown" || !breakdownMatchesTrain(incident, trainDesc)
+	if (incident.type != IncidentType::TrainBreakdown || !breakdownMatchesTrain(incident, trainDesc)
 		|| timestepIndex < incident.startSeconds)
 		return false;
 	return !runtimeIncidentHasEnd(incident) || timestepIndex < incident.endSeconds;
@@ -3109,8 +3113,8 @@ static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& rout
 		: 0;
 	MovementAuthority MA;
 	MA.BSID = anchor.ID;
-	MA.type = "SignalFailure";
-	MA.typePart = "Front";
+	MA.type = AuthorityKind::SignalFailure;
+	MA.typePart = AuthorityTrainEnd::Front;
 	MA.ReversedDirection = route.reversed_direction;
 	MA.EoA_Dist_From_BSID_Beg = anchorDist;
 	// The EVC maps a reversed-route EoA back through GeoXBegNode,
@@ -3137,7 +3141,7 @@ static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& rout
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex) {
 	for (const auto& inc : run.incidents) {
-		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds)
+		if (inc.type != IncidentType::SignalFailure || timestepIndex < inc.startSeconds)
 			continue;
 		if (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds) {
 			// The aspects a failure set are only cleared for sections in BlocksConnected,

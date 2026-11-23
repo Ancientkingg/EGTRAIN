@@ -1,9 +1,13 @@
 #include "diagrams/RunResults.h"
 
 #include "scene/SceneModel.h"
+// After SceneModel.h, which names a member `signals` and so must come before any Qt header.
+#include "app/MainWindowSupport.h"
+#include "simulation/PassengerFlow.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
+#include "support/PassengerStep.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -123,6 +127,10 @@ private slots:
 	void classifiesTimetableStatus();
 	void classifiesArrivalAndDepartureApart();
 	void carriesEntranceDelay();
+	void reportsPassengerLoad();
+	void passengerStepCountsOnlyTrainsInService();
+	void runWithoutPassengersRecordsNoLoad();
+	void summaryCsvHasPassengerLoadColumns();
 	void capsTimetableRows();
 	void copiesStopLists();
 	void clampsStationCount();
@@ -227,7 +235,7 @@ void TestRunResults::reportsPositionWithinRoute() {
 	bool foundEntranceAuthority = false;
 	double entrancePosition = std::numeric_limits<double>::quiet_NaN();
 	for (const auto& authority : defaultRun().etcsMa) {
-		if (authority.BSID == sections[0].ID && authority.type == "TrainEnd" && authority.typePart == "Tale") {
+		if (authority.BSID == sections[0].ID && authority.type == AuthorityKind::TrainEnd && authority.typePart == AuthorityTrainEnd::Tale) {
 			foundEntranceAuthority = true;
 			entrancePosition = authority.AbsPosEoA;
 			break;
@@ -465,6 +473,125 @@ void TestRunResults::carriesEntranceDelay() {
 	// a copy of a train keeps its entrance delay station
 	QVERIFY(closeTo(copied.EntranceDelay, 120.0));
 	QCOMPARE(copied.entranceDelayStationId, "B");
+}
+
+void TestRunResults::reportsPassengerLoad() {
+	// Three steps with 100, 300 and 200 passengers on board: peak 300, average 200.
+	auto loaded = makeTimetableTrain("loaded", {"A"});
+	for (const int onBoard : {100, 300, 200}) {
+		loaded->Current_OnBoard_Passengers = onBoard;
+		loaded->recordOnBoardPassengers();
+	}
+	// A train that never ran, or ran in a run without passengers, records no step.
+	auto idle = makeTimetableTrain("idle", {"A"});
+	const std::vector<const Train*> trains{loaded.get(), idle.get()};
+	const auto results = buildRunResults(trains, 1.0);
+	QCOMPARE(results.trains.size(), std::size_t(2));
+	QVERIFY(results.trains[0].peakOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[0].peakOnBoardPassengers.value, 300.0));
+	QVERIFY(results.trains[0].averageOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[0].averageOnBoardPassengers.value, 200.0));
+	// The idle train has no load, which is not 0.
+	QVERIFY(!results.trains[1].peakOnBoardPassengers.available);
+	QVERIFY(!results.trains[1].averageOnBoardPassengers.available);
+}
+
+// Three steps of the passenger step over three trains that each carry passengers: only the train that has entered and not left
+// the simulation adds its load to the peak and the average.
+void TestRunResults::passengerStepCountsOnlyTrainsInService() {
+	SimulationRun& run = defaultRun();
+	PassengerStepScope scope(run);
+	run.settings.PAX_GUI = false;
+	run.settings.startingSimulationTime = 0;
+	Train waiting = trainCalling("waiting", {"A", "B"});
+	waiting.CanEnter = false;
+	waiting.OutOfSimulation = false;
+	waiting.Current_OnBoard_Passengers = 500;
+	Train inService = trainCalling("in service", {"A", "B"});
+	inService.CanEnter = true;
+	inService.OutOfSimulation = false;
+	Train ended = trainCalling("ended", {"A", "B"});
+	ended.CanEnter = true;
+	ended.OutOfSimulation = true;
+	ended.Current_OnBoard_Passengers = 400;
+	for (Train* train : {&waiting, &inService, &ended})
+		train->run_ = &run;
+	Passenger passenger;
+	passenger.ID = "P0";
+	scope.set({waiting, inService, ended}, {passenger}, {});
+
+	int step = 0;
+	for (const int onBoard : {100, 300, 200}) {
+		run.trains[1].Current_OnBoard_Passengers = onBoard;
+		simulateTrainPassengerInteractions(run, ++step);
+	}
+
+	const std::vector<const Train*> trains{&run.trains[0], &run.trains[1], &run.trains[2]};
+	const auto results = buildRunResults(trains, 1.0);
+	QCOMPARE(results.trains.size(), std::size_t(3));
+	// the train that has not entered and the train that ended have no load, which is not 0
+	QVERIFY(!results.trains[0].peakOnBoardPassengers.available);
+	QVERIFY(!results.trains[0].averageOnBoardPassengers.available);
+	QVERIFY(!results.trains[2].peakOnBoardPassengers.available);
+	QVERIFY(!results.trains[2].averageOnBoardPassengers.available);
+	QVERIFY(results.trains[1].peakOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[1].peakOnBoardPassengers.value, 300.0));
+	QVERIFY(results.trains[1].averageOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[1].averageOnBoardPassengers.value, 200.0));
+}
+
+// Without a passenger in the run, the passenger step records no load, even for a train in service that carries some.
+void TestRunResults::runWithoutPassengersRecordsNoLoad() {
+	SimulationRun& run = defaultRun();
+	PassengerStepScope scope(run);
+	run.settings.PAX_GUI = false;
+	run.settings.startingSimulationTime = 0;
+	Train inService = trainCalling("in service", {"A", "B"});
+	inService.CanEnter = true;
+	inService.OutOfSimulation = false;
+	inService.Current_OnBoard_Passengers = 100;
+	inService.run_ = &run;
+	scope.set({inService}, {}, {});
+
+	for (int step = 1; step <= 3; ++step)
+		simulateTrainPassengerInteractions(run, step);
+
+	const std::vector<const Train*> trains{&run.trains[0]};
+	const auto results = buildRunResults(trains, 1.0);
+	QCOMPARE(results.trains.size(), std::size_t(1));
+	QVERIFY(!results.trains[0].peakOnBoardPassengers.available);
+	QVERIFY(!results.trains[0].averageOnBoardPassengers.available);
+}
+
+// The last two columns of the run summary are the peak and the average load as full-precision numbers, and empty fields for a
+// train without a load. The table of the Run Results dock needs a window, so its text ("-" and the decimals) is not tested here.
+void TestRunResults::summaryCsvHasPassengerLoadColumns() {
+	auto loaded = makeTimetableTrain("loaded", {"A"});
+	for (const int onBoard : {100, 300, 250}) {
+		loaded->Current_OnBoard_Passengers = onBoard;
+		loaded->recordOnBoardPassengers();
+	}
+	auto idle = makeTimetableTrain("idle", {"A"});
+	const std::vector<const Train*> trains{loaded.get(), idle.get()};
+	const std::string text = buildRunSummaryCsv(buildRunResults(trains, 1.0));
+
+	std::vector<std::string> lines;
+	std::size_t from = 0;
+	while (from < text.size()) {
+		const std::size_t end = text.find("\r\n", from);
+		lines.push_back(text.substr(from, end - from));
+		from = end == std::string::npos ? text.size() : end + 2;
+	}
+	QCOMPARE(lines.size(), std::size_t(4));
+	const auto endsWith = [](const std::string& line, const std::string& tail) {
+		return line.size() >= tail.size() && line.compare(line.size() - tail.size(), tail.size(), tail) == 0;
+	};
+	QVERIFY2(endsWith(lines[0], ",Peak passengers on board,Average passengers on board"), lines[0].c_str());
+	// peak 300, average 650 / 3
+	QVERIFY2(endsWith(lines[1], ",300," + csv::formatDouble(650.0 / 3.0)), lines[1].c_str());
+	// an unavailable load is two empty fields after the termination outcome
+	QVERIFY2(endsWith(lines[2], ",not requested,,"), lines[2].c_str());
+	QVERIFY2(endsWith(lines[3], ",,,,,"), lines[3].c_str());
 }
 
 void TestRunResults::capsTimetableRows() {

@@ -48,7 +48,7 @@ json trainIdentity(const GuiTrainState& train) {
 	return identity;
 }
 
-json trainState(const GuiTrainState& train, int step) {
+json trainState(const GuiTrainState& train, int step, bool withCapacity) {
 	const bool located = guiReplayTrainHasPosition(train, step);
 	json state = trainIdentity(train);
 	state["in_network"] = !train.outOfSimulation && step >= train.departureTime;
@@ -58,6 +58,18 @@ json trainState(const GuiTrainState& train, int step) {
 	state["x_km"] = numberIf(x != kNoXPosition, x);
 	state["speed_ms"] = numberIf(located, train.speedKmh / kKmhPerMetrePerSecond);
 	state["onboard"] = train.currentOnboardPassengers;
+	if (withCapacity)
+		state["capacity"] = train.maxOnboardPassengers;
+	return state;
+}
+
+json platformState(const GuiPlatformState& platform) {
+	json state = json::object();
+	state["station_id"] = platform.stationId;
+	state["platform_id"] = platform.platformId;
+	state["waiting"] = platform.passengerCount;
+	// The snapshot holds -1 for a platform whose capacity the run does not set.
+	state["capacity"] = platform.maxVolume >= 0 ? json(platform.maxVolume) : json(nullptr);
 	return state;
 }
 
@@ -102,8 +114,13 @@ json makeStateFrame(const LiveRunInfo& run, std::uint64_t seq, const GuiSimulati
 	frame["sim_time_s"] = number(simulationTime);
 	frame["clock_s"] = number(run.baseTimeSeconds + simulationTime);
 	json trains = json::array();
-	for (const GuiTrainState& train : snapshot.trains) trains.push_back(trainState(train, snapshot.timestep));
+	for (const GuiTrainState& train : snapshot.trains) trains.push_back(trainState(train, snapshot.timestep, run.hasPassengers));
 	frame["trains"] = std::move(trains);
+	if (run.hasPassengers) {
+		json platforms = json::array();
+		for (const GuiPlatformState& platform : snapshot.platforms) platforms.push_back(platformState(platform));
+		frame["platforms"] = std::move(platforms);
+	}
 	if (includeSignals) {
 		json entries = json::array();
 		for (const GuiSignalState& signal : snapshot.signalStates) entries.push_back(signalState(signal));

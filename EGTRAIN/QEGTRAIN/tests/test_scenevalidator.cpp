@@ -3,6 +3,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SignallingLevel.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/PassengerDwellModel.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneWriter.h"
 
@@ -154,7 +155,7 @@ static SceneModel completeScene() {
 	SceneScenario scenario;
 	scenario.id = "baseline";
 	scenario.name = "Baseline";
-	scenario.incidents.push_back({"incident-1", "signal_failure", "signal-1", 300.0, 600.0});
+	scenario.incidents.push_back({"incident-1", IncidentType::SignalFailure, "signal-1", 300.0, 600.0});
 	scenario.entranceDelays.push_back({"service-1", 1, "station-1", 10.0});
 	scene.scenarios.push_back(scenario);
 	scene.defaultScenarioId = "baseline";
@@ -292,7 +293,7 @@ static bool listed(const std::vector<std::string>& ids, const char* id) {
 static SceneModel reducedBreakdownScene() {
 	SceneModel reducedBreakdown = completeScene();
 	SceneIncident& reducedIncident = reducedBreakdown.scenarios[0].incidents[0];
-	reducedIncident.type = "train_breakdown";
+	reducedIncident.type = IncidentType::TrainBreakdown;
 	reducedIncident.target = "service-1";
 	reducedIncident.startSeconds = 300.0;
 	reducedIncident.endSeconds = 0.0;
@@ -572,8 +573,14 @@ private slots:
 	void platformHoldsAtLeastOnePassenger();
 	void defaultPlatformHoldsAbout99Passengers();
 	void rejectsNonFinitePassengerWindow();
+	void limitsPassengerTransfers();
+	void checksPassengerDwellSettings();
+	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
+	void acceptsJourneyWithoutLegs();
+	void warnsAboutArrivalWindowBeforeDeparture();
+	void warnsAboutLegLeavingBeforePreviousArrives();
 	void resolvesRepeatedServiceStations();
 	void derivesSectionInventory();
 	void doesNotResolveDuplicateBaseIds();
@@ -1097,6 +1104,76 @@ void TestSceneValidator::rejectsNonFinitePassengerWindow() {
 		"non-finite passenger windows are rejected");
 }
 
+void TestSceneValidator::limitsPassengerTransfers() {
+	for (const int allowed : {0, 2, 10}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerMaxTransfers = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
+			"0 to 10 transfers are allowed");
+	}
+	for (const int refused : {-1, 11}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerMaxTransfers = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
+			"other transfer limits are rejected");
+	}
+}
+
+void TestSceneValidator::checksPassengerDwellSettings() {
+	const char* const coefficientsPath = "simulation_settings.passenger_dwell_coefficients";
+	const char* const thresholdCode = "scene.passenger.dwell.threshold.invalid";
+	SceneModel valid = completeScene();
+	valid.settings.passengerDwellCoefficients = std::vector<double>(8, 1.0);
+	valid.settings.passengerPlatformCrowdingThreshold = 0.0;
+	valid.settings.passengerOnboardCrowdingThreshold = 1.0;
+	valid.settings.passengerCarBoardingThreshold = 0;
+	const auto validDiagnostics = validateScene(valid);
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, "scene.passenger.dwell.coefficients.invalid", coefficientsPath), "8 coefficients are allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_platform_crowding_threshold"), "0 is allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_onboard_crowding_threshold"), "1 is allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_car_boarding_threshold"), "0 cars is allowed");
+
+	SceneModel seven = completeScene();
+	seven.settings.passengerDwellCoefficients = std::vector<double>(7, 1.0);
+	QVERIFY2(hasCodeAndPath(validateScene(seven), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"7 coefficients are rejected");
+	SceneModel negative = completeScene();
+	negative.settings.passengerDwellCoefficients = std::vector<double>{7.0, -0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	QVERIFY2(hasCodeAndPath(validateScene(negative), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a negative coefficient is rejected");
+	SceneModel atLimit = completeScene();
+	atLimit.settings.passengerDwellCoefficients = std::vector<double>(8, kMaxPassengerDwellCoefficient);
+	QVERIFY2(!hasCodeAndPath(validateScene(atLimit), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a coefficient at the limit is allowed");
+	SceneModel overLimit = completeScene();
+	overLimit.settings.passengerDwellCoefficients = std::vector<double>(8, 1.0);
+	(*overLimit.settings.passengerDwellCoefficients)[3] = std::nextafter(kMaxPassengerDwellCoefficient, 1e300);
+	QVERIFY2(hasCodeAndPath(validateScene(overLimit), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a coefficient above the limit is rejected");
+	SceneModel tooHigh = completeScene();
+	tooHigh.settings.passengerPlatformCrowdingThreshold = 1.5;
+	QVERIFY2(hasCodeAndPath(validateScene(tooHigh), thresholdCode, "simulation_settings.passenger_platform_crowding_threshold"),
+		"a threshold of 1.5 is rejected");
+	SceneModel negativeCar = completeScene();
+	negativeCar.settings.passengerCarBoardingThreshold = -1;
+	QVERIFY2(hasCodeAndPath(validateScene(negativeCar), thresholdCode, "simulation_settings.passenger_car_boarding_threshold"),
+		"a negative car threshold is rejected");
+}
+
+void TestSceneValidator::limitsPassengerCapacity() {
+	const auto capacityErrors = [](int capacity) {
+		SceneModel scene = completeScene();
+		scene.trainUnits[0].hasPassengerCapacity = true;
+		scene.trainUnits[0].passengerCapacity = capacity;
+		return hasCodeAndPath(validateScene(scene), "scene.train.capacity", "train_units[0].passenger_capacity");
+	};
+	QVERIFY2(!capacityErrors(0), "a capacity of 0 is allowed");
+	QVERIFY2(!capacityErrors(kMaxPassengerCapacity), "the largest capacity is allowed");
+	QVERIFY2(capacityErrors(-1), "a negative capacity is rejected");
+	QVERIFY2(capacityErrors(kMaxPassengerCapacity + 1), "a capacity above the limit is rejected");
+	QVERIFY2(capacityErrors(std::numeric_limits<int>::max()), "the largest int is rejected");
+}
+
 void TestSceneValidator::legDestinationIsStopOfService() {
 	SceneModel passengerMissingStop = completeScene();
 	passengerMissingStop.services[0].stops.pop_back();
@@ -1122,6 +1199,66 @@ void TestSceneValidator::rejectsReversePassengerLeg() {
 	QVERIFY(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning));
 	QVERIFY(!hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
 		"passengers[0].journeys[0].legs[0].destination"));
+}
+
+// A journey without legs is planned on the timetable when the passenger appears, so it is complete as it is.
+void TestSceneValidator::acceptsJourneyWithoutLegs() {
+	SceneModel scene = completeScene();
+	scene.passengers[0].journeys[0].legs.clear();
+	for (const SceneDiagnostic& diagnostic : validateScene(scene))
+		QVERIFY2(diagnostic.path.rfind("passengers[0].journeys[0]", 0) != 0, diagnostic.code.c_str());
+}
+
+void TestSceneValidator::warnsAboutArrivalWindowBeforeDeparture() {
+	SceneModel scene = completeScene();
+	QVERIFY(!hasCode(validateScene(scene), "scene.passenger.window.order"));
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.plannedArrivalStartSeconds = 0.0;
+	journey.plannedArrivalEndSeconds = 50.0;
+	journey.plannedDepartureStartSeconds = 60.0;
+	const auto diagnostics = validateScene(scene);
+	const SceneDiagnostic* order = findCode(diagnostics, "scene.passenger.window.order");
+	QVERIFY2(order, "an arrival window that ends before the departure window starts is reported");
+	QCOMPARE(order->severity, SceneSeverity::Warning);
+	QCOMPARE(order->path, std::string("passengers[0].journeys[0].planned_arrival"));
+}
+
+void TestSceneValidator::warnsAboutLegLeavingBeforePreviousArrives() {
+	// Out on service-1 (arrives at station-2 at 200) and back on service-2.
+	SceneModel scene = completeScene();
+	SceneService back = scene.services[0];
+	back.id = "service-2";
+	back.stops[0].stationId = "station-2";
+	back.stops[0].platformId = "platform-2";
+	back.stops[0].plannedDepartureSeconds = 150.0;
+	back.stops[1].stationId = "station-1";
+	back.stops[1].platformId = "platform-1";
+	back.stops[1].plannedArrivalSeconds = 260.0;
+	scene.services.push_back(back);
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.destinationStationId = "station-1";
+	journey.legs.push_back({"leg-2", "station-2", "station-1", "service-2", 1});
+	const auto early = validateScene(scene);
+	const SceneDiagnostic* timing = findCode(early, "scene.passenger.leg.timing");
+	QVERIFY2(timing, "a leg that leaves before the previous leg arrives is reported");
+	QCOMPARE(timing->severity, SceneSeverity::Warning);
+	QCOMPARE(timing->path, std::string("passengers[0].journeys[0].legs[1].occurrence"));
+	scene.services[1].stops[0].plannedDepartureSeconds = 250.0;
+	scene.services[1].stops[1].plannedArrivalSeconds = 360.0;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a leg that leaves after the previous leg arrives is fine");
+	// The second occurrence of a repeating service leaves one headway later.
+	scene.services[1].stops[0].plannedDepartureSeconds = 150.0;
+	scene.services[1].stops[1].plannedArrivalSeconds = 260.0;
+	scene.services[1].hasRepeat = true;
+	scene.services[1].headwaySeconds = 100.0;
+	scene.services[1].hasRepeatCount = true;
+	scene.services[1].repeatCount = 2;
+	scene.passengers[0].journeys[0].legs[1].occurrence = 2;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a later occurrence leaves after the previous leg arrives");
+	// Without a planned arrival of the previous leg there is nothing to compare.
+	scene.passengers[0].journeys[0].legs[1].occurrence = 1;
+	scene.services[0].stops[1].hasPlannedArrival = false;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a leg without planned times is not checked");
 }
 
 void TestSceneValidator::resolvesRepeatedServiceStations() {
@@ -2662,7 +2799,7 @@ void TestSceneValidator::breakdownEndMustFollowStart() {
 void TestSceneValidator::signalFailureRejectsBreakdownFields() {
 	SceneModel invalidBreakdown = reducedBreakdownScene();
 	invalidBreakdown.scenarios[0].incidents[0].terminateAtDestination = true;
-	invalidBreakdown.scenarios[0].incidents[0].type = "signal_failure";
+	invalidBreakdown.scenarios[0].incidents[0].type = IncidentType::SignalFailure;
 	invalidBreakdown.scenarios[0].incidents[0].target = "signal-1";
 	QVERIFY2(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.fields"),
 		"signal failures reject breakdown-only fields");
@@ -2866,7 +3003,7 @@ void TestSceneValidator::namesIncompleteEntries() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	scene.scenarios[0].incidents.push_back(incident);
 	scene.blockDependencies.push_back({});

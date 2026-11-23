@@ -423,7 +423,7 @@ void TestSceneBundle::incompleteEntriesRoundTrip() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	defaultScenarioIncidents(scene).push_back(incident);
 	TempDir temp;

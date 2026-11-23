@@ -16,6 +16,7 @@
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/NetworkMarkItem.h"
+#include "graphics/items/PlatformItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/SimulationWorker.h"
@@ -64,6 +65,7 @@
 #include <QTreeWidget>
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdlib>
 #include <cstddef>
 #include <cstdio>
@@ -84,6 +86,11 @@ constexpr int kShownTrains = 6;
 // the how-to lowers.
 constexpr double kSecondRunHeadway = 3600.0;
 constexpr double kArcZoom = 20.0;
+// The second of the replay of Paimpol that the picture of the passengers shows, 07:36:40 with the base time 07:10:40, and
+// the zoom of the view on Guingamp, where 269 people wait then. The all-stops train reaches the station at 07:36:57.
+constexpr int kPassengerReplaySecond = 1560;
+constexpr double kPassengerZoom = 50.0;
+constexpr double kPassengerBarsMargin = 12.0;
 // The pause between two steps, and between two looks at a step that waits.
 constexpr int kStepPauseMs = 300;
 constexpr int kPollMs = 50;
@@ -539,6 +546,49 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			QStringLiteral("how-to-replay-menu.png"), QStringLiteral("Paimpol"),
 			QStringLiteral("replay at 3500 s, context menu of the stopping train open"));
 		w.m_sceneContextMenu->close();
+		return saved;
+	});
+
+	// The passengers: Paimpol runs again with the Passengers layer on, and the replay at kPassengerReplaySecond shows the
+	// platforms of Guingamp as gauges with the card of the station open. The layer goes off again, as the other pictures
+	// show it.
+	steps.push_back([&w] {
+		w.m_passengerLayerCheck->setChecked(true);
+		w.m_followAction->setChecked(false);
+		w.m_runController->runCurrent();
+		return true;
+	});
+	steps.push_back(runEnded);
+	steps.push_back([&w, showOnly] {
+		// Run Results opens when the run ends.
+		showOnly({});
+		w.fitView();
+		w.m_replaySlider->setValue(kPassengerReplaySecond);
+		settle();
+		// The platform bars of Guingamp, which stand on its tracks; the mark of the station stands above them.
+		QRectF bars;
+		for (QGraphicsItem* item : w.scene->items())
+			if (const auto* platform = dynamic_cast<const PlatformItem*>(item))
+				if (platform->stationId == "Guingamp")
+					bars = bars.united(platform->sceneBoundingRect());
+		if (bars.isNull())
+			return failCaptures(QStringLiteral("the view of Paimpol has no platform of Guingamp"));
+		w.networkView->zoomBy(kPassengerZoom / w.networkView->zoomRatio());
+		// The bars go in the lower part of the view, so that the card of the station has room above them.
+		w.networkView->centerOnExactly(QPointF(bars.center().x(), bars.top() - kPassengerBarsMargin / std::abs(w.networkView->transform().m11())));
+		settle();
+		w.m_presenter->openStationCallout(QStringLiteral("Guingamp"), w.m_snapshot.get());
+		settle();
+		return w.m_presenter->stationCallout(QStringLiteral("Guingamp")) != nullptr
+			|| failCaptures(QStringLiteral("the card of Guingamp did not open at second %1 of the replay").arg(kPassengerReplaySecond));
+	});
+	steps.push_back([&w, windowShot] {
+		const bool saved = saveCapture(windowShot(), QStringLiteral("how-to-passengers.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("replay at 07:36:40 with Passengers on, zoomed in on Guingamp, its station card open"));
+		w.m_presenter->closeStationCallouts();
+		w.m_passengerLayerCheck->setChecked(false);
+		w.fitView();
+		settle();
 		return saved;
 	});
 

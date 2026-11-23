@@ -90,20 +90,46 @@ void decodeIncidentArray(const SceneFieldReader& reader, const json& root, const
 		const std::string incidentPath = path.empty()
 			? "incidents[" + std::to_string(index) + "]"
 			: path + ".incidents[" + std::to_string(index) + "]";
-		output.push_back(decodeIncident(reader, root["incidents"][index], incidentPath));
+		if (auto incident = decodeIncident(reader, root["incidents"][index], incidentPath))
+			output.push_back(std::move(*incident));
 	}
+}
+
+// Reads the optional passenger dwell keys of simulation_settings. A key that is absent stays empty. The validator checks the values.
+void decodeDwellSettings(const SceneFieldReader& reader, const json& settings, SceneSimulationSettings& output) {
+	const char* const coefficientsKey = "passenger_dwell_coefficients";
+	if (settings.contains(coefficientsKey)) {
+		const json& values = settings[coefficientsKey];
+		const std::string path = std::string("simulation_settings.") + coefficientsKey;
+		bool valid = values.is_array();
+		for (std::size_t index = 0; valid && index < values.size(); ++index)
+			valid = values[index].is_number();
+		if (valid)
+			output.passengerDwellCoefficients = values.get<std::vector<double>>();
+		else
+			reader.report("scene.field.missing", std::string("Invalid ") + coefficientsKey, path);
+	}
+	double threshold = 0.0;
+	if (reader.numberField(settings, "passenger_platform_crowding_threshold", "simulation_settings", threshold, false))
+		output.passengerPlatformCrowdingThreshold = threshold;
+	if (reader.numberField(settings, "passenger_onboard_crowding_threshold", "simulation_settings", threshold, false))
+		output.passengerOnboardCrowdingThreshold = threshold;
+	int carThreshold = 0;
+	if (reader.integerField(settings, "passenger_car_boarding_threshold", "simulation_settings", carThreshold, false))
+		output.passengerCarBoardingThreshold = carThreshold;
 }
 
 } // namespace
 
 void SceneFieldReader::report(const char* code, const std::string& message, const std::string& path,
-	SceneSeverity severity) const {
+	SceneSeverity severity, const std::string& suggestedFix) const {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = severity;
 	diagnostic.code = code;
 	diagnostic.file = std::string(file_);
 	diagnostic.message = message;
 	diagnostic.path = path;
+	diagnostic.suggestedFix = suggestedFix;
 	sink_.push_back(std::move(diagnostic));
 }
 
@@ -201,16 +227,22 @@ bool SceneFieldReader::boolField(const json& object, const char* key, const std:
 	return true;
 }
 
-SceneIncident decodeIncident(const SceneFieldReader& reader, const json& value, const std::string& path) {
+std::optional<SceneIncident> decodeIncident(const SceneFieldReader& reader, const json& value, const std::string& path) {
 	SceneIncident incident;
 	reader.stringField(value, "id", path, incident.id);
-	reader.stringField(value, "type", path, incident.type);
+	std::string typeName;
+	const bool unknownType = reader.stringField(value, "type", path, typeName) && !incidentTypeFromName(typeName, incident.type);
+	if (unknownType)
+		reader.report("scene.incident.type", "Unknown incident type", joinPath(path, "type"), SceneSeverity::Error,
+			"Use signal_failure or train_breakdown");
 	reader.stringField(value, "target", path, incident.target, true, kUnchosen);
 	reader.numberField(value, "start_seconds", path, incident.startSeconds);
 	incident.hasEndSeconds = reader.numberField(value, "end_seconds", path, incident.endSeconds, false);
 	incident.hasOccurrence = reader.integerField(value, "occurrence", path, incident.occurrence, false);
 	incident.hasReducedSpeed = reader.numberField(value, "reduced_speed_kmh", path, incident.reducedSpeedKmh, false);
 	reader.boolField(value, "terminate_at_destination", path, incident.terminateAtDestination);
+	if (unknownType)
+		return std::nullopt;
 	return incident;
 }
 
@@ -239,8 +271,10 @@ SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& roo
 		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
 			const json& item = root["incidents"][index];
 			const std::string path = "incidents[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Incident must be an object"))
-				scenario.incidents.push_back(decodeIncident(reader, item, path));
+			if (!reader.objectItem(item, path, "Incident must be an object"))
+				continue;
+			if (auto incident = decodeIncident(reader, item, path))
+				scenario.incidents.push_back(std::move(*incident));
 		}
 	}
 	if (reader.arraySection(root, "entrance_delays", "", false)) {
@@ -313,6 +347,8 @@ void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, Scene
 				"simulation_settings", scene.settings.bufferTimeSeconds, false);
 			scene.settings.hasRecoveryTime = reader.numberField(settings, "recovery_time_percent",
 				"simulation_settings", scene.settings.recoveryTimePercent, false);
+			reader.integerField(settings, "passenger_max_transfers", "simulation_settings", scene.settings.passengerMaxTransfers, false);
+			decodeDwellSettings(reader, settings, scene.settings);
 		}
 	}
 	if (root.contains("import_report")) {
@@ -723,6 +759,7 @@ void decodeRollingStock(const SceneFieldReader& reader, const json& root, SceneM
 							unit.physical.*field.member);
 				}
 			}
+			unit.hasPassengerCapacity = reader.integerField(value, "passenger_capacity", path, unit.passengerCapacity, false);
 			if (value.contains("traction_curve")) {
 				if (!value["traction_curve"].is_array()) {
 					reader.report("scene.field.missing",
@@ -911,5 +948,27 @@ void decodePassengers(const SceneFieldReader& reader, const json& root, SceneMod
 					path + ".journeys[" + std::to_string(journeyIndex) + "]"));
 		}
 		scene.passengers.push_back(std::move(passenger));
+	}
+	if (!reader.arraySection(root, "demand", "", false))
+		return;
+	for (std::size_t index = 0; index < root["demand"].size(); ++index) {
+		const std::string path = "demand[" + std::to_string(index) + "]";
+		const json& value = root["demand"][index];
+		ScenePassengerDemandSlice slice;
+		reader.stringField(value, "id", path, slice.id);
+		reader.numberField(value, "start_seconds", path, slice.startSeconds);
+		reader.numberField(value, "end_seconds", path, slice.endSeconds);
+		if (reader.arraySection(value, "cells", path, true)) {
+			for (std::size_t cellIndex = 0; cellIndex < value["cells"].size(); ++cellIndex) {
+				const std::string cellPath = path + ".cells[" + std::to_string(cellIndex) + "]";
+				const json& cellValue = value["cells"][cellIndex];
+				ScenePassengerDemandCell cell;
+				reader.stringField(cellValue, "origin", cellPath, cell.originStationId);
+				reader.stringField(cellValue, "destination", cellPath, cell.destinationStationId);
+				reader.integerField(cellValue, "count", cellPath, cell.count);
+				slice.cells.push_back(std::move(cell));
+			}
+		}
+		scene.passengerDemand.push_back(std::move(slice));
 	}
 }

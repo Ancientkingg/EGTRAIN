@@ -639,6 +639,11 @@ egtrain_add_test(test_editor_passenger
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_editor_demand
+	SOURCES ${SRC_DIR}/tests/test_editor_demand.cpp
+	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
+	LABELS unit gui)
+
 egtrain_add_test(test_editor_service
 	SOURCES ${SRC_DIR}/tests/test_editor_service.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
@@ -851,6 +856,12 @@ egtrain_add_test(test_releasenotes
 	LIBS egtrain_update Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_passengerdemand
+	SOURCES ${SRC_DIR}/tests/test_passengerdemand.cpp
+	LIBS egtrain_scene
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
+	LABELS scene-v1 unit)
+
 egtrain_add_test(test_scenewriter
 	SOURCES ${SRC_DIR}/tests/test_scenewriter.cpp
 	LIBS egtrain_scene
@@ -903,6 +914,21 @@ egtrain_add_test(test_scenebuilder SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_scenebuilder.cpp
 	LIBS egtrain_sim
 	LABELS scene-v1 unit)
+
+egtrain_add_test(test_passengerrouting SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_passengerrouting.cpp
+	LIBS egtrain_sim
+	LABELS unit)
+
+egtrain_add_test(test_passengerjourneys SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_passengerjourneys.cpp
+	LIBS egtrain_sim
+	LABELS unit)
+
+egtrain_add_test(test_passengerresults SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_passengerresults.cpp
+	LIBS egtrain_sim
+	LABELS unit)
 
 egtrain_add_test(test_stopdwell SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_stopdwell.cpp

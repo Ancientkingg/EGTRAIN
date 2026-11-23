@@ -63,71 +63,53 @@ signed_stats P Av_Delay=-180.000000 Std_Delay=0.000000 Total_Delay=-180.000000 M
 signed_stats TOTALS Av_Delay=-158.333000 Std_Delay=0.000000 Total_Delay=-475.000000 Max_Tot_Delay=-138.000000 Cum_Cons_Delay=-475.000000 Max_Cons_Delay=-138.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
 signed_stats Final_Station Av_Delay=-157.000000 Std_Delay=0.000000 Total_Delay=-157.000000 Max_Tot_Delay=-157.000000 Cum_Cons_Delay=-157.000000 Max_Cons_Delay=-157.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=1.000000 N_DelTrains=0.000000
 pax f2 state t=120 in=1 status=OnPlatform journey=f2.1 trip=f2.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger f2 t=120 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
+gui_platform P P.platform.1 t=120 ids=- count=1
 pax f4 state t=150 in=1 status=OnPlatform journey=f4.1 trip=f4.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger f4 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
+gui_platform P P.platform.1 t=150 ids=- count=2
 pax f1 state t=180 in=1 status=OnPlatform journey=f1.1 trip=f1.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
 pax f3 state t=180 in=1 status=OnPlatform journey=f3.1 trip=f3.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger f1 t=180 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
-gui_passenger f3 t=180 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
+gui_platform P P.platform.1 t=180 ids=- count=4
 pax f1 state t=221 in=1 status=OnBoard journey=f1.1 trip=f1.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax f2 state t=221 in=1 status=OnBoard journey=f2.1 trip=f2.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
+pax f3 state t=221 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f4 state t=221 in=1 status=OnBoard journey=f4.1 trip=f4.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger f1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger f2 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger f4 t=221 status=OnBoard platform=None next_train=None next_destination=B
+gui_platform P P.platform.1 t=221 ids=-
 onboard Q1-1 t=221 n=3 max=3
-pax f5 state t=300 in=1 status=OnPlatform journey=f5.1 trip=f5.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger f5 t=300 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax f7 state t=560 in=1 status=OnPlatform journey=f7.1 trip=f7.1.leg.1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
-gui_passenger f7 t=560 status=OnPlatform platform=B.platform.1 next_train=Q1-1 next_destination=C
+gui_platform B B.platform.1 t=560 ids=- count=1
 pax f9 state t=580 in=1 status=OnPlatform journey=f9.1 trip=f9.1.leg.1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
-gui_passenger f9 t=580 status=OnPlatform platform=B.platform.1 next_train=Q1-1 next_destination=C
+gui_platform B B.platform.1 t=580 ids=- count=2
 pax f6 state t=600 in=1 status=OnPlatform journey=f6.1 trip=f6.1.leg.1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
 pax f8 state t=600 in=1 status=OnPlatform journey=f8.1 trip=f8.1.leg.1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
-gui_passenger f6 t=600 status=OnPlatform platform=B.platform.1 next_train=Q1-1 next_destination=C
-gui_passenger f8 t=600 status=OnPlatform platform=B.platform.1 next_train=Q1-1 next_destination=C
+gui_platform B B.platform.1 t=600 ids=- count=4
 pax f1 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f2 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f4 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f6 state t=623 in=1 status=OnBoard journey=f6.1 trip=f6.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 pax f7 state t=623 in=1 status=OnBoard journey=f7.1 trip=f7.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
+pax f8 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f9 state t=623 in=1 status=OnBoard journey=f9.1 trip=f9.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
-gui_passenger f1 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f2 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f4 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f6 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f7 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f9 t=623 status=OnBoard platform=None next_train=None next_destination=C
+gui_platform B B.platform.1 t=623 ids=-
 pax f6 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f7 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f9 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger f6 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f7 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f9 t=1094 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=1094 n=0 max=3
 journey f1 f1.1 started=1 completed=1 dep=25380.000000 arr=25823.000000 walking=0.000000 waiting=41.000000 delay=-137
 trip f1 f1.1.leg.1 started=1 completed=1 dep=25380 arr=25823 delay=-137
 journey f2 f2.1 started=1 completed=1 dep=25320.000000 arr=25823.000000 walking=0.000000 waiting=101.000000 delay=-137
 trip f2 f2.1.leg.1 started=1 completed=1 dep=25320 arr=25823 delay=-137
-journey f3 f3.1 started=1 completed=0 dep=25380.000000 arr=-9999.000000 walking=0.000000 waiting=0.000000 delay=0
-trip f3 f3.1.leg.1 started=1 completed=0 dep=25380 arr=-9999 delay=-9999
+journey f3 f3.1 started=1 completed=0 dep=25380.000000 arr=-9999.000000 walking=0.000000 waiting=41.000000 delay=0 replanned=1 outcome=no_route
 journey f4 f4.1 started=1 completed=1 dep=25350.000000 arr=25823.000000 walking=0.000000 waiting=71.000000 delay=-137
 trip f4 f4.1.leg.1 started=1 completed=1 dep=25350 arr=25823 delay=-137
-journey f5 f5.1 started=1 completed=0 dep=25500.000000 arr=-9999.000000 walking=0.000000 waiting=0.000000 delay=0
-trip f5 f5.1.leg.1 started=1 completed=0 dep=25500 arr=-9999 delay=-9999
+journey f5 f5.1 started=1 completed=0 dep=25500.000000 arr=-9999.000000 walking=0.000000 waiting=0.000000 delay=0 replanned=1 outcome=no_route
 journey f6 f6.1 started=1 completed=1 dep=25800.000000 arr=26294.000000 walking=0.000000 waiting=23.000000 delay=-156
 trip f6 f6.1.leg.1 started=1 completed=1 dep=25800 arr=26294 delay=-156
 journey f7 f7.1 started=1 completed=1 dep=25760.000000 arr=26294.000000 walking=0.000000 waiting=63.000000 delay=-156
 trip f7 f7.1.leg.1 started=1 completed=1 dep=25760 arr=26294 delay=-156
-journey f8 f8.1 started=1 completed=0 dep=25800.000000 arr=-9999.000000 walking=0.000000 waiting=0.000000 delay=0
-trip f8 f8.1.leg.1 started=1 completed=0 dep=25800 arr=-9999 delay=-9999
+journey f8 f8.1 started=1 completed=0 dep=25800.000000 arr=-9999.000000 walking=0.000000 waiting=23.000000 delay=0 replanned=1 outcome=no_route
 journey f9 f9.1 started=1 completed=1 dep=25780.000000 arr=26294.000000 walking=0.000000 waiting=43.000000 delay=-156
 trip f9 f9.1.leg.1 started=1 completed=1 dep=25780 arr=26294 delay=-156
 file PassengerStatus.txt Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation
-file PassengerStatus.txt 26699 f3 1 f3.1 f3.1.leg.1 OnPlatform P P.platform.1 Q1-1 None B
-file PassengerStatus.txt 26699 f5 1 f5.1 f5.1.leg.1 OnPlatform P P.platform.1 Q1-1 None B
-file PassengerStatus.txt 26699 f8 1 f8.1 f8.1.leg.1 OnPlatform B B.platform.1 Q1-1 None C
 file JourneyDelays.txt PaxID JourneyID TotalArrivalDelay[s]
 file JourneyDelays.txt f1 f1.1 -137
 file JourneyDelays.txt f2 f2.1 -137
@@ -138,3 +120,20 @@ file JourneyDelays.txt f6 f6.1 -156
 file JourneyDelays.txt f7 f7.1 -156
 file JourneyDelays.txt f8 f8.1 Journey_not_yet_completed
 file JourneyDelays.txt f9 f9.1 -156
+file PassengerJourneys.txt PaxID JourneyID Mode Origin Destination Appeared Trains Wait Walk InVehicle Arrival Delay Replanned Outcome
+file PassengerJourneys.txt f1 f1.1 assigned P B 25380 Q1-1 41 0 402 25823 -137 0 completed
+file PassengerJourneys.txt f2 f2.1 assigned P B 25320 Q1-1 101 0 402 25823 -137 0 completed
+file PassengerJourneys.txt f3 f3.1 assigned P B 25380 - 41 0 0 - - 1 no_route
+file PassengerJourneys.txt f4 f4.1 assigned P B 25350 Q1-1 71 0 402 25823 -137 0 completed
+file PassengerJourneys.txt f5 f5.1 assigned P B 25500 - 0 0 0 - - 1 no_route
+file PassengerJourneys.txt f6 f6.1 assigned B C 25800 Q1-1 23 0 471 26294 -156 0 completed
+file PassengerJourneys.txt f7 f7.1 assigned B C 25760 Q1-1 63 0 471 26294 -156 0 completed
+file PassengerJourneys.txt f8 f8.1 assigned B C 25800 - 23 0 0 - - 1 no_route
+file PassengerJourneys.txt f9 f9.1 assigned B C 25780 Q1-1 43 0 471 26294 -156 0 completed
+file StationStops.txt Train Station Platform Arrival Departure Boarded Alighted LeftBehind LoadAfterDeparture Capacity LoadFactor
+file StationStops.txt Q1-1 P P.platform.1 25421 25661 3 0 2 3 3 1.000
+file StationStops.txt Q1-1 B B.platform.1 25823 26021 3 3 1 3 3 1.000
+file StationStops.txt Q1-1 C C.platform.1 26294 26354 0 3 0 0 3 0.000
+file ODSummary.txt Origin Destination Journeys Completed NoRoute MeanWait P95Wait MeanTravel MeanDelay
+file ODSummary.txt B C 4 3 1 43.000 63 514.000 -156.000
+file ODSummary.txt P B 5 3 2 71.000 101 473.000 -137.000

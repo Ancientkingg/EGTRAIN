@@ -1,6 +1,10 @@
+#include "scene/SceneFieldReader.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/PassengerFlow.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -8,6 +12,7 @@
 #include "simulation/SimulationRun.h"
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "support/PassengerStep.h"
 #include "util/Log.h"
 #include "util/timeutil.hpp"
 
@@ -105,6 +110,20 @@ TEST_NOINLINE void operator delete(void* memory, std::size_t /*size*/) noexcept 
 	std::free(memory);
 }
 
+// std::stable_sort allocates its buffer with the nothrow form. Without this replacement AddressSanitizer allocates it
+// with its own operator new and reports the free in the operator delete above as a mismatch.
+TEST_NOINLINE void* operator new(std::size_t size, const std::nothrow_t& /*tag*/) noexcept {
+	try {
+		return ::operator new(size);
+	} catch (const std::bad_alloc&) {
+		return nullptr;
+	}
+}
+
+TEST_NOINLINE void operator delete(void* memory, const std::nothrow_t& /*tag*/) noexcept {
+	std::free(memory);
+}
+
 // The builders write the run of the process. The slots run in the order of their declaration, which is the order of the
 // groups of checks before them, and each slot builds the scene that it reads, so that it also passes alone.
 class TestOperationsBuilder : public QObject {
@@ -120,12 +139,16 @@ private slots:
 	void negativeBlockingTimeIndexThrows();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
+	void unitPassengerCapacitiesAddUp();
 	void directBlockSignalFailureStaysCompatible();
 	void unboundSignalFailureIsRejected();
 	void ambiguousSignalFailureIsRejected();
 	void reducedBreakdownTargetsOneOccurrence();
 	void buildsPlatformGeometryAndPassengers();
+	void demandSlicesStageLivePassengers();
+	void demandStagingIgnoresTheOrderOfTheFile();
 	void commandLineBufferAndRecoveryStay();
+	void sceneDwellSettingsReachTheDwellModel();
 	void steppedOperatingCodesReachOccurrences();
 	void serviceCapAndPerformanceApplyPerTrain();
 	void occurrenceSelectionOmitsExcludedJourneys();
@@ -140,6 +163,7 @@ private slots:
 	void reversedRouteResolvesStopNodes();
 	void resolvesPlatformsInRouteOrder();
 	void stopsKeepPlatformNumbers();
+	void repeatedStationHasHaltPerCall();
 	void routeExternalRowsKeepPlannedTimes();
 	void shortHorizonOmitsLateJourneys();
 	void durationOverrideSizesRuntimeVectors();
@@ -157,7 +181,7 @@ private slots:
 	void stationStatisticsOfSmallPopulations();
 	void passengerRatesAndDwellTerms();
 	void indexesFindPassengersAndPlatforms();
-	void boardingLooksUpMatchingIndex();
+	void boardingUsesWaitingListOfPlatform();
 	void waitingPassengersAreListedByDeparture();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
@@ -292,8 +316,8 @@ static SceneModel completeScene() {
 	scene.scenarios.push_back(baseline);
 	SceneScenario selected;
 	selected.id = "scenario.selected";
-	selected.incidents = {{"incident.signal", "signal_failure", "signal.0", 20.0, 40.0},
-		{"incident.breakdown", "train_breakdown", "service.native", 50.0, 70.0}};
+	selected.incidents = {{"incident.signal", IncidentType::SignalFailure, "signal.0", 20.0, 40.0},
+		{"incident.breakdown", IncidentType::TrainBreakdown, "service.native", 50.0, 70.0}};
 	selected.entranceDelays = {{"service.native", 2, "station.0", 5.0},
 		{"service.native", 2, "station.1", 5.0}};
 	scene.scenarios.push_back(selected);
@@ -573,6 +597,43 @@ static SceneModel throughScene() {
 	return scene;
 }
 
+// A composition carries the sum of the passenger capacities of its units when each unit gives one; otherwise its trains
+// take the default capacity from the number of wagons, 1200 for the three wagons of the fixture.
+void TestOperationsBuilder::unitPassengerCapacitiesAddUp() {
+	const auto capacityOfFirstTrain = [](const SceneModel& scene) {
+		auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+		if (hasErrors(diagnostics))
+			return -1;
+		diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
+		return hasErrors(diagnostics) || defaultRun().trains.empty() ? -1 : defaultRun().trains[0].MAX_OnBoard_Passengers;
+	};
+	SceneModel scene = throughScene();
+	QCOMPARE(scene.trainUnits.size(), std::size_t{2});
+	QCOMPARE(capacityOfFirstTrain(scene), 1200);
+	scene.trainUnits[0].hasPassengerCapacity = true;
+	scene.trainUnits[0].passengerCapacity = 0;
+	QCOMPARE(capacityOfFirstTrain(scene), 1200);
+	QVERIFY(hasCode(validateScene(scene), "scene.composition.capacity.partial"));
+	scene.trainUnits[1].hasPassengerCapacity = true;
+	scene.trainUnits[1].passengerCapacity = 412;
+	QCOMPARE(capacityOfFirstTrain(scene), 412);
+	scene.trainUnits[0].passengerCapacity = 88;
+	QCOMPARE(capacityOfFirstTrain(scene), 500);
+	QVERIFY(!hasCode(validateScene(scene), "scene.composition.capacity.partial"));
+	// The capacity is written with the unit and read back; a unit without one has no key.
+	std::vector<SceneDiagnostic> readDiagnostics;
+	SceneModel loaded;
+	decodeRollingStock(SceneFieldReader("rolling_stock.json", kSceneFileFieldCodes, readDiagnostics),
+		encodeRollingStock(scene), loaded);
+	QVERIFY(!hasErrors(readDiagnostics));
+	QCOMPARE(loaded.trainUnits[0].passengerCapacity, 88);
+	QVERIFY(loaded.trainUnits[1].hasPassengerCapacity);
+	scene.trainUnits[1].hasPassengerCapacity = false;
+	QVERIFY(!encodeRollingStock(scene)["train_units"][1].contains("passenger_capacity"));
+	scene.trainUnits[0].passengerCapacity = -1;
+	QVERIFY(hasCode(validateScene(scene), "scene.train.capacity"));
+}
+
 void TestOperationsBuilder::buildsCompleteFixture() {
 	const std::string savedInputFolder = initial_variables.InputMainFolder;
 	const auto restoreInputFolder = qScopeGuard([&savedInputFolder] { initial_variables.InputMainFolder = savedInputFolder; });
@@ -762,6 +823,70 @@ void TestOperationsBuilder::reducedBreakdownTargetsOneOccurrence() {
 	QCOMPARE(defaultRun().platforms.front().List_Trains_Stopping_At_Platform.front(), "service.native-1");
 }
 
+void TestOperationsBuilder::demandSlicesStageLivePassengers() {
+	SceneModel scene = completeScene();
+	ScenePassengerDemandSlice slice;
+	slice.id = "morning";
+	slice.startSeconds = 100.0;
+	slice.endSeconds = 200.0;
+	slice.cells.push_back({"station.0", "station.2", 4});
+	slice.cells.push_back({"station.0", "station.unknown", 2});
+	scene.passengerDemand.push_back(slice);
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	// The passenger of the scene comes first, then one per passenger of each cell; a cell with an unknown station adds none.
+	QCOMPARE(defaultRun().passengers.size(), std::size_t(5));
+	auto passenger = std::next(defaultRun().passengers.begin());
+	for (int number = 0; number < 4; ++number, ++passenger) {
+		QCOMPARE(passenger->ID, "morning:station.0>station.2#" + std::to_string(number));
+		QCOMPARE(passenger->Journeys.size(), std::size_t(1));
+		const Journey& journey = passenger->Journeys.front();
+		QCOMPARE(journey.ID, passenger->ID + ".1");
+		QCOMPARE(journey.Dep_Station_ID, defaultRun().passengers.front().Journeys.front().Dep_Station_ID);
+		QCOMPARE(journey.Arr_Station_ID, defaultRun().passengers.front().Journeys.front().Arr_Station_ID);
+		// Evenly spread over the period, and planned live: no legs.
+		QCOMPARE(journey.Actual_Planned_Departure_Time, 100.0 + 25.0 * number);
+		QVERIFY(journey.Trips.empty());
+		QVERIFY(journey.Mode == JourneyMode::Live);
+	}
+	QVERIFY(defaultRun().passengerIndex.covers(defaultRun().passengers));
+}
+
+void TestOperationsBuilder::demandStagingIgnoresTheOrderOfTheFile() {
+	const ScenePassengerDemandSlice morning{"morning", 100.0, 200.0, {{"station.0", "station.2", 2}, {"station.1", "station.0", 1}, {"station.1", "station.2", 1}}};
+	const ScenePassengerDemandSlice evening{"evening", 300.0, 400.0, {{"station.2", "station.0", 1}, {"station.0", "station.1", 2}}};
+	// The passengers that a scene with these slices stages for demand, in list order.
+	const auto stagedIds = [](const std::vector<ScenePassengerDemandSlice>& slices, const std::vector<std::size_t>& cellOrder) {
+		SceneModel scene = completeScene();
+		scene.passengerDemand = slices;
+		// Reorders the cells of each slice: cellOrder[i] is the position in the file of the cell that comes i-th.
+		for (ScenePassengerDemandSlice& slice : scene.passengerDemand) {
+			std::vector<ScenePassengerDemandCell> reordered;
+			for (const std::size_t position : cellOrder)
+				if (position < slice.cells.size())
+					reordered.push_back(slice.cells[position]);
+			slice.cells = reordered;
+		}
+		std::vector<std::string> ids;
+		if (hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene))
+			|| hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")))
+			return ids;
+		for (auto passenger = std::next(defaultRun().passengers.begin()); passenger != defaultRun().passengers.end(); ++passenger)
+			ids.push_back(passenger->ID);
+		return ids;
+	};
+	const std::vector<std::string> sorted = stagedIds({morning, evening}, {0, 1, 2});
+	// Slices by start, cells by origin and then destination in the order of the stations, then the passengers of a cell.
+	const std::vector<std::string> expected{"morning:station.0>station.2#0", "morning:station.0>station.2#1",
+		"morning:station.1>station.0#0", "morning:station.1>station.2#0", "evening:station.0>station.1#0",
+		"evening:station.0>station.1#1", "evening:station.2>station.0#0"};
+	QCOMPARE(sorted, expected);
+	// The same slices and cells in another order stage the same passengers in the same order.
+	QCOMPARE(stagedIds({evening, morning}, {0, 1, 2}), expected);
+	QCOMPARE(stagedIds({morning, evening}, {2, 1, 0}), expected);
+	QCOMPARE(stagedIds({evening, morning}, {1, 2, 0}), expected);
+}
+
 void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {
 	SceneModel geometry = completeScene();
 	geometry.stations[0].platforms[0].hasLength = true;
@@ -808,11 +933,11 @@ void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {
 			QCOMPARE(first.TrainServiceDescription, "service.native-2");
 			QCOMPARE(first.Dep_Station_Platform_ID, "platform.0");
 			QCOMPARE(last.Arr_Station_Platform_ID, "platform.2");
-			// Multi-leg planned times retain the existing endpoint-only semantics.
-			QVERIFY(first.Planned_Departure_Time >= 100);
-			QCOMPARE(first.Planned_Arrival_Time, -9999);
-			QCOMPARE(last.Planned_Departure_Time, -9999);
-			QVERIFY(last.Planned_Arrival_Time >= 130);
+			// Every leg takes its planned times from the stops of its train, in seconds since midnight (the base time is 23400).
+			QVERIFY(first.Planned_Departure_Time >= 23400 + 100);
+			QCOMPARE(first.Planned_Arrival_Time, 23550);
+			QVERIFY(last.Planned_Departure_Time >= 23400);
+			QVERIFY(last.Planned_Arrival_Time >= 23400 + 130);
 		}
 		auto unrouted = defaultRun().passengers.front().Journeys.begin();
 		++unrouted;
@@ -846,6 +971,79 @@ void TestOperationsBuilder::commandLineBufferAndRecoveryStay() {
 	QVERIFY(!hasErrors(overridden));
 	QCOMPARE_EQ(initial_variables.bufferTime, 2.5);
 	QCOMPARE_EQ(initial_variables.recoveryTimePercentage, 3.5);
+}
+
+// The dwell settings of the scene reach the trains and the run settings, and the run settings drive the dwell model.
+void TestOperationsBuilder::sceneDwellSettingsReachTheDwellModel() {
+	const auto restoreSettings = qScopeGuard([] {
+		defaultRun().settings = InitialParameters(0);
+		defaultRun().numberGenerator = NumberGenerator(kDefaultRandomSeed);
+	});
+	const auto dwellOf = [](const Train& train, double platformRate) {
+		const float* beta = train.GibsonDwellTimeParameters;
+		defaultRun().numberGenerator = NumberGenerator(kSeedA);
+		Train formula = train;
+		return formula.computePaxDependentDwellTimeAtStations(800, 800, platformRate, beta[0], beta[1], beta[2], beta[3], beta[4], beta[5],
+			beta[6], beta[7]);
+	};
+	const auto build = [](const SceneModel& scene) {
+		buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+		return buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
+	};
+
+	QVERIFY(!hasErrors(build(completeScene())));
+	const float defaults[] = {7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f};
+	for (std::size_t index = 0; index < 8; ++index)
+		QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[index], defaults[index]);
+	QCOMPARE_EQ(initial_variables.passengerPlatformCrowdingThreshold, 0.65);
+	QCOMPARE_EQ(initial_variables.passengerOnboardCrowdingThreshold, 0.7);
+	QCOMPARE(initial_variables.passengerCarBoardingThreshold, 15);
+	Train train = defaultRun().trains[0];
+	train.run_ = &defaultRun();
+	train.number_of_wagons = 3.0;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	defaultRun().settings = initial_variables;
+	const double unset = dwellOf(train, 0.5);
+
+	// Giving the default values gives the same dwell time as giving nothing.
+	SceneModel explicitDefaults = completeScene();
+	explicitDefaults.settings.passengerDwellCoefficients =
+		std::vector<double>(kDefaultPassengerDwellCoefficients.begin(), kDefaultPassengerDwellCoefficients.end());
+	explicitDefaults.settings.passengerPlatformCrowdingThreshold = 0.65;
+	explicitDefaults.settings.passengerOnboardCrowdingThreshold = 0.7;
+	explicitDefaults.settings.passengerCarBoardingThreshold = 15;
+	QVERIFY(!hasErrors(build(explicitDefaults)));
+	Train explicitTrain = train;
+	for (std::size_t index = 0; index < 8; ++index)
+		explicitTrain.GibsonDwellTimeParameters[index] = defaultRun().trains[0].GibsonDwellTimeParameters[index];
+	defaultRun().settings = initial_variables;
+	QCOMPARE_EQ(dwellOf(explicitTrain, 0.5), unset);
+
+	// A changed beta0 changes the dwell time by the same amount.
+	SceneModel changed = completeScene();
+	changed.settings.passengerDwellCoefficients = std::vector<double>{9.0, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	QVERIFY(!hasErrors(build(changed)));
+	QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[0], 9.0f);
+	Train changedTrain = train;
+	for (std::size_t index = 0; index < 8; ++index)
+		changedTrain.GibsonDwellTimeParameters[index] = defaultRun().trains[0].GibsonDwellTimeParameters[index];
+	defaultRun().settings = initial_variables;
+	QVERIFY2(near(dwellOf(changedTrain, 0.5) - unset, 2.0), "beta0 is the fixed time of a stop");
+
+	// The thresholds of the run settings decide when a crowding term applies.
+	defaultRun().settings = InitialParameters(0);
+	QVERIFY2(near(dwellOf(train, 0.7) - dwellOf(train, 0.6), static_cast<double>(0.32f) + 0.564f), "platform crowding applies above 0.65");
+	defaultRun().settings.passengerPlatformCrowdingThreshold = 0.8;
+	QVERIFY2(near(dwellOf(train, 0.7), dwellOf(train, 0.6)), "a platform threshold of 0.8 leaves 0.7 uncrowded");
+	defaultRun().settings = InitialParameters(0);
+	const double crowdedCars = dwellOf(train, 0.5);
+	defaultRun().settings.passengerCarBoardingThreshold = 1000;
+	QVERIFY2(near(crowdedCars - dwellOf(train, 0.5), 4.838f), "a car threshold of 1000 removes beta4");
+	defaultRun().settings = InitialParameters(0);
+	train.Current_OnBoard_Passengers = 960;
+	const double crowdedTrain = dwellOf(train, 0.5);
+	defaultRun().settings.passengerOnboardCrowdingThreshold = 0.9;
+	QVERIFY2(near(crowdedTrain - dwellOf(train, 0.5), 0.562f), "an on-board threshold of 0.9 leaves 80 percent uncrowded");
 }
 
 void TestOperationsBuilder::steppedOperatingCodesReachOccurrences() {
@@ -1232,6 +1430,45 @@ void TestOperationsBuilder::stopsKeepPlatformNumbers() {
 	QCOMPARE(train.currentServiceStopPlatformNumber, 5);
 }
 
+// A service that calls at a station twice halts once per call: each call has its own arrival, dwell, and departure.
+void TestOperationsBuilder::repeatedStationHasHaltPerCall() {
+	SceneModel scene = completeScene();
+	scene.passengers.clear();
+	scene.stations[0].platforms[0].nodeIds = {"node.3"};
+	scene.stations[1].platforms[0].id = "Platform_4";
+	scene.stations[2].platforms = {{"Platform_3", {"node.0"}}, {"Platform_5", {"node.2"}}};
+	scene.services[0].stops = {
+		{"station.2", "Platform_3", true, true, 100.0, 110.0, 0.0},
+		{"station.1", "Platform_4", true, true, 120.0, 130.0, 0.0},
+		{"station.2", "Platform_5", true, true, 140.0, 150.0, 0.0}};
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	Train train = defaultRun().trains[0];
+	for (int s = 0; s < 3; ++s) {
+		train.Stations[s].StopTime = 3;
+		train.Stations[s].StepStopped = 0;
+		train.ScheduledDepartures[s] = 8 + 4 * s;
+		train.StationArrivals[s] = train.StationDepartures[s] = -1;
+	}
+	// Call s is stood at from time first[s] on, and left at time left[s].
+	const int first[3] = {1, 10, 14};
+	const int left[3] = {9, 13, 17};
+	const int stops[3] = {0, 1, 2};
+	int time = 1;
+	for (int call = 0; call < 3; ++call) {
+		Arc arrival;
+		arrival.endNode = train.Stations[stops[call]];
+		for (; time <= left[call]; ++time)
+			train.serviceStopStep(time, arrival, 0, false);
+		QVERIFY2(!train.StoppedForServiceStop, "the train has left");
+		QCOMPARE_EQ(train.StationStandStarts[call], first[call] * timestep);
+		QCOMPARE_EQ(train.StationDepartures[call], left[call] * timestep);
+		QCOMPARE(train.Stations[call].StepStopped, left[call] - first[call] + 1);
+	}
+	QCOMPARE(train.StationArrivals[0], first[0] * timestep);
+	QCOMPARE(train.StationArrivals[2], first[2] * timestep);
+}
+
 void TestOperationsBuilder::routeExternalRowsKeepPlannedTimes() {
 	SceneModel routeExternal = completeScene();
 	routeExternal.routes[0].blocks = {"block.0", "block.1"};
@@ -1483,7 +1720,7 @@ void TestOperationsBuilder::reducedPerformanceDelaysCompletion() {
 	// Runs the first train through the live movement step that the dispatch loop uses.
 	const auto simulateFirstTrainMovement = [&]() {
 		for (int t = 0; t < initial_variables.times; t++) {
-			defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t);
 			defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
 		}
 	};
@@ -1517,7 +1754,7 @@ static bool runOneTrain(const SceneModel& scene, const std::function<void(Simula
 	if (beforeRun)
 		beforeRun(defaultRun());
 	for (int t = 0; t < initial_variables.times; t++) {
-		defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+		defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t);
 		defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
 	}
 	return true;
@@ -1659,7 +1896,7 @@ void TestOperationsBuilder::zeroStopThroughServiceStaysSafe() {
 	QCOMPARE_EQ(finalProbe.Max_TotalDelay, -1.0);
 	QCOMPARE_EQ(finalProbe.Max_Cons_Delay, -1.0);
 
-	through.trajectoryComputationIncludingMovingBlock(0, signalCode1, signalCode2, signalCode3);
+	through.trajectoryComputationIncludingMovingBlock(0);
 	// Time zero initializes the live trajectory without entering or advancing.
 	QVERIFY(!through.CanEnter);
 	QCOMPARE_EQ(through.instant_train_speed[0], 0.0);
@@ -2036,107 +2273,84 @@ void TestOperationsBuilder::indexesFindPassengersAndPlatforms() {
 	QVERIFY(platformIndex.find("S1", "P1") == nullptr);
 }
 
-// Boarding takes passengers and platforms from the shared indexes for the lists those describe and from an index of its
-// own for any other list.
-void TestOperationsBuilder::boardingLooksUpMatchingIndex() {
-	// Boarding at platform S1 P1 of the lists of the run, where the waiting list names Pb before Pa.
-	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(defaultRun().passengers);
-	std::list<StationPlatform> savedPlatforms;
-	savedPlatforms.swap(defaultRun().platforms);
-	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
-	const PlatformIndex savedPlatformIndex = defaultRun().platformIndex;
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	const auto restore = qScopeGuard([&] {
-		eglog::setSink({});
-		defaultRun().settings.PAX_GUI = savedPaxGui;
-		defaultRun().passengers.swap(savedPassengers);
-		defaultRun().platforms.swap(savedPlatforms);
-		defaultRun().passengerIndex = savedPassengerIndex;
-		defaultRun().platformIndex = savedPlatformIndex;
-	});
-	defaultRun().settings.PAX_GUI = true;
-	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+// A passenger who waits at platform S1.platform.1 for train T1 to S2 from this time.
+static Passenger passengerForT1(const std::string& id, int since) {
+	Passenger passenger;
+	passenger.ID = id;
+	passenger.IsIntheNetwork = true;
+	passenger.CurrentStatus = PassengerStatus::OnPlatform;
+	passenger.Current_Train_To_Wait = "T1";
+	passenger.Current_WaitingStationID = "S1";
+	passenger.Current_WaitingStationPlatformID = "S1.platform.1";
+	passenger.Current_Arrival_Station = "S2";
+	Journey journey;
+	journey.ID = id + ".j";
+	journey.Dep_Station_ID = "S1";
+	journey.Arr_Station_ID = "S2";
+	journey.N_Trips = 1;
+	journey.IsJourneyStarted = true;
+	Trip trip;
+	trip.TripID = id + ".t";
+	trip.JourneyID = journey.ID;
+	trip.Dep_Station_ID = "S1";
+	trip.Arr_Station_ID = "S2";
+	trip.Dep_Station_Platform_ID = "S1.platform.1";
+	trip.TrainServiceDescription = "T1";
+	trip.IsTripStarted = true;
+	trip.Actual_Departure_Time = since;
+	journey.Trips.push_back(trip);
+	passenger.Journeys.push_back(journey);
+	passenger.current_JourneyID = journey.ID;
+	passenger.current_TripID = trip.TripID;
+	return passenger;
+}
 
-	const auto waiting = [](const std::string& id) {
-		Passenger passenger;
-		passenger.ID = id;
-		passenger.CurrentStatus = "OnPlatform";
-		passenger.Current_Train_To_Wait = "T1";
-		passenger.Current_WaitingStationID = "S1";
-		return passenger;
-	};
+// The passenger step of step t as a run makes it: the passengers whose journey starts enter, then the trains alight and board.
+static void passengerStep(SimulationRun& run, int t) {
+	enterPassengersAndRefreshPlatforms(run, t);
+	simulateTrainPassengerInteractions(run, t);
+}
+
+// Boarding follows the waiting list of the platform where the train stands, which the run keeps up to date, and a train at a
+// platform that the run does not have boards nobody.
+void TestOperationsBuilder::boardingUsesWaitingListOfPlatform() {
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
+	PassengerStepScope scope(defaultRun());
+	defaultRun().settings.PAX_GUI = true;
+	defaultRun().settings.startingSimulationTime = 0;
+
 	const auto boardedIds = [](const std::list<Passenger>& everyone) {
 		std::string boarded;
 		for (const Passenger& passenger : everyone)
-			if (passenger.CurrentStatus == "OnBoard")
+			if (passenger.CurrentStatus == PassengerStatus::OnBoard)
 				boarded += passenger.ID + " ";
 		return boarded;
 	};
-	Train train;
-	train.run_ = &defaultRun();
-	train.StoppedForServiceStop = true;
-	train.trainDescription = "T1";
-	train.CurrentServiceStop = "S1";
-	train.CurrentServiceStopPlatform = "P1";
-	const auto board = [&train](int capacity, std::list<Passenger>& everyone, const std::list<StationPlatform>& everyPlatform) {
-		train.MAX_OnBoard_Passengers = capacity;
-		train.Current_OnBoard_Passengers = 0;
-		Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, everyone, everyPlatform);
-	};
 	StationPlatform stop;
 	stop.StationID = "S1";
-	stop.ID = "P1";
-	stop.Current_List_Pax_On_Platform = {{"Pb", 0.0}, {"Pa", 0.0}};
-	defaultRun().platforms.push_back(stop);
-	defaultRun().platformIndex.build(defaultRun().platforms);
+	stop.ID = "S1.platform.1";
+	// T1 stands at S1 with this room and the passengers wait for it.
+	const auto board = [&](int capacity, std::list<Passenger> everyone, const std::string& platformId) {
+		Train train = trainCalling("T1", {"S1", "S2"});
+		standAtStop(train, 0, 2);
+		train.run_ = &defaultRun();
+		train.CurrentServiceStopPlatform = platformId;
+		train.MAX_OnBoard_Passengers = capacity;
+		train.Current_OnBoard_Passengers = 0;
+		scope.set({train}, std::move(everyone), {stop});
+		passengerStep(defaultRun(), 10);
+		return boardedIds(defaultRun().passengers);
+	};
 
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	board(1, defaultRun().passengers, defaultRun().platforms);
-	// Passengers board in the order of the waiting list.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pb ");
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	board(2, defaultRun().passengers, defaultRun().platforms);
+	// Pb has waited longest. The passengers board in the order of the waiting list.
+	QCOMPARE(board(1, {passengerForT1("Pa", 5), passengerForT1("Pb", 0), passengerForT1("Pa", 5)}, "S1.platform.1"), "Pb ");
+	QCOMPARE(defaultRun().trains[0].Current_OnBoard_Passengers, 1);
 	// Of two passengers with one ID the first in the list boards.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pa Pb ");
-
-	// A passenger added after the index was built still boards: the shared index no longer describes the list.
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	defaultRun().passengers.push_back(waiting("Pc"));
-	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pc", 0.0}};
-	board(2, defaultRun().passengers, defaultRun().platforms);
-	// A passenger added after the index was built boards.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pc ");
-
-	// Another list of the same size as the one of the run is not looked up in the index of the run.
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pb", 0.0}};
-	std::list<Passenger> others = {waiting("Pb"), waiting("Pa")};
-	board(2, others, defaultRun().platforms);
-	// A passenger list that is not the one of the run is looked up in its own index.
-	QCOMPARE(boardedIds(others), "Pb ");
-	QVERIFY(boardedIds(defaultRun().passengers).empty());
-
-	// The same holds for a platform list.
-	StationPlatform otherStop = stop;
-	otherStop.Current_List_Pax_On_Platform = {{"Pa", 0.0}};
-	const std::list<StationPlatform> otherPlatforms = {otherStop};
-	others = {waiting("Pb"), waiting("Pa")};
-	board(2, others, otherPlatforms);
-	// A platform list that is not the one of the run is looked up in its own index.
-	QCOMPARE(boardedIds(others), "Pa ");
-
-	// A train at a platform that does not exist boards nobody.
-	others = {waiting("Pb"), waiting("Pa")};
-	train.CurrentServiceStopPlatform = "P9";
-	board(2, others, defaultRun().platforms);
+	QCOMPARE(board(2, {passengerForT1("Pa", 5), passengerForT1("Pb", 0), passengerForT1("Pa", 5)}, "S1.platform.1"), "Pa Pb ");
 	// A train at an unknown platform boards nobody.
-	QVERIFY(boardedIds(others).empty());
-	QCOMPARE(train.Current_OnBoard_Passengers, 0);
+	QVERIFY(board(2, {passengerForT1("Pa", 5), passengerForT1("Pb", 0)}, "P9").empty());
+	QCOMPARE(defaultRun().trains[0].Current_OnBoard_Passengers, 0);
 }
 
 // A passenger who waits at a platform for the second trip of a journey, which leaves at this time.
@@ -2144,7 +2358,7 @@ static Passenger passengerWaitingAt(const std::string& id, const std::string& st
 	Passenger passenger;
 	passenger.ID = id;
 	passenger.IsIntheNetwork = true;
-	passenger.CurrentStatus = "OnPlatform";
+	passenger.CurrentStatus = PassengerStatus::OnPlatform;
 	passenger.Current_WaitingStationID = station;
 	passenger.Current_WaitingStationPlatformID = platform;
 	passenger.Current_Train_To_Wait = "T1";
@@ -2163,29 +2377,6 @@ static Passenger passengerWaitingAt(const std::string& id, const std::string& st
 	return passenger;
 }
 
-// The waiting count and list of one platform worked out with a scan of all passengers for that platform.
-static void scanWaitingList(StationPlatform& platform, const std::list<Passenger>& everyone) {
-	platform.Current_N_Passengers = 0;
-	platform.Current_List_Pax_On_Platform.clear();
-	for (const Passenger& passenger : everyone) {
-		if (!passenger.IsIntheNetwork || passenger.CurrentStatus != "OnPlatform" || passenger.Current_WaitingStationID != platform.StationID
-			|| passenger.Current_WaitingStationPlatformID != platform.ID)
-			continue;
-		platform.Current_N_Passengers++;
-		for (const Journey& journey : passenger.Journeys) {
-			if (journey.ID != passenger.current_JourneyID)
-				continue;
-			for (const Trip& trip : journey.Trips) {
-				if (trip.TripID == passenger.current_TripID) {
-					platform.Current_List_Pax_On_Platform.push_back(std::make_pair(passenger.ID, trip.Actual_Departure_Time));
-					break;
-				}
-			}
-		}
-	}
-	platform.Current_List_Pax_On_Platform.sort(orderPassengerListOnPlatform);
-}
-
 static std::string waitingIds(const std::list<std::pair<std::string, double>>& waiting) {
 	std::string ids;
 	for (const auto& entry : waiting)
@@ -2193,8 +2384,8 @@ static std::string waitingIds(const std::list<std::pair<std::string, double>>& w
 	return ids;
 }
 
-// The passengers waiting at a platform are counted and listed in the order of their departure times, for one platform and for all
-// platforms in one pass over the passengers.
+// The passenger flow counts and lists the passengers waiting at a platform in the order of their departure times, for one platform and
+// for the platforms of the run, and follows a passenger who moves on.
 void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	std::list<Passenger> passengers;
 	passengers.push_back(passengerWaitingAt("a1", "S1", "P1", 30));
@@ -2207,7 +2398,7 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	outside.IsIntheNetwork = false;
 	passengers.push_back(outside);
 	Passenger onBoard = passengerWaitingAt("d2", "S1", "P1", 1);
-	onBoard.CurrentStatus = "OnBoard";
+	onBoard.CurrentStatus = PassengerStatus::OnBoard;
 	passengers.push_back(onBoard);
 	Passenger withoutJourney = passengerWaitingAt("e1", "S1", "P1", 1);
 	withoutJourney.Journeys.clear();
@@ -2233,28 +2424,18 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 		}
 	}
 
-	const WaitingAtPlatform first = passengersWaitingAtPlatform("S1", "P1", passengers);
+	PassengerFlow flow;
+	flow.build(passengers);
+	const WaitingAtPlatform first = flow.waitingAt("S1", "P1");
 	// The waiting passengers of a platform are counted and listed by departure time, in list order for equal times.
 	QCOMPARE(first.count, 6);
 	QCOMPARE(waitingIds(first.passengers), "a2 a3 f1 f1 a1 ");
-	const WaitingAtPlatform nobody = passengersWaitingAtPlatform("S3", "P1", passengers);
+	const WaitingAtPlatform nobody = flow.waitingAt("S3", "P1");
 	// A platform where nobody waits has no waiting passengers.
 	QCOMPARE(nobody.count, 0);
 	QVERIFY(nobody.passengers.empty());
-	const bool unchanged = std::all_of(platforms.begin(), platforms.end(), [](const StationPlatform& platform) {
-		return platform.Current_N_Passengers == 7 && waitingIds(platform.Current_List_Pax_On_Platform) == "old ";
-	});
-	QVERIFY2(unchanged, "working out the waiting passengers of a platform does not modify a platform");
 
-	Update_List_Passengers_Waiting_At_ALL_Platforms(platforms, passengers);
-	bool sameAsScan = true;
-	for (const StationPlatform& platform : platforms) {
-		StationPlatform scanned = platform;
-		scanWaitingList(scanned, passengers);
-		sameAsScan &= platform.Current_N_Passengers == scanned.Current_N_Passengers
-			&& platform.Current_List_Pax_On_Platform == scanned.Current_List_Pax_On_Platform;
-	}
-	QVERIFY2(sameAsScan, "one pass over the passengers gives every platform the count and list of a scan for that platform");
+	flow.refreshPlatformLists(platforms);
 	const std::vector<StationPlatform> updated(platforms.begin(), platforms.end());
 	// Platforms get the waiting passengers of their station and platform.
 	QCOMPARE(updated[0].Current_N_Passengers, 6);
@@ -2269,53 +2450,59 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	// Platforms with the same IDs get the same waiting passengers.
 	QCOMPARE(updated[4].Current_N_Passengers, updated[0].Current_N_Passengers);
 	QVERIFY(updated[4].Current_List_Pax_On_Platform == updated[0].Current_List_Pax_On_Platform);
+	PassengerFlow other;
+	other.build(passengers);
 	std::list<StationPlatform> noPlatforms;
-	Update_List_Passengers_Waiting_At_ALL_Platforms(noPlatforms, passengers);
+	other.refreshPlatformLists(noPlatforms);
 	QVERIFY2(noPlatforms.empty(), "no platforms are made for the waiting passengers");
+
+	// The flow follows a passenger who moves on.
+	Passenger& boarding = *std::next(passengers.begin());
+	boarding.CurrentStatus = PassengerStatus::OnBoard;
+	boarding.Current_Train_Boarded = "T1";
+	boarding.Current_Arrival_Station = "S2";
+	boarding.Current_WaitingStationID = "None";
+	boarding.Current_WaitingStationPlatformID = "None";
+	flow.placed(1);
+	flow.refreshPlatformLists(platforms);
+	QCOMPARE(platforms.front().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(platforms.front().Current_List_Pax_On_Platform), "a3 f1 f1 a1 ");
+	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a3 f1 f1 a1 ");
+	QCOMPARE(platforms.back().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(std::next(platforms.begin())->Current_List_Pax_On_Platform), "b1 ");
 }
 
 // Without the passenger GUI a boarding train works from the list of its own platform.
 void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
-	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the list worked out for the platform.
-	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(defaultRun().passengers);
-	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
-	defaultRun().passengerIndex.clear();
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	const auto restore = qScopeGuard([&] {
-		eglog::setSink({});
-		defaultRun().settings.PAX_GUI = savedPaxGui;
-		defaultRun().passengers.swap(savedPassengers);
-		defaultRun().passengerIndex = savedPassengerIndex;
-	});
-	defaultRun().settings.PAX_GUI = false;
+	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the passengers waiting for it.
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
+	PassengerStepScope scope(defaultRun());
+	defaultRun().settings.PAX_GUI = false;
+	defaultRun().settings.startingSimulationTime = 0;
 
-	defaultRun().passengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
 	StationPlatform stop;
 	stop.StationID = "S1";
-	stop.ID = "P1";
+	stop.ID = "S1.platform.1";
 	stop.Current_N_Passengers = 5;
 	stop.Current_List_Pax_On_Platform = {{"Pa", 0.0}, {"Pb", 0.0}};
-	const std::list<StationPlatform> stopPlatforms = {stop};
-	Train train;
+	Train train = trainCalling("T1", {"S1", "S2"});
+	standAtStop(train, 0, 2);
 	train.run_ = &defaultRun();
-	train.StoppedForServiceStop = true;
-	train.trainDescription = "T1";
-	train.CurrentServiceStop = "S1";
-	train.CurrentServiceStopPlatform = "P1";
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 0;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, defaultRun().passengers, stopPlatforms);
+	scope.set({train}, {passengerForT1("Pa", 30), passengerForT1("Pb", 20)}, {stop});
+	// Both passengers are on the platform by step 40.
+	passengerStep(defaultRun(), 40);
 	std::string boarded;
 	for (const Passenger& passenger : defaultRun().passengers)
-		if (passenger.CurrentStatus == "OnBoard")
+		if (passenger.CurrentStatus == PassengerStatus::OnBoard)
 			boarded += passenger.ID + " ";
 	// Without the passenger GUI passengers board in the order of departure times.
 	QCOMPARE(boarded, "Pb ");
 	// Without the passenger GUI the shared platform is not given the waiting passengers.
-	QCOMPARE(stopPlatforms.front().Current_N_Passengers, 5);
-	QCOMPARE(waitingIds(stopPlatforms.front().Current_List_Pax_On_Platform), "Pa Pb ");
+	QCOMPARE(defaultRun().platforms.front().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(defaultRun().platforms.front().Current_List_Pax_On_Platform), "Pa Pb ");
 }
 
 // Braking-point search. A route of one section with one arc, from startKm to endKm.
@@ -3442,6 +3629,15 @@ void TestOperationsBuilder::timetablePointOfStopIgnoresLastPlace() {
 	// A timetable point reports the arrival at a last stop and no departure.
 	QCOMPARE_EQ(point.Time, 9.0 * timestep);
 	QCOMPARE_EQ(point.Time2, TrainEvent().Time2);
+	// A point the train does not reach before the end of the run has no times, and its position is in metres like the
+	// position of a point that it reaches.
+	const Route& route = defaultRun().infra.routes[terminating.indexOfRoute];
+	const auto absolute = [&route](double along) { return route.reversed_direction == 1 ? route.OriginalRefReversedRoute - along : along; };
+	QCOMPARE_EQ(point.Position, absolute(stoppingPoint));
+	TrainEvent unreached;
+	terminating.computeArrivalAndDepartureAtLocation(stoppingPoint + 5000.0, unreached);
+	QCOMPARE_EQ(unreached.Time, TrainEvent().Time);
+	QCOMPARE_EQ(unreached.Position, absolute(stoppingPoint + 5000.0));
 }
 
 void TestOperationsBuilder::brakingPhase() {
@@ -3469,7 +3665,7 @@ void TestOperationsBuilder::brakingPhase() {
 	train.instant_train_speed[0] = train.instant_train_speed[1] = 10;
 	train.currentXob = 1000;
 	train.currentVob = 10;
-	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	train.trajectoryComputationIncludingMovingBlock(2);
 	// Reached speed target is retained until its actual boundary.
 	QCOMPARE_EQ(train.instant_train_speed[2], 10.0);
 	QCOMPARE_EQ(train.instant_spatial_position[2], 710.0);
@@ -3487,7 +3683,7 @@ void TestOperationsBuilder::brakingPhase() {
 	train.currentVob = 10;
 	const Arc& phaseArc = phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
 	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, phaseArc.gradient, phaseArc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
-	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	train.trajectoryComputationIncludingMovingBlock(2);
 	// Late current speed limit uses the model's full-braking step, not a cap or Eq12 history rewrite.
 	QCOMPARE_EQ(train.instant_train_speed[1], 10.0);
 	QVERIFY(near(train.instant_train_speed[2], minimumSpeed));
@@ -3545,7 +3741,7 @@ void TestOperationsBuilder::brakingPhase() {
 				QVERIFY(head < satisfied);
 				QVERIFY(satisfied < point);
 				QVERIFY(head + speed * timestep > point);
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				// Equal/below-ceiling demand selects restrictive stop rather than satisfied target.
 				QCOMPARE_EQ(live.currentXob, 5000.0);
 				QCOMPARE_EQ(live.currentVob, 0.0);
@@ -3553,7 +3749,7 @@ void TestOperationsBuilder::brakingPhase() {
 				bool stopped = false;
 				for (int time = 2; time < 100; ++time) {
 					if (time > 2)
-						live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+						live.trajectoryComputationIncludingMovingBlock(time);
 					// Satisfied-target stop keeps previously published samples immutable.
 					QCOMPARE_EQ(live.instant_spatial_position[0], head - speed * timestep);
 					QCOMPARE_EQ(live.instant_spatial_position[1], head);
@@ -3608,7 +3804,7 @@ void TestOperationsBuilder::brakingPhase() {
 				// Retained hold/capped acceleration is below the actual-start full-braking bound.
 				QVERIFY(minimum > 15);
 				QVERIFY(resistance < fullEffort);
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				// Infeasible retained hold/cap uses force-feasible full-model mean-displacement fallback.
 				QCOMPARE(live.stepBranch, 54);
 				QCOMPARE(live.counter, 0);
@@ -3636,7 +3832,7 @@ void TestOperationsBuilder::brakingPhase() {
 				bool below = false, recovered = false, reached = false;
 				for (int time = 2; time < 100; ++time) {
 					const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
-					live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+					live.trajectoryComputationIncludingMovingBlock(time);
 					const double nextHead = live.instant_spatial_position[time], nextSpeed = live.instant_train_speed[time];
 					std::ostringstream context;
 					context.precision(17);
@@ -3717,7 +3913,7 @@ void TestOperationsBuilder::brakingPhase() {
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
 				live.currentXob = 2000;
 				live.currentVob = 0;
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				const bool shortOfPoint = isShortOfBrakingPoint(head, point);
 				// Boundary dispatch uses the chosen BX and retains published history.
 				QCOMPARE_EQ(live.instant_spatial_position[1], head);
@@ -3847,7 +4043,7 @@ void TestOperationsBuilder::brakingPhase() {
 		native.instant_spatial_position[1] = head;
 		native.instant_train_speed[0] = native.instant_train_speed[1] = speed;
 		native.currentXob = native.currentVob = 0;
-		native.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		native.trajectoryComputationIncludingMovingBlock(2);
 		// Accelerating/cruising crossing enters the forward curve before the old braking point.
 		QCOMPARE(native.stepBranch, 55);
 		QCOMPARE_EQ(native.instant_spatial_position[1], head);
@@ -3931,7 +4127,7 @@ void TestOperationsBuilder::brakingPhase() {
 		bool braked = false, stopped = false;
 		for (int time = 2; time < 100; ++time) {
 			const double oldHead = native.instant_spatial_position[time - 1], oldSpeed = native.instant_train_speed[time - 1];
-			native.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			native.trajectoryComputationIncludingMovingBlock(time);
 			const double nextHead = native.instant_spatial_position[time], nextSpeed = native.instant_train_speed[time];
 			if (native.stepBranch == 55 || native.stepBranch == 53 || native.stepBranch == 52) {
 				const Arc* running = native.brakingArc(oldHead, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
@@ -3976,7 +4172,7 @@ void TestOperationsBuilder::brakingPhase() {
 		service.stop = 1;
 		service.instant_spatial_position[1] = service.stationRoutePositionMeters(station) - 0.002;
 		service.instant_train_speed[1] = 0;
-		service.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(2);
 		// Zero-authored dwell retains first service entry for the post-movement passenger initializer.
 		QCOMPARE(service.stepBranch, 5);
 		QVERIFY(service.StoppedForServiceStop);
@@ -3984,23 +4180,47 @@ void TestOperationsBuilder::brakingPhase() {
 		QCOMPARE(service.stop, 2);
 		QCOMPARE_EQ(service.instant_train_speed[2], 0.0);
 		// One passenger boards, so the passenger phase sets a dwell.
+		const Node& stop = service.Stations[station];
 		Passenger boarding;
 		boarding.ID = "boarding";
-		boarding.CurrentStatus = "OnPlatform";
+		boarding.IsIntheNetwork = true;
+		boarding.CurrentStatus = PassengerStatus::OnPlatform;
 		boarding.Current_Train_To_Wait = service.trainDescription;
-		boarding.Current_WaitingStationID = service.Stations[station].stationName;
-		std::list<Passenger> passengers{boarding};
+		boarding.Current_WaitingStationID = stop.stationName;
+		boarding.Current_WaitingStationPlatformID = stop.stationPlatformId;
+		boarding.Current_Arrival_Station = service.Stations[0].stationName;
+		Journey boardingJourney;
+		boardingJourney.ID = "boarding.j";
+		boardingJourney.Dep_Station_ID = stop.stationName;
+		boardingJourney.Arr_Station_ID = service.Stations[0].stationName;
+		boardingJourney.N_Trips = 1;
+		boardingJourney.IsJourneyStarted = true;
+		Trip boardingTrip;
+		boardingTrip.TripID = "boarding.t";
+		boardingTrip.JourneyID = boardingJourney.ID;
+		boardingTrip.Dep_Station_ID = stop.stationName;
+		boardingTrip.Arr_Station_ID = boardingJourney.Arr_Station_ID;
+		boardingTrip.Dep_Station_Platform_ID = stop.stationPlatformId;
+		boardingTrip.TrainServiceDescription = service.trainDescription;
+		boardingTrip.IsTripStarted = true;
+		boardingTrip.Actual_Departure_Time = 0;
+		boardingJourney.Trips.push_back(boardingTrip);
+		boarding.Journeys.push_back(boardingJourney);
+		boarding.current_JourneyID = boardingJourney.ID;
+		boarding.current_TripID = boardingTrip.TripID;
 		StationPlatform platform;
-		platform.StationID = service.Stations[station].stationName;
-		platform.ID = service.Stations[station].stationPlatformId;
-		platform.Current_List_Pax_On_Platform = {{boarding.ID, 0.0}};
-		std::list<StationPlatform> platforms{platform};
-		const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-		defaultRun().settings.PAX_GUI = true;
-		Simulate_Train_Passenger_Interactions(defaultRun(), 2, initial_variables.startingSimulationTime, service, passengers, platforms);
-		defaultRun().settings.PAX_GUI = savedPaxGui;
+		platform.StationID = stop.stationName;
+		platform.ID = stop.stationPlatformId;
+		{
+			PassengerStepScope scope(defaultRun());
+			scope.set({service}, {boarding}, {platform});
+			defaultRun().settings.PAX_GUI = true;
+			defaultRun().settings.startingSimulationTime = initial_variables.startingSimulationTime;
+			simulateTrainPassengerInteractions(defaultRun(), 2);
+			service = defaultRun().trains[0];
+		}
 		QVERIFY2(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
-		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(3);
 		// Initialized service dwell retains its entry clock and stationary state.
 		QVERIFY(service.StoppedForServiceStop);
 		QCOMPARE_EQ(service.instant_train_speed[3], 0.0);
@@ -4043,7 +4263,7 @@ void TestOperationsBuilder::brakingPhase() {
 				live.Vbrak[1] = speed + 100; // Outside the actual-speed traction bound.
 				live.Sbrak[1] = head + live.Vbrak[1] * timestep;
 			}
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// Cleared/changed incumbent or mismatched/force-invalid cache cannot retain stale braking.
 			if (change < 2) {
 				QCOMPARE(live.stepBranch, 1);
@@ -4072,7 +4292,7 @@ void TestOperationsBuilder::brakingPhase() {
 			competing.arcs_in_signalling_block_section[0].speedInBraking = ceiling;
 			competing.arcs_in_signalling_block_section[1].speedInBraking = 0;
 			Train live = cached;
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// New stricter stop/positive target interrupts cached proposal from immutable previous actual state.
 			QCOMPARE_EQ(live.currentXob, competing.arcs_in_signalling_block_section[0].endNode.X * 1000);
 			QCOMPARE_EQ(live.currentVob, ceiling);
@@ -4094,7 +4314,7 @@ void TestOperationsBuilder::brakingPhase() {
 		Train live = cached;
 		// Farther positive inverse is unavailable beyond the feasible cached stop.
 		QCOMPARE_EQ(live.BrakDist_Block(live.Vbrak[1], 8, 10000, nativeRoute.sequence_of_block_sections.data(), 1), -1.0);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Unavailable farther target does not discard a cached plan ending at an earlier stop.
 		QCOMPARE_EQ(live.currentXob, 5000.0);
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4153,7 +4373,7 @@ void TestOperationsBuilder::brakingPhase() {
 		bool stopped = false;
 		for (int time = 2; time < 100; ++time) {
 			const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
-			live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(time);
 			if (time <= 3) {
 				std::cout.precision(17);
 				std::cout << "Copenhagen arbitration t=" << time << " target=" << live.currentXob << "/" << live.currentVob
@@ -4218,8 +4438,8 @@ void TestOperationsBuilder::level4Transitions() {
 	auto authority = [&](double head, const std::string& leader) {
 		MovementAuthority ma;
 		ma.BSID = section.ID;
-		ma.type = "TrainEnd";
-		ma.typePart = "Tale";
+		ma.type = AuthorityKind::TrainEnd;
+		ma.typePart = AuthorityTrainEnd::Tale;
 		ma.ReversedDirection = reversed;
 		ma.RelativePosEoA = head;
 		ma.AbsPosEoA = reversed ? 10000 - head : head;
@@ -4235,7 +4455,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.OutOfSimulation = false;
 		live.departure_time = 0;
 		live.counter = live.CounterFollowingMode = 0;
-		live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+		live.IsTrainInFollowingMode = live.IsTrainCoupling = false;
 		live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
 		live.StoppedForServiceStop = false;
 		live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
@@ -4247,46 +4467,48 @@ void TestOperationsBuilder::level4Transitions() {
 	};
 	{
 		Train live = actual(1000, 20);
-		auto behind = authority(990, "BEHIND");
+		// The tail of a train behind lies at least both train lengths and the margin behind the head of this one.
+		auto behind = authority(600, "BEHIND");
 		behind.TrainInfo.TrainSpeed = 35;
 		behind.TrainInfo.Acceleration = -0.5;
 		defaultRun().etcsMa = {behind};
 		arc.speedInBraking = 0;
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// A behind braking Tale cannot project into a forward authority in either direction.
 		QCOMPARE_EQ(live.currentXob, 10000.0);
 		QVERIFY(!live.BrakingForEoA);
 		arc.speedInBraking = stock.max_train_speed;
 	}
 	{
+		// A coupled train keeps its own leader as a target even where the leader goes on to another section, but a third train that
+		// goes elsewhere is a stop target for it.
 		Train live = actual(1000, 20);
-		defaultRun().etcsMa.clear();
 		live.IsTrainInFollowingMode = true;
-		live.LeadingTrainInFollowingMode = "FRONT";
-		live.Predicted_MA_To_DecoupleAt = authority(1500, "FRONT");
-		bool continueCached = false;
-		live.europeanVitalComputerWithListsImproved(1000, 20, 1, route.sequence_of_block_sections.data(), 1, continueCached);
-		// A stored decoupling authority is a stop target, and the train in following mode that brakes for it is decoupling.
-		QCOMPARE_EQ(live.Xobmin, 1500.0);
-		QCOMPARE_EQ(live.Vobmin, 0.0);
-		QVERIFY(live.BrakingForEoA);
-		QVERIFY(live.IsTrainDecoupling);
+		live.LeadingTrainInFollowingMode = "LEADER";
+		auto diverging = authority(1200, "OTHER");
+		diverging.TrainInfo.NextSectionID = "elsewhere";
+		diverging.TrainInfo.TrainSpeed = 15;
+		const auto other = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
+		QCOMPARE_EQ(other.speed, 0.0);
+		diverging.TrainInfo.trainDescription = "LEADER";
+		const auto own = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
+		QCOMPARE_EQ(own.speed, 15.0);
 	}
 	{
 		Train live = actual(1000, 10);
 		auto front = authority(1020, "FRONT");
-		front.typePart = "Front";
+		front.typePart = AuthorityTrainEnd::Front;
 		front.TrainInfo.TrainSpeed = 10.01;
 		defaultRun().etcsMa = {front};
 		live.IsTrainCoupling = true;
 		live.Predicted_MA_To_CoupleAt = front;
 		arc.signalSpeedLimit = 10;
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		QVERIFY2(!live.IsTrainInFollowingMode, "same-direction Front cannot activate stale coupling");
 		front.ReversedDirection = !reversed;
 		defaultRun().etcsMa = {front};
 		live = actual(1000, 10);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Opposing Front remains a stopping authority in either route direction.
 		QVERIFY(near(live.currentXob, 1020));
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4304,7 +4526,7 @@ void TestOperationsBuilder::level4Transitions() {
 		// A one-step native stop has no right-endpoint displacement at either leader speed.
 		QVERIFY(live.predictBraking(raw, leaderSpeed, 0, &section, 1, end));
 		QCOMPARE_EQ(end, raw);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Projected stop excludes the inverse anchor holdback and stays fixed when the leader reaches zero.
 		QCOMPARE_EQ(live.currentXob, raw);
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4330,7 +4552,7 @@ void TestOperationsBuilder::level4Transitions() {
 			live.Last_MA_StoppedAt = live.Last_Received_MA = authority(1000.002, "OLD");
 			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 			defaultRun().etcsMa = {authority(1000.005, "NEW")};
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// Station hold and departure cannot cross a replacement authority within the station window.
 			QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
 			QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
@@ -4339,7 +4561,7 @@ void TestOperationsBuilder::level4Transitions() {
 			QVERIFY(near(live.currentXob, 1000.005));
 			if (dwellComplete) {
 				defaultRun().etcsMa.clear();
-				live.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(3);
 				// Completed station service can depart once the replacement authority clears.
 				QVERIFY(!live.StoppedForServiceStop);
 				QVERIFY(live.instant_train_speed[3] > 0);
@@ -4355,14 +4577,14 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_MA_StoppedAt = live.Last_Received_MA = saved;
 		live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 		auto failure = authority(1000.001, "signal_failure:test");
-		failure.type = "SignalFailure"; // A synthetic competing snapshot, not a canonical incident position.
+		failure.type = AuthorityKind::SignalFailure; // A synthetic competing snapshot, not a canonical incident position.
 		defaultRun().etcsMa = {saved, failure};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Saved Tale holds actual state, not the newly selected failure position.
 		QVERIFY(live.IsTrainStoppedForEoA);
 		QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
 		QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
-		QCOMPARE(live.Last_Received_MA.type, "SignalFailure");
+		QCOMPARE(live.Last_Received_MA.type, AuthorityKind::SignalFailure);
 	}
 	for (bool replacement : {false, true}) {
 		Train live = actual(1000, 0);
@@ -4372,7 +4594,7 @@ void TestOperationsBuilder::level4Transitions() {
 		defaultRun().etcsMa.clear();
 		if (replacement)
 			defaultRun().etcsMa.push_back(authority(1000.003, "NEW"));
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Removed saved Tale releases to the actual-state successor, retaining new near Tale or open acceleration.
 		QVERIFY(!live.IsTrainStoppedForEoA);
 		if (replacement) {
@@ -4393,8 +4615,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_MA_StoppedAt = saved;
 		live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 		auto changed = saved;
-		if (mismatch == 0) changed.type = "SignalFailure";
-		if (mismatch == 1) changed.typePart = "Front";
+		if (mismatch == 0) changed.type = AuthorityKind::SignalFailure;
+		if (mismatch == 1) changed.typePart = AuthorityTrainEnd::Front;
 		if (mismatch == 2) changed.ReversedDirection = !reversed;
 		if (mismatch == 3) changed.AbsPosEoA += 1;
 		if (mismatch == 4) live.Last_MA_StoppedAt.RelativePosEoA = 999;
@@ -4411,7 +4633,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_Received_MA = behind;
 		live.BrakingForEoA = true;
 		defaultRun().etcsMa = {behind};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// A behind authority cannot be captured as a stationary hold.
 		QVERIFY(!live.IsTrainStoppedForEoA);
 		QVERIFY(live.instant_spatial_position[2] > 1000);
@@ -4431,7 +4653,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.currentXob = target;
 		live.currentVob = 0;
 		defaultRun().etcsMa = {saved};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Active following cannot replace a native anchored zero-speed terminal.
 		QCOMPARE(live.stepBranch, 52);
 		QCOMPARE_EQ(live.instant_spatial_position[2], terminal);
@@ -4440,7 +4662,7 @@ void TestOperationsBuilder::level4Transitions() {
 	{
 		Train control = actual(1000, 10);
 		auto front = authority(1020, "FRONT_ONLY");
-		front.typePart = "Front";
+		front.typePart = AuthorityTrainEnd::Front;
 		front.TrainInfo.TrainSpeed = 10;
 		defaultRun().etcsMa = {front};
 		arc.signalSpeedLimit = 10;
@@ -4448,8 +4670,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live.IsTrainInFollowingMode = true;
 		live.LeadingTrainInFollowingMode = "FRONT_ONLY";
 		live.CounterFollowingMode = 1;
-		control.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		control.trajectoryComputationIncludingMovingBlock(2);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// An ineligible live Front produces no following proposal and preserves the complete normal result.
 		QCOMPARE(live.stepBranch, control.stepBranch);
 		QCOMPARE_EQ(live.instant_spatial_position[2], control.instant_spatial_position[2]);
@@ -4472,7 +4694,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.CounterFollowingMode = 1;
 		arc.signalSpeedLimit = 10;
 		const double minimum = live.brakingCurveSpeed(10, arc);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Force-invalid leader-relative intent preserves braking; admissible nonbraking following still runs.
 		QVERIFY(live.instant_train_speed[2] >= minimum);
 		QVERIFY(live.instant_train_speed[2] <= 10);
@@ -4513,7 +4735,7 @@ void TestOperationsBuilder::stationaryBrakingCompletesDwell() {
 	service.instant_spatial_position[1] = head;
 	service.instant_train_speed[1] = 0;
 	for (int time = 2; time <= 8; ++time) {
-		service.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(time);
 		// Zero-speed braking fallback preserves the first service entry clock throughout dwell.
 		QCOMPARE(service.stop, 2);
 		QCOMPARE_EQ(service.currentXob, service.stationRoutePositionMeters(station));
@@ -4571,8 +4793,8 @@ void TestOperationsBuilder::signalFailureEvidence() {
 	auto failure = [&](const std::string& description) {
 		MovementAuthority ma;
 		ma.BSID = "evidence.1";
-		ma.type = "SignalFailure";
-		ma.typePart = "Front";
+		ma.type = AuthorityKind::SignalFailure;
+		ma.typePart = AuthorityTrainEnd::Front;
 		ma.ReversedDirection = reversed;
 		ma.EoA_Dist_From_BSID_Beg = 1000;
 		ma.AbsPosEoA = reversed ? 9000 : 2000;
@@ -4587,7 +4809,7 @@ void TestOperationsBuilder::signalFailureEvidence() {
 		live.OutOfSimulation = false;
 		live.departure_time = 0;
 		live.counter = live.CounterFollowingMode = 0;
-		live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+		live.IsTrainInFollowingMode = live.IsTrainCoupling = false;
 		live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
 		live.StoppedForServiceStop = false;
 		live.directIncidentIds.clear();
@@ -4597,7 +4819,7 @@ void TestOperationsBuilder::signalFailureEvidence() {
 		live.currentXob = live.currentVob = 0;
 		return live;
 	};
-	const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3); };
+	const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2); };
 	defaultRun().etcsMa = {failure("signal_failure:incident.test")};
 	Train leader = standing(1999.9999);
 	Train follower = standing(999.9999);
@@ -5309,7 +5531,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 	QCOMPARE(defaultRun().etcsMa.size(), std::size_t(1));
 	QCOMPARE(defaultRun().etcsMa.front().BSID, "lock.5");
 	QVERIFY(defaultRun().etcsMa.front().ReversedDirection);
-	QCOMPARE(defaultRun().etcsMa.front().type, "SignalFailure");
+	QCOMPARE(defaultRun().etcsMa.front().type, AuthorityKind::SignalFailure);
 	QCOMPARE(defaultRun().etcsMa.front().TrainInfo.trainDescription, "single_track:lock.2");
 	setLevel(2);
 	defaultRun().etcsMa.clear();
@@ -5408,12 +5630,12 @@ void TestOperationsBuilder::singleTrackLocks() {
 		const double previousSpeed = holder.instant_train_speed[step - 1];
 		const double deceleration = holder.max_train_decelaration
 			+ holder.total_train_resistances(previousSpeed, 0.0, 0.0) / (holder.total_train_mass * holder.massFactor);
-		holder.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		holder.trajectoryComputationIncludingMovingBlock(step);
 		largestSpeedDrop = std::max(largestSpeedDrop, previousSpeed - holder.instant_train_speed[step]);
 		safeApproach &= holder.instant_train_speed[step - 1] == previousSpeed
 			&& previousSpeed - holder.instant_train_speed[step] <= deceleration * timestep + 1e-9
 			&& holder.instant_spatial_position[step] >= previousHead;
-		defaultRun().trains[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		defaultRun().trains[1].trajectoryComputationIncludingMovingBlock(step);
 		waiterHeld &= !defaultRun().trains[1].CanEnter;
 		signalStep(step);
 		const double head = holder.instant_spatial_position[step];
@@ -5732,7 +5954,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 		follow();
 		train.leaveFollowingModeWhenLeaderIsGone(7);
 		shows(capture.take(),
-			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position any more\n"}},
+			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position on this route any more\n"}},
 			"a train whose leader reports no position any more");
 		if (QTest::currentTestFailed())
 			return;
@@ -5773,7 +5995,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 	train.CurrentServiceStopPlatform = "P1";
 	Passenger alighting;
 	alighting.ID = "Pax1";
-	alighting.CurrentStatus = "OnBoard";
+	alighting.CurrentStatus = PassengerStatus::OnBoard;
 	alighting.Current_Train_Boarded = "T1";
 	alighting.Current_Arrival_Station = "S1";
 	alighting.current_TripID = "A1";
@@ -5788,8 +6010,12 @@ void TestOperationsBuilder::rollingStockMessages() {
 	nextTrip.Dep_Station_ID = "S2";
 	journey.Trips = {firstTrip, nextTrip};
 	alighting.Journeys.push_back(journey);
-	std::list<Passenger> passengers{alighting};
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {});
+	{
+		PassengerStepScope scope(defaultRun());
+		scope.set({train}, {alighting}, {});
+		defaultRun().settings.startingSimulationTime = 0;
+		simulateTrainPassengerInteractions(defaultRun(), 10);
+	}
 	shows(capture.take(),
 		{{Category::SimPax, Level::Warning,
 			"Warning: Passenger Pax1will depart from a station different than the one planned for active trip A2 in journey J1\n"}},
@@ -5797,28 +6023,37 @@ void TestOperationsBuilder::rollingStockMessages() {
 	if (QTest::currentTestFailed())
 		return;
 
-	// A passenger who waits for a train that is full. The waiting list of the platform is the one given when PAX_GUI is set.
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	defaultRun().settings.PAX_GUI = true;
-	StationPlatform platform;
-	platform.ID = "P1";
-	platform.StationID = "S1";
-	platform.Current_List_Pax_On_Platform.push_back({"Pax2", 0.0});
-	Passenger waiting;
-	waiting.ID = "Pax2";
-	waiting.CurrentStatus = "OnPlatform";
-	waiting.Current_Train_To_Wait = "T1";
-	waiting.Current_WaitingStationID = "S1";
-	passengers = {waiting};
-	train.MAX_OnBoard_Passengers = 0;
-	train.Current_OnBoard_Passengers = 0;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {platform});
-	defaultRun().settings.PAX_GUI = savedPaxGui;
-	shows(capture.take(),
-		{{Category::SimPax, Level::Info, "Call RouteChoice model as passenger ID: Pax2 could not board train T1 as it was full\n"}},
-		"a passenger who waits for a train that is full");
-	if (QTest::currentTestFailed())
-		return;
+	// A passenger who waits for a train that is full. The waiting list of the platform is the one that the run makes when PAX_GUI is set.
+	{
+		StationPlatform platform;
+		platform.ID = "P1";
+		platform.StationID = "S1";
+		Passenger waiting = passengerForT1("Pax2", 0);
+		waiting.Current_WaitingStationPlatformID = "P1";
+		waiting.Journeys.front().Trips.front().Dep_Station_Platform_ID = "P1";
+		Train fullTrain = trainCalling("T1", {"S1", "S2"});
+		standAtStop(fullTrain, 0, 2);
+		fullTrain.Stations[0].stationPlatformId = fullTrain.CurrentServiceStopPlatform = "P1";
+		fullTrain.MAX_OnBoard_Passengers = 0;
+		fullTrain.Current_OnBoard_Passengers = 0;
+		PassengerStepScope scope(defaultRun());
+		scope.set({fullTrain}, {waiting}, {platform});
+		defaultRun().settings.PAX_GUI = true;
+		defaultRun().settings.startingSimulationTime = 0;
+		passengerStep(defaultRun(), 10);
+		// There is no other train, so the passenger who was refused finds no route.
+		shows(capture.take(),
+			{{Category::SimPax, Level::Info, "Passenger Pax2 could not board train T1 as it was full\n"},
+				{Category::SimPax, Level::Info, "Passenger Pax2 found no route from S1 to S2 for journey Pax2.j\n"}},
+			"a passenger who waits for a train that is full");
+		if (QTest::currentTestFailed())
+			return;
+		// The next step of the same stop does not log the refusal again.
+		passengerStep(defaultRun(), 11);
+		shows(capture.take(), {}, "a passenger who was refused by a train that stays full");
+		if (QTest::currentTestFailed())
+			return;
+	}
 
 	// A route of one section from 0 to 10 km.
 	std::vector<Route> savedRoutes;

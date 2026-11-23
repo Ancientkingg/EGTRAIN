@@ -7,6 +7,7 @@
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/FollowCamera.h"
+#include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
@@ -16,6 +17,7 @@
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/StationCalloutItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
@@ -30,13 +32,18 @@
 #include <QDialog>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QFontMetricsF>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
+#include <QImage>
 #include <QLineF>
 #include <QLoggingCategory>
 #include <QMap>
 #include <QObject>
+#include <QPainter>
 #include <QPixmap>
 #include <QSignalSpy>
 #include <QStringList>
@@ -449,6 +456,25 @@ private:
 	int m_count = 0;
 };
 
+// Zooms the view of the fixture until a passenger figure is this many pixels high on the screen, which is what the
+// platforms read when they choose between the counts and the figures, and refreshes them as every change of the view does,
+// through the call that updateViewOverlays() makes.
+template <typename Fixture>
+static void zoomToFigures(Fixture& f, qreal pixels) {
+	if (!f.view.scene()) {
+		// The view is large, and its fit is far larger still, so that every scale in the tests is a zoom that keeps all of
+		// the items in view.
+		f.view.setScene(&f.scene);
+		f.view.resize(20000, 15000);
+		const QPointF centre = f.scene.itemsBoundingRect().center();
+		f.view.fitToBounds(QRectF(centre.x() - 5e4, centre.y() - 3.75e4, 1e5, 7.5e4));
+		PresenterAccess::view(f.presenter) = &f.view;
+	}
+	const qreal wanted = pixels / (PassengerItem::FigureHeight * f.presenter.presentationScale());
+	f.view.zoomBy(wanted / std::abs(f.view.transform().m11()));
+	PresenterAccess::applyPlatformVisibility(f.presenter);
+}
+
 // The infrastructure that the scene builder made for a run, as the window gives it to the canvas.
 class RunGeometry final : public RuntimeGeometrySource {
 public:
@@ -551,14 +577,17 @@ static std::vector<std::string> iconIds(const PlatformItem& platform) {
 	return ids;
 }
 
-// Where the icon at place i of n sits on the platform: the passengers share the length of the platform, centred on its
-// long axis.
-static bool iconAt(const PlatformItem& platform, int i, int n, qreal iconSize) {
+// Where the figure at place i sits on a platform: in a row from the start of the bar at a fixed spacing, standing level
+// just above the edge of the bar that is higher on the scene, centred on its place in the row.
+static bool iconAt(const PlatformItem& platform, int i, qreal scale) {
 	const QRectF rect = platform.rect();
-	const qreal spacing = rect.width() / n;
-	const QPointF centre = platform.mapToScene(QPointF(rect.left() + spacing / 2 + spacing * i, rect.center().y()));
+	const qreal spacing = (PassengerItem::FigureWidth + 3.0) * scale;
+	const qreal x = rect.left() + spacing * (i + 0.5);
+	const QPointF axis = platform.mapToScene(QPointF(x, rect.center().y()));
+	const QPointF towardsTop = platform.mapToScene(QPointF(x, rect.top())) - axis;
+	const QPointF stand = axis + (towardsTop.y() <= 0 ? towardsTop : -towardsTop) - QPointF(0.0, 4.0 * scale);
 	const QPointF at = platform.passengerIcons[i]->pos();
-	return near(at.x(), centre.x() - iconSize / 2) && near(at.y(), centre.y() - iconSize / 2);
+	return near(at.x(), stand.x() - PassengerItem::FigureWidth * scale / 2) && near(at.y(), stand.y() - PassengerItem::FigureHeight * scale);
 }
 
 // The line the presenter draws for the arc, from its start node to its end node; an empty line when it draws none.
@@ -602,6 +631,22 @@ static std::vector<double> canvasFields(const RuntimeGeometrySource& source) {
 
 using Ids = std::vector<std::string>;
 
+// The passengers `ids` as a platform lists them, and the platform counts as many.
+static void listPassengers(GuiPlatformState& platform, const Ids& ids) {
+	platform.passengers.clear();
+	for (const std::string& id : ids) platform.passengers.push_back({id, "waiting", "P1", "T1", "A"});
+	platform.passengerCount = static_cast<int>(ids.size());
+}
+
+static GuiPlatformState platformWith(const std::string& station, const std::string& id, int maxVolume, const Ids& ids) {
+	GuiPlatformState platform;
+	platform.stationId = station;
+	platform.platformId = id;
+	platform.maxVolume = maxVolume;
+	listPassengers(platform, ids);
+	return platform;
+}
+
 // Whether the presenter holds no item and points to none, the way a new presenter does.
 static bool presenterEmpty(const NetworkPresenter& presenter) {
 	return presenter.runTrains().isEmpty() && PresenterAccess::trainBadges(presenter).isEmpty() && !presenter.trainsMoving()
@@ -617,7 +662,9 @@ static bool presenterEmpty(const NetworkPresenter& presenter) {
 // A presenter that draws the run of a FakeGeometry on a scene of its own.
 struct RunFixture {
 	const SceneModel model;
-	QGraphicsScene scene;
+	NetworkScene scene{nullptr};
+	// The view that zoomToFigures() gives the presenter; until then the presenter has none.
+	NetworkView view;
 	NetworkPresenter presenter{&scene, nullptr};
 	FakeGeometry* source = nullptr;
 
@@ -749,8 +796,21 @@ private slots:
 	void applyShowsStepsOfRun();
 	void trainOnUndrawnTrackShowsNoPassengers();
 	void passengersOnBoardKeepTheirGroup();
+	void badgeShowsLoadWithPassengerLayer();
 	void headTooltipFollowsAspect();
 	void stepTouchesOnlyWhatItChanges();
+	void platformShowsBoundedIcons();
+	void platformBarShowsCrowdingGauge();
+	void zoomSwitchesCountAndFigures();
+	void stationShowsWaitingCountInFarLook();
+	void stationPillCountsPlatformWithTwoNodesOnce();
+	void stationCalloutListsDestinationsAndCalls();
+	void stationCalloutOpensFromClicksAndCloses();
+	void stationCountAndBarOpenTheMenuOfTheirStation();
+	void stationCalloutClosesWithTheStationLayer();
+	void stationCalloutShortensSubtitleThatIsTooWide();
+	void stationCalloutPlacesBelowAtTopOfView();
+	void stationCalloutStaysInSceneIndex();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
 	void wagonKeepsWidthOverShortConnection();
@@ -826,21 +886,24 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		if (source->passengers) {
 			QCOMPARE(platform->stationId, "B");
 			QCOMPARE(platform->platformId, "P1");
-			QCOMPARE(platform->maxVolume, 40);
+			QCOMPARE(platform->capacity(), 40);
 			if (platform->textIcon == nullptr)
 				QFAIL("the run with passengers draws no counter");
-			// The counter says how many passengers wait on the platform and how many it holds.
-			QCOMPARE(platform->textIcon->toPlainText(), "7 waiting (capacity 40)");
+			// The count says how many passengers wait on the platform, and its tooltip also how many it holds.
+			QCOMPARE(platform->textIcon->toPlainText(), "7");
+			QCOMPARE(platform->toolTip(), "7 waiting (capacity 40)");
+			QVERIFY(platform->gauge());
 		} else {
 			QVERIFY(platform->stationId.empty());
-			QCOMPARE(platform->maxVolume, 0);
+			QCOMPARE(platform->capacity(), 0);
 			QVERIFY(!platform->textIcon);
+			QVERIFY(!platform->gauge());
 		}
 		// The platform of a level track is level, above its node.
 		QCOMPARE_EQ(platform->rotation(), 0.0);
 		QVERIFY(platformAlong(*platform, drawnArc(presenter, source->track(0).member[1]).p2(), QPointF(1, 0),
 			presenter.station_node_size * presenter.presentationScale()));
-		// The bar shows with the stations in the near look; its counter waits for the zoom.
+		// The bar shows with the stations in the near look; its count shows with it until the zoom brings the figures.
 		const auto counterShown = [platform]() { return platform && platform->textIcon && platform->textIcon->isVisible(); };
 		// The platform and its counter are hidden in the far look.
 		QVERIFY(!platform->isVisible());
@@ -848,7 +911,7 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		PresenterAccess::setStationNearLook(presenter, true);
 		// The platform shows in the near look.
 		QVERIFY(platform->isVisible());
-		QVERIFY(!counterShown());
+		QCOMPARE(counterShown(), source->passengers);
 		PresenterAccess::stationLayerVisible(presenter) = false;
 		PresenterAccess::setStationNearLook(presenter, true);
 		QVERIFY2(!platform->isVisible(), "the platform hides with the stations");
@@ -917,14 +980,14 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 	TrackLineItem* const track = PresenterAccess::tracksByOccupiedArc(presenter).at({0, 0.0});
 	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
-	const auto platformText = [platform]() { return platform->textIcon->toPlainText(); };
+	const auto platformText = [platform]() { return platform->toolTip(); };
 
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
 	snapshot.trains = {trainAt(7.5)};
 	snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
 	snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
 
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// A live step reports the signals, then each train, then the end of the trains to the host.
@@ -944,7 +1007,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	// The platform shows its passengers.
 	QCOMPARE(platform->passengerIcons.size(), qsizetype(2));
 	QCOMPARE(platformText(), "2 waiting (capacity 40)");
-	// The passengers on the platform show only where its bar shows, with the passenger layer.
+	// The figures of the passengers on the platform show only where its bar shows, zoomed in, with the passenger layer.
 	const auto iconsShown = [platform](bool shown) {
 		return std::all_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
 			[shown](const PassengerItem* icon) { return icon->isVisible() == shown; });
@@ -953,9 +1016,15 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	QVERIFY(!platform->isVisible());
 	QVERIFY(iconsShown(false));
 	PresenterAccess::setStationNearLook(presenter, true);
-	// They show with the bar in the near look.
+	// The bar shows in the near look with the count of its passengers, and the figures wait for the zoom.
 	QVERIFY(platform->isVisible());
+	QVERIFY(iconsShown(false));
+	QVERIFY(platform->textIcon->isVisible());
+	QCOMPARE(platform->textIcon->toPlainText(), "2");
+	zoomToFigures(f, 24.0);
+	// Zoomed in, the figures show and the count goes, without another step.
 	QVERIFY(iconsShown(true));
+	QVERIFY(!platform->textIcon->isVisible());
 	// The details of a selected passenger go with its icon, also when the next step paints them again.
 	PassengerItem* const selected = platform->passengerIcons[0];
 	presenter.paintPassengerInfoIcon(selected, passengerStateIn(&snapshot, selected->passengerId), false);
@@ -992,7 +1061,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	snapshot.timestep = 11;
 	snapshot.trains = {trainAt(8.0)};
 	snapshot.signalStates.clear();
-	snapshot.platforms[0].passengerIds = {"p1"};
+	listPassengers(snapshot.platforms[0], {"p1"});
 	snapshot.virtualCouplingMessages = {GuiVirtualCouplingState{11, "T1", "message"}};
 	host.promoted = true;
 	host.cameraMoves = true;
@@ -1152,6 +1221,57 @@ void TestRuntimeCanvas::passengersOnBoardKeepTheirGroup() {
 	presenter.clear();
 }
 
+// The badge of a train shows "n / capacity" in the Detailed presentation, only for a case with passengers and while the
+// passenger layer is on, apart from the speed label.
+void TestRuntimeCanvas::badgeShowsLoadWithPassengerLayer() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.trains = {trainAt(7.5)};
+	snapshot.trains[0].currentOnboardPassengers = 212;
+	snapshot.trains[0].maxOnboardPassengers = 600;
+	const auto badge = [&]() -> TrainBadgeItem* {
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		TrainBadgeItem* item = PresenterAccess::trainBadges(presenter).value(0, nullptr);
+		if (item == nullptr) {
+			QTest::qFail("the step draws no badge", __FILE__, __LINE__);
+			return nullptr;
+		}
+		item->setPresentation(TrainBadgeItem::Presentation::Detailed);
+		return item;
+	};
+	// A case without passengers shows no load.
+	QVERIFY(!badge()->showsLoad());
+	presenter.setCaseHasPassengers(true);
+	TrainBadgeItem* item = badge();
+	QVERIFY(item->showsLoad());
+	QCOMPARE(item->loadText(), QStringLiteral("212 / 600"));
+	QVERIFY(!item->loadTextRect().isEmpty());
+	// The load sits above the speed and the bounds hold both.
+	QCOMPARE_LT(item->loadTextRect().bottom(), item->speedTextRect().top());
+	QVERIFY(item->boundingRect().contains(item->loadTextRect()));
+	QVERIFY(item->boundingRect().contains(item->speedTextRect()));
+	// The speed label layer does not hide the load, and the passenger layer does not hide the speed.
+	presenter.setTrainSpeedLabelsVisible(false);
+	QVERIFY(item->showsLoad());
+	QVERIFY(!item->showsSpeed());
+	presenter.setTrainSpeedLabelsVisible(true);
+	presenter.setPassengerLayerVisible(false);
+	QVERIFY(!item->showsLoad());
+	QVERIFY(item->showsSpeed());
+	QVERIFY(!badge()->showsLoad());
+	presenter.setPassengerLayerVisible(true);
+	QVERIFY(item->showsLoad());
+	// An unknown capacity shows only the passengers on board.
+	snapshot.trains[0].maxOnboardPassengers = 0;
+	QCOMPARE(badge()->loadText(), QStringLiteral("212"));
+	QCOMPARE(NetworkPresenter::trainLoadText(5, -1), QStringLiteral("5"));
+	presenter.clear();
+}
+
 // The tooltip of a head follows its aspect, and a step that keeps the aspect leaves the tooltip as it is.
 void TestRuntimeCanvas::headTooltipFollowsAspect() {
 	RunFixture f;
@@ -1196,8 +1316,8 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	presenter.showRuntime(f.model);
 	// The platforms and their passengers show in the near look.
 	PresenterAccess::setStationNearLook(presenter, true);
-	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
-	const qreal iconSize = PresenterAccess::passengerPixmap(presenter).width() * presenter.presentationScale();
+	zoomToFigures(f, 24.0);
+	const qreal scale = presenter.presentationScale();
 	// The run draws both platforms.
 	QCOMPARE(PresenterAccess::allPlatforms(presenter).size(), qsizetype(2));
 
@@ -1208,7 +1328,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 	snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
 	// listed in the opposite order of the platforms on the canvas
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"}), platformWith("B", "P2", 30, Ids{"q1", "q2"})};
 	PlatformItem* const endPlatform = PresenterAccess::allPlatforms(presenter).value(1);
 	PlatformItem* const middlePlatform = PresenterAccess::allPlatforms(presenter).value(0);
 	// The platforms are in the order of the line.
@@ -1241,7 +1361,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	PassengerItem* const lastIcon = endPlatform->passengerIcons[2];
 	PresenterAccess::paxIconItem(presenter) = firstIcon;
 	snapshot.timestep = 11;
-	snapshot.platforms[0].passengerIds = {"p1", "p3"};
+	listPassengers(snapshot.platforms[0], {"p1", "p3"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1252,9 +1372,9 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(endPlatform->passengerIcons.size(), qsizetype(2));
 	QCOMPARE(endPlatform->passengerIcons[0], firstIcon);
 	QCOMPARE(endPlatform->passengerIcons[1], lastIcon);
-	// The icons that stay share the width of the platform again.
-	QVERIFY(iconAt(*endPlatform, 0, 2, iconSize));
-	QVERIFY(iconAt(*endPlatform, 1, 2, iconSize));
+	// The figures that stay close up again.
+	QVERIFY(iconAt(*endPlatform, 0, scale));
+	QVERIFY(iconAt(*endPlatform, 1, scale));
 	// The selected icon stays selected while its passenger is there.
 	QCOMPARE(PresenterAccess::paxIconItem(presenter), firstIcon);
 	// A change is announced.
@@ -1262,7 +1382,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 
 	// passengers arrive, one of them between the two
 	snapshot.timestep = 12;
-	snapshot.platforms[0].passengerIds = {"p1", "p4", "p3", "p5"};
+	listPassengers(snapshot.platforms[0], {"p1", "p4", "p3", "p5"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1277,11 +1397,11 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(paintedIcons(scene), Ids({"q1", "q2", "p1", "p4", "p3", "p5"}));
 	QCOMPARE(paintedIcons(scene), expectedIcons(presenter));
 	for (int i = 0; i < 4; ++i)
-		QVERIFY2(iconAt(*endPlatform, i, 4, iconSize), "the icons share the width of the platform");
+		QVERIFY2(iconAt(*endPlatform, i, scale), "the figures stand in a row from the start of the bar");
 
 	// the passengers swap places
 	snapshot.timestep = 13;
-	snapshot.platforms[0].passengerIds = {"p5", "p3", "p1", "p4"};
+	listPassengers(snapshot.platforms[0], {"p5", "p3", "p1", "p4"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1293,8 +1413,8 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(endPlatform->passengerIcons[2], firstIcon);
 	QCOMPARE(paintedIcons(scene), Ids({"q1", "q2", "p5", "p3", "p1", "p4"}));
 	// The icons move to their new places.
-	QVERIFY(iconAt(*endPlatform, 0, 4, iconSize));
-	QVERIFY(iconAt(*endPlatform, 2, 4, iconSize));
+	QVERIFY(iconAt(*endPlatform, 0, scale));
+	QVERIFY(iconAt(*endPlatform, 2, scale));
 
 	// the platform that is not in the snapshot keeps what it shows
 	snapshot.timestep = 14;
@@ -1308,7 +1428,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	const QString endText = endPlatform->textIcon->toPlainText();
 	PresenterAccess::passengerLayerVisible(presenter) = false;
 	snapshot.timestep = 15;
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p9"}}, GuiPlatformState{"B", "P2", 30, {}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p9"}), platformWith("B", "P2", 30, Ids{})};
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1326,8 +1446,8 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(iconIds(*endPlatform), Ids({"p9"}));
 	QVERIFY(middlePlatform->passengerIcons.isEmpty());
 	// The layer that is shown again has the counters of the current step.
-	QCOMPARE(endPlatform->textIcon->toPlainText(), "1 waiting (capacity 40)");
-	QCOMPARE(middlePlatform->textIcon->toPlainText(), "0 waiting (capacity 30)");
+	QCOMPARE(endPlatform->toolTip(), "1 waiting (capacity 40)");
+	QCOMPARE(middlePlatform->toolTip(), "0 waiting (capacity 30)");
 	// The selected icon is forgotten when its passenger has left.
 	QCOMPARE(PresenterAccess::paxIconItem(presenter), nullptr);
 	// No icon of a passenger who left is left on the canvas.
@@ -1340,6 +1460,694 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(itemsNow.removed, 0);
 	presenter.clear();
 	QVERIFY2(scene.items().isEmpty(), "clear leaves nothing of the run");
+}
+
+// The number of figures that fit along the bar of a platform, which is how many the platform can show.
+static int figuresThatFitOn(const PlatformItem& platform, qreal scale) {
+	return static_cast<int>(platform.rect().width() / ((PassengerItem::FigureWidth + 3.0) * scale));
+}
+
+// A platform with more passengers than it shows figures for shows the figures that fit, the count of all of them, and a
+// "+N" chip for the ones without a figure, which goes when every passenger has a figure.
+void TestRuntimeCanvas::platformShowsBoundedIcons() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	PresenterAccess::setStationNearLook(presenter, true);
+	zoomToFigures(f, 24.0);
+	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
+	const int fit = figuresThatFitOn(*platform, presenter.presentationScale());
+	QCOMPARE_GT(fit, 3);
+
+	Ids ids;
+	for (int i = 0; i < kGuiPlatformPassengerIcons; ++i) ids.push_back("p" + std::to_string(i));
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 400, ids)};
+	snapshot.platforms[0].passengerCount = 60;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	// The chip takes the last place of the row, so one figure fewer than fit, and tells how many have none.
+	QCOMPARE(platform->passengerIcons.size(), qsizetype(fit - 1));
+	QCOMPARE(platform->toolTip(), "60 waiting (capacity 400)");
+	QVERIFY(platform->moreIcon);
+	QCOMPARE(platform->moreLabel->text(), QStringLiteral("+%1").arg(60 - (fit - 1)));
+	QVERIFY(platform->moreIcon->isVisible());
+	// The count waits for the zoom out.
+	QVERIFY(!platform->textIcon->isVisible());
+	QCOMPARE(passengerStateIn(&snapshot, "p3").id, std::string("p3"));
+	QCOMPARE(passengerStateIn(&snapshot, "p3").status, std::string("waiting"));
+
+	// The chip follows the count.
+	snapshot.platforms[0].passengerCount = 75;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(platform->moreLabel->text(), QStringLiteral("+%1").arg(75 - (fit - 1)));
+
+	// It hides with the figures.
+	PresenterAccess::passengerLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(!platform->moreIcon->isVisible());
+	PresenterAccess::passengerLayerVisible(presenter) = true;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(platform->moreIcon->isVisible());
+
+	// A platform that lists more passengers than fit has the chip also when it lists all of them.
+	snapshot.platforms[0].passengerCount = 50;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(platform->moreIcon);
+	QCOMPARE(platform->moreLabel->text(), QStringLiteral("+%1").arg(50 - (fit - 1)));
+	QCOMPARE(platform->toolTip(), "50 waiting (capacity 400)");
+
+	// When every passenger has a figure, the chip is gone.
+	listPassengers(snapshot.platforms[0], {"p1", "p2"});
+	snapshot.platforms[0].passengerCount = 2;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!platform->moreIcon);
+	QVERIFY(!platform->moreLabel);
+	QCOMPARE(platform->passengerIcons.size(), qsizetype(2));
+}
+
+// The bar of a platform with passengers fills with the passengers waiting up to its capacity, in the colour of the
+// crowding: teal up to the threshold, amber up to the capacity, red over it, and then it also has an end cap.
+void TestRuntimeCanvas::platformBarShowsCrowdingGauge() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	PresenterAccess::setStationNearLook(presenter, true);
+	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
+	QVERIFY(platform->gauge());
+
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	// the waiting passengers, the capacity, the fraction of the bar that fills, and the crowding that colours the fill
+	struct Case {
+		int waiting;
+		int capacity;
+		qreal fraction;
+		PlatformCrowding crowding;
+	};
+	const Case cases[] = {{20, 40, 0.5, PlatformCrowding::Normal}, {26, 40, 0.65, PlatformCrowding::Normal},
+		{27, 40, 27.0 / 40.0, PlatformCrowding::Busy}, {40, 40, 1.0, PlatformCrowding::Busy},
+		{41, 40, 1.0, PlatformCrowding::Over}, {5, 0, 0.0, PlatformCrowding::Normal}};
+	for (const Case& c : cases) {
+		snapshot.platforms = {platformWith("B", "P1", c.capacity, Ids{})};
+		snapshot.platforms[0].passengerCount = c.waiting;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		QCOMPARE_EQ(platform->fillFraction(), c.fraction);
+		QCOMPARE(platform->crowding(), c.crowding);
+	}
+
+	// What the bar paints: the colour at a place along the bar (0 to 1) and across it (0 at the top edge to 1 at the
+	// bottom edge, outside that range past the bar) in a rendering of the item.
+	const auto pixel = [platform](qreal along, qreal across) {
+		const QRectF bar = platform->rect();
+		constexpr qreal scale = 4.0;
+		QImage image(QSize(qCeil(bar.width() * 1.2 * scale), qCeil(bar.height() * 3.0 * scale)), QImage::Format_ARGB32);
+		image.fill(Qt::transparent);
+		QPainter painter(&image);
+		painter.scale(scale, scale);
+		painter.translate(-bar.left() + bar.width() * 0.1, -bar.top() + bar.height());
+		platform->paint(&painter, nullptr, nullptr);
+		painter.end();
+		return image.pixelColor(qRound(bar.width() * (0.1 + along) * scale), qRound(bar.height() * (1.0 + across) * scale));
+	};
+	const QColor trough(0x2c, 0x38, 0x46);
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	snapshot.platforms[0].passengerCount = 30;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	// Three quarters of the bar are amber from its start, the rest is the dark trough.
+	QCOMPARE(pixel(0.1, 0.5).name(), PassengerItem::crowdingColour(PlatformCrowding::Busy).name());
+	QCOMPARE(pixel(0.9, 0.5).name(), trough.name());
+	// At capacity, the bar is full and has no end cap.
+	snapshot.platforms[0].passengerCount = 40;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(pixel(0.9, 0.5).name(), PassengerItem::crowdingColour(PlatformCrowding::Busy).name());
+	QCOMPARE(pixel(0.999, -0.3).alpha(), 0);
+	// Over capacity the bar is red and the end cap reaches past the bar.
+	snapshot.platforms[0].passengerCount = 55;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(pixel(0.5, 0.5).name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
+	QCOMPARE(pixel(0.999, -0.3).name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
+	// A platform without capacity is the trough only.
+	snapshot.platforms = {platformWith("B", "P1", 0, Ids{})};
+	snapshot.platforms[0].passengerCount = 55;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(pixel(0.1, 0.5).name(), trough.name());
+
+	// The passenger layer takes the gauge away: the bar is plain again.
+	PresenterAccess::passengerLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(!platform->gauge());
+	PresenterAccess::passengerLayerVisible(presenter) = true;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(platform->gauge());
+}
+
+// In the far look a station shows one pill with the passengers waiting at all its platforms, in the colour of its most
+// crowded platform, beside its mark; the pill is gone without passengers, with the passenger layer or the station layer
+// off, and in the near look, where the platforms show their own counts.
+void TestRuntimeCanvas::stationShowsWaitingCountInFarLook() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	// a second platform, at the middle of the line
+	f.source->track(0).member[0].endNode.stationName = "B";
+	f.source->track(0).member[0].endNode.stationPlatformId = "P2";
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	const auto deliver = [&](int waitingFirst, int waitingSecond) {
+		snapshot.platforms = {platformWith("B", "P1", 40, Ids{}), platformWith("B", "P2", 30, Ids{})};
+		snapshot.platforms[0].passengerCount = waitingFirst;
+		snapshot.platforms[1].passengerCount = waitingSecond;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	};
+	deliver(30, 10);
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QCOMPARE(counts.size(), std::size_t(1));
+	const QGraphicsPathItem* const pill = counts[0].pill;
+	// The pill adds up the platforms, in the colour of the most crowded one by its fraction of its capacity.
+	QVERIFY(pill->isVisible());
+	QCOMPARE(counts[0].text->text(), "40");
+	QVERIFY(pill->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
+	QCOMPARE(pill->brush().color().name(), PassengerItem::crowdingColour(PlatformCrowding::Busy).name());
+	QVERIFY(pill->toolTip().contains("Platform P1: 30 waiting (capacity 40)"));
+	QVERIFY(pill->toolTip().contains("Platform P2: 10 waiting (capacity 30)"));
+	// It is beside the pin, not over it: to the right of the top of the mark.
+	const QRectF mark = counts[0].overlay->pictureItem()->sceneBoundingRect();
+	QVERIFY(near(pill->pos().x(), mark.right()) && near(pill->pos().y(), mark.top()));
+	deliver(10, 40);
+	QCOMPARE(pill->brush().color().name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
+	deliver(5, 5);
+	QCOMPARE(pill->brush().color().name(), PassengerItem::crowdingColour(PlatformCrowding::Normal).name());
+	// The near look and the layers take the pill away.
+	PresenterAccess::setStationNearLook(presenter, true);
+	QVERIFY(!pill->isVisible());
+	PresenterAccess::setStationNearLook(presenter, false);
+	QVERIFY(pill->isVisible());
+	PresenterAccess::passengerLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(!pill->isVisible());
+	PresenterAccess::passengerLayerVisible(presenter) = true;
+	PresenterAccess::stationLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(!pill->isVisible());
+	PresenterAccess::stationLayerVisible(presenter) = true;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(pill->isVisible());
+	// A station with nobody waiting shows no pill.
+	deliver(0, 0);
+	QVERIFY(!pill->isVisible());
+	presenter.clear();
+	QVERIFY(PresenterAccess::stationCounts(presenter).empty());
+}
+
+// A platform with two stop nodes is drawn as two bars but is one platform: the pill counts its waiting passengers once
+// and its tooltip names it once.
+void TestRuntimeCanvas::stationPillCountsPlatformWithTwoNodesOnce() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	// the platform P1 also stops at the middle of the line
+	f.source->track(0).member[0].endNode.stationName = "B";
+	f.source->track(0).member[0].endNode.stationPlatformId = "P1";
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	snapshot.platforms[0].passengerCount = 30;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QCOMPARE(counts.size(), std::size_t(1));
+	QCOMPARE(counts[0].waiting, 30);
+	QCOMPARE(counts[0].text->text(), "30");
+	QCOMPARE(counts[0].pill->toolTip(), "Platform P1: 30 waiting (capacity 40)");
+}
+
+// The passengers `ids` as the platform lists them, each going to the destination that destinations gives at its place.
+static void listPassengersTo(GuiPlatformState& platform, const std::vector<std::string>& destinations) {
+	platform.passengers.clear();
+	for (std::size_t i = 0; i < destinations.size(); ++i)
+		platform.passengers.push_back({"p" + std::to_string(i), "OnPlatform", "P1", "T1", "next", destinations[i]});
+	platform.passengerCount = static_cast<int>(destinations.size());
+	std::map<std::string, int> counted;
+	for (const std::string& destination : destinations) ++counted[destination];
+	platform.destinations.clear();
+	for (const auto& [destination, count] : counted) platform.destinations.push_back({destination, count});
+	std::stable_sort(platform.destinations.begin(), platform.destinations.end(),
+		[](const GuiDestinationCount& a, const GuiDestinationCount& b) { return a.count > b.count; });
+}
+
+static GuiStationCall callOf(const std::string& train, int arrival, int boarded, int alighted, int left, int load, bool counted = true) {
+	GuiStationCall call;
+	call.station = "B";
+	call.train = train;
+	call.arrival = arrival;
+	call.departure = arrival + 60;
+	call.clock = 8 * 3600 + arrival;
+	call.boarded = boarded;
+	call.alighted = alighted;
+	call.leftBehind = left;
+	call.load = load;
+	call.counted = counted;
+	return call;
+}
+
+// The card of a station names the station, the passengers waiting and the capacity, the four largest destinations with a
+// bar each and the rest summed, and the latest three calls, newest first; it follows every step and goes with its close
+// control or with the passenger layer.
+void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 100;
+	GuiPlatformState platform = platformWith("B", "P1", 40, Ids{});
+	// F and E have one passenger each; B and C tie at 3, D has 2 and A leads with 5
+	listPassengersTo(platform, {"A", "A", "A", "A", "A", "B", "B", "B", "C", "C", "C", "D", "D", "F", "E"});
+	snapshot.platforms = {platform};
+	snapshot.stationCalls = {callOf("IC 3", 300, 12, 7, 0, 90), callOf("IC 2", 200, 5, 4, 2, 80), callOf("IC 1", 100, 1, 1, 0, 70),
+		callOf("IC 0", 50, 9, 9, 9, 60)};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!presenter.stationCallout("B"));
+
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	QVERIFY(card->isVisible());
+	// not ItemIgnoresTransformations, which the scene index cannot follow for a card this large
+	QVERIFY(!card->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
+	QCOMPARE(card->zValue(), 5.0);
+	QCOMPARE(card->scene(), &f.scene);
+	const StationCalloutContent& content = card->content();
+	QCOMPARE(content.title, "B");
+	QCOMPARE(content.subtitle, QString("15 waiting · capacity 40 on platform P1"));
+	QVERIFY(!content.nobodyWaiting);
+	QCOMPARE(content.destinationHeader, "Waiting, by destination");
+	// the four largest, ties by name, and the other two stations summed
+	QCOMPARE(content.destinations.size(), qsizetype(4));
+	const QStringList names{"A", "B", "C", "D"};
+	const QList<int> counts{5, 3, 3, 2};
+	for (int i = 0; i < 4; ++i) {
+		QCOMPARE(content.destinations[i].name, names[i]);
+		QCOMPARE(content.destinations[i].count, counts[i]);
+	}
+	QCOMPARE(content.moreStations, 2);
+	QCOMPARE(content.moreCount, 2);
+	// only the latest three calls, newest first, with the time of the clock, and the left behind in red
+	QCOMPARE(content.calls.size(), qsizetype(3));
+	QCOMPARE(content.calls[0].train, "IC 3");
+	QCOMPARE(content.calls[0].time, "08:05:00");
+	QCOMPARE(content.calls[0].boarded, "12");
+	QCOMPARE(content.calls[0].alighted, "7");
+	QCOMPARE(content.calls[0].leftBehind, "0");
+	QCOMPARE(content.calls[0].load, "90");
+	QVERIFY(!content.calls[0].anyLeft);
+	QCOMPARE(content.calls[1].train, "IC 2");
+	QVERIFY(content.calls[1].anyLeft);
+	QCOMPARE(content.calls[2].train, "IC 1");
+
+	// the next step updates the open card
+	listPassengersTo(snapshot.platforms[0], {"A", "B"});
+	snapshot.stationCalls = {callOf("IC 4", 400, 0, 0, 0, 10, false)};
+	snapshot.timestep = 101;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(card->content().subtitle, QString("2 waiting · capacity 40 on platform P1"));
+	QCOMPARE(card->content().destinations.size(), qsizetype(2));
+	QCOMPARE(card->content().moreStations, 0);
+	QCOMPARE(card->content().calls.size(), qsizetype(1));
+	// a call that a replay shows while the train stands has no counts
+	QCOMPARE(card->content().calls[0].boarded, "-");
+	QVERIFY(!card->content().calls[0].anyLeft);
+
+	// more wait than the platform lists: the card shows the counts of all of them, not of the listed
+	snapshot.platforms[0].passengerCount = 269;
+	snapshot.platforms[0].destinations = {{"A", 200}, {"B", 60}, {"C", 9}};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(card->content().subtitle, QString("269 waiting \u00b7 capacity 40 on platform P1"));
+	QCOMPARE(card->content().destinationHeader, "Waiting, by destination");
+	QCOMPARE(card->content().destinations.size(), qsizetype(3));
+	QCOMPARE(card->content().destinations[0].count, 200);
+	QCOMPARE(card->content().destinations[1].count, 60);
+	QCOMPARE(card->content().destinations[2].count, 9);
+	// a platform without counts has no destinations to show
+	snapshot.platforms[0].destinations.clear();
+	snapshot.platforms[0].passengers.clear();
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(card->content().destinationHeader.isEmpty());
+	QVERIFY(!card->content().nobodyWaiting);
+
+	// several cards stand at once, and a station with nobody and no calls opens one with its empty sections
+	presenter.openStationCallout("A", &snapshot);
+	StationCalloutItem* const second = presenter.stationCallout("A");
+	QVERIFY(second && second != card);
+	QVERIFY(card->isVisible() && second->isVisible());
+	QVERIFY(second->content().nobodyWaiting);
+	QCOMPARE(second->content().subtitle, "0 waiting");
+	QVERIFY(second->content().calls.isEmpty());
+
+	// the close control closes one card, the passenger layer all of them
+	card->onClose();
+	QVERIFY(!presenter.stationCallout("B"));
+	QVERIFY(second->isVisible());
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(presenter.stationCallout("B"));
+	presenter.setPassengerLayerVisible(false);
+	QVERIFY(!presenter.stationCallout("A") && !presenter.stationCallout("B"));
+	// a closed card does not open without the layer, nor without a snapshot
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(!presenter.stationCallout("B"));
+	presenter.setPassengerLayerVisible(true);
+	presenter.openStationCallout("B", nullptr);
+	QVERIFY(!presenter.stationCallout("B"));
+	presenter.openStationCallout("Nowhere", &snapshot);
+	QVERIFY(!presenter.stationCallout("Nowhere"));
+	// a new run takes the cards away with the scene
+	presenter.openStationCallout("B", &snapshot);
+	presenter.clear();
+	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// A click on the count of a station, in the far look, or on one of its platform bars, in the near look, announces the
+// station and selects its square; the card closes with a click on empty canvas, which the window wires to the cards.
+void TestRuntimeCanvas::stationCalloutOpensFromClicksAndCloses() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QStringList clicked;
+	QObject::connect(&f.scene, &NetworkScene::MousePressedOnStation, [&](const QString& station) { clicked << station; });
+	int squares = 0;
+	QObject::connect(&f.scene, &NetworkScene::MousePressedOnStationNode, [&squares](StationNodeItem*) { ++squares; });
+	const auto press = [&f](const QPointF& scenePos) {
+		QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
+		event.setButton(Qt::LeftButton);
+		event.setButtons(Qt::LeftButton);
+		event.setScenePos(scenePos);
+		event.setWidget(f.view.viewport());
+		f.scene.mousePressEvent(&event);
+	};
+	// the count, a little right of the pin and level with its top
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QVERIFY(counts[0].pill->isVisible());
+	press(f.view.mapToScene(f.view.mapFromScene(counts[0].pill->pos()) + QPoint(12, 8)));
+	QCOMPARE(clicked, QStringList{"B"});
+	QCOMPARE(squares, 1);
+	presenter.openStationCallout(clicked.front(), &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	// a click on the card is taken by the card and selects nothing
+	clicked.clear();
+	// (the card ignores the transformation of the view, so its place is found through the view)
+	press(f.view.mapToScene(f.view.mapFromScene(card->pos()) + card->cardRect().center().toPoint()));
+	QVERIFY(clicked.isEmpty());
+	QCOMPARE(f.scene.selectedItem(), card);
+	QVERIFY(card->isVisible());
+
+	// a platform bar, in the near look, with the card out of the way
+	presenter.closeStationCallouts();
+	PresenterAccess::setStationNearLook(presenter, true);
+	const PlatformItem* const bar = PresenterAccess::allPlatforms(presenter).value(0);
+	QVERIFY(bar->isVisible());
+	squares = 0;
+	press(bar->sceneBoundingRect().center());
+	QCOMPARE(clicked, QStringList{"B"});
+	QCOMPARE(squares, 1);
+}
+
+// A right-click on the count of a station or on a platform bar asks for the menu of the square of that station, the item
+// that a left click there selects.
+void TestRuntimeCanvas::stationCountAndBarOpenTheMenuOfTheirStation() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QList<QGraphicsItem*> asked;
+	QObject::connect(&f.scene, &NetworkScene::ContextMenuRequested,
+		[&asked](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { asked << item; });
+	const auto rightClick = [&f](const QPointF& scenePos) {
+		QGraphicsSceneContextMenuEvent event(QEvent::GraphicsSceneContextMenu);
+		event.setReason(QGraphicsSceneContextMenuEvent::Mouse);
+		event.setScenePos(scenePos);
+		event.setWidget(f.view.viewport());
+		f.scene.contextMenuEvent(&event);
+	};
+	const auto stationOf = [](QGraphicsItem* item) {
+		const auto* square = qgraphicsitem_cast<StationNodeItem*>(item);
+		return square && square->node ? QString::fromStdString(square->node->stationName) : QString();
+	};
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QVERIFY(counts[0].pill->isVisible());
+	rightClick(f.view.mapToScene(f.view.mapFromScene(counts[0].pill->pos()) + QPoint(12, 8)));
+	QCOMPARE(asked.size(), 1);
+	QCOMPARE(stationOf(asked.front()), "B");
+
+	PresenterAccess::setStationNearLook(presenter, true);
+	const PlatformItem* const bar = PresenterAccess::allPlatforms(presenter).value(0);
+	QVERIFY(bar->isVisible());
+	rightClick(bar->sceneBoundingRect().center());
+	QCOMPARE(asked.size(), 2);
+	const auto* square = qgraphicsitem_cast<StationNodeItem*>(asked.back());
+	QVERIFY(square);
+	QCOMPARE(square->node, bar->node);
+}
+
+// A card stands on the mark of its station, so it closes when the station layer is switched off.
+void TestRuntimeCanvas::stationCalloutClosesWithTheStationLayer() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(presenter.stationCallout("B"));
+	// switching the layer on again changes nothing for an open card
+	presenter.setStationLayerVisible(true);
+	QVERIFY(presenter.stationCallout("B"));
+	presenter.setStationLayerVisible(false);
+	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// The subtitle lists one capacity for each platform. One that is wider than the card ends in an ellipsis inside the card,
+// and one that fits is drawn whole.
+void TestRuntimeCanvas::stationCalloutShortensSubtitleThatIsTooWide() {
+	StationCalloutItem card;
+	StationCalloutContent content;
+	content.title = "B";
+	content.subtitle = QString("15 waiting · capacity 40 on platform P1");
+	card.setContent(content);
+	QCOMPARE(card.shownSubtitle(), content.subtitle);
+
+	content.subtitle = QString("1500 waiting · capacity 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200");
+	card.setContent(content);
+	const QString shown = card.shownSubtitle();
+	QVERIFY2(shown != content.subtitle && shown.endsWith(QChar(0x2026)), qPrintable(shown));
+	QVERIFY(shown.startsWith("1500 waiting"));
+	QFont font;
+	font.setPixelSize(11);
+	// the card less its padding of 12 px on each side
+	QVERIFY2(QFontMetricsF(font).horizontalAdvance(shown) <= StationCalloutItem::CardWidth - 24.0, qPrintable(shown));
+}
+
+// The card stands above the mark, and below it where it would leave the top of the view.
+void TestRuntimeCanvas::stationCalloutPlacesBelowAtTopOfView() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	const auto markNow = [&presenter] { return PresenterAccess::stationCounts(presenter)[0].overlay->pictureItem()->sceneBoundingRect(); };
+	f.view.setSceneRect(-1e6, -1e6, 2e6, 2e6);
+	const auto place = [&](int viewportY) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x(), before.top() + (f.view.viewport()->height() / 2.0 - viewportY) / scale));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+		return f.view.mapFromScene(QPointF(markNow().center().x(), markNow().top())).y();
+	};
+	// well inside the view: above the top of the mark
+	QVERIFY(place(5000) > 1000);
+	QVERIFY(!card->below());
+	QVERIFY(near(card->pos().x(), markNow().center().x()) && near(card->pos().y(), markNow().top()));
+	// at the top edge: below the bottom of the mark
+	QVERIFY(place(20) < 200);
+	QVERIFY(card->below());
+	QVERIFY(near(card->pos().y(), markNow().bottom()));
+
+	// the card stays inside the view sideways, with the pointer still at the station
+	const auto placeAcross = [&](int viewportX) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x() + (f.view.viewport()->width() / 2.0 - viewportX) / scale, before.top()));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	};
+	const auto cardInView = [&]() {
+		const QPointF origin = f.view.mapFromScene(card->pos());
+		return QRectF(origin.x() + card->cardRect().left(), 0, card->cardRect().width(), 1);
+	};
+	const qreal width = f.view.viewport()->width();
+	QVERIFY(width > StationCalloutItem::CardWidth + 40);
+	placeAcross(static_cast<int>(width / 2));
+	QCOMPARE(card->shift(), 0.0);
+	placeAcross(20);
+	QVERIFY(card->shift() > 0.0);
+	QVERIFY(cardInView().left() >= 0.0);
+	QVERIFY(std::abs(f.view.mapFromScene(card->pos()).x() - 20.0) < 2.0);
+	placeAcross(static_cast<int>(width) - 20);
+	QVERIFY(card->shift() < 0.0);
+	QVERIFY(cardInView().right() <= width);
+}
+
+// The card covers about 340 by 230 pixels of the screen, but at a small zoom those are few scene units. The scene finds an
+// item by its extent in the scene, so the card must have that extent as it is on the screen: with an extent in scene units
+// the repaint of a region that the card covers would not reach it, and a card that moved or changed stayed painted in
+// the old place and was drawn in part in the new one.
+void TestRuntimeCanvas::stationCalloutStaysInSceneIndex() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	f.view.setSceneRect(-1e6, -1e6, 2e6, 2e6);
+	QVERIFY(std::abs(f.view.transform().m11()) < 0.5);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	const auto markNow = [&presenter] { return PresenterAccess::stationCounts(presenter)[0].overlay->pictureItem()->sceneBoundingRect(); };
+	const auto placeAt = [&](int viewportY) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x(), before.top() + (f.view.viewport()->height() / 2.0 - viewportY) / scale));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	};
+	// The card covers its area on the screen in the scene: its extent mapped to the view holds that area, and the scene
+	// finds the card at points of the area far from its origin.
+	const auto checkIndexed = [&](const char* what) {
+		const QPointF origin = f.view.mapFromScene(card->pos());
+		const QRectF onScreen(origin + card->cardRect().topLeft(), card->cardRect().size());
+		const QRectF extent = f.view.mapFromScene(card->sceneBoundingRect()).boundingRect();
+		QVERIFY2(extent.contains(onScreen.adjusted(2, 2, -2, -2)), what);
+		for (const QPointF& at : {onScreen.center(), onScreen.topLeft() + QPointF(10, 10), onScreen.bottomRight() - QPointF(10, 10),
+				 onScreen.topRight() + QPointF(-10, 10), onScreen.bottomLeft() + QPointF(10, -10)})
+			QVERIFY2(f.scene.items(f.view.mapToScene(at.toPoint())).contains(card), what);
+		// and it is as large on the screen as it is laid out
+		QVERIFY2(std::abs(onScreen.width() - StationCalloutItem::CardWidth) < 1.0, what);
+	};
+	placeAt(350);
+	QVERIFY(!card->below());
+	checkIndexed("above");
+	// a change of content that makes the card shorter
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	checkIndexed("shorter");
+	// a flip below the station at the top of the view
+	placeAt(20);
+	QVERIFY(card->below());
+	checkIndexed("below");
+	// and back, after a zoom, which changes the scale that the card is given
+	placeAt(350);
+	f.view.zoomBy(1.5);
+	presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	placeAt(350);
+	QVERIFY(!card->below());
+	checkIndexed("zoomed");
+	// the × still closes it and the card still takes a click, through the transform
+	QGraphicsSceneMouseEvent press(QEvent::GraphicsSceneMousePress);
+	press.setButton(Qt::LeftButton);
+	press.setButtons(Qt::LeftButton);
+	const QPointF origin = f.view.mapFromScene(card->pos());
+	press.setScenePos(f.view.mapToScene((origin + card->closeRect().center()).toPoint()));
+	press.setWidget(f.view.viewport());
+	// the scene hands the press to the item under the screen position of the event
+	press.setScreenPos(f.view.viewport()->mapToGlobal((origin + card->closeRect().center()).toPoint()));
+	f.scene.mousePressEvent(&press);
+	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// A zoom alone, with no step, swaps the count of a platform for the queue of figures and back, and a click on a figure
+// picks its passenger.
+void TestRuntimeCanvas::zoomSwitchesCountAndFigures() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	PresenterAccess::setStationNearLook(presenter, true);
+	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	const auto figuresShown = [platform]() {
+		return std::all_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
+			[](const PassengerItem* icon) { return icon->isVisible(); });
+	};
+	QCOMPARE(platform->passengerIcons.size(), qsizetype(3));
+	// Below the detail zoom the count shows, the number alone, and the figures do not.
+	QVERIFY(platform->textIcon->isVisible());
+	QCOMPARE(platform->textIcon->toPlainText(), "3");
+	QVERIFY(platform->textIcon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
+	QVERIFY(!figuresShown());
+	zoomToFigures(f, 24.0);
+	// Above it the figures show and the count does not.
+	QVERIFY(!platform->textIcon->isVisible());
+	QVERIFY(figuresShown());
+	zoomToFigures(f, 4.0);
+	QVERIFY(platform->textIcon->isVisible());
+	QVERIFY(!figuresShown());
+	// The switch is at a figure height of 18 pixels on the screen, not at a zoom ratio.
+	zoomToFigures(f, 17.0);
+	QVERIFY(platform->textIcon->isVisible());
+	QVERIFY(!figuresShown());
+	zoomToFigures(f, 19.0);
+	QVERIFY(!platform->textIcon->isVisible());
+	QVERIFY(figuresShown());
+	zoomToFigures(f, 4.0);
+	// A platform without passengers shows no count.
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!platform->textIcon->isVisible());
+
+	// A click on a figure picks its passenger.
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	zoomToFigures(f, 24.0);
+	const PassengerItem* picked = nullptr;
+	QObject::connect(&f.scene, &NetworkScene::MousePressedOnPassenger, [&picked](PassengerItem* passenger) { picked = passenger; });
+	const PassengerItem* const second = platform->passengerIcons[1];
+	QGraphicsSceneMouseEvent press(QEvent::GraphicsSceneMousePress);
+	press.setButton(Qt::LeftButton);
+	press.setButtons(Qt::LeftButton);
+	press.setScenePos(second->sceneBoundingRect().center());
+	press.setWidget(f.view.viewport());
+	f.scene.mousePressEvent(&press);
+	QCOMPARE(picked, second);
+	presenter.clear();
 }
 
 // A live train glides along the drawn line of its track from where it is drawn, and every step draws it wagon by wagon
@@ -2460,7 +3268,6 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 	QGraphicsScene& scene = f.scene;
 	NetworkPresenter& presenter = f.presenter;
 	FakeGeometry* const source = f.source;
-	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
 	// The canvas is empty before the first round.
 	QVERIFY(presenterEmpty(presenter));
 	QVERIFY(scene.items().isEmpty());
@@ -2477,8 +3284,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 		snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
 		snapshot.sectionStates = {GuiSectionState{"s1", true, true}};
 		if (source->passengers) {
-			snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}};
-			snapshot.passengers = {GuiPassengerState{"p1", "waiting", "P1", "T1", "A"}};
+			snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"})};
 		}
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 
@@ -2501,7 +3307,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			if (step == 1)
 				snapshot.virtualCouplingMessages.push_back({12, "T1", "message"});
 			if (source->passengers)
-				snapshot.platforms[0].passengerIds = step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"});
+				listPassengers(snapshot.platforms[0], step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"}));
 			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 		}
 		snapshot.trains[0].outOfSimulation = true;
@@ -2514,7 +3320,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			snapshot.trains = {trainAt(7.5 + (time - 10) * 0.1)};
 			snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
 			if (source->passengers)
-				snapshot.platforms[0].passengerIds = time % 2 == 0 ? Ids({"p1", "p2"}) : Ids({"p2", "p1", "p6"});
+				listPassengers(snapshot.platforms[0], time % 2 == 0 ? Ids({"p1", "p2"}) : Ids({"p2", "p1", "p6"}));
 			presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 		}
 		// A round holds one train and one badge, whatever the earlier rounds drew.
@@ -2633,15 +3439,14 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 	RunFixture f;
 	NetworkPresenter& presenter = f.presenter;
 	FakeGeometry* const source = f.source;
-	// The passenger icons are 10 pixels wide.
-	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
 	source->passengers = true;
 	source->station(1).Y = 5.0;
 	source->track(0).member[0].endNode.stationName = "B";
 	source->track(0).member[0].endNode.stationPlatformId = "P2";
 	presenter.showRuntime(f.model);
-	// The platforms and their passengers show in the near look.
+	// The platforms and their passengers show in the near look, zoomed in.
 	PresenterAccess::setStationNearLook(presenter, true);
+	zoomToFigures(f, 24.0);
 	const QLineF lastArc = drawnArc(presenter, source->track(0).member[1]);
 	const QLineF unit = lastArc.unitVector();
 	const QPointF direction(unit.dx(), unit.dy());
@@ -2657,22 +3462,22 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"}), platformWith("B", "P2", 30, Ids{"q1", "q2"})};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
-	const qreal iconSize = PresenterAccess::passengerPixmap(presenter).width() * presenter.presentationScale();
+	const qreal scale = presenter.presentationScale();
 	bool upright = middlePlatform && endPlatform && middlePlatform->passengerIcons.size() == 2
 		&& endPlatform->passengerIcons.size() == 3;
 	for (const PlatformItem* platform : {middlePlatform, endPlatform}) {
 		if (!upright)
 			break;
-		const QRectF text = platform->textIcon->sceneBoundingRect();
-		upright = platform->textIcon->rotation() == 0 && text.bottom() <= platform->sceneBoundingRect().top() + 1e-6
-			&& near(text.center().x(), platform->sceneBoundingRect().center().x());
+		// The count is level and hangs from the top centre of the bar.
+		const QRectF bar = platform->mapToScene(platform->rect()).boundingRect();
+		upright = platform->textIcon->rotation() == 0 && near(platform->textIcon->pos().x(), bar.center().x())
+			&& near(platform->textIcon->pos().y(), bar.top());
 		for (int i = 0; i < platform->passengerIcons.size(); ++i)
-			upright = upright && platform->passengerIcons[i]->rotation() == 0
-				&& iconAt(*platform, i, static_cast<int>(platform->passengerIcons.size()), iconSize);
+			upright = upright && platform->passengerIcons[i]->rotation() == 0 && iconAt(*platform, i, scale);
 	}
-	QVERIFY2(upright, "the counter and the passenger icons of a turned platform stay level, the icons on its long axis");
+	QVERIFY2(upright, "the count and the passenger figures of a turned platform stay level, the figures on its long axis");
 	presenter.clear();
 }
 

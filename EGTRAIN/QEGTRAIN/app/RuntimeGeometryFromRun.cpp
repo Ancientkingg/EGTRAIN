@@ -42,6 +42,8 @@ public:
 
 	bool passengerGui() const override { return run().settings.PAX_GUI; }
 
+	double platformCrowdingThreshold() const override { return run().settings.passengerPlatformCrowdingThreshold; }
+
 private:
 	const SimulationRun& run() const { return m_controller.run(); }
 	const DispatchController& m_controller;

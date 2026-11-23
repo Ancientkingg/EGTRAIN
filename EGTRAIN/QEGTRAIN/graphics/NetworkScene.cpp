@@ -1,5 +1,7 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/PlatformItem.h"
+#include "graphics/items/StationCalloutItem.h"
 #include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
@@ -71,6 +73,9 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	NodeItem* paddedNode = nullptr;
 	for (QGraphicsItem* item : hitItems) {
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
+			// A card of a station takes the click, as do the bars and the counts that open one.
+			if (qgraphicsitem_cast<StationCalloutItem*>(candidate) || candidate->data(PreviewGraphics::CalloutStation).isValid())
+				return candidate;
 			// Artwork owns its station identity even when its structural parent
 			// has a different last-wins station membership.
 			if (candidate->data(PreviewGraphics::Kind).toString() == "station")
@@ -128,6 +133,19 @@ void NetworkScene::select(QGraphicsItem* item) {
 		emit MousePressedOnPassenger(passenger);
 }
 
+QGraphicsItem* NetworkScene::stationSquareOf(QGraphicsItem* item) const {
+	if (!item || !item->data(PreviewGraphics::CalloutStation).isValid())
+		return item;
+	const QString station = item->data(PreviewGraphics::CalloutStation).toString();
+	const auto* bar = dynamic_cast<const PlatformItem*>(item);
+	for (QGraphicsItem* candidate : items()) {
+		auto* square = qgraphicsitem_cast<StationNodeItem*>(candidate);
+		if (square && square->node && (bar ? square->node == bar->node : QString::fromStdString(square->node->stationName) == station))
+			return square;
+	}
+	return item;
+}
+
 // handles the click on graphical items
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsItem* item = nullptr;
@@ -139,7 +157,16 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsScene::mousePressEvent(mouseEvent);
 
 	if (mouseEvent->button() == Qt::LeftButton) {
+		// A bar or a count of a station selects the square of its station, as the mark does
+		QString station;
+		if (item && item->data(PreviewGraphics::CalloutStation).isValid()) {
+			station = item->data(PreviewGraphics::CalloutStation).toString();
+			item = stationSquareOf(item);
+		} else if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item); square && square->node)
+			station = QString::fromStdString(square->node->stationName);
 		select(item);
+		if (!station.isEmpty())
+			emit MousePressedOnStation(station);
 		m_pressedOnEmptyCanvas = !item;
 	}
 
@@ -179,7 +206,8 @@ void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 		event->accept();
 		return;
 	}
-	QGraphicsItem* item = semanticItemAt(event->scenePos(), event->widget());
+	// A bar or a count of a station opens the menu of its station, as a click on it selects the station.
+	QGraphicsItem* item = stationSquareOf(semanticItemAt(event->scenePos(), event->widget()));
 	emit ContextMenuRequested(item, event->scenePos(), event->screenPos(),
 		event->reason() == QGraphicsSceneContextMenuEvent::Keyboard);
 	event->accept();

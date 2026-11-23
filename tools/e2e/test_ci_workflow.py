@@ -822,10 +822,10 @@ def check_format_and_tidy(checks: Checks, format_workflow: dict, tidy_workflow: 
         and not tidy.FINDING.match("Log.cpp:12:5: warning: message text [bugprone-foo]")
         and not tidy.FINDING.match("/work/Log.cpp:12:5: note: message text")
         and tidy.analysed(prefix + "util/Log.cpp")
-        and not tidy.analysed(prefix + "simulation/Train.cpp")
+        and tidy.analysed(prefix + "simulation/Train.cpp")
         and not tidy.analysed(prefix + "io/third_party/zmq.hpp")
         and not tidy.analysed("tools/tidy.py"),
-        "tools/tidy.py reads the clang-tidy findings and leaves out simulation/ and vendored code",
+        "tools/tidy.py reads the clang-tidy findings and analyses simulation/ but leaves out vendored code",
     )
 
 

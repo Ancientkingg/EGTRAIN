@@ -10,7 +10,6 @@
 #include <vector>
 
 class QComboBox;
-class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -92,9 +91,9 @@ public:
 	QComboBox* journeyOriginCombo() const { return m_journeyOriginCombo; }
 	/// The destination station of the selected journey, with the station id as the data.
 	QComboBox* journeyDestinationCombo() const { return m_journeyDestinationCombo; }
-	/// The planned departure start and end and arrival start and end of the selected journey, in this order, in seconds
-	/// since midnight.
-	const std::array<QDoubleSpinBox*, 4>& journeyWindowEdits() const { return m_journeyWindowEdits; }
+	/// The planned departure start and end and arrival start and end of the selected journey, in this order, as times
+	/// of day "HH:MM:SS".
+	const std::array<QLineEdit*, 4>& journeyWindowEdits() const { return m_journeyWindowEdits; }
 	/// The legs of the selected journey in order, by id.
 	QListWidget* legList() const { return m_legList; }
 	/// The button that appends a leg to the selected journey.
@@ -171,7 +170,7 @@ private:
 	QLineEdit* m_journeyActivityEdit = nullptr;
 	QComboBox* m_journeyOriginCombo = nullptr;
 	QComboBox* m_journeyDestinationCombo = nullptr;
-	std::array<QDoubleSpinBox*, 4> m_journeyWindowEdits{};
+	std::array<QLineEdit*, 4> m_journeyWindowEdits{};
 	QListWidget* m_legList = nullptr;
 	QPushButton* m_addLegButton = nullptr;
 	QPushButton* m_deleteLegButton = nullptr;

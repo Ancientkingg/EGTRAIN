@@ -1,6 +1,8 @@
 #ifndef RUNTIMEGEOMETRYSOURCE_H
 #define RUNTIMEGEOMETRYSOURCE_H
 
+#include "scene/PassengerDwellModel.h"
+
 #include <string>
 
 class BlockSet;
@@ -54,6 +56,10 @@ public:
 
 	/// The run shows the passengers on the platforms and the passenger load of a train.
 	virtual bool passengerGui() const = 0;
+
+	/// The occupancy rate of a platform above which it counts as crowded, which colours its gauge; the default of a scene
+	/// that sets none.
+	virtual double platformCrowdingThreshold() const { return kDefaultPassengerPlatformCrowdingThreshold; }
 };
 
 #endif // RUNTIMEGEOMETRYSOURCE_H

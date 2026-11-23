@@ -347,6 +347,8 @@ json encodeRollingStock(const SceneModel& scene) {
 		json value = {{"id", unit.id}};
 		if (unit.hasPhysical)
 			value["physical"] = writePhysical(unit.physical);
+		if (unit.hasPassengerCapacity)
+			value["passenger_capacity"] = unit.passengerCapacity;
 		if (!unit.tractionCurve.empty()) {
 			value["traction_curve"] = json::array();
 			for (const auto& row : unit.tractionCurve)
@@ -435,7 +437,7 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 		const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
 		json incidentValue = {
 			{"id", incident.id},
-			{"type", incident.type},
+			{"type", incidentTypeName(incident.type)},
 			{"target", incident.target},
 			{"start_seconds", incident.startSeconds},
 		};
@@ -522,7 +524,7 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	return result;
 }
 
-json encodePassengers(const std::vector<ScenePassenger>& passengers) {
+json encodePassengers(const std::vector<ScenePassenger>& passengers, const std::vector<ScenePassengerDemandSlice>& demand) {
 	json values = json::array();
 	for (const auto& passenger : passengers) {
 		json value = {{"id", passenger.id}, {"journeys", json::array()}};
@@ -556,7 +558,18 @@ json encodePassengers(const std::vector<ScenePassenger>& passengers) {
 		}
 		values.push_back(value);
 	}
-	return {{"passengers", values}};
+	json root = {{"passengers", values}};
+	if (demand.empty())
+		return root;
+	json slices = json::array();
+	for (const ScenePassengerDemandSlice& slice : demand) {
+		json cells = json::array();
+		for (const ScenePassengerDemandCell& cell : slice.cells)
+			cells.push_back({{"origin", cell.originStationId}, {"destination", cell.destinationStationId}, {"count", cell.count}});
+		slices.push_back({{"id", slice.id}, {"start_seconds", slice.startSeconds}, {"end_seconds", slice.endSeconds}, {"cells", cells}});
+	}
+	root["demand"] = slices;
+	return root;
 }
 
 json encodeInfrastructure(const SceneModel& scene) {
@@ -674,6 +687,16 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
 	if (scene.settings.hasRecoveryTime)
 		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
+	if (scene.settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers)
+		settings["passenger_max_transfers"] = scene.settings.passengerMaxTransfers;
+	if (scene.settings.passengerDwellCoefficients)
+		settings["passenger_dwell_coefficients"] = *scene.settings.passengerDwellCoefficients;
+	if (scene.settings.passengerPlatformCrowdingThreshold)
+		settings["passenger_platform_crowding_threshold"] = *scene.settings.passengerPlatformCrowdingThreshold;
+	if (scene.settings.passengerOnboardCrowdingThreshold)
+		settings["passenger_onboard_crowding_threshold"] = *scene.settings.passengerOnboardCrowdingThreshold;
+	if (scene.settings.passengerCarBoardingThreshold)
+		settings["passenger_car_boarding_threshold"] = *scene.settings.passengerCarBoardingThreshold;
 	if (!settings.empty())
 		metadata["simulation_settings"] = settings;
 	if (!scene.importReport.empty()) {
@@ -711,7 +734,7 @@ static json encodeSceneFile(const std::string& name, const SceneModel& scene) {
 	if (name == "views.json")
 		return encodeViews(scene);
 	if (name == "passengers.json")
-		return encodePassengers(scene.passengers);
+		return encodePassengers(scene.passengers, scene.passengerDemand);
 	return json::object();
 }
 

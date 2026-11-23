@@ -163,6 +163,8 @@ private:
 	std::unique_ptr<DispatchLive> live_;
 	// Name of the scene that prepareScene prepared last. It is kept only while the live stream runs.
 	std::string liveSceneName_;
+	// The scene that prepareScene prepared last has passengers; kept only while the live stream runs.
+	bool liveSceneHasPassengers_ = false;
 	bool snapshotsEnabled_ = true;
 	std::atomic<bool> runCompleted_{false};
 	std::string runError_;

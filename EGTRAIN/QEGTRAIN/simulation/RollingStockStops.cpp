@@ -58,12 +58,13 @@ void Train::computeArrivalAndDepartureAtLocation(double LocationPosition, TrainE
 		PassingPoint.Time = ArrivalTime;
 		if (IsDepartureFound == 1)
 			PassingPoint.Time2 = DepartureTime;
-		// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
-		if (run_->infra.routes[indexOfRoute].reversed_direction == 1) {
-			PassingPoint.Position = run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
-		} else {
-			PassingPoint.Position = LocationPosition;
-		}
+	}
+	// The position is the absolute position in metres, also for a location the train does not reach, so a reversed route
+	// needs a conversion.
+	if (run_->infra.routes[indexOfRoute].reversed_direction == 1) {
+		PassingPoint.Position = run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
+	} else {
+		PassingPoint.Position = LocationPosition;
 	}
 }
 
@@ -74,9 +75,8 @@ void Train::ComputeTimetablingPoints() {
 				if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
 					TrainEvent TTPoint;
 					TTPoint.SuccessorID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName; // this is the name of the location of the timetable point
-					TTPoint.Position = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X;
-					TTPoint.trainDescription = this->trainDescription; // Assigning the trainDescription to the Train Event
-																	   // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
+					TTPoint.trainDescription = this->trainDescription;																							  // Assigning the trainDescription to the Train Event
+																																								  // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
 					computeArrivalAndDepartureAtLocation(run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
 					// Compute the arrival and departure times of the train from the location and push it back into the TimeTablePoints List
 					this->TimetablePoints.push_back(TTPoint);
@@ -98,8 +98,8 @@ double Train::Det_Run_Start_Time() {
 
 string Train::stationNameForArrivalStats(int stationIndex) const {
 	if (stationIndex < 0 || stationIndex >= numStations)
-		return "None";
-	if (StationArrivalNames[stationIndex] != "None")
+		return kNoneId;
+	if (!isNoneId(StationArrivalNames[stationIndex]))
 		return StationArrivalNames[stationIndex];
 	return Stations[stationIndex].stationName;
 }
@@ -148,7 +148,7 @@ void Train::Determine_Actual_Station_Arrivals() {
 			const double high = std::max(previous, current) + toleranceMeters;
 			if (stationMeters >= low && stationMeters <= high) {
 				StationArrivals[s] = t * timestep;
-				if (StationArrivalNames[s] == "None")
+				if (isNoneId(StationArrivalNames[s]))
 					StationArrivalNames[s] = Stations[s].stationName;
 				break;
 			}
@@ -200,7 +200,7 @@ bool Train::stationIsOnRoute(int stationIndex, const vector<string>& allowedBloc
 	if (Stations.empty() || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(run_->infra.routes.size()))
 		return false;
 	const string& stationName = Stations[stationIndex].stationName;
-	if (stationName.empty() || stationName == "None")
+	if (stationName.empty() || isNoneId(stationName))
 		return false;
 	const auto matches = [&stationName](const Node& node) {
 		return node.station && node.stationName == stationName;
@@ -302,7 +302,7 @@ void Train::recordStationPassagesAtTime(int time_seconds) {
 			continue;
 		if (stationMeters >= low && stationMeters <= high) {
 			StationArrivals[s] = time_seconds * timestep;
-			if (StationArrivalNames[s] == "None")
+			if (isNoneId(StationArrivalNames[s]))
 				StationArrivalNames[s] = Stations[s].stationName;
 		}
 	}

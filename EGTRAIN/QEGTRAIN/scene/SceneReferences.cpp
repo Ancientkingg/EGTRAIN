@@ -105,7 +105,7 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 				add("signal " + quoted(signal.id) + " protected section " + quoted(signal.protectedSection));
 		for (const auto& scenario : model.scenarios)
 			for (const auto& incident : scenario.incidents)
-				if (incident.type == "signal_failure" && usesSection(incident.target))
+				if (incident.type == IncidentType::SignalFailure && usesSection(incident.target))
 					add("signal-failure incident " + quoted(incident.id) + " in scenario " + quoted(scenario.id));
 		for (const auto& dependency : model.blockDependencies)
 			if (usesSection(dependency.block) || usesSection(dependency.dependsOn))
@@ -134,6 +134,11 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 					if (leg.originStationId == id || leg.destinationStationId == id)
 						add("passenger " + quoted(passenger.id) + " leg " + quoted(leg.id));
 			}
+		for (const auto& slice : model.passengerDemand)
+			if (std::any_of(slice.cells.begin(), slice.cells.end(), [&id](const ScenePassengerDemandCell& cell) {
+					return cell.originStationId == id || cell.destinationStationId == id;
+				}))
+				add("demand slice " + quoted(slice.id));
 	} else if (facet == "platforms") {
 		for (const auto& service : model.services)
 			for (const auto& stop : service.stops)
@@ -142,7 +147,7 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 	} else if (facet == "signals") {
 		for (const auto& scenario : model.scenarios)
 			for (const auto& incident : scenario.incidents)
-				if (incident.type == "signal_failure" && incident.target == id)
+				if (incident.type == IncidentType::SignalFailure && incident.target == id)
 					add("signal-failure incident " + quoted(incident.id) + " in scenario " + quoted(scenario.id));
 	} else if (facet == "routes") {
 		for (const auto& service : model.services)
@@ -159,7 +164,7 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 	} else if (facet == "service") {
 		for (const auto& scenario : model.scenarios) {
 			for (const auto& incident : scenario.incidents)
-				if (incident.type == "train_breakdown" && incident.target == id)
+				if (incident.type == IncidentType::TrainBreakdown && incident.target == id)
 					add("breakdown incident " + quoted(incident.id) + " in scenario " + quoted(scenario.id));
 			for (const auto& delay : scenario.entranceDelays)
 				if (delay.serviceId == id)
@@ -226,7 +231,7 @@ void sceneRewriteBlockReferences(SceneModel& model, const std::string& oldId, co
 	}
 	for (auto& scenario : model.scenarios)
 		for (auto& incident : scenario.incidents)
-			if (incident.type == "signal_failure")
+			if (incident.type == IncidentType::SignalFailure)
 				rewrite(incident.target);
 	for (auto& signal : model.signals)
 		if (!signal.protectedSection.empty())
@@ -249,6 +254,11 @@ void sceneRewriteStationReferences(SceneModel& model, const std::string& oldId, 
 				replaceId(leg.destinationStationId, oldId, newId);
 			}
 		}
+	for (auto& slice : model.passengerDemand)
+		for (auto& cell : slice.cells) {
+			replaceId(cell.originStationId, oldId, newId);
+			replaceId(cell.destinationStationId, oldId, newId);
+		}
 }
 
 void sceneRewritePlatformReferences(SceneModel& model, const std::string& stationId, const std::string& oldId,
@@ -270,7 +280,7 @@ void sceneMovePlatformReferences(SceneModel& model, const std::string& platformI
 void sceneRewriteSignalReferences(SceneModel& model, const std::string& oldId, const std::string& newId) {
 	for (auto& scenario : model.scenarios)
 		for (auto& incident : scenario.incidents)
-			if (incident.type == "signal_failure")
+			if (incident.type == IncidentType::SignalFailure)
 				replaceId(incident.target, oldId, newId);
 }
 
@@ -295,7 +305,7 @@ void sceneRewriteServiceReferences(SceneModel& model, const std::string& oldId, 
 		for (auto& delay : scenario.entranceDelays)
 			replaceId(delay.serviceId, oldId, newId);
 		for (auto& incident : scenario.incidents)
-			if (incident.type == "train_breakdown")
+			if (incident.type == IncidentType::TrainBreakdown)
 				replaceId(incident.target, oldId, newId);
 	}
 	for (auto& passenger : model.passengers)

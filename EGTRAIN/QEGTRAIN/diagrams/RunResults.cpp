@@ -342,6 +342,11 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 			row.firstDirectIncidentTime = availableValue(train.firstDirectIncidentTime);
 			row.firstDirectIncidentLocation = availableValue(train.firstDirectIncidentLocation);
 		}
+		if (train.onBoardPassengerSteps > 0) {
+			row.peakOnBoardPassengers = availableValue(train.peakOnBoardPassengers);
+			row.averageOnBoardPassengers = availableValue(
+				static_cast<double>(train.onBoardPassengerStepSum) / train.onBoardPassengerSteps);
+		}
 		row.destinationTerminationRequested = train.destinationTerminationRequested;
 		row.destinationTerminated = train.destinationTerminated;
 		row.entranceDelaySeconds = train.EntranceDelay;

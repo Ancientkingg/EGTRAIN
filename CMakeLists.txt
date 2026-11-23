@@ -161,6 +161,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 # No Qt: scene_tool links this library.
 add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/LoadedDataSummary.cpp
+    ${SRC_DIR}/scene/PassengerDemandCsv.cpp
     ${SRC_DIR}/scene/RollingStockLibrary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
@@ -202,7 +203,11 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationRun.cpp
-    ${SRC_DIR}/simulation/builders/InfrastructureBuilder.cpp)
+    ${SRC_DIR}/simulation/builders/InfrastructureBuilder.cpp
+    ${SRC_DIR}/simulation/PassengerFlow.cpp
+    ${SRC_DIR}/simulation/PassengerResults.cpp
+    ${SRC_DIR}/simulation/PassengerJourneys.cpp
+    ${SRC_DIR}/simulation/PassengerRouting.cpp)
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
@@ -238,6 +243,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
     ${SRC_DIR}/graphics/items/SelectionCueItem.cpp
     ${SRC_DIR}/graphics/items/SignalItem.cpp
+    ${SRC_DIR}/graphics/items/StationCalloutItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
     ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp
@@ -276,6 +282,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/infrastructure/SignalFacets.cpp
     ${SRC_DIR}/editors/infrastructure/StationFacets.cpp
     ${SRC_DIR}/editors/infrastructure/TopologyFacets.cpp
+    ${SRC_DIR}/editors/PassengerDemandPanel.cpp
     ${SRC_DIR}/editors/PassengerPanel.cpp
     ${SRC_DIR}/editors/RollingStockLibraryDialog.cpp
     ${SRC_DIR}/editors/SceneDocument.cpp
@@ -434,12 +441,12 @@ foreach(egtrain_lib egtrain_util egtrain_scene egtrain_runselection egtrain_live
         egtrain_graphics egtrain_widgets egtrain_editors ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
-# Flags only: egtrain_dispatch has no warning of its own. The 57 warning lines of its build come
-# from the simulation headers.
+# Flags only: egtrain_dispatch has no warning of its own, and the simulation headers it includes have none on Clang and GCC.
 egtrain_target_warnings(egtrain_dispatch)
+# Flags only: egtrain_sim has no warning on Clang and GCC. It is not STRICT until the MSVC warnings are fixed.
+egtrain_target_warnings(egtrain_sim)
 # No flags:
 #   egtrain_miniz                   vendored code
-#   egtrain_sim                     legacy code with 104 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, app/GuardedApplication.cpp, app/SceneSession.cpp,
@@ -480,6 +487,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/EditorLayout.h
     ${SRC_DIR}/widgets/UserPrompts.h
     ${SRC_DIR}/simulation/Infrastructure.h
+    ${SRC_DIR}/simulation/NoneId.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/app/CrashNote.h
     ${SRC_DIR}/app/GuardedApplication.h

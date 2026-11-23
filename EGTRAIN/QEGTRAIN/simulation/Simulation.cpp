@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
@@ -204,7 +205,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 }
 
 // Function to Compute the Energy Consumption for the Timetable
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder) {
+void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, const string& OutputFolder) {
 	double TotalEnergyConsumed = 0, TotalEnergyConsWithRegBraking = 0, TotalEnergySubstationRequest = 0, TotalEnergySubstRequestWithRegBraking = 0;
 
 	string OutputPerTrainFileName;
@@ -241,7 +242,7 @@ void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains) {
 }
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string FolderName) {
+void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, const string& FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput = openRunOutputFile(FileName, ios::binary);
@@ -271,7 +272,7 @@ void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string F
 }
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
-void Print_Computing_Times(const SimulationRun& run, string FolderName) {
+void Print_Computing_Times(const SimulationRun& run, const string& FolderName) {
 	string FileName;
 	FileName = FileName + FolderName + "/Computing_Times.txt";
 	ofstream Comp_Times = openRunOutputFile(FileName);
@@ -280,279 +281,9 @@ void Print_Computing_Times(const SimulationRun& run, string FolderName) {
 	closeRunOutputFile(Comp_Times, FileName);
 }
 
-// Function to check the start of the Journey (hence check their entrance on the network) for all simulated passengers
-void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<Passenger>& SIMUL_PAX) {
-	if (SIMUL_PAX.empty() != 1) {
-		for (list<Passenger>::iterator p = SIMUL_PAX.begin(); p != SIMUL_PAX.end(); p++) {
-			p->checkJourneyStart(t + StartingSimulationTime);
-		}
-	}
-}
-
-namespace {
-bool isWaitingOnPlatform(const Passenger& p) {
-	return p.IsIntheNetwork && p.CurrentStatus == "OnPlatform";
-}
-
-// Counts a passenger who waits on a platform and adds the pair of the passenger ID and the actual departure time of the trip
-// to wait for to the list of the platform
-void addWaitingPassenger(const Passenger& p, WaitingAtPlatform& waiting) {
-	waiting.count++;
-	for (const Journey& journey : p.Journeys) {
-		if (journey.ID != p.current_JourneyID)
-			continue;
-		const auto activetrip = std::find_if(journey.Trips.begin(), journey.Trips.end(),
-			[&p](const Trip& trip) { return trip.TripID == p.current_TripID; });
-		if (activetrip != journey.Trips.end())
-			waiting.passengers.emplace_back(p.ID, activetrip->Actual_Departure_Time);
-	}
-}
-} // namespace
-
-WaitingAtPlatform passengersWaitingAtPlatform(const string& stationId, const string& platformId, const list<Passenger>& ALL_PAX) {
-	WaitingAtPlatform waiting;
-	for (const Passenger& p : ALL_PAX) {
-		if (isWaitingOnPlatform(p) && p.Current_WaitingStationID == stationId && p.Current_WaitingStationPlatformID == platformId)
-			addWaitingPassenger(p, waiting);
-	}
-	// Order the list of passengers waiting at the platform in chronological order of their actual departure time
-	waiting.passengers.sort(orderPassengerListOnPlatform);
-	return waiting;
-}
-
-void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, const list<Passenger>& ALL_PAX) {
-	map<pair<string, string>, WaitingAtPlatform> waitingAt; // by station ID and platform ID
-	for (const Passenger& p : ALL_PAX) {
-		if (isWaitingOnPlatform(p))
-			addWaitingPassenger(p, waitingAt[{p.Current_WaitingStationID, p.Current_WaitingStationPlatformID}]);
-	}
-	for (auto& platformWaiting : waitingAt)
-		platformWaiting.second.passengers.sort(orderPassengerListOnPlatform);
-
-	const WaitingAtPlatform nobody;
-	for (StationPlatform& plat : ALL_PLAT) {
-		const auto found = waitingAt.find({plat.StationID, plat.ID});
-		const WaitingAtPlatform& waiting = found == waitingAt.end() ? nobody : found->second;
-		plat.Current_N_Passengers = waiting.count;
-		plat.Current_List_Pax_On_Platform = waiting.passengers;
-	}
-}
-
-namespace {
-// The shared index when it describes the list, otherwise an index of the list that lives in `own`.
-template <class Index, class List>
-const Index& indexOf(const Index& shared, List& list, std::optional<Index>& own) {
-	if (shared.covers(list))
-		return shared;
-	own.emplace();
-	own->build(list);
-	return *own;
-}
-} // namespace
-
-void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T,
-	list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
-	// if the train is stopped for a service stop
-	if (T.StoppedForServiceStop == 1) {
-		int N_AlightPax = 0;
-		int N_BoardedPax = 0;					  // These variables count the number of alighted and boarded passengers from / on the train at the current service stop
-		double CurrentPlatformOccupationRate = 0; // Occupation rate of the platform where the train is stopping at
-
-		// Iterate across the passenger list to check who needs to alight from and board on the train at the selected station platform
-		for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
-			// select all passengers which are onboard of the train which need to get off at the current Station where the train is stopped
-			if ((p->CurrentStatus == "OnBoard") && (p->Current_Train_Boarded == T.trainDescription) && (p->Current_Arrival_Station == T.CurrentServiceStop)) {
-				T.Current_OnBoard_Passengers--; // reduce the number of onboard passengers by 1 unit as the passenger will alight the train.
-				N_AlightPax++;					// accordingly increase the number of alighted passengers at this service stop.
-
-				// Update travel information of the alighted passenger
-				if (p->Journeys.empty() != 1) {
-
-					for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-						if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) { // Select the current journey of the passenger if it is not yet completed
-
-							// Defining iterator of the current, the next trip and the last trips of the active journey
-
-							list<Trip>::iterator currenttrip = j->Trips.begin();
-							list<Trip>::iterator nexttrip = j->Trips.begin();
-							nexttrip++; // if the journey is composed of one signle trip then next trip will concide with Trips.end() iterator
-							list<Trip>::iterator LasttripOfJourney = j->Trips.end();
-							LasttripOfJourney--; // Selecting the last trip of the active journey list
-
-							// iterate throught the active trips
-							while (currenttrip != j->Trips.end()) {
-								// if the active trip is found and has the arrival stop where the train T is stopping at
-								if ((currenttrip->TripID == p->current_TripID) && (currenttrip->Arr_Station_ID == T.CurrentServiceStop)) {
-									// then set the trip as complete and let the passenger get on the platform
-									p->current_location_ID = T.CurrentServiceStop;
-									currenttrip->Actual_Arrival_Time = t + SimulationStartingTime;
-									currenttrip->totalArrivalDelay = currenttrip->Actual_Arrival_Time - currenttrip->Planned_Arrival_Time;
-									currenttrip->IsTripCompleted = true;
-
-									// if the selected trip is the last trip of the active journey then set that journey j will be completed
-									if ((currenttrip->TripID == LasttripOfJourney->TripID) && (currenttrip->Arr_Station_ID == j->Arr_Station_ID)) {
-										j->Actual_Arrival_Time = currenttrip->Actual_Arrival_Time;
-										j->totalJourneyArrivalDelay = currenttrip->totalArrivalDelay; // Could also be computed as Actual_Arrival_Time - Actual_Planned_Arrival_Time
-										// however it might be that in the rescheduling process the Planned arrival time of the last trip of the journey is changed based on rerouting or replanning of the train service.
-
-										j->IsJourneyCompleted = true;
-										p->current_location_ID = T.CurrentServiceStop;
-										p->IsIntheNetwork = false;											  // The passenger is selected and sent out of the simulation as the journey is ended
-										p->TimeExitedTheNetwork = currenttrip->Actual_Arrival_Time;			  // Used by the Passenger GUI when the passenger leaves the network
-										p->StationExitedTheNetworkID = currenttrip->Arr_Station_ID;			  // Used by the Passenger GUI when the passenger leaves the network
-										p->PlatformExitedTheNetworkID = currenttrip->Arr_Station_Platform_ID; // Used by the Passenger GUI when the passenger leaves the network
-										p->CurrentStatus = "None";
-										p->current_TripID = "None";
-										p->current_JourneyID = "None";
-										p->Current_Train_Boarded = "None";
-										p->Current_Arrival_Station = "None";
-										p->Current_Arrival_Platform = "None";
-
-									}
-
-									else { // else if the selected trip is not the last trip of the journey then it means that the passenger will need to transfer and take another trip to complete its journey
-										// computing the actual and planned arrival times of the current trip as well as its Total arrival delay
-										currenttrip->Actual_Arrival_Time = t + SimulationStartingTime;
-										currenttrip->totalArrivalDelay = currenttrip->Actual_Arrival_Time - currenttrip->Planned_Arrival_Time;
-										currenttrip->IsTripCompleted = true;
-
-										p->current_TripID = nexttrip->TripID;
-										p->CurrentStatus = "OnPlatform";
-										p->Current_WaitingStationID = T.CurrentServiceStop;
-										p->current_location_ID = T.CurrentServiceStop;
-										p->Current_WaitingStationPlatformID = T.CurrentServiceStopPlatform;
-										p->Current_Train_Boarded = "None";
-										p->Current_Train_To_Wait = nexttrip->TrainServiceDescription;
-										p->Current_Arrival_Station = nexttrip->Arr_Station_ID;
-
-										// check that the waiting station of the trip is the same as the one departure station of teh nexttripID
-										if (p->Current_WaitingStationID != nexttrip->Dep_Station_ID) {
-											EG_LOG(SimPax, Warning) << "Warning: Passenger " << p->ID << "will depart from a station different than the one planned for active trip " << p->current_TripID << " in journey " << p->current_JourneyID << "\n";
-										} else {
-											// if the arrival station of teh previous trip is the same as the departure station of the next trip then check whether the passenger is waiting at the scheduled platform
-											// Set first of all that the next trip has started
-											nexttrip->IsTripStarted = true;
-											// Then check the difference in number of platforms between the one where the passenger got off and the one where theu will need to board the train
-											const int N_Platform_Difference = abs(T.currentServiceStopPlatformNumber - nexttrip->depPlatformNumber);
-											double Walkingtime = 0; // this variable is the walking time for the passenger to walk between platforms at a transfer station
-											if (N_Platform_Difference <= 1) {
-												nexttrip->Actual_Departure_Time = t + SimulationStartingTime; // probably needs also to be added the overall simulation starting time
-												j->Walkingtime = j->Walkingtime + 0;						  // No walking time is added is the passenger needs to wait at the same platform they arrived at
-
-											} else {
-												// if instead they need to walk to reach the waiting platform then add 30 seconds for each platform difference between the arrival and departing platforms
-												Walkingtime = 30 * N_Platform_Difference; // if for instance N_Platform Difference is 5 then the it will be 30 * 5 = 150 seconds meaning 2.5 min and  minutes walking for crossing 5 patforms
-												nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
-												j->Walkingtime = j->Walkingtime + Walkingtime;
-											}
-										}
-									}
-									break; // break the while loop on trips
-								}
-								currenttrip++;
-								// Advance the iterator nexttrip only if the next current trip is not the last trip of the journey, otherwise an exeption is thrown because of exceeding elements in the trip list
-								if (currenttrip != LasttripOfJourney) {
-									nexttrip++;
-								}
-							}
-							break; // break the for loop over the journeys once the active one has been identified
-						}
-					}
-				}
-			}
-		}
-		// Specifying Boarding procedure
-		// Boarding procedure will follow the order at which passengers arrived at the platform
-		std::optional<PlatformIndex> callPlatforms;
-		const StationPlatform* PlatformIt = indexOf(run.platformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
-		if (PlatformIt != nullptr) {
-			// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant.
-			// Without it they are worked out here for this platform only, and the platform is not modified.
-			std::optional<WaitingAtPlatform> refreshed;
-			if (!run.settings.PAX_GUI) {
-				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, run.passengers);
-			}
-			const int waitingCount = refreshed ? refreshed->count : PlatformIt->Current_N_Passengers;
-			const list<pair<string, double>>& waitingList = refreshed ? refreshed->passengers : PlatformIt->Current_List_Pax_On_Platform;
-
-			// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-			CurrentPlatformOccupationRate = passengerOccupancyRatio(waitingCount + N_AlightPax, PlatformIt->Max_Passenger_Volume);
-
-			if (!waitingList.empty()) {
-				std::optional<PassengerIndex> callPassengers;
-				const PassengerIndex& passengerIndex = indexOf(run.passengerIndex, ALLPAX, callPassengers);
-				for (const pair<string, double>& Pax : waitingList) {
-					for (Passenger* p : passengerIndex.find(Pax.first)) {
-						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
-						// if the passenger p needs to board the current train then
-						if ((p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
-							// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
-							// passengers can board only if the number of onboard passengers is lower than the max capacity
-							if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
-								N_BoardedPax++;
-								T.Current_OnBoard_Passengers++;
-								p->CurrentStatus = "OnBoard";
-								p->Current_Train_Boarded = T.trainDescription;
-								p->Current_WaitingStationID = "None";
-								p->Current_WaitingStationPlatformID = "None";
-								p->Current_Train_To_Wait = "None";
-
-								if (p->Journeys.empty() != 1) {
-									for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-										if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) {
-											list<Trip>::iterator currenttrip = j->Trips.begin();
-											while (currenttrip != j->Trips.end()) {
-												if (currenttrip->TripID == p->current_TripID) {
-
-													int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
-													j->Waitingtime = j->Waitingtime + Waiting_Time;
-													break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
-												}
-												currenttrip++; // advance the current trip iterator by one.
-											}
-										}
-										break; // break the loop over the journey once the active one has been found
-									}
-								}
-
-							}
-
-							else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
-
-								EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
-								// Call Route Choice Function TO BE ADDED
-							}
-						}
-					}
-				}
-			}
-		}
-
-		// Changing the dwell time of the train at the station based on the number of alighted and boarded passengers
-		for (int s = 0; s < T.numStations; s++) {
-			// Change the Stopping Time of the train at the platform as it arrives based on the Gibson dwell time function
-			// The stopTime is changed only when the train first approaches the station (i.e. when StepStopped is = 1) and not later than that
-			// This means that the stopping time is not changes if an additional passenger arrives last minute as it is assumed that the platform will be less crowded and the passenger can enter with no additional dwell time required with respect to that necessary to alight / board all passengers when the train approached the platform
-			if ((T.Stations[s].stationName == T.CurrentServiceStop) && (T.Stations[s].StepStopped == 1)) {
-				// Define variable to set passenger dependendent dwell time based on the Gibson dwell time equation
-				double PassengerDependetDwellTime = -1;
-				PassengerDependetDwellTime = T.computePaxDependentDwellTimeAtStations(N_BoardedPax, N_AlightPax, CurrentPlatformOccupationRate, T.GibsonDwellTimeParameters[0], T.GibsonDwellTimeParameters[1], T.GibsonDwellTimeParameters[2], T.GibsonDwellTimeParameters[3], T.GibsonDwellTimeParameters[4], T.GibsonDwellTimeParameters[5], T.GibsonDwellTimeParameters[6], T.GibsonDwellTimeParameters[7]);
-				// Change the Stop Time of the train at the stopping station only if the Passenger dependent dwell time is larger than the pre-set minimum dwell time at that station / stop
-				// In case the passenger dependent well time is lower than the pre-set minimum dwell time, then the minimum dwell time is considered.
-				if (PassengerDependetDwellTime > T.Stations[s].StopTime) {
-
-					T.Stations[s].StopTime = PassengerDependetDwellTime;
-				}
-			}
-		}
-	}
-}
-
 namespace {
 // A step reports the progress of the run once in this many steps.
 constexpr int kProgressEverySteps = 100;
-// The margin of the ends of authority that the trains report at levels 3 and 4, in metres.
-constexpr double kEndOfAuthorityMarginMetres = 50;
 } // namespace
 
 TrainMovementOrder::TrainMovementOrder(const SimulationRun& run) : dueOrder(run.numTrains) {
@@ -563,7 +294,6 @@ TrainMovementOrder::TrainMovementOrder(const SimulationRun& run) : dueOrder(run.
 }
 
 void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
-	const InitialParameters& settings = run.settings;
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 	clock_t startEGTRAIN = clock(); // EGTRAIN start time
 	if (t % kProgressEverySteps == 0) {
@@ -576,15 +306,8 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
 			"worker/playback_step/compute");
-		// Simulate entrance process of passengers on the railway network according to route choice
-		checkJourneyStartForAllPassengers(t, settings.startingSimulationTime, run.passengers);
-
-		// This function will update the list of all waiting passengers at all platforms in the network at every instant
-		// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
-		// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
-		if (settings.PAX_GUI) {
-			Update_List_Passengers_Waiting_At_ALL_Platforms(run.platforms, run.passengers);
-		}
+		// The passengers whose journey starts enter the network; with the passenger GUI the waiting lists of the platforms are refreshed
+		enterPassengersAndRefreshPlatforms(run, t);
 	}
 
 	{
@@ -607,7 +330,7 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 			place = *nextDue++;
 		}
 		for (const int j : movementOrder) {
-			run.trains[j].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			run.trains[j].trajectoryComputationIncludingMovingBlock(t);
 			run.trains[j].recordEarliestActiveTrajectoryIndex(t);
 			run.trains[j].recordStationPassagesAtTime(t);
 
@@ -620,8 +343,7 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
 			"worker/playback_step/compute");
 		// The interaction of trains and passengers, with the passenger-dependent dwell times at the platforms
-		for (int n = 0; n < run.numTrains; n++)
-			Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, run.trains[n], run.passengers, run.platforms);
+		simulateTrainPassengerInteractions(run, t);
 	}
 
 	{
@@ -699,6 +421,7 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 
 	// Print Out Passenger Delays
 	printPassengerTotalJourneyDelay(run.passengers, settings.OutputMainFolder + "/PassengerStatus");
+	printPassengerResultFiles(run, settings.OutputMainFolder + "/PassengerStatus");
 
 	// Calculating positive and negative Train Delays to debug the program
 	calculatePosAndNegArrivalDelayAllTrains(run);

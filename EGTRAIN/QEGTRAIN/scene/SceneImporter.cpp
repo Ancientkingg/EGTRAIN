@@ -2279,8 +2279,19 @@ static void importIncidents(ImportContext& context) {
 				context.addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed incident row " + std::to_string(lineNo), incidentsPath.u8string());
 				continue;
 			}
+			IncidentType type = IncidentType::SignalFailure;
+			if (!incidentTypeFromName(tokens[0], type)) {
+				context.report.skipped("scenarios.incidents", incidentsSource);
+				SceneDiagnostic diagnostic;
+				diagnostic.code = "scene.incident.type";
+				diagnostic.message = "Unknown incident type " + tokens[0] + " in incident row " + std::to_string(lineNo);
+				diagnostic.file = incidentsPath.u8string();
+				diagnostic.suggestedFix = "Use signal_failure or train_breakdown";
+				context.result.diagnostics.push_back(std::move(diagnostic));
+				continue;
+			}
 			std::vector<std::string> targets = {tokens[1]};
-			if (tokens[0] == "train_breakdown") {
+			if (type == IncidentType::TrainBreakdown) {
 				targets.clear();
 				for (const auto& relation : context.relations) {
 					if (relation.operatingCode == tokens[1])
@@ -2305,7 +2316,7 @@ static void importIncidents(ImportContext& context) {
 					id += "." + std::to_string(targetIndex + 1);
 				SceneIncident incident;
 				incident.id = id;
-				incident.type = tokens[0];
+				incident.type = type;
 				incident.target = targets[targetIndex];
 				incident.startSeconds = start;
 				incident.endSeconds = end;

@@ -36,6 +36,9 @@ HORIZON = 1500
 EVERY = 25
 # The run that receives a command is longer, so that the client has the hello and the run is still going on when it sends.
 COMMAND_HORIZON = 3000
+# The run that a client leaves is the whole case with a frame for every step. A run does not wait for a client, and one of HORIZON
+# steps can be half over before a client on a busy machine has joined.
+DISCONNECT_HORIZON = 9000
 # EGTRAIN_TEST_TIMEOUT_SCALE (set by CTest in a build with -DEGTRAIN_TEST_TIMEOUT_SCALE) stretches every wait, for builds that run slowly.
 SCALE = max(1, int(os.environ.get("EGTRAIN_TEST_TIMEOUT_SCALE", "1") or "1"))
 START_TIMEOUT = 120 * SCALE
@@ -262,12 +265,13 @@ def rejected_command_run(app: Path, client: Path, temp: Path) -> None:
     print("PASS a request that the server rejects is answered with a reason and does not reach the run")
 
 
-def disconnect_run(app: Path, client: Path, temp: Path, reference: App) -> None:
-    run = App(app, temp / "disconnect", "Paimpol", ["-h", str(HORIZON), "--live", "0", "--live-every", "10"])
+def disconnect_run(app: Path, client: Path, temp: Path) -> None:
+    reference = baseline(app, temp, DISCONNECT_HORIZON, "baseline-disconnect")
+    run = App(app, temp / "disconnect", "Paimpol", ["-h", str(DISCONNECT_HORIZON), "--live", "0", "--live-every", "1"])
     try:
         code, summaries, errors = run_client(client, run.endpoint_file(), ["--max-states", "3"])
         expect(code == 0 and len(summaries) == 1 and summaries[0]["states"] >= 3, "the client did not read 3 frames:\n%s" % errors)
-        expect(summaries[0]["last_step"] < HORIZON // 2, "the client did not leave in the first half of the run: %s" % summaries[0])
+        expect(summaries[0]["last_step"] < DISCONNECT_HORIZON // 2, "the client did not leave in the first half of the run: %s" % summaries[0])
         expect(run.wait() == 0, "the run ended badly after the client had left\n%s" % tail(run.stdout_path))
         same_results(reference, run, "run after a client left")
     finally:
@@ -427,7 +431,7 @@ def main() -> None:
         stream_run(app, client, temp, reference)
         command_run(app, client, temp)
         rejected_command_run(app, client, temp)
-        disconnect_run(app, client, temp, reference)
+        disconnect_run(app, client, temp)
         unwatched_run(app, temp, reference)
         repeated_services_run(app, client, temp)
         stopped_headless_run(app, client, temp)

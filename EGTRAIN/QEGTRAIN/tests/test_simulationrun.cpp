@@ -95,8 +95,10 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 
 Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
-		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
+		numPassengers, passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
+	(void)passengerJourneys; // Planning state only; reset() and adopt() empty it like passengerFlow.
+	(void)stopCalls;		 // The same for the counts of the calls at stops.
 	const auto statistics = [](const DelayStats& s) {
 		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
@@ -116,6 +118,7 @@ Description describe(const SimulationRun& run) {
 		{"numPassengers", std::to_string(numPassengers)},
 		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
 		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
+		{"passengerFlow", std::to_string(passengerFlow.covers(passengers))},
 		{"totalInputDelays", statistics(totalDelays)},
 		{"entranceInputDelays", statistics(entranceDelays)},
 		{"disturbanceInput", statistics(disturbances)},
@@ -164,7 +167,7 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 // platforms, passengers, incidents and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "trains", "numTrains", "numberGenerator"};
+		"passengerIndex", "platformIndex", "passengerFlow", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (!isInfrastructureMember(name) && builderState.count(name) == 0
@@ -176,8 +179,10 @@ bool carriesNothingOver(const SimulationRun& run) {
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
 	auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
+		passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
 		infrastructure] = run;
+	(void)passengerJourneys;
+	stopCalls.at(0, 0).boarded = 1;
 	settings.name = "scene";
 	settings.times = 90;
 	settings.OutputMainFolder = "output";
@@ -197,6 +202,7 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
+	passengerFlow.build(passengers);
 	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
 		statistics->N_Stopped_Trains = 4;
 		statistics->totalArrivalDelay = 30;
@@ -424,7 +430,7 @@ bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b
 		&& std::equal(a.trains.begin(), a.trains.end(), b.trains.begin(), b.trains.end(), sameTrain)
 		&& std::equal(a.signalStates.begin(), a.signalStates.end(), b.signalStates.begin(), b.signalStates.end(), sameSignal)
 		&& std::equal(a.sectionStates.begin(), a.sectionStates.end(), b.sectionStates.begin(), b.sectionStates.end(), sameSection)
-		&& a.platforms.size() == b.platforms.size() && a.passengers.size() == b.passengers.size();
+		&& a.platforms.size() == b.platforms.size();
 }
 
 } // namespace
@@ -446,8 +452,12 @@ private slots:
 	void trainStartingAtStopWaitsForSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
+	void trainStartingAtStopBlocksSectionsUnderIt_data();
+	void trainStartingAtStopBlocksSectionsUnderIt();
 	void entryWaitsForTrainThatCannotStop_data();
 	void entryWaitsForTrainThatCannotStop();
+	void platformListsAtMostFiftyPassengers();
+	void platformCountsWaitingWithoutPassengerGui();
 
 private:
 	SceneModel m_line;
@@ -876,6 +886,8 @@ void TestSimulationRun::trainStartingAtStopWaitsForItsSections() {
 // next stop, and it reaches the end of its route.
 void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	SceneModel scene = m_passengers;
+	// The demand of Paimpol lengthens the dwell of the other train at Guingamp; this test is about the single track.
+	scene.passengerDemand.clear();
 	SceneService reverse = *std::find_if(scene.services.begin(), scene.services.end(),
 		[](const SceneService& candidate) { return candidate.id == "Guin-Paim-ALL-STOPS-1"; });
 	reverse.id = reverse.operatingCode = "REV";
@@ -935,6 +947,51 @@ void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt() {
 		QCOMPARE_EQ(time.StartOccTime, 540.0);
 	}
 	QCOMPARE_EQ(under, 2);
+}
+
+void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt_data() {
+	QTest::addColumn<int>("level");
+	QTest::addColumn<double>("trainLength");
+	QTest::addColumn<int>("sectionsUnder");
+	QTest::newRow("level 0, tail one section behind") << 0 << 2500.0 << 1;
+	QTest::newRow("level 2, tail one section behind") << 2 << 2500.0 << 1;
+	QTest::newRow("level 0, tail in the section of the stop") << 0 << 1500.0 << 0;
+}
+
+// The line has sections of 2 km and B ends the section 3-B0. A train of 2500 m that starts at B has its tail in the section
+// 2-B0 behind that of the stop, which it occupies from the step of entry until the tail has left it. A train of 1500 m
+// has nothing behind the section of the stop. The sections that the train never touches stay incomplete.
+void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt() {
+	QFETCH(int, level);
+	QFETCH(double, trainLength);
+	QFETCH(int, sectionsUnder);
+	SceneModel scene = lineWithStartAtB(m_line, level, 400.0);
+	for (SceneTrainUnit& unit : scene.trainUnits)
+		unit.physical.length_m = trainLength;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"X", 1}}, 2500);
+	if (run == nullptr || run->numTrains != 1)
+		QFAIL("the run is not built");
+	Regional& train = run->trains[0];
+	QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, 370);
+	train.ComputeBlockingTimesInMixedSignallingAreas(5, 3, 0.5, 50, 0, 0);
+	const double head = train.Start_Node_X * 1000;
+	int under = 0;
+	for (int index = 0; index < train.N_BlockSections; ++index) {
+		const BlockingTimes& time = train.BlockTime[index];
+		if (time.PosEnd > head || time.PosEnd <= head - train.train_length || time.PosStart > head)
+			continue;
+		if (time.BlockID == "@3-B0@")
+			continue;
+		++under;
+		QVERIFY2(time.IsComplete, time.BlockID.c_str());
+		QCOMPARE_EQ(time.StartOccTime, 370.0);
+		QCOMPARE_EQ(time.StartRunTime, 370);
+		QCOMPARE_EQ(time.EndRunTime, 370);
+		QCOMPARE_GT(time.EndOccTime, time.EndClearTime);
+		QCOMPARE_GT(time.EndClearTime, 370);
+	}
+	QCOMPARE_EQ(under, sectionsUnder);
+	QVERIFY(train.N_BlockTimeComplete == 5 + sectionsUnder);
 }
 
 // The first step in which the two trains overlap, or -1 when they never do.
@@ -1014,4 +1071,114 @@ void TestSimulationRun::entryWaitsForTrainThatCannotStop() {
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)
+// A platform counts the passengers who wait on it and lists the first kGuiPlatformPassengerIcons of them. A passenger who
+// has left the network there is no longer on the platform, at whatever time the run starts.
+void TestSimulationRun::platformListsAtMostFiftyPassengers() {
+	const auto make = [](int waiting, int exited, int exitedElsewhere, int start = 0) {
+		auto run = std::make_unique<SimulationRun>();
+		run->settings.startingSimulationTime = start;
+		run->platforms.resize(2);
+		for (int i = 0; i < 2; ++i) {
+			StationPlatform& platform = *std::next(run->platforms.begin(), i);
+			platform.StationID = "S";
+			platform.ID = i == 0 ? "P0" : "P1";
+		}
+		const int total = waiting + exited + exitedElsewhere;
+		for (int i = 0; i < total; ++i) {
+			Passenger passenger;
+			passenger.ID = "p" + std::to_string(i);
+			if (i < waiting) {
+				passenger.IsIntheNetwork = true;
+				passenger.CurrentStatus = PassengerStatus::OnPlatform;
+				passenger.Current_Train_To_Wait = "T" + std::to_string(i % 3);
+				Journey journey;
+				journey.ID = "J1";
+				journey.Arr_Station_ID = i % 4 == 0 ? "North" : "South";
+				passenger.Journeys.push_back(journey);
+				passenger.current_JourneyID = journey.ID;
+				run->platforms.front().Current_List_Pax_On_Platform.push_back({passenger.ID, 0.0});
+			} else {
+				passenger.TimeExitedTheNetwork = start + 100;
+				passenger.StationExitedTheNetworkID = "S";
+				passenger.PlatformExitedTheNetworkID = i < waiting + exited ? "P0" : "P1";
+			}
+			run->passengers.push_back(passenger);
+		}
+		run->numPassengers = total;
+		run->passengerIndex.build(run->passengers);
+		return run;
+	};
+	const auto ids = [](const GuiPlatformState& platform) {
+		std::vector<std::string> result;
+		for (const GuiPassengerState& passenger : platform.passengers) result.push_back(passenger.id);
+		return result;
+	};
+	const auto range = [](int from, int to) {
+		std::vector<std::string> result;
+		for (int i = from; i < to; ++i) result.push_back("p" + std::to_string(i));
+		return result;
+	};
+
+	// More waiting passengers than the list holds: the first 50 in order, all counted.
+	auto crowded = make(60, 3, 2);
+	GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*crowded, 102);
+	QCOMPARE(snapshot.platforms.size(), std::size_t(2));
+	QCOMPARE(snapshot.platforms[0].passengerCount, 60);
+	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
+	QCOMPARE(snapshot.platforms[0].passengers[7].status, std::string("OnPlatform"));
+	QCOMPARE(snapshot.platforms[0].passengers[7].nextTrain, std::string("T1"));
+	// The destinations count all 60 who wait, not only the 50 listed: 15 go north, 45 south.
+	QCOMPARE(snapshot.platforms[0].destinations.size(), std::size_t(2));
+	QCOMPARE(snapshot.platforms[0].destinations[0].destination, std::string("South"));
+	QCOMPARE(snapshot.platforms[0].destinations[0].count, 45);
+	QCOMPARE(snapshot.platforms[0].destinations[1].destination, std::string("North"));
+	QCOMPARE(snapshot.platforms[0].destinations[1].count, 15);
+	QVERIFY(snapshot.platforms[1].destinations.empty());
+	// Nobody waits on the other platform: the two who left the network there two seconds ago are gone.
+	QCOMPARE(snapshot.platforms[1].passengerCount, 0);
+	QVERIFY(snapshot.platforms[1].passengers.empty());
+
+	// Fewer than the list holds: all of them, without the five who left there.
+	auto fewer = make(48, 5, 0);
+	snapshot = buildGuiSimulationSnapshot(*fewer, 100);
+	QCOMPARE(snapshot.platforms[0].passengerCount, 48);
+	QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+
+	// The same in a run that starts at 07:00, at the step in which they left and at the step with the number of that time.
+	constexpr int kStart = 7 * 3600;
+	auto morning = make(48, 5, 0, kStart);
+	for (const int step : {100, 102, kStart + 100, kStart + 102}) {
+		snapshot = buildGuiSimulationSnapshot(*morning, step);
+		QCOMPARE(snapshot.platforms[0].passengerCount, 48);
+		QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+	}
+}
+
+// Without the passenger GUI the run keeps no platform lists. The count of a platform then comes from the passenger flow,
+// which counts the waiting passengers in every mode, as a headless run with the live stream needs.
+void TestSimulationRun::platformCountsWaitingWithoutPassengerGui() {
+	auto run = std::make_unique<SimulationRun>();
+	run->platforms.resize(1);
+	run->platforms.front().StationID = "S";
+	run->platforms.front().ID = "P0";
+	for (int i = 0; i < 7; ++i) {
+		Passenger passenger;
+		passenger.ID = "p" + std::to_string(i);
+		passenger.IsIntheNetwork = true;
+		passenger.CurrentStatus = PassengerStatus::OnPlatform;
+		passenger.Current_WaitingStationID = "S";
+		passenger.Current_WaitingStationPlatformID = "P0";
+		passenger.Current_Train_To_Wait = "T0";
+		run->passengers.push_back(passenger);
+	}
+	run->numPassengers = 7;
+	run->passengerIndex.build(run->passengers);
+	run->passengerFlow.build(run->passengers);
+	QVERIFY(!run->settings.PAX_GUI);
+	QVERIFY(run->platforms.front().Current_List_Pax_On_Platform.empty());
+	const GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*run, 10);
+	QCOMPARE(snapshot.platforms.size(), std::size_t(1));
+	QCOMPARE(snapshot.platforms[0].passengerCount, 7);
+}
+
 #include "test_simulationrun.moc"

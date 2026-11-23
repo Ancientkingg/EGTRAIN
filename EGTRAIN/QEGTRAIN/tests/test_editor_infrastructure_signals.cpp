@@ -60,7 +60,7 @@ static SceneSignallingArea area(const char* id, double startKm, double endKm, in
 	return result;
 }
 
-static SceneIncident incident(const char* id, const char* type, const char* target) {
+static SceneIncident incident(const char* id, IncidentType type, const char* target) {
 	SceneIncident result;
 	result.id = id;
 	result.type = type;
@@ -94,7 +94,7 @@ static SceneModel signalScene() {
 
 	SceneScenario scenario;
 	scenario.id = "scenario-1";
-	scenario.incidents = {incident("incident-1", "signal_failure", "signal-1"), incident("incident-2", "train_breakdown", "signal-1")};
+	scenario.incidents = {incident("incident-1", IncidentType::SignalFailure, "signal-1"), incident("incident-2", IncidentType::TrainBreakdown, "signal-1")};
 	scene.scenarios.push_back(scenario);
 	return scene;
 }

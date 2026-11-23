@@ -1,6 +1,7 @@
 #ifndef SCENEMODEL_H
 #define SCENEMODEL_H
 
+#include "scene/PassengerDwellModel.h"
 #include "scene/SceneDiagnostic.h"
 #include <array>
 #include <cstddef>
@@ -15,6 +16,11 @@ inline constexpr int kCurrentSceneSchemaVersion = 1;
 /// The bundle_version of an .egscene bundle that this application reads and writes.
 inline constexpr int kCurrentSceneBundleVersion = 1;
 
+/// The most transfers a plan of a live passenger journey may use when the scene gives no value.
+inline constexpr int kDefaultPassengerMaxTransfers = 2;
+/// The largest value of simulation_settings.passenger_max_transfers.
+inline constexpr int kMaxPassengerMaxTransfers = 10;
+
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
 	bool hasDuration = false;		  ///< True when duration_seconds is given.
@@ -23,6 +29,21 @@ struct SceneSimulationSettings {
 	double bufferTimeSeconds = 0.0;	  ///< Buffer time in seconds, rounded to whole seconds for the blocking times.
 	bool hasRecoveryTime = false;	  ///< True when recovery_time_percent is given.
 	double recoveryTimePercent = 0.0; ///< Recovery time in percent, rounded to a whole percent for the blocking times.
+	/// The most transfers that a passenger journey without legs, or with legs that cannot be followed, may plan
+	/// (passenger_max_transfers, 0 to 10). Always counts; the scene file holds it only when it differs from the default.
+	int passengerMaxTransfers = kDefaultPassengerMaxTransfers;
+	/// The coefficients beta0 to beta7 of the passenger dwell model (passenger_dwell_coefficients). Empty uses
+	/// kDefaultPassengerDwellCoefficients. The validator wants exactly kPassengerDwellCoefficientCount values.
+	std::optional<std::vector<double>> passengerDwellCoefficients;
+	/// The platform occupancy rate above which the platform is crowded (passenger_platform_crowding_threshold, 0 to 1). Empty uses
+	/// kDefaultPassengerPlatformCrowdingThreshold.
+	std::optional<double> passengerPlatformCrowdingThreshold;
+	/// The on-board occupancy rate above which the train is crowded (passenger_onboard_crowding_threshold, 0 to 1). Empty uses
+	/// kDefaultPassengerOnboardCrowdingThreshold.
+	std::optional<double> passengerOnboardCrowdingThreshold;
+	/// The boarding passengers of a car above which the car is crowded (passenger_car_boarding_threshold, 0 or more). Empty uses
+	/// kDefaultPassengerCarBoardingThreshold.
+	std::optional<int> passengerCarBoardingThreshold;
 };
 
 /// A track: a chain of nodes joined by arcs, with its own kilometre chainage.
@@ -191,8 +212,12 @@ struct SceneTrainUnit {
 	/// Rows of [v_lower, v_upper, c0, c1, c2]: the tractive effort in N is c0 + c1 v + c2 v² for a speed v
 	/// from v_lower up to v_upper. The simulation compares the bounds with speeds in m/s.
 	std::vector<std::array<double, 5>> tractionCurve;
-	std::string sourceDataFile;		///< Path of the vehicle data file the editor reads the physical data from; empty when none.
-	std::string sourceTractionFile; ///< Path of the traction file the editor reads the curve from; empty when none.
+	/// Passengers the unit can carry, seats and standing; meaningful only when hasPassengerCapacity is set. A locomotive
+	/// carries 0.
+	int passengerCapacity = 0;
+	bool hasPassengerCapacity = false; ///< True when passenger_capacity is given.
+	std::string sourceDataFile;		   ///< Path of the vehicle data file the editor reads the physical data from; empty when none.
+	std::string sourceTractionFile;	   ///< Path of the traction file the editor reads the curve from; empty when none.
 };
 
 /// A composition: the train units that run together as one train.
@@ -208,6 +233,9 @@ struct SceneCompositionRuntime {
 	std::vector<std::array<double, 5>> tractionCurve; ///< The combined curve, in the form of SceneTrainUnit::tractionCurve.
 	/// The units of the composition in order. They point into the source scene, which owns them.
 	std::vector<const SceneTrainUnit*> units;
+	/// The sum of the passenger capacities of the units when every unit gives one; -1 otherwise, and the simulation then
+	/// takes its default from the number of wagons.
+	int passengerCapacity = -1;
 };
 
 /// A planned call of a service at a station. Times are seconds after the base time of the scene.
@@ -271,10 +299,22 @@ struct SceneServiceOccurrence {
 /// The occurrences chosen for a run. An empty set means every occurrence.
 using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
+/// The kind of an incident.
+enum class IncidentType {
+	SignalFailure,	///< A signal or section fails; the scene file and the legacy file spell it "signal_failure".
+	TrainBreakdown, ///< A train breaks down; the scene file and the legacy file spell it "train_breakdown".
+};
+
+/// The spelling of an incident type in scene files and legacy rows: "signal_failure" or "train_breakdown".
+const char* incidentTypeName(IncidentType type);
+
+/// Reads the spelling of an incident type into type. False, with type unchanged, for any other text.
+bool incidentTypeFromName(const std::string& name, IncidentType& type);
+
 /// An incident of a scenario. Times are seconds after the base time of the scene.
 struct SceneIncident {
-	std::string id;	  ///< Unique id of the incident.
-	std::string type; ///< "signal_failure" or "train_breakdown".
+	std::string id;									 ///< Unique id of the incident.
+	IncidentType type = IncidentType::SignalFailure; ///< The kind of incident.
 	/// A signal id or section reference for a signal failure, a service id for a breakdown.
 	std::string target;
 	double startSeconds = 0.0; ///< Start in seconds after the base time.
@@ -337,6 +377,33 @@ struct ScenePassenger {
 	std::vector<ScenePassengerJourney> journeys; ///< The journeys.
 };
 
+/// The passengers who travel from one station to another during a demand slice.
+struct ScenePassengerDemandCell {
+	std::string originStationId;	  ///< Station where the passengers appear.
+	std::string destinationStationId; ///< Station they travel to.
+	int count = 0;					  ///< Number of passengers; at least 1.
+};
+
+/// The seconds since midnight of a base time written as HH:MM:SS, from 00:00:00 to 23:59:59, or nothing for any other
+/// text.
+std::optional<int> sceneBaseTimeSeconds(const std::string& text);
+
+/// The largest value of a train unit's passenger_capacity, the limit of the editor field. It keeps the capacity of a
+/// composition inside an int.
+inline constexpr int kMaxPassengerCapacity = 100000;
+
+/// The most passengers that the demand slices of a scene may hold together; staging makes one passenger each.
+inline constexpr long long kMaxScenePassengerDemand = 1000000;
+
+/// Origin-destination demand during one period of the day. Its passengers appear evenly spread over the period and
+/// travel on the earliest connection. Slices of a scene do not overlap.
+struct ScenePassengerDemandSlice {
+	std::string id;								 ///< Unique id of the slice.
+	double startSeconds = 0.0;					 ///< Start of the period, in seconds since midnight.
+	double endSeconds = 0.0;					 ///< End of the period, in seconds since midnight; after the start.
+	std::vector<ScenePassengerDemandCell> cells; ///< One cell per origin and destination pair with passengers.
+};
+
 /// The stops of a service where a passenger leg boards and alights.
 struct SceneServiceStopPair {
 	std::size_t originIndex = 0;	  ///< Index into SceneService::stops of the boarding stop.
@@ -386,6 +453,10 @@ struct SceneModel {
 	std::string defaultScenarioId;									  ///< Id of the scenario a run uses.
 	std::vector<SceneScenario> scenarios;							  ///< scenarios.json scenarios.
 	std::vector<ScenePassenger> passengers;							  ///< passengers.json passengers.
+	std::vector<ScenePassengerDemandSlice> passengerDemand;			  ///< passengers.json demand slices.
+
+	/// True when a run of the scene has passengers: listed passengers, or demand slices that become passengers.
+	bool hasPassengers() const { return !passengers.empty() || !passengerDemand.empty(); }
 };
 
 /// A new scene: current schema, base time 08:00:00, a duration of 3600 s, zero buffer and recovery
@@ -463,7 +534,7 @@ const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene);
 enum class SceneFileWrite {
 	Always,			///< On every save.
 	WithViews,		///< When the scene has track or station views.
-	WithPassengers, ///< When the scene has passengers.
+	WithPassengers, ///< When the scene has passengers or passenger demand.
 	Never,			///< Never; the loader still reads it from an older scene.
 };
 

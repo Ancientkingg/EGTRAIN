@@ -5,6 +5,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/Utf8Path.h"
 #include "simulation/Simulation.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
 #include "util/Log.h"
@@ -18,6 +19,8 @@
 #include <chrono>
 #include <memory>
 #include <map>
+#include <string_view>
+#include <utility>
 #include <optional>
 #include <cstdio>
 #include <cstdlib>
@@ -27,9 +30,6 @@
 using namespace std;
 
 namespace {
-// A passenger who has left the network stays in the list of the platform of the exit for this many seconds.
-constexpr int kExitedPassengerShownSeconds = 5;
-
 // Makes the folder at the UTF-8 path and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
 	std::error_code error;
@@ -77,7 +77,7 @@ std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
 // Apply_Signal_Failures_Mixed_Signalling): from the start, and to the end when
 // the incident has one.
 bool signalFailureActive(const SimulationIncident& incident, int timestep) {
-	if (incident.type != "signal_failure" || timestep < incident.startSeconds)
+	if (incident.type != IncidentType::SignalFailure || timestep < incident.startSeconds)
 		return false;
 	const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
 	return !hasEnd || timestep <= incident.endSeconds;
@@ -191,27 +191,19 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	for (auto& entry : sectionStates)
 		snapshot.sectionStates.push_back(std::move(entry.second));
 
-	for (const StationPlatform& platform : run.platforms) {
-		GuiPlatformState state;
-		state.stationId = platform.StationID;
-		state.platformId = platform.ID;
-		state.maxVolume = platform.Max_Passenger_Volume;
-		for (const auto& passenger : platform.Current_List_Pax_On_Platform)
-			state.passengerIds.push_back(passenger.first);
-		for (const Passenger& passenger : run.passengers) {
-			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0
-				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + kExitedPassengerShownSeconds
-				&& platform.StationID == passenger.StationExitedTheNetworkID
-				&& platform.ID == passenger.PlatformExitedTheNetworkID)
-				state.passengerIds.push_back(passenger.ID);
-		}
-		snapshot.platforms.push_back(std::move(state));
-	}
+	// The passenger of a waiting ID, the first of the list when an ID repeats, or null.
+	const bool indexed = run.passengerIndex.covers(run.passengers);
+	const auto passengerOf = [&run, indexed](const std::string& id) -> const Passenger* {
+		if (!indexed)
+			return nullptr;
+		const std::vector<Passenger*>& found = run.passengerIndex.find(id);
+		return found.empty() ? nullptr : found.front();
+	};
 
-	for (const Passenger& passenger : run.passengers) {
+	const auto listPassenger = [](const Passenger& passenger) {
 		GuiPassengerState state;
 		state.id = passenger.ID;
-		state.status = passenger.CurrentStatus;
+		state.status = passengerStatusName(passenger.CurrentStatus);
 		state.waitingPlatform = passenger.Current_WaitingStationPlatformID;
 		state.nextTrain = passenger.Current_Train_To_Wait;
 		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
@@ -221,9 +213,53 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 				[&passenger](const Trip& value) { return value.TripID == passenger.current_TripID; });
 			if (trip != journey->Trips.end())
 				state.nextDestination = trip->Arr_Station_ID;
+			state.finalDestination = journey->Arr_Station_ID;
 		}
-		snapshot.passengers.push_back(std::move(state));
+		return state;
+	};
+
+	for (const StationPlatform& platform : run.platforms) {
+		GuiPlatformState state;
+		state.stationId = platform.StationID;
+		state.platformId = platform.ID;
+		state.maxVolume = platform.Max_Passenger_Volume;
+		// Without the passenger GUI the run keeps no platform lists, but its passenger flow counts who waits where.
+		const std::size_t waitingCount = !run.settings.PAX_GUI && run.passengerFlow.covers(run.passengers)
+			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
+			: platform.Current_List_Pax_On_Platform.size();
+		state.passengerCount = static_cast<int>(waitingCount);
+		const std::size_t listed = std::min(waitingCount, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
+		state.passengers.reserve(listed);
+		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
+			if (state.passengers.size() == listed)
+				break;
+			const Passenger* passenger = passengerOf(waiting.first);
+			if (passenger)
+				state.passengers.push_back(listPassenger(*passenger));
+			else
+				state.passengers.push_back(GuiPassengerState{waiting.first, {}, {}, {}, {}});
+		}
+		// every passenger who waits, by the destination of the journey, for the card of the station
+		std::map<std::string_view, int> byDestination;
+		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
+			const Passenger* passenger = passengerOf(waiting.first);
+			if (!passenger)
+				continue;
+			const auto journey = std::find_if(passenger->Journeys.begin(), passenger->Journeys.end(),
+				[passenger](const Journey& value) { return value.ID == passenger->current_JourneyID; });
+			if (journey != passenger->Journeys.end() && !journey->Arr_Station_ID.empty())
+				++byDestination[journey->Arr_Station_ID];
+		}
+		state.destinations.reserve(byDestination.size());
+		for (const auto& entry : byDestination)
+			state.destinations.push_back({std::string(entry.first), entry.second});
+		std::stable_sort(state.destinations.begin(), state.destinations.end(),
+			[](const GuiDestinationCount& x, const GuiDestinationCount& y) { return x.count > y.count; });
+		snapshot.platforms.push_back(std::move(state));
 	}
+
+	if (!run.passengers.empty())
+		snapshot.stationCalls = latestStationCalls(run, timestep);
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {
@@ -283,8 +319,10 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	};
 
 	beginScenePreparation();
-	if (live_)
+	if (live_) {
 		liveSceneName_ = scene.name;
+		liveSceneHasPassengers_ = scene.hasPassengers();
+	}
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 		? std::optional<double>(initial_variables.times)
 		: std::nullopt;
@@ -410,8 +448,9 @@ void rejectLiveCommands(DispatchLive& live, const char* reason) {
 }
 
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
-void beginLiveRun(DispatchLive& live, const std::string& sceneName, const SimulationRun& run) {
+void beginLiveRun(DispatchLive& live, const std::string& sceneName, bool hasPassengers, const SimulationRun& run) {
 	live.run.runId = randomHex(2);
+	live.run.hasPassengers = hasPassengers;
 	live.run.sceneName = sceneName;
 	const InitialParameters& settings = run.settings;
 	live.run.baseTimeSeconds = settings.startingSimulationTime;
@@ -572,7 +611,7 @@ void DispatchController::runSimulationStages() {
 	observationTimer.start();
 	emit executionBegan();
 	if (live_)
-		beginLiveRun(*live_, liveSceneName_, run);
+		beginLiveRun(*live_, liveSceneName_, liveSceneHasPassengers_, run);
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {

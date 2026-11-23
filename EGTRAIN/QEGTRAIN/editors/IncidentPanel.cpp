@@ -38,13 +38,9 @@ double shownReducedSpeed(const QDoubleSpinBox* edit, const SceneIncident* incide
 	return shownValue(edit, stored ? incident->reducedSpeedKmh : 40.0);
 }
 
-// The name of an incident type on screen; a type that is none of the two shows as it is stored.
-QString typeText(const std::string& type) {
-	if (type == "signal_failure")
-		return QStringLiteral("Signal failure");
-	if (type == "train_breakdown")
-		return QStringLiteral("Train breakdown");
-	return QString::fromStdString(type);
+// The name of an incident type on screen.
+QString typeText(IncidentType type) {
+	return type == IncidentType::SignalFailure ? QStringLiteral("Signal failure") : QStringLiteral("Train breakdown");
 }
 
 // The text of the row of an incident in the list.
@@ -60,7 +56,7 @@ QString rowLabel(const SceneIncident& incident) {
 // Gives the incident the target with the occurrence as the target combo holds it: 0 for none, or for all occurrences of a
 // service. False when the incident has that target already.
 bool setTarget(SceneIncident& incident, const std::string& target, int occurrence) {
-	const bool singular = incident.type != "signal_failure" && occurrence > 0;
+	const bool singular = incident.type != IncidentType::SignalFailure && occurrence > 0;
 	occurrence = std::max(1, occurrence);
 	if (incident.target == target && incident.hasOccurrence == singular && incident.occurrence == occurrence)
 		return false;
@@ -114,8 +110,8 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	// The data of an item is the type as the scene stores it.
 	m_typeCombo = new QComboBox(detailPane);
 	m_typeCombo->setObjectName("incidentTypeCombo");
-	m_typeCombo->addItem(typeText("signal_failure"), QStringLiteral("signal_failure"));
-	m_typeCombo->addItem(typeText("train_breakdown"), QStringLiteral("train_breakdown"));
+	for (const IncidentType type : {IncidentType::SignalFailure, IncidentType::TrainBreakdown})
+		m_typeCombo->addItem(typeText(type), QString::fromLatin1(incidentTypeName(type)));
 	detailLayout->addRow("Type", m_typeCombo);
 	// A long train label is cut in the middle.
 	m_targetCombo = new ChoiceComboBox(detailPane);
@@ -176,8 +172,9 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	});
 	connect(m_idEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitIdEdit);
 	connect(m_typeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-		if (index >= 0)
-			commitType(m_typeCombo->itemData(index).toString());
+		IncidentType type = IncidentType::SignalFailure;
+		if (index >= 0 && incidentTypeFromName(m_typeCombo->itemData(index).toString().toStdString(), type))
+			commitType(type);
 	});
 	connect(m_targetCombo, &QComboBox::currentTextChanged, this, [this] { commitTarget(); });
 	connect(m_startSecondsEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitStartSeconds);
@@ -216,19 +213,19 @@ bool IncidentPanel::offersTarget(const IncidentTarget& target) const {
 		return false;
 	const SceneModel& model = m_document->model();
 	const std::string id = target.id.toStdString();
-	if (target.type == "signal_failure") {
+	if (target.type == IncidentType::SignalFailure) {
 		const auto targets = signalFailureTargets(model);
 		return std::find(targets.begin(), targets.end(), id) != targets.end();
 	}
-	return target.type == "train_breakdown" && target.occurrence >= 1
+	return target.type == IncidentType::TrainBreakdown && target.occurrence >= 1
 		&& std::any_of(model.services.begin(), model.services.end(), [this, &id, &target](const SceneService& service) {
 			   return service.id == id && target.occurrence <= sceneServiceOccurrenceCount(service, occurrenceDuration());
 		   });
 }
 
-void IncidentPanel::changeType(SceneIncident& incident, const std::string& type) const {
+void IncidentPanel::changeType(SceneIncident& incident, IncidentType type) const {
 	incident.type = type;
-	if (type == "signal_failure") {
+	if (type == IncidentType::SignalFailure) {
 		incident.hasOccurrence = false;
 		incident.occurrence = 1;
 		incident.hasReducedSpeed = false;
@@ -241,7 +238,7 @@ void IncidentPanel::changeType(SceneIncident& incident, const std::string& type)
 	bool targetValid = incident.target.empty();
 	if (!targetValid) {
 		const SceneModel& model = m_document->model();
-		if (type == "signal_failure") {
+		if (type == IncidentType::SignalFailure) {
 			const auto targets = signalFailureTargets(model);
 			targetValid = std::find(targets.begin(), targets.end(), incident.target) != targets.end();
 		} else {
@@ -314,7 +311,7 @@ void IncidentPanel::updateDetail() {
 	const SceneIncident* incident = shownIncident();
 	const bool hasSelection = incident != nullptr;
 	const bool editable = hasSelection && canEdit();
-	const bool isBreakdown = hasSelection && incident->type == "train_breakdown";
+	const bool isBreakdown = hasSelection && incident->type == IncidentType::TrainBreakdown;
 	QString emptyState;
 	if (canEdit() && m_runSelection->selectedScenario(m_document->model()) && !hasSelection) {
 		emptyState = scenarioIncidents().empty() ? QStringLiteral("This scenario has no incidents. Use Add Incident.")
@@ -331,9 +328,7 @@ void IncidentPanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_typeCombo);
 		if (hasSelection) {
-			const int typeIndex = m_typeCombo->findData(QString::fromStdString(incident->type));
-			// unknown type: default to signal_failure
-			m_typeCombo->setCurrentIndex(typeIndex >= 0 ? typeIndex : 0);
+			m_typeCombo->setCurrentIndex(m_typeCombo->findData(QString::fromLatin1(incidentTypeName(incident->type))));
 		} else {
 			m_typeCombo->setCurrentIndex(0);
 		}
@@ -389,7 +384,7 @@ void IncidentPanel::updateDetail() {
 
 void IncidentPanel::refreshTargets() {
 	const SceneIncident* incident = shownIncident();
-	const bool signalFailure = incident && incident->type == "signal_failure";
+	const bool signalFailure = incident && incident->type == IncidentType::SignalFailure;
 	const SceneModel noScene;
 	const IncidentTargetChoices choices = incident ? incidentTargetChoices(m_document->model(), incident, occurrenceDuration())
 												   : incidentTargetChoices(noScene, nullptr, 0.0);
@@ -435,10 +430,10 @@ bool IncidentPanel::addIncident(const IncidentTarget& target) {
 void IncidentPanel::appendIncident(const IncidentTarget& target) {
 	SceneIncident incident;
 	incident.id = sceneUniqueIncidentId(m_document->model(), "new_incident");
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
-	if (!target.type.isEmpty()) {
-		changeType(incident, target.type.toStdString());
+	if (target.type) {
+		changeType(incident, *target.type);
 		setTarget(incident, target.id.toStdString(), target.occurrence);
 	}
 	if (!editIncidents("Add incident", [&incident](std::vector<SceneIncident>& incidents) { incidents.push_back(incident); }))
@@ -508,11 +503,10 @@ void IncidentPanel::commitIdEdit() {
 	emit changed();
 }
 
-void IncidentPanel::commitType(const QString& type) {
+void IncidentPanel::commitType(IncidentType newType) {
 	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
-	const std::string newType = type.toStdString();
 	if (newType == incident->type)
 		return;
 
@@ -540,13 +534,12 @@ void IncidentPanel::commitTarget() {
 
 bool IncidentPanel::applyTarget(const IncidentTarget& target) {
 	const SceneIncident* incident = selectedIncident();
-	if (!incident || !offersTarget(target))
+	if (!incident || !target.type || !offersTarget(target))
 		return false;
-	const std::string type = target.type.toStdString();
-	const bool typeChanged = incident->type != type;
+	const bool typeChanged = incident->type != *target.type;
 	SceneIncident updated = *incident;
 	if (typeChanged)
-		changeType(updated, type);
+		changeType(updated, *target.type);
 	if (!setTarget(updated, target.id.toStdString(), target.occurrence) && !typeChanged)
 		return true;
 	if (!editSelected("Change incident target", [&updated](SceneIncident& edited) { edited = updated; }))

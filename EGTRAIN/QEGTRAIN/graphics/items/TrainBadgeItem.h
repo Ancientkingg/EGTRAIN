@@ -10,7 +10,7 @@
 
 /// The badge of a train, placed at the centre of its bodies. It ignores the transformation of the view, so
 /// its geometry is in logical pixels from its position. It keeps the identifier, the speed, the kind and the
-/// direction of the train, but draws only the speed, as white text on a backing in canvasColor() beside the train.
+/// direction of the train, but draws only the speed and the load of passengers, as white text on a backing in canvasColor() beside the train.
 /// It takes no click and shows no tooltip.
 class TrainBadgeItem : public QGraphicsItem {
 public:
@@ -28,6 +28,14 @@ public:
 		const QString& trainType);
 	/// Sets the speed of the train as text.
 	void setSpeedText(const QString& speedText);
+	/// Sets the passengers on board as text, such as "212 / 600", or "212" when the capacity is unknown.
+	void setLoadText(const QString& loadText);
+	/// The load text, such as "212 / 600".
+	const QString& loadText() const { return m_loadText; }
+	/// Sets whether the Detailed presentation shows the load.
+	void setLoadVisible(bool visible);
+	/// The Detailed presentation shows the load.
+	bool isLoadVisible() const { return m_loadVisible; }
 	/// Sets whether the Detailed presentation shows the speed.
 	void setSpeedVisible(bool visible);
 	/// The Detailed presentation shows the speed.
@@ -49,6 +57,11 @@ public:
 		return m_presentation == Presentation::Detailed && m_speedVisible && !m_speedText.isEmpty();
 	}
 
+	/// The badge draws the load: in the Detailed presentation, while the load is visible and not empty.
+	bool showsLoad() const {
+		return m_presentation == Presentation::Detailed && m_loadVisible && !m_loadText.isEmpty();
+	}
+
 	/// The zoom ratio from which a badge is in the Identity presentation.
 	static qreal identityZoomThreshold() { return 1.8; }
 	/// The zoom ratio from which a badge shows the speed.
@@ -60,8 +73,11 @@ public:
 	/// The speed text, starting 8 logical pixels to the right of the position, with the bottom of its line
 	/// 8 above it; empty when showsSpeed() is false.
 	QRectF speedTextRect() const;
-	/// The backing of the speed, which reaches 2 logical pixels past the ends of the text and 1 above and below it, with
-	/// a margin of 1 logical pixel; empty when showsSpeed() is false.
+	/// The load text, in the font of the speed, on the line above the speed, or on the line of the speed when the
+	/// speed is not drawn; empty when showsLoad() is false.
+	QRectF loadTextRect() const;
+	/// The union of the backings of the speed and of the load, which each reach 2 logical pixels past the ends of
+	/// their text and 1 above and below it, with a margin of 1 logical pixel; empty when neither is drawn.
 	QRectF boundingRect() const override;
 	/// An empty shape, so the badge is never picked.
 	QPainterPath shape() const override;
@@ -76,7 +92,9 @@ public:
 private:
 	QFont speedFont() const;
 	QPointF speedBaseline() const;
+	QPointF loadBaseline() const;
 	QRectF speedBackingRect() const;
+	QRectF loadBackingRect() const;
 	void updateToolTip();
 
 	QString m_identifier;
@@ -84,12 +102,14 @@ private:
 	QString m_operatingCode;
 	QString m_trainType;
 	QString m_speedText;
+	QString m_loadText;
 	TrainVisual m_visual;
 	QPixmap m_icon;
 	Presentation m_presentation = Presentation::Overview;
 	bool m_reversed = false;
 	bool m_promoted = false;
 	bool m_speedVisible = true;
+	bool m_loadVisible = true;
 };
 
 #endif

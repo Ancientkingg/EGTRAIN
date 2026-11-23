@@ -25,21 +25,21 @@ BlockingTimes::BlockingTimes() {
 	PosStart = -1;
 	PosEnd = -1;
 	IsComplete = true;
-	NextBlockID = "None";
-	ConnectedBlockingTimeID = "None";
-	stationName = "None";
-	trainDescription = "None";
+	NextBlockID = kNoneId;
+	ConnectedBlockingTimeID = kNoneId;
+	stationName = kNoneId;
+	trainDescription = kNoneId;
 	GeoPosStart = GeoPosEnd = -1;
 	PosConnectedBlockingTime = -1;
 	SpeedPreviousTrain = -1;
 	SignallingLevel = kSignallingLevelUnset;
 	LocationWithSwitch = false;
-	SwitchName = "None";
+	SwitchName = kNoneId;
 	InfraElementInPositionForTrain = true;
 	IsAlreadyUniformedToConnectedSwitch = false;
 	IsEndOfDivSwitchBeingStartOfADivSwitch = false;
-	NamePreviousTrain = "None";
-	NextBlockIDPreviousTrain = "None";
+	NamePreviousTrain = kNoneId;
+	NextBlockIDPreviousTrain = kNoneId;
 }
 
 Train::Train() {
@@ -56,14 +56,14 @@ Train::Train() {
 	OutOfSimulation = false;
 	GradientExceptionInBraking = false;
 	IsTrainStoppedForEoA = false;
-	type = "None";
+	type = kNoneId;
 	Start_Node_X = -10000;
 	EntranceDelay = 0;
 	N_BlockSections = 0;
 	N_BlockTimeComplete = 0;
-	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
-	LeadingTrainInFollowingMode = "None";
-	CurrentServiceStopPlatform = "None";
+	IsTrainInFollowingMode = IsInUnintentionalDecoupling = false;
+	LeadingTrainInFollowingMode = kNoneId;
+	CurrentServiceStopPlatform = kNoneId;
 	TotalEnergyConsumed = 0;
 	TotalEnergySubstationRequest = 0;
 	TotalEnergyConsWithRegBrak = 0;
@@ -73,7 +73,9 @@ Train::Train() {
 	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
 		StationArrivals[i] = -1;
-		StationArrivalNames[i] = "None";
+		StationStandStarts[i] = -1;
+		StationDepartures[i] = -1;
+		StationArrivalNames[i] = kNoneId;
 		StationDelay[i] = -1;
 		StationConsecDelay[i] = -1;
 		StationDisturbance[i] = 0;
@@ -102,16 +104,18 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	if (N_BoardPax <= 0 && N_AlightPax <= 0)
 		return 0.0;
 
+	const InitialParameters& settings = run_->settings;
+
 	// define parameters delta 1, delta 2 and delta 3
-	double delta1 = 0, delta2 = 0, delta3 = 0;
-	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than 0.65 than delta1=1
-	if (PlatformOccupancyRate > 0.65)
+	double delta1 = 0, delta3 = 0;
+	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than the platform crowding threshold (0.65 by default) than delta1=1
+	if (PlatformOccupancyRate > settings.passengerPlatformCrowdingThreshold)
 		delta1 = 1;
 
-	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than 0.7
+	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than the on-board crowding threshold (0.7 by default)
 	double OnboardOccupancyrate = passengerOccupancyRatio(this->Current_OnBoard_Passengers, this->MAX_OnBoard_Passengers);
 
-	if (OnboardOccupancyrate > 0.7)
+	if (OnboardOccupancyrate > settings.passengerOnboardCrowdingThreshold)
 		delta3 = 1;
 
 	// Split the boarding and alighting passengers equally among the coaches / wagons
@@ -161,7 +165,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		for (list<int>::iterator BoardInCar = BoardingPassengersInACar.begin(); BoardInCar != BoardingPassengersInACar.end(); BoardInCar++) {
 			NumberGenerator& N = run_->numberGenerator;
 			// The number of people boarding from the first door is drawn according to a Gaussian with mean equal to the total number of passenger boarding from that car/2 and standard deviation being 20% of the mean.
-			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20));
+			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20)); // NOLINT(bugprone-integer-division): the door split divides as ints
 			int Nboarding_SecondDoorInACar = *BoardInCar - Nboarding_FirstDoorInACar;
 
 			BoardPaxFromDoor.push_back(Nboarding_FirstDoorInACar);
@@ -172,7 +176,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		for (list<int>::iterator AlightFromCar = AlightingPassengersInACar.begin(); AlightFromCar != AlightingPassengersInACar.end(); AlightFromCar++) {
 			NumberGenerator& N = run_->numberGenerator;
 			// The number of people alighting from the first door is drawn according to a Gaussian with mean equal to the total number of passenger aligthing from that car/2 and standard deviation being 20% of the mean.
-			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20));
+			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20)); // NOLINT(bugprone-integer-division): the door split divides as ints
 			int NAlight_SecondDoorInACar = *AlightFromCar - NAlight_FirstDoorInACar;
 
 			AlightPaxFromDoor.push_back(NAlight_FirstDoorInACar);
@@ -194,8 +198,8 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 		// Computing the board process time
 		int delta2 = 0;
-		if (*B_Pax_Car > 15)
-			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than 15
+		if (*B_Pax_Car > settings.passengerCarBoardingThreshold)
+			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than the car boarding threshold (15 by default)
 
 		// beta2 and beta5 are the times of one boarding and one alighting passenger. A door that nobody uses takes no time.
 		if (*B_Pax_Door > 0)
@@ -233,7 +237,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 }
 
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, const string& OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
 	for (int i = 0; i < run.numTrains; i++) {
 
 		run.trains[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
@@ -397,7 +401,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
 		int held = 0;
 		if (run.infra.singleTrackHeld[l] < 0 && backward[l] > 0)
-			held = -1;
+			held = -1; // NOLINT(bugprone-branch-clone): the branch order decides which direction wins
 		else if (forward[l] > 0)
 			held = 1;
 		else if (backward[l] > 0)
@@ -424,7 +428,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
+void PrintTimetablePoints(SimulationRun& run, const string& MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
 	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
@@ -473,7 +477,7 @@ void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
+void PrintTrainBlockingTimes(SimulationRun& run, const string& MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
 	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
@@ -560,7 +564,7 @@ void Train::checkTrainArrDep(int t) {
 }
 
 // print train service path diagram (append to file)
-void Train::printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID) {
+void Train::printTrainServicePathDiagram(const std::string& FolderName, int nextServiceRouteID) {
 	std::string FileName = FolderName + "/TrainServicePathDiagram.txt";
 
 	// avoid different corridor for initial service (entering station for the first time)
@@ -659,7 +663,7 @@ void protectStationAreas(SimulationRun& run, int i) {
 					continue;
 
 				// occupy station interlocking area
-				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
+				for (int s = 0; s < static_cast<int>(run.infra.stationBoundaries.size()); s++) {
 					if (!run.infra.stationBoundaries[s].entrance)
 						continue;
 					bool stationAreaHandled = false;
@@ -715,4 +719,10 @@ void Train::setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory) 
 
 	// previously on train class constructor (there won't work because size of vector is zero until user sets length of simulation and constructor is called before that)
 	instant_train_energy_consumption[0] = 0;
+}
+
+void Train::recordOnBoardPassengers() {
+	peakOnBoardPassengers = std::max(peakOnBoardPassengers, Current_OnBoard_Passengers);
+	onBoardPassengerStepSum += Current_OnBoard_Passengers;
+	++onBoardPassengerSteps;
 }

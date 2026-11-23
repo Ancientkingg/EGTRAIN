@@ -5,7 +5,9 @@
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
+#include "scene/TrackPreview.h"
 
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -41,6 +43,7 @@ public:
 		: ListFacet("tracks", "track", &SceneModel::tracks, {"ID", "Layout region", "Level", "Shown on map", "Double switch"}) {}
 
 	// The layout cells come after the id. A track without a view row has no region, and its other cells cannot be edited.
+	// The map draws it next to the network, so it counts as shown.
 	void fillRows(InfrastructurePanel& panel) override {
 		ListFacet::fillRows(panel);
 		const SceneModel& model = panel.model();
@@ -52,7 +55,7 @@ public:
 			if (!hasLayout)
 				table.item(row, kRegionColumn)->setToolTip(QStringLiteral("This case has no station layout, so a track cannot be placed on the map."));
 			setCell(table, row, kLevelColumn, view ? QString::number(view->level) : QString(), view != nullptr);
-			setFlagCell(table, row, kShownColumn, view && view->visible);
+			setFlagCell(table, row, kShownColumn, !view || view->visible);
 			setFlagCell(table, row, kDoubleSwitchColumn, view && view->doubleSwitch);
 			if (!view)
 				for (const int column : {kShownColumn, kDoubleSwitchColumn})
@@ -74,13 +77,18 @@ public:
 			setXFromDistance(panel);
 	}
 
-	// Every region that the station views define, and None for a track without a view row.
-	std::vector<Choice> choices(const InfrastructurePanel& panel, int, int column) const override {
+	// Every region that can place a track, and None for a track without a view row. The region that the edited track has
+	// stays in the list even when it cannot place a track.
+	std::vector<Choice> choices(const InfrastructurePanel& panel, int row, int column) const override {
 		std::vector<Choice> result;
 		if (column != kRegionColumn)
 			return result;
 		result.push_back({QStringLiteral("None"), QString()});
+		const SceneTrack* edited = inRow(panel.model().tracks, row);
+		const SceneTrackView* own = edited ? viewOf(panel.model(), edited->id) : nullptr;
 		for (const auto& [region, stations] : stationsByRegion(panel.model())) {
+			if (!regionCanPlaceTracks(panel.model(), region) && !(own && own->region == region))
+				continue;
 			constexpr std::size_t kShownStations = 4;
 			QStringList names;
 			for (std::size_t place = 0; place < stations.size() && place < kShownStations; ++place)
@@ -111,8 +119,21 @@ public:
 				panel.refuseEdit(QStringLiteral("Give the track an ID first"));
 				return;
 			}
+			if (value.isEmpty() && current && (!current->visible || current->doubleSwitch)) {
+				panel.refuseEdit(QStringLiteral("A hidden or double switch track needs its layout region. Tick Shown on map and clear "
+												"Double switch first, then set the region to None."));
+				return;
+			}
 			if (!value.isEmpty() && !(parsed && stationsByRegion(panel.model()).count(region))) {
 				panel.refuseEdit(QStringLiteral("Layout region must be a region of the station layout, or None."));
+				return;
+			}
+			if (!value.isEmpty() && !regionCanPlaceTracks(panel.model(), region)) {
+				const std::size_t stations = stationsByRegion(panel.model()).at(region).size();
+				panel.refuseEdit(stations == 1 ? QStringLiteral("Region %1 has one station on the layout. A track needs two stations in its region to be placed.").arg(region)
+											   : QStringLiteral("Region %1 has %2 stations on the layout, but they do not give two usable places. A track needs two stations at different places in its region to be placed.")
+													 .arg(region)
+													 .arg(stations));
 				return;
 			}
 			panel.edit(QStringLiteral("Edit track layout"), [trackId, value, region](SceneModel& model) {
@@ -457,9 +478,12 @@ private:
 			panel.showStatus(QStringLiteral("A station name cannot hold a tab or a line break."));
 			return;
 		}
-		const std::string stationId = name.toStdString();
-		if (std::any_of(model.stations.begin(), model.stations.end(),
-				[&stationId](const SceneStation& station) { return station.id == stationId || station.name == stationId; })) {
+		// The legacy export refuses a station id with whitespace, so a run of whitespace in the name becomes one underscore.
+		const std::string stationName = name.toStdString();
+		const std::string stationId = QString(name).replace(QRegularExpression(QStringLiteral("\\s+")), QStringLiteral("_")).toStdString();
+		if (std::any_of(model.stations.begin(), model.stations.end(), [&stationId, &stationName](const SceneStation& station) {
+				return station.id == stationId || station.id == stationName || station.name == stationId || station.name == stationName;
+			})) {
 			panel.showStatus(QStringLiteral("Station '%1' already exists. Add a platform to it under Platforms.").arg(name));
 			return;
 		}
@@ -467,7 +491,7 @@ private:
 		const bool added = panel.edit(QStringLiteral("Add station"), [&](SceneModel& scene) {
 			SceneStation station;
 			station.id = stationId;
-			station.name = stationId;
+			station.name = stationName;
 			ScenePlatform platform;
 			platform.id = stationId + ".platform.1";
 			platform.nodeIds = {nodeId};

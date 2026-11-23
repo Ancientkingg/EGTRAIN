@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iomanip>
+#include <limits>
 #include <list>
 #include <map>
 #include <new>
@@ -44,6 +45,7 @@ struct NativeTrainPlan {
 	std::string operatingCode;
 	std::string serviceId;
 	SceneTrainPhysical physical;
+	int passengerCapacity = -1; // SceneCompositionRuntime::passengerCapacity
 	std::vector<std::array<double, 5>> tractionCurve;
 	std::vector<NativeStopPlan> stops;
 	int occurrence = 1;
@@ -84,20 +86,10 @@ void addNativeDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::s
 }
 
 bool parseNativeBaseTime(const std::string& value, int& seconds) {
-	if (value.size() != 8 || value[2] != ':' || value[5] != ':')
+	const std::optional<int> parsed = sceneBaseTimeSeconds(value);
+	if (!parsed)
 		return false;
-	for (std::size_t i = 0; i < value.size(); ++i) {
-		if (i == 2 || i == 5)
-			continue;
-		if (value[i] < '0' || value[i] > '9')
-			return false;
-	}
-	const int hours = (value[0] - '0') * 10 + value[1] - '0';
-	const int minutes = (value[3] - '0') * 10 + value[4] - '0';
-	const int partSeconds = (value[6] - '0') * 10 + value[7] - '0';
-	if (hours > 23 || minutes > 59 || partSeconds > 59)
-		return false;
-	seconds = hours * 3600 + minutes * 60 + partSeconds;
+	seconds = *parsed;
 	return true;
 }
 
@@ -157,7 +149,7 @@ const SceneStation* nativeStationForId(
 bool nativeRuntimeNodeMatchesStation(const Node& node, const SceneStation& station,
 	const std::string& stationName) {
 	return (station.platforms.empty() ? node.station
-									  : !node.stationPlatformId.empty() && node.stationPlatformId != "None")
+									  : !node.stationPlatformId.empty() && !isNoneId(node.stationPlatformId))
 		&& (node.stationName == stationName || node.stationName == station.id
 			|| (node.station && node.stationName.empty()));
 }
@@ -204,7 +196,7 @@ int nativeResolveRuntimeSection(SimulationRun& run, const std::string& runtimeSe
 	return -1;
 }
 
-void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train& train, int vectorSize) {
+void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, const InitialParameters& parameters, Train& train, int vectorSize) {
 	train.run_ = &run;
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
@@ -223,6 +215,9 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.directIncidentIds.clear();
 	train.firstDirectIncidentTime = -1.0;
 	train.firstDirectIncidentLocation = -1.0;
+	train.peakOnBoardPassengers = 0;
+	train.onBoardPassengerStepSum = 0;
+	train.onBoardPassengerSteps = 0;
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
@@ -238,7 +233,7 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
-	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	train.MAX_OnBoard_Passengers = plan.passengerCapacity >= 0 ? plan.passengerCapacity : trainPassengerCapacity(train.number_of_wagons);
 	train.max_train_speed = plan.appliedMaximumSpeedMs;
 	train.max_train_decelaration = plan.physical.max_deceleration_ms2;
 	train.frontal_wagon_area = plan.physical.frontal_area_m2;
@@ -261,7 +256,10 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.EntranceDelay = plan.entranceDelay;
 	train.entranceDelayStationId = plan.entranceDelayStationId;
 	train.TotalInputDelays = plan.entranceDelay;
-	train.Initialise_Gibson_Dwell_Time_Parameters(7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562);
+	const auto& beta = parameters.passengerDwellCoefficients;
+	train.Initialise_Gibson_Dwell_Time_Parameters(static_cast<float>(beta[0]), static_cast<float>(beta[1]), static_cast<float>(beta[2]),
+		static_cast<float>(beta[3]), static_cast<float>(beta[4]), static_cast<float>(beta[5]), static_cast<float>(beta[6]),
+		static_cast<float>(beta[7]));
 	train.numStations = static_cast<int>(plan.stops.size());
 	train.Stations.resize(plan.stops.size());
 	for (int index = 0; index < train.numStations; ++index) {
@@ -531,7 +529,7 @@ Node nativeOffRouteStopNode(const SimulationRun& run, const SceneStation& statio
 	Node node;
 	node.station = true;
 	node.stationName = stationName;
-	node.stationPlatformId = "None";
+	node.stationPlatformId = kNoneId;
 	if (station.hasPosition)
 		node.X = station.positionKm;
 	else if (!station.platforms.empty()) {
@@ -608,6 +606,7 @@ NativeTrainPlan nativeTrainPlan(const SceneService& service, const SceneComposit
 	plan.operatingCode = sceneServiceOccurrenceOperatingCode(service, occurrence);
 	plan.serviceId = service.id;
 	plan.physical = composition.physical;
+	plan.passengerCapacity = composition.passengerCapacity;
 	plan.tractionCurve = composition.tractionCurve;
 	plan.occurrence = occurrence;
 	plan.routeIndex = routeIndex;
@@ -651,7 +650,7 @@ bool nativeIncidentFieldsValid(const SceneIncident& incident, bool hasOccurrence
 			incident.id, "incidents[" + incident.id + "].start_seconds");
 		valid = false;
 	}
-	if (incident.type == "signal_failure") {
+	if (incident.type == IncidentType::SignalFailure) {
 		if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.fields",
 				"A signal failure cannot have an occurrence, a reduced speed or a stop at the destination", "scenarios.json", "incident",
@@ -792,7 +791,7 @@ void nativeApplyEntranceDelay(NativeTrainPlan& train, const SceneEntranceDelay& 
 void nativeMarkDestinationTermination(std::vector<NativeTrainPlan>& trains, const std::vector<SimulationIncident>& incidents) {
 	for (NativeTrainPlan& train : trains) {
 		for (const SimulationIncident& incident : incidents) {
-			if (incident.type == "train_breakdown" && incident.terminateAtDestination
+			if (incident.type == IncidentType::TrainBreakdown && incident.terminateAtDestination
 				&& incident.target == train.serviceId
 				&& (!incident.hasOccurrence || incident.occurrence == train.occurrence)) {
 				train.destinationTerminationRequested = true;
@@ -926,6 +925,17 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 		stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
 			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
 			: 0.0;
+	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
+	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
+	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
+		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,
+			stagedParameters.passengerDwellCoefficients.begin());
+	stagedParameters.passengerPlatformCrowdingThreshold =
+		scene.settings.passengerPlatformCrowdingThreshold.value_or(kDefaultPassengerPlatformCrowdingThreshold);
+	stagedParameters.passengerOnboardCrowdingThreshold =
+		scene.settings.passengerOnboardCrowdingThreshold.value_or(kDefaultPassengerOnboardCrowdingThreshold);
+	stagedParameters.passengerCarBoardingThreshold =
+		scene.settings.passengerCarBoardingThreshold.value_or(kDefaultPassengerCarBoardingThreshold);
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;
@@ -970,16 +980,88 @@ void nativeListStoppingTrains(std::list<StationPlatform>& platforms, const std::
 	}
 }
 
+// The planned time of a trip that nothing has set, as Trip holds it.
+constexpr int kUnsetTripTime = -9999;
+
+// Adds one passenger for each passenger of each demand slice of the scene, after the passengers of the scene. The slices come in
+// the order of their start (a tie by ID) and the cells of a slice by the place of the origin station in the scene, then of the
+// destination station, so that the order of the passengers does not depend on the order in the file. The passengers
+// of a cell appear evenly spread over the period of their slice and plan their route when they appear: their journey has no
+// legs. A passenger's ID is <slice>:<origin>><destination>#<number>, and its journey has the same ID with ".1".
+void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<SceneStation>& stationById, std::list<Passenger>& passengers) {
+	// The name that the run uses for the station, or an empty string for an unknown station (the validator reports it).
+	const auto stationName = [&stationById](const std::string& id) {
+		const auto found = stationById.find(id);
+		if (found == stationById.end())
+			return std::string();
+		return found->second->name.empty() ? found->second->id : found->second->name;
+	};
+	std::unordered_map<std::string, std::size_t> stationPlace;
+	for (std::size_t place = 0; place < scene.stations.size(); ++place)
+		stationPlace.try_emplace(scene.stations[place].id, place);
+	// The place of a station; a station that the scene does not have comes last (its cell adds no passenger).
+	const auto placeOf = [&stationPlace](const std::string& id) {
+		const auto found = stationPlace.find(id);
+		return found == stationPlace.end() ? std::numeric_limits<std::size_t>::max() : found->second;
+	};
+	std::vector<const ScenePassengerDemandSlice*> slices;
+	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand)
+		slices.push_back(&slice);
+	// A start that is not a number (the validator reports it) sorts last, which keeps the order total.
+	const auto start = [](const ScenePassengerDemandSlice* slice) {
+		return std::isnan(slice->startSeconds) ? std::numeric_limits<double>::infinity() : slice->startSeconds;
+	};
+	std::stable_sort(slices.begin(), slices.end(), [&start](const ScenePassengerDemandSlice* a, const ScenePassengerDemandSlice* b) {
+		return start(a) != start(b) ? start(a) < start(b) : a->id < b->id;
+	});
+	for (const ScenePassengerDemandSlice* const slicePointer : slices) {
+		const ScenePassengerDemandSlice& slice = *slicePointer;
+		const double period = slice.endSeconds - slice.startSeconds;
+		std::vector<const ScenePassengerDemandCell*> cells;
+		for (const ScenePassengerDemandCell& cell : slice.cells)
+			cells.push_back(&cell);
+		std::stable_sort(cells.begin(), cells.end(), [&placeOf](const ScenePassengerDemandCell* a, const ScenePassengerDemandCell* b) {
+			const std::size_t aOrigin = placeOf(a->originStationId);
+			const std::size_t bOrigin = placeOf(b->originStationId);
+			return aOrigin != bOrigin ? aOrigin < bOrigin : placeOf(a->destinationStationId) < placeOf(b->destinationStationId);
+		});
+		for (const ScenePassengerDemandCell* const cellPointer : cells) {
+			const ScenePassengerDemandCell& cell = *cellPointer;
+			const std::string prefix = slice.id + ":" + cell.originStationId + ">" + cell.destinationStationId + "#";
+			const std::string origin = stationName(cell.originStationId);
+			const std::string destination = stationName(cell.destinationStationId);
+			if (origin.empty() || destination.empty())
+				continue;
+			for (int number = 0; number < cell.count; ++number) {
+				Journey journey;
+				journey.Mode = JourneyMode::Live;
+				journey.ID = prefix + std::to_string(number) + ".1";
+				journey.Dep_Station_ID = origin;
+				journey.Arr_Station_ID = destination;
+				journey.Planned_Departure_Time = journey.Actual_Planned_Departure_Time = slice.startSeconds + number * period / cell.count;
+				Passenger passenger;
+				passenger.ID = prefix + std::to_string(number);
+				passenger.Journeys.push_back(std::move(journey));
+				passengers.push_back(std::move(passenger));
+			}
+		}
+	}
+}
+
 // Draws the departure and arrival of every journey of passengers from the windows of the scene, in the order of the scene.
 void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, std::list<Passenger>& passengers) {
 	const auto sampleWindow = [&run](double minimum, double maximum) {
 		return run.numberGenerator.getUniformFloat(minimum, maximum);
 	};
+	// The first staged passenger with each ID
+	std::unordered_map<std::string, std::list<Passenger>::iterator> stagedById;
+	for (auto it = passengers.begin(); it != passengers.end(); ++it)
+		stagedById.try_emplace(it->ID, it);
 	for (const ScenePassenger& sourcePassenger : scene.passengers) {
-		const auto stagedPassenger = std::find_if(passengers.begin(), passengers.end(),
-			[&sourcePassenger](const Passenger& candidate) { return candidate.ID == sourcePassenger.id; });
-		if (stagedPassenger == passengers.end())
+		const auto found = stagedById.find(sourcePassenger.id);
+		if (found == stagedById.end())
 			continue;
+		const auto stagedPassenger = found->second;
 		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
 			auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(), stagedPassenger->Journeys.end(),
 				[&sourceJourney](const Journey& candidate) { return candidate.ID == sourceJourney.id; });
@@ -989,11 +1071,15 @@ void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, s
 				sourceJourney.plannedDepartureStartSeconds, sourceJourney.plannedDepartureEndSeconds);
 			stagedJourney->Actual_Planned_Arrival_Time = sampleWindow(
 				sourceJourney.plannedArrivalStartSeconds, sourceJourney.plannedArrivalEndSeconds);
+			// A trip takes its planned times from the timetable of its train (see the staging of the trips). Only a trip whose
+			// train has no planned time at its stop keeps the window of the journey, at the ends of the journey.
 			if (!stagedJourney->Trips.empty()) {
-				stagedJourney->Trips.front().Planned_Departure_Time =
-					static_cast<int>(stagedJourney->Actual_Planned_Departure_Time);
-				stagedJourney->Trips.back().Planned_Arrival_Time =
-					static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
+				Trip& first = stagedJourney->Trips.front();
+				Trip& last = stagedJourney->Trips.back();
+				if (first.Planned_Departure_Time == kUnsetTripTime)
+					first.Planned_Departure_Time = static_cast<int>(stagedJourney->Actual_Planned_Departure_Time);
+				if (last.Planned_Arrival_Time == kUnsetTripTime)
+					last.Planned_Arrival_Time = static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
 			}
 		}
 	}
@@ -1158,11 +1244,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
 	if (scenario != nullptr) {
 		for (const SceneIncident& incident : scenario->incidents) {
-			if (incident.type != "signal_failure" && incident.type != "train_breakdown") {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.type", "Unknown incident type",
-					"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].type");
-				continue;
-			}
 			const bool hasOccurrence = incident.hasOccurrence || incident.occurrence != 1;
 			const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
 			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
@@ -1179,7 +1260,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			runtimeIncident.hasEndSeconds = hasEnd;
 			runtimeIncident.startSeconds = incident.startSeconds;
 			runtimeIncident.endSeconds = incident.endSeconds;
-			if (incident.type == "signal_failure") {
+			if (incident.type == IncidentType::SignalFailure) {
 				if (!nativeSignalFailureSection(run, scene, sectionInventory, incident, diagnostics, runtimeIncident.resolvedSectionIDs))
 					valid = false;
 			} else if (serviceById.count(incident.target) == 0) {
@@ -1233,7 +1314,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
 			Journey journey;
 			journey.ID = sourceJourney.id;
-			journey.Journey_Activity_Type = sourceJourney.activity;
+			journey.Activity = passengerActivityFromText(sourceJourney.activity);
+			journey.Mode = sourceJourney.legs.empty() ? JourneyMode::Live : JourneyMode::Assigned;
 			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
 			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
 			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
@@ -1275,13 +1357,17 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				Trip trip;
 				trip.TripID = sourceLeg.id;
 				trip.JourneyID = journey.ID;
-				trip.Trip_Activity_Type = journey.Journey_Activity_Type;
 				trip.Dep_Station_ID = originStop->stationName;
 				trip.Arr_Station_ID = destinationStop->stationName;
 				trip.Dep_Station_Platform_ID = originStop->platformId;
 				trip.depPlatformNumber = platformNumber(originStop->platformId);
 				trip.Arr_Station_Platform_ID = destinationStop->platformId;
 				trip.TrainServiceDescription = trains[trainIt->second].trainDescription;
+				// The planned times of the stops of the train, in seconds since midnight like the other times of a passenger.
+				if (originStop->hasPlannedDeparture)
+					trip.Planned_Departure_Time = static_cast<int>(std::lround(originStop->plannedDeparture + baseTime));
+				if (destinationStop->hasPlannedArrival)
+					trip.Planned_Arrival_Time = static_cast<int>(std::lround(destinationStop->plannedArrival + baseTime));
 				journey.Trips.push_back(std::move(trip));
 			}
 			if (omitJourney)
@@ -1295,6 +1381,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		return diagnostics;
 
 	nativeSamplePassengerWindows(run, scene, stagedPassengers);
+	nativeStageDemandPassengers(scene, stationById, stagedPassengers);
 
 	// The new trains are built before the old ones are released, so trains that do not fit in the memory that is free leave
 	// the trains of the run and initial_variables as they were.
@@ -1302,7 +1389,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	try {
 		storage = std::vector<Train>(trains.size());
 		for (std::size_t index = 0; index < trains.size(); ++index)
-			nativeCopyTrainPlan(run, trains[index], storage[index], vectorSize);
+			nativeCopyTrainPlan(run, trains[index], stagedParameters, storage[index], vectorSize);
 	} catch (const std::bad_alloc&) {
 		// Frees the trains built so far before the message is made.
 		storage = std::vector<Train>();

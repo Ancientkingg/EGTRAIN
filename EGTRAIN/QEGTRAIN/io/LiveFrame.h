@@ -38,6 +38,9 @@ struct LiveRunInfo {
 	double baseTimeSeconds = 0.0; ///< Time of day of step 0, in seconds from midnight.
 	int horizonSteps = 0;		  ///< Number of steps of the run.
 	double stepSeconds = 1.0;	  ///< Length of one step, in seconds.
+	/// The scene has passengers. Its state frames then carry the capacity of each train and the platforms; without
+	/// passengers they carry neither.
+	bool hasPassengers = false;
 };
 
 /// A change in the life of a run that an event frame reports.
@@ -58,7 +61,8 @@ nlohmann::json makeHelloFrame(const LiveRunInfo& run, std::uint64_t seq, const G
 
 /// The state of one step: the step, sim_time_s and clock_s in seconds, and for each train its route
 /// position in metres, x in kilometres and speed in m/s, or null where the train has no position. The
-/// signal list is part of the frame only when includeSignals is set.
+/// signal list is part of the frame only when includeSignals is set. When run.hasPassengers is set, each train also has
+/// its passenger capacity and the frame lists every platform with its waiting passengers and capacity.
 nlohmann::json makeStateFrame(const LiveRunInfo& run, std::uint64_t seq, const GuiSimulationSnapshot& snapshot, bool includeSignals);
 
 /// A change in the life of the run. step is the number of steps that have run.

@@ -124,6 +124,7 @@ static SceneModel completeScene() {
 	scene.settings.bufferTimeSeconds = 120.0;
 	scene.settings.hasRecoveryTime = true;
 	scene.settings.recoveryTimePercent = 5.0;
+	scene.settings.passengerMaxTransfers = 4;
 
 	scene.tracks.push_back({"track-1"});
 	scene.nodes.push_back({"node-1", "track-1", 0.0, 0.0});
@@ -201,13 +202,13 @@ static SceneModel completeScene() {
 	baseline.id = "baseline";
 	baseline.name = "Baseline";
 	baseline.description = "No disruption";
-	baseline.incidents.push_back({"incident-1", "signal_failure", "signal-1", 300.0, 600.0});
+	baseline.incidents.push_back({"incident-1", IncidentType::SignalFailure, "signal-1", 300.0, 600.0});
 	baseline.entranceDelays.push_back({"service-1", 1, "station-1", 30.0});
 	scene.scenarios.push_back(baseline);
 	SceneScenario alternate;
 	alternate.id = "alternate";
 	alternate.name = "Alternate";
-	SceneIncident enhancedBreakdown{"breakdown-2", "train_breakdown", "service-1", 900.0, 0.0};
+	SceneIncident enhancedBreakdown{"breakdown-2", IncidentType::TrainBreakdown, "service-1", 900.0, 0.0};
 	enhancedBreakdown.hasOccurrence = true;
 	enhancedBreakdown.occurrence = 2;
 	enhancedBreakdown.hasReducedSpeed = true;
@@ -476,6 +477,7 @@ static const std::vector<WrittenValue>& populatedSceneTable() {
 		{"scene.json", "/simulation_settings/duration_seconds", 3600.0},
 		{"scene.json", "/simulation_settings/buffer_time_seconds", 120.0},
 		{"scene.json", "/simulation_settings/recovery_time_percent", 5.0},
+		{"scene.json", "/simulation_settings/passenger_max_transfers", 4},
 		{"scene.json", "/import_report/0/category", "stations"},
 		{"scene.json", "/import_report/0/source_file", "legacy/stations.txt"},
 		{"scene.json", "/import_report/0/source_count", 11},
@@ -718,6 +720,8 @@ private slots:
 	void writesPlatformGeometry();
 	void writesSignallingAreas();
 	void omitsAbsentSignallingAreas();
+	void writesPassengerTransferLimitOnlyWhenNotDefault();
+	void writesPassengerDwellSettingsOnlyWhenSet();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
 	void writesScenarios();
@@ -739,6 +743,7 @@ private slots:
 	void missingAppVersionIsValid();
 	void summarisesLoadedData();
 	void summarisesLoadedDataStatuses();
+	void summarisesPassengerDemand();
 	void savesBaselineScenarioWithoutScenarios();
 	void readsHistoricalAliases();
 	void insertsStopIntoCommittedService();
@@ -916,6 +921,66 @@ void TestSceneWriter::omitsAbsentSignallingAreas() {
 	// ID-only signal input round-trips without inventing a binding.
 	QCOMPARE(sceneSignals(absentAreasReloaded).size(), std::size_t(1));
 	QVERIFY(sceneSignals(absentAreasReloaded)[0].protectedSection.empty());
+}
+
+// The transfer limit of passenger journeys is written only when it is not the default, so that existing files stay as they are.
+void TestSceneWriter::writesPassengerTransferLimitOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	scene.settings.passengerMaxTransfers = kDefaultPassengerMaxTransfers;
+	const fs::path defaultPath = temp.path / "default-transfers";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with the default limit saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY2(!written["simulation_settings"].contains("passenger_max_transfers"), "the default limit is not written");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerMaxTransfers, kDefaultPassengerMaxTransfers);
+
+	scene.settings.passengerMaxTransfers = 0;
+	const fs::path zeroPath = temp.path / "zero-transfers";
+	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no transfers saves");
+	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerMaxTransfers, 0);
+}
+
+// The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.
+void TestSceneWriter::writesPassengerDwellSettingsOnlyWhenSet() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	const fs::path absentPath = temp.path / "dwell-absent";
+	QVERIFY2(saveScene(scene, absentPath.string()).success(), "scene without dwell settings saves");
+	json written;
+	{
+		std::ifstream input(absentPath / "scene.json");
+		input >> written;
+	}
+	for (const char* key : {"passenger_dwell_coefficients", "passenger_platform_crowding_threshold",
+			 "passenger_onboard_crowding_threshold", "passenger_car_boarding_threshold"}) {
+		const bool hasKey = written.contains("simulation_settings") && written["simulation_settings"].contains(key);
+		QVERIFY2(!hasKey, key);
+	}
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(absentPath, reloaded));
+	QVERIFY(!reloaded.settings.passengerDwellCoefficients);
+	QVERIFY(!reloaded.settings.passengerPlatformCrowdingThreshold);
+	QVERIFY(!reloaded.settings.passengerOnboardCrowdingThreshold);
+	QVERIFY(!reloaded.settings.passengerCarBoardingThreshold);
+
+	scene.settings.passengerDwellCoefficients = std::vector<double>{6.0, 0.5, 17.5, 0.5, 4.5, 21.0, 0.05, 0.5};
+	scene.settings.passengerPlatformCrowdingThreshold = 0.5;
+	scene.settings.passengerOnboardCrowdingThreshold = 0.75;
+	scene.settings.passengerCarBoardingThreshold = 12;
+	const fs::path setPath = temp.path / "dwell-set";
+	QVERIFY2(saveScene(scene, setPath.string()).success(), "scene with dwell settings saves");
+	QVERIFY(loadHasNoErrors(setPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerDwellCoefficients, scene.settings.passengerDwellCoefficients);
+	QCOMPARE(reloaded.settings.passengerPlatformCrowdingThreshold, std::optional<double>(0.5));
+	QCOMPARE(reloaded.settings.passengerOnboardCrowdingThreshold, std::optional<double>(0.75));
+	QCOMPARE(reloaded.settings.passengerCarBoardingThreshold, std::optional<int>(12));
 }
 
 // An area whose signalling system is not chosen keeps that level through save and load.
@@ -1535,6 +1600,31 @@ void TestSceneWriter::summarisesLoadedData() {
 	QCOMPARE(rolling->status, SceneLoadedStatus::Warning);
 	QVERIFY(!rolling->children.empty());
 	QCOMPARE(rolling->children.back().status, SceneLoadedStatus::Warning);
+}
+
+// A scene with demand slices and no passengers shows the slices and the passengers that they hold.
+void TestSceneWriter::summarisesPassengerDemand() {
+	SceneModel scene;
+	scene.schemaVersion = 1;
+	scene.sourceFiles = {"scene.json", "passengers.json"};
+	scene.passengerDemand = {{"morning", 28800.0, 32400.0, {{"a", "b", 75}, {"b", "a", 37}}}, {"evening", 61200.0, 64800.0, {{"a", "b", 3}}}};
+	const std::vector<SceneLoadedData> summary = buildLoadedDataSummary(scene, scene.sourceFiles, {});
+	const auto passengers = std::find_if(summary.begin(), summary.end(), [](const SceneLoadedData& row) { return row.category == "passengers"; });
+	QVERIFY(passengers != summary.end());
+	QCOMPARE(passengers->parsedCount, 0);
+	const auto child = [passengers](const std::string& category) -> const SceneLoadedData* {
+		for (const SceneLoadedData& item : passengers->children)
+			if (item.category == category)
+				return &item;
+		return nullptr;
+	};
+	const SceneLoadedData* slices = child("demand_slices");
+	const SceneLoadedData* counted = child("demand_passengers");
+	QVERIFY(slices != nullptr && counted != nullptr);
+	QCOMPARE(slices->parsedCount, 2);
+	QCOMPARE(slices->sourceFile, std::string("passengers.json"));
+	QCOMPARE(slices->status, SceneLoadedStatus::Parsed);
+	QCOMPARE(counted->parsedCount, 115);
 }
 
 // The Loaded Data summary of a small scene without passengers.json and with one warning gives each row its status.
@@ -2246,7 +2336,7 @@ static SceneModel incompleteScene() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	scene.scenarios[0].incidents.push_back(incident);
 	scene.blockDependencies.push_back({});

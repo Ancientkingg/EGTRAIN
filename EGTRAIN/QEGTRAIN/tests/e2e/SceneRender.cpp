@@ -146,6 +146,11 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (spacing > 0.0)
 		w.networkView->zoomBy(1.05 * StationOverlayItem::NearTrackSpacingPixels / spacing);
 	w.updateViewportOverlays();
+	// and on to the zoom from which the platforms show the figures of their passengers
+	for (int step = 0; step < 20 && !w.m_presenter->paxFiguresVisible(); ++step) {
+		w.networkView->zoomBy(1.5);
+		w.updateViewportOverlays();
+	}
 	const bool nearShown = barsShown(true) && iconsShown();
 	w.m_stationLayerCheck->setChecked(false);
 	const bool layerHidden = barsShown(false) && passengersHidden();

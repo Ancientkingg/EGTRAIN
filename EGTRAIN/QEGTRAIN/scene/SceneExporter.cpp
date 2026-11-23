@@ -661,6 +661,35 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 					out << "\t" << (boundary.direction ? 1 : 0) << "\n";
 				} }, !scene.stationBoundaries.empty());
 
+	if (std::any_of(scene.trainUnits.begin(), scene.trainUnits.end(),
+			[](const SceneTrainUnit& unit) { return unit.hasPassengerCapacity; })) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger capacity for a rolling stock unit, so it was not exported";
+		d.file = "rolling_stock.json";
+		result.diagnostics.push_back(d);
+	}
+	if (!scene.passengerDemand.empty()) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger demand slices, so they were not exported";
+		d.file = "passengers.json";
+		result.diagnostics.push_back(d);
+	}
+	const SceneSimulationSettings& settings = scene.settings;
+	if (settings.passengerDwellCoefficients || settings.passengerPlatformCrowdingThreshold
+		|| settings.passengerOnboardCrowdingThreshold || settings.passengerCarBoardingThreshold
+		|| settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger transfer limit or dwell model settings, so they were not exported "
+					"and a legacy run uses the built-in values";
+		d.file = "scene.json";
+		result.diagnostics.push_back(d);
+	}
 	if (scene.passengers.empty())
 		return;
 	const fs::path dasPath = fs::path("Passengers") / "DAS_FrenchCaseStudy.csv";
@@ -1573,12 +1602,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		std::ofstream inf(writeDir / "Incidents.txt");
 		if (inf) {
 			for (const auto& inc : incidents) {
-				if (inc.type != "signal_failure" && inc.type != "train_breakdown") {
-					addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-						"Incident type " + inc.type + " is not supported and was skipped", inc.id);
-					continue;
-				}
-				if (inc.type == "train_breakdown"
+				if (inc.type == IncidentType::TrainBreakdown
 					&& (inc.hasOccurrence || inc.occurrence != 1
 						|| inc.hasReducedSpeed || inc.reducedSpeedKmh != 0.0
 						|| inc.terminateAtDestination
@@ -1589,7 +1613,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					continue;
 				}
 				std::string target = inc.target;
-				if (inc.type == "signal_failure") {
+				if (inc.type == IncidentType::SignalFailure) {
 					const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
 						[&inc](const SceneSignal& candidate) { return candidate.id == inc.target; });
 					if (signal != scene.signals.end() && sectionInventory.resolve(inc.target) != nullptr) {
@@ -1625,7 +1649,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
 							"Signal failure target " + target + " matches no route block so the failure will have no effect", inc.id);
 					target = mapLegacyBlockReference(target, legacyBlockIds);
-				} else if (inc.type == "train_breakdown") {
+				} else if (inc.type == IncidentType::TrainBreakdown) {
 					const auto service = serviceOperatingCodes.find(inc.target);
 					if (service == serviceOperatingCodes.end()) {
 						addDiag(SceneSeverity::Warning, "scene.export.adjusted",
@@ -1634,7 +1658,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 						target = service->second;
 					}
 				}
-				inf << inc.type << "\t" << target << "\t" << formatNumber(inc.startSeconds) << "\t" << formatNumber(inc.endSeconds) << "\n";
+				inf << incidentTypeName(inc.type) << "\t" << target << "\t" << formatNumber(inc.startSeconds) << "\t" << formatNumber(inc.endSeconds) << "\n";
 			}
 		} else {
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write Incidents.txt");

@@ -6,8 +6,8 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
+#include "util/TimeFormat.h"
 #include "widgets/ChoiceComboBox.h"
-#include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/DisplayPath.h"
 #include "widgets/EditorLayout.h"
@@ -16,6 +16,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -32,7 +33,7 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
-#include <limits>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -113,6 +114,9 @@ constexpr int MaxDiagnosticLines = 5;
 
 // The rows of the import results that the table shows without scrolling.
 constexpr int MinImportResultRows = 8;
+
+// The widest usual text of a journey window field: a time on the next day.
+const QString kNextDayTimeSample = QStringLiteral("+1d 00:00:00");
 
 QString cappedLines(const QStringList& lines) {
 	if (lines.size() <= MaxDiagnosticLines)
@@ -222,19 +226,19 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_journeyDestinationCombo->setObjectName("passengerJourneyDestinationCombo");
 	journeyForm->addRow("Destination station", m_journeyDestinationCombo);
 	const std::array<std::pair<const char*, const char*>, 4> windowFields = {
-		std::make_pair("Departure start (s)", "passengerDepartureStartSecondsEdit"),
-		std::make_pair("Departure end (s)", "passengerDepartureEndSecondsEdit"),
-		std::make_pair("Arrival start (s)", "passengerArrivalStartSecondsEdit"),
-		std::make_pair("Arrival end (s)", "passengerArrivalEndSecondsEdit")};
+		std::make_pair("Departure start", "passengerDepartureStartSecondsEdit"),
+		std::make_pair("Departure end", "passengerDepartureEndSecondsEdit"),
+		std::make_pair("Arrival start", "passengerArrivalStartSecondsEdit"),
+		std::make_pair("Arrival end", "passengerArrivalEndSecondsEdit")};
 	for (std::size_t index = 0; index < windowFields.size(); ++index) {
-		auto* edit = new CompactDoubleSpinBox(journeyDetailPane);
+		auto* edit = new QLineEdit(journeyDetailPane);
 		edit->setObjectName(windowFields[index].second);
-		edit->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
-		edit->setSingleStep(1.0);
-		edit->setKeyboardTracking(false);
-		// The incident times of a scenario count from the base time instead.
-		edit->setToolTip(QStringLiteral("Seconds from midnight, not from the base time of the case."));
+		edit->setPlaceholderText(QStringLiteral("HH:MM:SS"));
+		edit->setToolTip(QStringLiteral("Time of day, HH:MM:SS. Write +1d before it for the next day."));
+		edit->setAccessibleName(QString::fromUtf8(windowFields[index].first));
+		// Wide enough for a time on the next day, so that its "+1d" never scrolls out of view.
+		const QFontMetrics metrics = edit->fontMetrics();
+		edit->setMinimumWidth(metrics.horizontalAdvance(kNextDayTimeSample) + 4 * metrics.averageCharWidth());
 		m_journeyWindowEdits[index] = edit;
 		journeyForm->addRow(windowFields[index].first, edit);
 	}
@@ -334,8 +338,8 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_journeyDestinationCombo, &QComboBox::currentTextChanged, this,
 		[this](const QString&) { commitJourneyStation(false); });
 	for (std::size_t index = 0; index < m_journeyWindowEdits.size(); ++index) {
-		connect(m_journeyWindowEdits[index], QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-			[this, index](double) { commitJourneyWindow(static_cast<int>(index)); });
+		connect(m_journeyWindowEdits[index], &QLineEdit::editingFinished, this,
+			[this, index]() { commitJourneyWindow(static_cast<int>(index)); });
 	}
 	connect(m_legIdEdit, &QLineEdit::editingFinished, this, &PassengerPanel::commitLegId);
 	connect(m_legOriginCombo, &QComboBox::currentTextChanged, this, [this](const QString&) { commitLegStation(true); });
@@ -592,7 +596,8 @@ void PassengerPanel::updateJourneyDetail() {
 		: std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
 	for (std::size_t index = 0; index < m_journeyWindowEdits.size(); ++index) {
 		const QSignalBlocker blocker(m_journeyWindowEdits[index]);
-		m_journeyWindowEdits[index]->setValue(values[index]);
+		m_journeyWindowEdits[index]->setText(
+			journey ? QString::fromStdString(formatPlannedTime(values[index], true, 0)) : QString());
 		m_journeyWindowEdits[index]->setEnabled(enabled);
 	}
 	m_deleteJourneyButton->setEnabled(enabled);
@@ -658,11 +663,8 @@ void PassengerPanel::commitPendingEditors() {
 	commitJourneyId();
 	commitJourneyActivity();
 	for (std::size_t index = 0; index < m_journeyWindowEdits.size(); ++index) {
-		QDoubleSpinBox* edit = m_journeyWindowEdits[index];
-		if (hasEditorFocus(edit)) {
-			edit->interpretText();
+		if (hasEditorFocus(m_journeyWindowEdits[index]))
 			commitJourneyWindow(static_cast<int>(index));
-		}
 	}
 	commitLegId();
 	if (hasEditorFocus(m_legOccurrenceEdit)) {
@@ -891,11 +893,21 @@ void PassengerPanel::commitJourneyWindow(int index) {
 	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit() || index < 0 || index >= static_cast<int>(m_journeyWindowEdits.size()))
 		return;
-	const double value = m_journeyWindowEdits[static_cast<std::size_t>(index)]->value();
+	QLineEdit* edit = m_journeyWindowEdits[static_cast<std::size_t>(index)];
 	constexpr std::array<double ScenePassengerJourney::*, 4> fields = {&ScenePassengerJourney::plannedDepartureStartSeconds,
 		&ScenePassengerJourney::plannedDepartureEndSeconds, &ScenePassengerJourney::plannedArrivalStartSeconds,
 		&ScenePassengerJourney::plannedArrivalEndSeconds};
 	const auto field = fields[static_cast<std::size_t>(index)];
+	// The text that shows the stored value keeps its exact value, fraction included.
+	std::optional<double> parsed = journey->*field;
+	if (!parsePlannedTime(edit->text().toStdString(), true, 0, parsed) || !parsed) {
+		const QSignalBlocker blocker(edit);
+		edit->setText(QString::fromStdString(formatPlannedTime(journey->*field, true, 0)));
+		m_prompts->showError(this, "Invalid Journey Time",
+			"Enter a time such as 08:15:00, or +1d 00:10:00 for the next day.", true);
+		return;
+	}
+	const double value = *parsed;
 	if (journey->*field == value)
 		return;
 	if (!editJourney("Edit journey", [field, value](ScenePassengerJourney& edited) { edited.*field = value; }))

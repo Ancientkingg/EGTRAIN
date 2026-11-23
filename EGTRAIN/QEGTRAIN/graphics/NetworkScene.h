@@ -35,7 +35,8 @@ enum Role { Kind = 100, ///< The kind of item: "track", "arc", "connection", "no
 	StationId,			///< On a station node: the id of its station.
 	PlatformId,			///< On a station node: the id of its platform, empty without one.
 	TrackId,			///< On a signal head: the id of its track.
-	Reversed /**< On a signal head: true for the head of the reversed direction. */ };
+	Reversed,			///< On a signal head: true for the head of the reversed direction.
+	CalloutStation /**< On a platform bar and a station count of a run: the name of the station that a click opens the card of. */ };
 }
 
 using namespace std;
@@ -97,6 +98,9 @@ signals:
 	void MousePressedOnTrain(TrainBodyItem* train);
 	/// A passenger icon was selected.
 	void MousePressedOnPassenger(PassengerItem* passenger);
+	/// A left click landed on the mark of a station of a run, one of its platform bars or its count, which are the places
+	/// that open its card. The station node is selected as well, whichever of these was clicked.
+	void MousePressedOnStation(const QString& stationName);
 	/// A click on empty canvas clears the selection.
 	void DisableHighlight();
 	/// A context menu is asked for at scenePos in scene coordinates and screenPos in screen pixels. item is
@@ -106,6 +110,9 @@ signals:
 private:
 	QTransform viewTransformFor(QWidget* widget) const;
 	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
+	/// The square of the station that a platform bar or a station count stands for: the square at the node of the bar, or
+	/// the first square of the station of the count. Any other item, and one whose station has no square, is returned as it is.
+	QGraphicsItem* stationSquareOf(QGraphicsItem* item) const;
 
 	bool m_pressedOnEmptyCanvas = false;
 	// The item that select() chose last. Items leave the scene without notice, so selectedItem() checks it.

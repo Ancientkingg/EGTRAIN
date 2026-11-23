@@ -22,6 +22,7 @@
 #include <QPushButton>
 #include <QScopeGuard>
 #include <QScrollArea>
+#include <QSpinBox>
 #include <QScrollBar>
 #include <QSignalSpy>
 #include <QString>
@@ -198,6 +199,7 @@ private slots:
 	void dockOpensWideEnoughForTractionColumns();
 	void focusDecidesPendingEdits();
 	void numberFieldsStopAtRanges();
+	void keepsCapacityBeyondRange();
 	void accessibilityStepsBySingleStep();
 	void keepsSelectionOfReorderedScene();
 	void forgetsDeletedDocument();
@@ -298,6 +300,15 @@ void TestTrainUnitPanel::showsTractionAndPhysicalPages() {
 	QVERIFY2(panel.findChildren<QScrollArea*>().isEmpty(), "the curve and the fields do not scroll inside a scroll area of the panel");
 	panel.physicalEdits()[8]->setValue(123.0);
 	QVERIFY2(document.model().trainUnits[0].physical.length_m == 123.0, "a field on a page that is not shown can be set");
+	// The passenger capacity is on the Physical page. Default stands for none.
+	QSpinBox* capacity = panel.passengerCapacityEdit();
+	QVERIFY(physical->isAncestorOf(capacity));
+	QCOMPARE(capacity->text(), QString("Default"));
+	capacity->setValue(250);
+	QVERIFY(document.model().trainUnits[0].hasPassengerCapacity);
+	QCOMPARE(document.model().trainUnits[0].passengerCapacity, 250);
+	capacity->setValue(-1);
+	QVERIFY(!document.model().trainUnits[0].hasPassengerCapacity);
 }
 
 // The keys of the traction table: without an open editor the arrow keys move between the cells and change no number, a
@@ -977,6 +988,38 @@ void TestTrainUnitPanel::numberFieldsStopAtRanges() {
 	// A cell shows a number as its editor rounds it, and an editor that closes unchanged keeps the stored number.
 	QCOMPARE_EQ(cellValue(panel, 0, 3), 0.0);
 	QCOMPARE_EQ(document.model().trainUnits[0].tractionCurve[0][3], 1e-20);
+}
+
+// A passenger capacity beyond the range of the field is shown at the nearest limit but kept until the user types one.
+void TestTrainUnitPanel::keepsCapacityBeyondRange() {
+	for (const int stored : {150000, -5}) {
+		SceneModel scene = unitScene();
+		scene.trainUnits[0].hasPassengerCapacity = true;
+		scene.trainUnits[0].passengerCapacity = stored;
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.show();
+		// The panel is hidden before it is destroyed, also when a check fails.
+		const auto hide = qScopeGuard([&panel] { panel.hide(); });
+		panel.activateWindow();
+		QApplication::processEvents();
+		QSpinBox* capacity = panel.passengerCapacityEdit();
+		panel.tabs()->setCurrentIndex(1);
+		capacity->setFocus();
+		QApplication::processEvents();
+		QVERIFY2(capacity->hasFocus(), "the capacity field could not be given focus");
+		const quint64 revision = document.revision();
+		panel.commitPendingEditors();
+		QVERIFY(document.model().trainUnits[0].hasPassengerCapacity);
+		QCOMPARE(document.model().trainUnits[0].passengerCapacity, stored);
+		QCOMPARE(document.revision(), revision);
+		capacity->findChild<QLineEdit*>()->setText("250");
+		panel.commitPendingEditors();
+		QCOMPARE(document.model().trainUnits[0].passengerCapacity, 250);
+		QCOMPARE(document.revision(), revision + 1);
+	}
 }
 
 // Qt's accessibility performs an Increment, such as VO+Up of VoiceOver, by adding the step that a number field reports

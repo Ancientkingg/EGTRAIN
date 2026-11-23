@@ -3,6 +3,7 @@
 
 #include "simulation/RollingStock.h"
 #include "simulation/Passengers.h"
+#include "simulation/PassengerFlow.h"
 #include <functional>
 #include <vector>
 
@@ -45,13 +46,13 @@ void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 /// Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum.
 /// Nothing outside the tests sets compTimeRoma, so its column is 0. Throws std::runtime_error when the file cannot be written
 /// (simulation/RunOutputFile.h).
-void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
+void Print_Computing_Times(const SimulationRun& run, const std::string& FolderName);
 
 
 /// Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head
 /// position (m, original coordinates) in every step, -9999 where it does not run. Throws std::runtime_error when the file cannot
 /// be written (simulation/RunOutputFile.h).
-void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, std::string FolderName);
+void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, const std::string& FolderName);
 
 /// Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8
 /// and a regeneration factor of 0.7 (Train::TotalEnergyConsumptionWithAndWithoutRegBraking). The totals of the other trains are 0.
@@ -59,31 +60,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 /// Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all
 /// trains, converted from MJ to kWh. Throws std::runtime_error when a file cannot be written (simulation/RunOutputFile.h).
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string OutputFolder);
-
-/// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
-/// network (Passenger::checkJourneyStart).
-void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, std::list<Passenger>& SIMUL_PAX);
-
-/// The passengers waiting at one platform.
-struct WaitingAtPlatform {
-	int count = 0; ///< Number of waiting passengers.
-	/// For each waiting passenger, the passenger ID and the Trip::Actual_Departure_Time of the trip the passenger waits for, which
-	/// is when the passenger started to wait, in seconds since midnight. Sorted by that time, and in the order of the passenger
-	/// list for equal times.
-	std::list<std::pair<std::string, double>> passengers;
-};
-
-/// The passengers waiting at the platform with these IDs. No platform is modified.
-WaitingAtPlatform passengersWaitingAtPlatform(const std::string& stationId, const std::string& platformId, const std::list<Passenger>& ALL_PAX);
-
-/// Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.
-void Update_List_Passengers_Waiting_At_ALL_Platforms(std::list<StationPlatform>& ALL_PLAT, const std::list<Passenger>& ALL_PAX);
-
-/// At a service stop of train T in step t: the passengers whose trip ends there alight and transfer or leave the network, then the
-/// passengers waiting for T board in the order of the platform while T has room. In the first step of the stop, the
-/// passenger-dependent dwell replaces the stop time when it is longer. Passenger times are t + SimulationStartingTime (s since midnight).
-void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
+void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, const std::string& OutputFolder);
 
 /// The order in which the trains of a run move in its steps. The loop that steps a run makes one before the first step and passes
 /// it to every step.

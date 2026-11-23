@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QTimer>
 
+#include <array>
 #include <functional>
 #include <limits>
 #include <map>
@@ -30,6 +31,7 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PassengerItem.h"
 #include "scene/SectionLabels.h"
 #include "scene/TrackPreview.h"
 
@@ -41,10 +43,13 @@ class PassengerItem;
 class PlatformItem;
 class QGraphicsItem;
 class QGraphicsItemGroup;
+class QGraphicsPathItem;
+class QGraphicsSimpleTextItem;
 class QGraphicsPixmapItem;
 class RuntimeGeometrySource;
 class Section;
 class SignalItem;
+class StationCalloutItem;
 class StationOverlayItem;
 class TrackLineItem;
 class TrainBadgeItem;
@@ -230,9 +235,9 @@ public:
 	/// Stops the motion of every train as stopTrainAnimation() does.
 	void stopTrainAnimations();
 
-	/// Whether the labels of the platforms show: the passengers on the platforms show (platformPassengersVisible()) and
-	/// the view is zoomed in far enough to read them, to a zoom ratio of at least 3.
-	bool paxTextVisible() const;
+	/// Whether the platforms show the figures of their passengers and the "+N" chips instead of the counts: the
+	/// passengers on the platforms show (platformPassengersVisible()) and a figure is at least 18 pixels high on the screen.
+	bool paxFiguresVisible() const;
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.
 	const TrackPreviewLine* cachedTrackLine(int track) const;
@@ -362,6 +367,12 @@ public:
 	bool trainLayerVisible() const { return m_trainLayerVisible; }
 	/// Shows or hides the speed on the badges of the trains.
 	void setTrainSpeedLabelsVisible(bool visible);
+	/// Tells the presenter whether the case has passengers. The badges of the trains show the passengers on board only
+	/// for a case that has passengers, while the passenger layer is on. A new presenter assumes no passengers.
+	void setCaseHasPassengers(bool hasPassengers);
+	/// The load of a train as text: "212 / 600" for 212 passengers on board and a capacity of 600, and "212" for a capacity
+	/// of 0 or less.
+	static QString trainLoadText(int onboard, int capacity);
 	/// Sets whether the signal layer is shown. updateSignalCues() shows or hides the signals.
 	void setSignalLayerVisible(bool visible);
 	/// Shows or hides the passenger layer: the passengers on the platforms and the passenger information of the
@@ -401,6 +412,17 @@ public:
 	bool hasTrainPaxInfo() const { return trainPaxInfoItem != nullptr; }
 	/// Forgets the selected passenger icon. Its information stays until removePaxInfoIcon().
 	void clearSelectedPassengerIcon();
+
+	/// Opens the card of the station with this name, filled from snapshot, beside the mark of the station. It does nothing
+	/// without a snapshot, without passengers, while the passenger layer is off, or for a name that has no mark. A card that
+	/// is open stays open, so that several stations can show theirs at once. apply() keeps the open cards up to date.
+	void openStationCallout(const QString& stationName, const GuiSimulationSnapshot* snapshot);
+	/// Closes the card of the station, if it is open.
+	void closeStationCallout(const QString& stationName);
+	/// Closes every card of a station.
+	void closeStationCallouts();
+	/// The card of the station while it is open, else null.
+	StationCalloutItem* stationCallout(const QString& stationName) const;
 
 
 	/// An item that Find offers.
@@ -520,9 +542,39 @@ private:
 	bool m_stationNearLook = false;
 	// Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatformVisibility()).
 	void setStationNearLook(bool nearLook);
-	// Shows or hides the platform bars by platformBarsVisible(), the icons of the passengers on them by
-	// platformPassengersVisible() and their counters by paxTextVisible(). Call it after a change of a layer.
+	// Shows or hides the platform bars by platformBarsVisible(), and on each platform the gauge by
+	// platformPassengersVisible(), the figures and the chip by paxFiguresVisible() and the count in their place. Call it
+	// after a change of a layer or of the zoom; updateViewOverlays() does so at every change of the view.
 	void applyPlatformVisibility();
+	// Shows or hides the gauge, the count, the figures and the chip of one platform as applyPlatformVisibility() does.
+	void applyPlatformPassengerVisibility(PlatformItem* platform);
+	// The count pill of a station, which shows in the far look beside the mark of the station: the passengers waiting
+	// at all its platforms, in the colour of the most crowded of them. The scene owns the items; the entries are made
+	// once for each station name by updateStationCounts() and cleared by clear().
+	struct StationCount {
+		StationOverlayItem* overlay = nullptr;
+		QGraphicsPathItem* pill = nullptr;
+		QGraphicsSimpleTextItem* text = nullptr;
+		std::string station;
+		int waiting = 0;
+	};
+	std::vector<StationCount> m_stationCounts;
+
+	// The card of a station that was opened. The item is made when the station is first opened, belongs to the scene, and
+	// stays in the list, hidden, while the card is closed; clear() empties the list.
+	struct StationCallout {
+		std::string station;
+		StationCalloutItem* item = nullptr;
+	};
+	std::vector<StationCallout> m_stationCallouts;
+	// Fills the open cards from the snapshot and places them.
+	void updateStationCallouts(const GuiSimulationSnapshot& snapshot);
+	// Puts every open card at the mark of its station, above it or, where it would leave the view, below it.
+	void placeStationCallouts();
+	// Works out the waiting passengers and the crowding of every station from its platforms and gives them to the pills.
+	void updateStationCounts();
+	// Shows the pills in the far look with the passengers and the stations, and puts them beside their marks.
+	void refreshStationCounts();
 
 	// The virtual coupling message of each train by train index.
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
@@ -579,9 +631,8 @@ private:
 	// m_previewHasSelectedTrack.
 	void placeSelectionMark(const SceneModel& sceneModel, const PreviewOptions& options);
 
-	// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
-	// application resource is missing.
-	QPixmap pax_pixmap_scaled;
+	// The figure of a passenger on a platform for each PlatformCrowding, in the order of the enumerators.
+	std::array<QPixmap, 3> m_passengerFigures;
 
 	// The station layer is shown.
 	bool m_stationLayerVisible = true;
@@ -591,6 +642,7 @@ private:
 	bool m_trainLayerVisible = true;
 	// The badges of the trains hold their speed.
 	bool m_trainSpeedLabelsVisible = true;
+	bool m_caseHasPassengers = false; ///< The case has passengers, so the badges can show the load.
 	// The signal layer is shown.
 	bool m_signalLayerVisible = true;
 	// The passenger layer is shown.
@@ -751,10 +803,12 @@ private:
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	bool passengerGui() const;
+	double platformCrowdingThreshold() const;
 	void updateSignalling(const GuiSimulationSnapshot& snapshot);
 	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
 	void updatePlatforms(const GuiSimulationSnapshot& snapshot);
 	void updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack);
+	void updatePlatformMore(PlatformItem* platform, int hidden, int shown, qreal spacing);
 	void stackPassengerIcons(const std::vector<PassengerItem*>& restack);
 	void showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay);
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, const GuiSimulationSnapshot& snapshot, int t);

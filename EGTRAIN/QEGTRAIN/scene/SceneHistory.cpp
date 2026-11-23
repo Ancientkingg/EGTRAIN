@@ -68,7 +68,7 @@ struct SceneBytes {
 	static std::size_t heap(const SceneService& value) {
 		return texts(value.id, value.operatingCode, value.composition, value.route, value.category, value.visualizationColor) + block(value.stops);
 	}
-	static std::size_t heap(const SceneIncident& value) { return texts(value.id, value.type, value.target); }
+	static std::size_t heap(const SceneIncident& value) { return texts(value.id, value.target); }
 	static std::size_t heap(const SceneEntranceDelay& value) { return texts(value.serviceId, value.stationId); }
 	static std::size_t heap(const SceneScenario& value) {
 		return texts(value.id, value.name, value.description) + block(value.incidents) + block(value.entranceDelays);
@@ -80,6 +80,10 @@ struct SceneBytes {
 		return texts(value.id, value.activity, value.originStationId, value.destinationStationId) + block(value.legs);
 	}
 	static std::size_t heap(const ScenePassenger& value) { return texts(value.id) + block(value.journeys); }
+	static std::size_t heap(const ScenePassengerDemandCell& value) {
+		return texts(value.originStationId, value.destinationStationId);
+	}
+	static std::size_t heap(const ScenePassengerDemandSlice& value) { return texts(value.id) + block(value.cells); }
 
 	static std::size_t of(const SceneModel& model) {
 		return sizeof(SceneModel)
@@ -89,7 +93,8 @@ struct SceneBytes {
 			+ block(model.connections) + block(model.stations) + block(model.stationViews) + block(model.signals)
 			+ block(model.signallingAreas) + block(model.routes) + block(model.blockDependencies)
 			+ block(model.singleTrackRestrictions) + block(model.stationBoundaries) + block(model.trainUnits)
-			+ block(model.compositions) + block(model.services) + block(model.scenarios) + block(model.passengers);
+			+ block(model.compositions) + block(model.services) + block(model.scenarios) + block(model.passengers)
+			+ block(model.passengerDemand);
 	}
 };
 
@@ -124,6 +129,8 @@ enum Section : std::size_t {
 	PassengerSection,
 	JourneySection,
 	LegSection,
+	DemandSliceSection,
+	DemandCellSection,
 	SectionCount
 };
 
@@ -161,6 +168,8 @@ const SectionInfo kSections[SectionCount] = {
 	{"passenger", SectionCount},
 	{"journey", PassengerSection},
 	{"passenger leg", JourneySection},
+	{"demand slice", SectionCount},
+	{"demand cell", DemandSliceSection},
 };
 
 using SectionCounts = std::array<std::size_t, SectionCount>;
@@ -200,6 +209,9 @@ SectionCounts countSections(const SceneModel& scene) {
 		counts[IncidentSection] += scenario.incidents.size();
 		counts[EntranceDelaySection] += scenario.entranceDelays.size();
 	}
+	counts[DemandSliceSection] = scene.passengerDemand.size();
+	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand)
+		counts[DemandCellSection] += slice.cells.size();
 	for (const ScenePassenger& passenger : scene.passengers) {
 		counts[JourneySection] += passenger.journeys.size();
 		for (const ScenePassengerJourney& journey : passenger.journeys)

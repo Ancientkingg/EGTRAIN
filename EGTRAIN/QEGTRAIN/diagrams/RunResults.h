@@ -84,14 +84,17 @@ struct TrainRunResult {
 	/// Maximum speed the train runs at in m/s: compositionMaximumSpeedMs, or the lower of it and the configured speed when
 	/// hasConfiguredMaximumSpeed, times performancePercent / 100.
 	double appliedMaximumSpeedMs = 0.0;
-	double appliedMaximumSpeedKmh = 0.0;		///< appliedMaximumSpeedMs in km/h
-	RunResultValue startSeconds;				///< First valid position sample, in seconds of the run
-	RunResultValue endSeconds;					///< Last valid position sample, in seconds of the run
-	RunResultValue travelSeconds;				///< endSeconds minus startSeconds
-	RunResultValue energyConsumedKWh;			///< Energy the train consumed without regenerative braking, in kWh
-	RunResultValue energyWithRegenKWh;			///< Energy the train consumed with regenerative braking, in kWh
-	RunResultValue substationKWh;				///< Energy requested from the substation without regenerative braking, in kWh
-	RunResultValue substationWithRegenKWh;		///< Energy requested from the substation with regenerative braking, in kWh
+	double appliedMaximumSpeedKmh = 0.0;   ///< appliedMaximumSpeedMs in km/h
+	RunResultValue startSeconds;		   ///< First valid position sample, in seconds of the run
+	RunResultValue endSeconds;			   ///< Last valid position sample, in seconds of the run
+	RunResultValue travelSeconds;		   ///< endSeconds minus startSeconds
+	RunResultValue energyConsumedKWh;	   ///< Energy the train consumed without regenerative braking, in kWh
+	RunResultValue energyWithRegenKWh;	   ///< Energy the train consumed with regenerative braking, in kWh
+	RunResultValue substationKWh;		   ///< Energy requested from the substation without regenerative braking, in kWh
+	RunResultValue substationWithRegenKWh; ///< Energy requested from the substation with regenerative braking, in kWh
+	RunResultValue peakOnBoardPassengers;  ///< Most passengers on board after any step of the run; unavailable without passengers or when the train never ran
+	/// Passengers on board averaged over the steps in which the train was in the simulation; unavailable as peakOnBoardPassengers is.
+	RunResultValue averageOnBoardPassengers;
 	std::vector<std::string> directIncidentIds; ///< Incidents that acted directly on the train, in order of first effect
 	RunResultValue firstDirectIncidentTime;		///< Time of the first direct incident effect, in seconds of the run
 	/// Head position of the train, or the end of its authority, at that effect, in m.

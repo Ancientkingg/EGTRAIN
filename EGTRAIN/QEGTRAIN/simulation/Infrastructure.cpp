@@ -11,7 +11,7 @@ InitialParameters initial_variables(0);
 
 // Class constructor function
 InfraElement::InfraElement() {
-	ID = SectionID = SwitchName = stationName = ConnectedPoint = "None";
+	ID = SectionID = SwitchName = stationName = ConnectedPoint = kNoneId;
 	isStation = IsSwitch = IsSignal = IsTrackDetSecBorder = withSwitchDiv = false;
 	XCoordinate = YCoordinate = GeoXCoord = GeoYCoord = -1;
 	isEndOfDivSwitchStartOfADivSwitch = false;
@@ -34,7 +34,7 @@ Node::Node() {
 	arcSpeedLimit = 0;
 	latitude = longitude = 0;
 	virtualSignal = false;
-	stationPlatformId = "None";
+	stationPlatformId = kNoneId;
 	for (std::size_t i = 0; i < RuntimeLimits::kNativeMaxNodeConnections; i++) {
 		connectIdBlockSet[i] = 0;
 		connectXNode[i] = 0;
@@ -74,16 +74,7 @@ Connections::Connections() {
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h
 }
 
-// Function to order pairs of elements
-bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>& blockSets) {
-	if (A.second < blockSets.second)
-		return true;
-	else
-		return false;
-}
-
-
-void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
+void Print_Station_Delay_Stats(const SimulationRun& run, const string& Name_StationDelay, const string& kindofdelay) {
 	string FileOutName;
 	if (kindofdelay == "pos")
 		FileOutName = FileOutName + Name_StationDelay + "/Stats_Stations.txt";

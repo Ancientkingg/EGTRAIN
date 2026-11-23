@@ -47,10 +47,12 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setObjectName("runResultsTable");
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_table->setColumnCount(11);
+	m_table->setColumnCount(13);
 	m_table->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
 		"Energy (kWh)", "Energy with regen (kWh)",
-		"Substation (kWh)", "Substation with regen (kWh)"});
+		"Substation (kWh)", "Substation with regen (kWh)", "Max load (passengers)", "Average load (passengers)"});
+	m_table->horizontalHeaderItem(11)->setToolTip("Most passengers on board during the run");
+	m_table->horizontalHeaderItem(12)->setToolTip("Passengers on board, averaged over the time the train was in the simulation");
 	// The energy headers are short; the tooltip of each gives the full name.
 	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
 		"Substation request with regenerative braking (kWh)"};
@@ -86,7 +88,7 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(diagramsButton);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
-	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
+	exportCsvBtn->setToolTip("Write travel time, energy and passenger load per train to a CSV file");
 	QObject::connect(exportCsvBtn, &QPushButton::clicked, m_dock, [this]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
@@ -180,6 +182,9 @@ void RunResultsDock::refresh() {
 	const auto energyText = [](const RunResultValue& value) {
 		return value.available ? QString::number(value.value, 'f', 1) : QStringLiteral("-");
 	};
+	const auto loadText = [](const RunResultValue& value, int decimals) {
+		return value.available ? QString::number(value.value, 'f', decimals) : QStringLiteral("-");
+	};
 	for (int row = 0; row < static_cast<int>(results.trains.size()); ++row) {
 		const TrainRunResult& result = results.trains[static_cast<std::size_t>(row)];
 		m_table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
@@ -195,6 +200,8 @@ void RunResultsDock::refresh() {
 		m_table->setItem(row, 8, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
 		m_table->setItem(row, 9, new QTableWidgetItem(energyText(result.substationKWh)));
 		m_table->setItem(row, 10, new QTableWidgetItem(energyText(result.substationWithRegenKWh)));
+		m_table->setItem(row, 11, new QTableWidgetItem(loadText(result.peakOnBoardPassengers, 0)));
+		m_table->setItem(row, 12, new QTableWidgetItem(loadText(result.averageOnBoardPassengers, 1)));
 	}
 
 	const int totalRow = static_cast<int>(results.trains.size());
@@ -209,6 +216,8 @@ void RunResultsDock::refresh() {
 	m_table->setItem(totalRow, 8, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
 	m_table->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
 	m_table->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
+	m_table->setItem(totalRow, 11, new QTableWidgetItem(QStringLiteral("-")));
+	m_table->setItem(totalRow, 12, new QTableWidgetItem(QStringLiteral("-")));
 	// Names stay left-aligned; numbers and times are right-aligned, as in every table of results.
 	for (int row = 0; row <= totalRow; ++row)
 		for (int column = 2; column < m_table->columnCount(); ++column)

@@ -1,4 +1,5 @@
 #include "app/GuiReplayHistory.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 
 #include <algorithm>
@@ -9,7 +10,8 @@
 namespace {
 constexpr std::int32_t kSectionPrepared = 1;
 constexpr std::int32_t kSectionBlocked = 2;
-constexpr std::size_t kStringsPerPassenger = 4;
+// String numbers that a listed passenger takes: id, status, waiting platform, next train, next destination.
+constexpr std::size_t kStringsPerEntry = 6;
 // Entries of the table of handed-out snapshots at which expired ones are removed.
 constexpr std::size_t kHandedOutLimit = 32;
 
@@ -39,13 +41,8 @@ bool sameStatic(const GuiSectionState& a, const GuiSectionState& b) {
 }
 
 bool sameStatic(const GuiPlatformState& a, const GuiPlatformState& b) {
-	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerIds] = a;
+	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerCount, passengers, destinations] = a;
 	return stationId == b.stationId && platformId == b.platformId && maxVolume == b.maxVolume;
-}
-
-bool sameStatic(const GuiPassengerState& a, const GuiPassengerState& b) {
-	[[maybe_unused]] const auto& [id, status, waitingPlatform, nextTrain, nextDestination] = a;
-	return id == b.id;
 }
 
 template <class T> bool sameStaticList(const std::vector<T>& a, const std::vector<T>& b) {
@@ -83,19 +80,9 @@ void resetChanging(GuiSectionState& section) {
 }
 
 void resetChanging(GuiPlatformState& platform) {
-	release(platform.passengerIds);
-}
-
-// Releases the memory of a string. Neither clear() nor, in libstdc++, assigning an empty string gives it back.
-void release(std::string& text) {
-	std::string().swap(text);
-}
-
-void resetChanging(GuiPassengerState& passenger) {
-	release(passenger.status);
-	release(passenger.waitingPlatform);
-	release(passenger.nextTrain);
-	release(passenger.nextDestination);
+	platform.passengerCount = 0;
+	release(platform.passengers);
+	release(platform.destinations);
 }
 
 template <class T> std::vector<T> prototypes(const std::vector<T>& states) {
@@ -204,11 +191,12 @@ double GuiReplaySeries::at(int sample) const {
 
 std::size_t GuiReplayTrains::ownedBytes() const {
 	std::size_t bytes = sizeof(*this) + arrayBytes(routes) + arrayBytes(trains) + arrayBytes(messageSteps) + arrayBytes(messageTrains)
-		+ arrayBytes(messageTexts);
+		+ arrayBytes(messageTexts) + arrayBytes(stationCalls);
 	for (const Route& route : routes) bytes += arrayBytes(route.startX) + arrayBytes(route.endX) + arrayBytes(route.geoXBeg);
 	for (const Train& train : trains) bytes += seriesBytes(train.position) + seriesBytes(train.speed);
 	for (const std::string& text : messageTrains) bytes += textBytes(text);
 	for (const std::string& text : messageTexts) bytes += textBytes(text);
+	for (const GuiStationCall& call : stationCalls) bytes += textBytes(call.station) + textBytes(call.train);
 	return bytes;
 }
 
@@ -262,6 +250,9 @@ std::shared_ptr<const GuiReplayTrains> makeGuiReplayTrains(const SimulationRun& 
 	source->messageSteps.assign(run.vcMsgTimestep.begin(), run.vcMsgTimestep.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTrains.assign(run.vcMsgTrain.begin(), run.vcMsgTrain.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTexts.assign(run.vcMsgText.begin(), run.vcMsgText.begin() + static_cast<std::ptrdiff_t>(messages));
+	// As in the snapshots of the run, the calls are listed only when the run has passengers.
+	if (!run.passengers.empty())
+		source->stationCalls = stationCalls(run);
 	return source;
 }
 
@@ -281,6 +272,7 @@ void GuiReplayHistory::resetRecording() {
 	release(current_);
 	release(currentArcs_);
 	release(currentPlatforms_);
+	release(currentDestinations_);
 	stringNumbers_.clear();
 	strings_.clear();
 	layoutBytes_ = 0;
@@ -305,40 +297,37 @@ int GuiReplayHistory::lastTime() const {
 
 bool GuiReplayHistory::sameCounts(const Layout& layout, const GuiSimulationSnapshot& snapshot) {
 	return layout.trains.size() == snapshot.trains.size() && layout.signalStates.size() == snapshot.signalStates.size()
-		&& layout.sectionStates.size() == snapshot.sectionStates.size() && layout.platforms.size() == snapshot.platforms.size()
-		&& layout.passengers.size() == snapshot.passengers.size();
+		&& layout.sectionStates.size() == snapshot.sectionStates.size() && layout.platforms.size() == snapshot.platforms.size();
 }
 
 bool GuiReplayHistory::sameStatic(const Layout& layout, const GuiSimulationSnapshot& snapshot) {
 	return layout.totalTimesteps == snapshot.totalTimesteps && sameStaticList(layout.trains, snapshot.trains)
 		&& sameStaticList(layout.signalStates, snapshot.signalStates) && sameStaticList(layout.sectionStates, snapshot.sectionStates)
-		&& sameStaticList(layout.platforms, snapshot.platforms) && sameStaticList(layout.passengers, snapshot.passengers);
+		&& sameStaticList(layout.platforms, snapshot.platforms);
 }
 
 std::size_t GuiReplayHistory::layoutPayload(const Layout& layout) {
 	std::size_t bytes = sizeof(layout);
-	bytes += arrayBytes(layout.trains) + arrayBytes(layout.signalStates) + arrayBytes(layout.sectionStates) + arrayBytes(layout.platforms)
-		+ arrayBytes(layout.passengers);
+	bytes += arrayBytes(layout.trains) + arrayBytes(layout.signalStates) + arrayBytes(layout.sectionStates) + arrayBytes(layout.platforms);
 	for (const GuiTrainState& train : layout.trains)
 		bytes += textBytes(train.type) + textBytes(train.description) + textBytes(train.operatingCode) + textBytes(train.serviceId);
 	for (const GuiSignalState& signal : layout.signalStates) bytes += textBytes(signal.sectionId);
 	for (const GuiSectionState& section : layout.sectionStates) bytes += textBytes(section.sectionId);
 	for (const GuiPlatformState& platform : layout.platforms) bytes += textBytes(platform.stationId) + textBytes(platform.platformId);
-	for (const GuiPassengerState& passenger : layout.passengers)
-		bytes += textBytes(passenger.id) + textBytes(passenger.status) + textBytes(passenger.waitingPlatform) + textBytes(passenger.nextTrain)
-			+ textBytes(passenger.nextDestination);
 	return bytes;
 }
 
 std::size_t GuiReplayHistory::intervalPayload(const Interval& interval) {
 	return sizeof(interval) + arrayBytes(interval.keyframe) + arrayBytes(interval.changes) + arrayBytes(interval.secondEnds)
-		+ arrayBytes(interval.arcs) + arrayBytes(interval.arcEnds) + arrayBytes(interval.platformIds) + arrayBytes(interval.platformEnds);
+		+ arrayBytes(interval.arcs) + arrayBytes(interval.arcEnds) + arrayBytes(interval.platformEntries) + arrayBytes(interval.platformEnds)
+		+ arrayBytes(interval.destinationEntries) + arrayBytes(interval.destinationEnds);
 }
 
 std::size_t GuiReplayHistory::statePayload() const {
-	std::size_t bytes = arrayBytes(current_) + arrayBytes(currentArcs_) + arrayBytes(currentPlatforms_);
+	std::size_t bytes = arrayBytes(current_) + arrayBytes(currentArcs_) + arrayBytes(currentPlatforms_) + arrayBytes(currentDestinations_);
 	for (const auto& arcs : currentArcs_) bytes += arrayBytes(arcs);
 	for (const auto& ids : currentPlatforms_) bytes += arrayBytes(ids);
+	for (const auto& counts : currentDestinations_) bytes += arrayBytes(counts);
 	return bytes;
 }
 
@@ -353,12 +342,60 @@ std::uint32_t GuiReplayHistory::intern(const std::string& text) {
 	return number;
 }
 
+// The string numbers of the passengers that a platform lists, kStringsPerEntry for each.
+void GuiReplayHistory::internEntries(const std::vector<GuiPassengerState>& listed, std::vector<std::uint32_t>& entries) {
+	entries.clear();
+	entries.reserve(listed.size() * kStringsPerEntry);
+	for (const GuiPassengerState& passenger : listed) {
+		entries.push_back(intern(passenger.id));
+		entries.push_back(intern(passenger.status));
+		entries.push_back(intern(passenger.waitingPlatform));
+		entries.push_back(intern(passenger.nextTrain));
+		entries.push_back(intern(passenger.nextDestination));
+		entries.push_back(intern(passenger.finalDestination));
+	}
+}
+
+// The string number and the count of each destination that a platform lists, two values for each.
+void GuiReplayHistory::internDestinations(const std::vector<GuiDestinationCount>& listed, std::vector<std::uint32_t>& entries) {
+	entries.clear();
+	entries.reserve(listed.size() * 2);
+	for (const GuiDestinationCount& destination : listed) {
+		entries.push_back(intern(destination.destination));
+		entries.push_back(static_cast<std::uint32_t>(destination.count));
+	}
+}
+
+// Whether the values `entries` stand for the destinations `listed`.
+bool GuiReplayHistory::sameDestinations(const std::vector<GuiDestinationCount>& listed, const std::vector<std::uint32_t>& entries) const {
+	if (entries.size() != listed.size() * 2)
+		return false;
+	for (std::size_t i = 0; i < listed.size(); ++i)
+		if (strings_[entries[2 * i]] != listed[i].destination || entries[2 * i + 1] != static_cast<std::uint32_t>(listed[i].count))
+			return false;
+	return true;
+}
+
+// Whether the string numbers `entries` stand for the passengers `listed`.
+bool GuiReplayHistory::sameEntries(const std::vector<GuiPassengerState>& listed, const std::vector<std::uint32_t>& entries) const {
+	if (entries.size() != listed.size() * kStringsPerEntry)
+		return false;
+	for (std::size_t i = 0; i < listed.size(); ++i) {
+		const GuiPassengerState& passenger = listed[i];
+		const std::uint32_t* at = &entries[i * kStringsPerEntry];
+		if (strings_[at[0]] != passenger.id || strings_[at[1]] != passenger.status || strings_[at[2]] != passenger.waitingPlatform
+			|| strings_[at[3]] != passenger.nextTrain || strings_[at[4]] != passenger.nextDestination
+			|| strings_[at[5]] != passenger.finalDestination)
+			return false;
+	}
+	return true;
+}
+
 void GuiReplayHistory::makeLayout(const GuiSimulationSnapshot& snapshot) {
 	layout_.trains = prototypes(snapshot.trains);
 	layout_.signalStates = prototypes(snapshot.signalStates);
 	layout_.sectionStates = prototypes(snapshot.sectionStates);
 	layout_.platforms = prototypes(snapshot.platforms);
-	layout_.passengers = prototypes(snapshot.passengers);
 	layout_.totalTimesteps = snapshot.totalTimesteps;
 	layoutBytes_ = layoutPayload(layout_);
 	const std::size_t signals = layout_.signalStates.size();
@@ -371,8 +408,9 @@ void GuiReplayHistory::makeLayout(const GuiSimulationSnapshot& snapshot) {
 	slots_.trainOnboard = slots_.trainOut + trains;
 	slots_.trainArcs = slots_.trainOnboard + trains;
 	slots_.platformList = slots_.trainArcs + trains;
-	slots_.passenger = slots_.platformList + layout_.platforms.size();
-	slots_.total = slots_.passenger + kStringsPerPassenger * layout_.passengers.size();
+	slots_.platformCount = slots_.platformList + layout_.platforms.size();
+	slots_.platformDestinations = slots_.platformCount + layout_.platforms.size();
+	slots_.total = slots_.platformDestinations + layout_.platforms.size();
 }
 
 std::int32_t GuiReplayHistory::addArcList(Interval& interval, const std::vector<GuiOccupiedArc>& arcs) {
@@ -381,10 +419,16 @@ std::int32_t GuiReplayHistory::addArcList(Interval& interval, const std::vector<
 	return static_cast<std::int32_t>(interval.arcEnds.size() - 1);
 }
 
-std::int32_t GuiReplayHistory::addPlatformList(Interval& interval, const std::vector<std::uint32_t>& ids) {
-	interval.platformIds.insert(interval.platformIds.end(), ids.begin(), ids.end());
-	interval.platformEnds.push_back(static_cast<std::uint32_t>(interval.platformIds.size()));
+std::int32_t GuiReplayHistory::addPlatformList(Interval& interval, const std::vector<std::uint32_t>& entries) {
+	interval.platformEntries.insert(interval.platformEntries.end(), entries.begin(), entries.end());
+	interval.platformEnds.push_back(static_cast<std::uint32_t>(interval.platformEntries.size()));
 	return static_cast<std::int32_t>(interval.platformEnds.size() - 1);
+}
+
+std::int32_t GuiReplayHistory::addDestinationList(Interval& interval, const std::vector<std::uint32_t>& entries) {
+	interval.destinationEntries.insert(interval.destinationEntries.end(), entries.begin(), entries.end());
+	interval.destinationEnds.push_back(static_cast<std::uint32_t>(interval.destinationEntries.size()));
+	return static_cast<std::int32_t>(interval.destinationEnds.size() - 1);
 }
 
 // Starts an interval at the second of `snapshot`: its values become the state, the keyframe, and the lists that they
@@ -397,8 +441,10 @@ void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
 		done.secondEnds.shrink_to_fit();
 		done.arcs.shrink_to_fit();
 		done.arcEnds.shrink_to_fit();
-		done.platformIds.shrink_to_fit();
+		done.platformEntries.shrink_to_fit();
 		done.platformEnds.shrink_to_fit();
+		done.destinationEntries.shrink_to_fit();
+		done.destinationEnds.shrink_to_fit();
 		refreshBytes();
 	}
 	Interval interval;
@@ -423,17 +469,13 @@ void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
 		current_[slots_.trainArcs + i] = addArcList(interval, currentArcs_[i]);
 	}
 	currentPlatforms_.assign(snapshot.platforms.size(), {});
+	currentDestinations_.assign(snapshot.platforms.size(), {});
 	for (std::size_t i = 0; i < snapshot.platforms.size(); ++i) {
-		for (const std::string& id : snapshot.platforms[i].passengerIds) currentPlatforms_[i].push_back(intern(id));
+		internDestinations(snapshot.platforms[i].destinations, currentDestinations_[i]);
+		current_[slots_.platformDestinations + i] = addDestinationList(interval, currentDestinations_[i]);
+		internEntries(snapshot.platforms[i].passengers, currentPlatforms_[i]);
 		current_[slots_.platformList + i] = addPlatformList(interval, currentPlatforms_[i]);
-	}
-	for (std::size_t i = 0; i < snapshot.passengers.size(); ++i) {
-		const GuiPassengerState& passenger = snapshot.passengers[i];
-		const std::size_t at = slots_.passenger + kStringsPerPassenger * i;
-		current_[at] = static_cast<std::int32_t>(intern(passenger.status));
-		current_[at + 1] = static_cast<std::int32_t>(intern(passenger.waitingPlatform));
-		current_[at + 2] = static_cast<std::int32_t>(intern(passenger.nextTrain));
-		current_[at + 3] = static_cast<std::int32_t>(intern(passenger.nextDestination));
+		current_[slots_.platformCount + i] = snapshot.platforms[i].passengerCount;
 	}
 	interval.keyframe = current_;
 	intervals_.push_back(std::move(interval));
@@ -472,24 +514,18 @@ void GuiReplayHistory::addChanges(const GuiSimulationSnapshot& snapshot) {
 		}
 	}
 	for (std::size_t i = 0; i < snapshot.platforms.size(); ++i) {
-		const std::vector<std::string>& ids = snapshot.platforms[i].passengerIds;
+		const std::vector<GuiPassengerState>& listed = snapshot.platforms[i].passengers;
 		std::vector<std::uint32_t>& known = currentPlatforms_[i];
-		bool same = ids.size() == known.size();
-		for (std::size_t k = 0; same && k < ids.size(); ++k) same = strings_[known[k]] == ids[k];
-		if (same)
-			continue;
-		known.clear();
-		for (const std::string& id : ids) known.push_back(intern(id));
-		putValue(slots_.platformList + i, addPlatformList(interval, known));
-	}
-	for (std::size_t i = 0; i < snapshot.passengers.size(); ++i) {
-		const GuiPassengerState& passenger = snapshot.passengers[i];
-		const std::size_t at = slots_.passenger + kStringsPerPassenger * i;
-		const std::string* texts[kStringsPerPassenger] = {&passenger.status, &passenger.waitingPlatform, &passenger.nextTrain,
-			&passenger.nextDestination};
-		for (std::size_t k = 0; k < kStringsPerPassenger; ++k)
-			if (strings_[static_cast<std::uint32_t>(current_[at + k])] != *texts[k])
-				putValue(at + k, static_cast<std::int32_t>(intern(*texts[k])));
+		if (!sameEntries(listed, known)) {
+			internEntries(listed, known);
+			putValue(slots_.platformList + i, addPlatformList(interval, known));
+		}
+		putValue(slots_.platformCount + i, snapshot.platforms[i].passengerCount);
+		std::vector<std::uint32_t>& counts = currentDestinations_[i];
+		if (!sameDestinations(snapshot.platforms[i].destinations, counts)) {
+			internDestinations(snapshot.platforms[i].destinations, counts);
+			putValue(slots_.platformDestinations + i, addDestinationList(interval, counts));
+		}
 	}
 	interval.secondEnds.push_back(static_cast<std::uint32_t>(interval.changes.size()));
 	refreshBytes();
@@ -617,24 +653,24 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		const auto list = static_cast<std::size_t>(values[slots_.platformList + i]);
 		const std::size_t from = list == 0 ? 0 : interval.platformEnds[list - 1];
 		GuiPlatformState& platform = snapshot->platforms[i];
-		platform.passengerIds.reserve(interval.platformEnds[list] - from);
-		for (std::size_t k = from; k < interval.platformEnds[list]; ++k) platform.passengerIds.push_back(strings_[interval.platformIds[k]]);
-	}
-
-	snapshot->passengers = layout_.passengers;
-	for (std::size_t i = 0; i < snapshot->passengers.size(); ++i) {
-		GuiPassengerState& passenger = snapshot->passengers[i];
-		const std::size_t at = slots_.passenger + kStringsPerPassenger * i;
-		passenger.status = strings_[static_cast<std::uint32_t>(values[at])];
-		passenger.waitingPlatform = strings_[static_cast<std::uint32_t>(values[at + 1])];
-		passenger.nextTrain = strings_[static_cast<std::uint32_t>(values[at + 2])];
-		passenger.nextDestination = strings_[static_cast<std::uint32_t>(values[at + 3])];
+		platform.passengerCount = values[slots_.platformCount + i];
+		const auto counts = static_cast<std::size_t>(values[slots_.platformDestinations + i]);
+		const std::size_t countsFrom = counts == 0 ? 0 : interval.destinationEnds[counts - 1];
+		for (std::size_t k = countsFrom; k < interval.destinationEnds[counts]; k += 2)
+			platform.destinations.push_back({strings_[interval.destinationEntries[k]], static_cast<int>(interval.destinationEntries[k + 1])});
+		const std::size_t to = interval.platformEnds[list];
+		platform.passengers.reserve((to - from) / kStringsPerEntry);
+		for (std::size_t k = from; k < to; k += kStringsPerEntry) {
+			const std::uint32_t* at = &interval.platformEntries[k];
+			platform.passengers.push_back({strings_[at[0]], strings_[at[1]], strings_[at[2]], strings_[at[3]], strings_[at[4]], strings_[at[5]]});
+		}
 	}
 
 	if (trains_) {
 		for (std::size_t i = 0; i < trains_->messageSteps.size(); ++i)
 			if (guiVirtualCouplingMessageShown(trains_->messageSteps[i], time))
 				snapshot->virtualCouplingMessages.push_back({trains_->messageSteps[i], trains_->messageTrains[i], trains_->messageTexts[i]});
+		appendLatestStationCalls(trains_->stationCalls, time, snapshot->stationCalls);
 	}
 	return snapshot;
 }

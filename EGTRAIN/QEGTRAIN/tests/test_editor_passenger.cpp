@@ -8,11 +8,11 @@
 #include "scene/SceneDiagnostic.h"
 #include "support/FakePrompts.h"
 #include "widgets/ChoiceComboBox.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
 #include <QDir>
-#include <QDoubleSpinBox>
 #include <QFile>
 #include <QHeaderView>
 #include <QLabel>
@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QScopeGuard>
 #include <QSpinBox>
 #include <QStringList>
@@ -253,6 +254,8 @@ private slots:
 	void showsNewScene();
 	void selectsPassengersAndJourneys();
 	void windowsSayTheirZeroPoint();
+	void windowsTakeTimesOfDay();
+	void windowsKeepStoredFractions();
 	void selectsEntityById();
 	void editsAddsAndDeletesPassengers();
 	void editsJourneys();
@@ -269,6 +272,7 @@ private slots:
 	void forgetsDeletedDocument();
 	void importsPassengers();
 	void calloutsShowSelectedPassenger();
+	void journeyFieldsKeepTheirHeightInShortDock();
 	void showsInvalidValues();
 	void importRejectsTakenIds();
 	void importRejectsRepeatedIds();
@@ -331,10 +335,10 @@ void TestPassengerPanel::showsNewScene() {
 	QCOMPARE(panel.journeyDestinationCombo()->currentData().toString(), "C");
 	const auto& windows = panel.journeyWindowEdits();
 	// The four time windows of the journey are shown.
-	QCOMPARE_EQ(windows[0]->value(), 100.0);
-	QCOMPARE_EQ(windows[1]->value(), 200.0);
-	QCOMPARE_EQ(windows[2]->value(), 300.0);
-	QCOMPARE_EQ(windows[3]->value(), 400.0);
+	QCOMPARE(windows[0]->text(), "00:01:40");
+	QCOMPARE(windows[1]->text(), "00:03:20");
+	QCOMPARE(windows[2]->text(), "00:05:00");
+	QCOMPARE(windows[3]->text(), "00:06:40");
 	// The leg shows its service and stations, and offers the stops of the service.
 	QCOMPARE(panel.legServiceCombo()->currentData().toString(), "S1");
 	QCOMPARE(comboData(panel.legServiceCombo()), std::vector<std::string>({"S1", "S2", "S3"}));
@@ -356,11 +360,56 @@ void TestPassengerPanel::showsNewScene() {
 	QCOMPARE(f.document.revision(), quint64(1));
 }
 
-// The four time windows of a journey say that they count from midnight.
+// The four time windows of a journey say that they are times of day.
 void TestPassengerPanel::windowsSayTheirZeroPoint() {
 	PassengerFixture f;
-	for (const QDoubleSpinBox* edit : f.panel.journeyWindowEdits())
-		QCOMPARE(edit->toolTip(), "Seconds from midnight, not from the base time of the case.");
+	for (const QLineEdit* edit : f.panel.journeyWindowEdits()) {
+		QCOMPARE(edit->toolTip(), "Time of day, HH:MM:SS. Write +1d before it for the next day.");
+		QCOMPARE(edit->placeholderText(), "HH:MM:SS");
+		QVERIFY(edit->minimumWidth() > edit->fontMetrics().horizontalAdvance("+1d 00:00:00"));
+	}
+}
+
+// A time window is typed as a time of day. Garbage and an unchanged text change nothing.
+void TestPassengerPanel::windowsTakeTimesOfDay() {
+	PassengerFixture f;
+	const auto& windows = f.panel.journeyWindowEdits();
+	const ScenePassengerJourney& journey = f.document.model().passengers[0].journeys[0];
+	typeAndLeave(windows[0], "07:38:00");
+	QCOMPARE_EQ(journey.plannedDepartureStartSeconds, 27480.0);
+	typeAndLeave(windows[1], "+1d 00:00:30");
+	QCOMPARE_EQ(journey.plannedDepartureEndSeconds, 86430.0);
+	QCOMPARE(windows[1]->text(), "+1d 00:00:30");
+	const quint64 revision = f.document.revision();
+	f.events.log.clear();
+	typeAndLeave(windows[0], "07:38:00");
+	typeAndLeave(windows[2], "00:05:00");
+	// An unchanged text adds no undo step.
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(f.events.log.empty());
+	typeAndLeave(windows[0], "soon");
+	// Garbage keeps the value and restores the text, and says why.
+	QCOMPARE_EQ(journey.plannedDepartureStartSeconds, 27480.0);
+	QCOMPARE(windows[0]->text(), "07:38:00");
+	QCOMPARE(f.prompts.errorCount, 1);
+	typeAndLeave(windows[0], "25:00:00");
+	QCOMPARE(windows[0]->text(), "07:38:00");
+	QCOMPARE(f.document.revision(), revision);
+}
+
+// A stored fraction is shown and survives a commit of the unchanged text.
+void TestPassengerPanel::windowsKeepStoredFractions() {
+	PassengerFixture f;
+	f.document.edit(SceneDocument::Passengers, "Set window", [](SceneModel& model) {
+		model.passengers[0].journeys[0].plannedArrivalEndSeconds = 27480.5;
+	});
+	f.panel.refresh();
+	QLineEdit* edit = f.panel.journeyWindowEdits()[3];
+	QCOMPARE(edit->text(), "07:38:00.5");
+	const quint64 revision = f.document.revision();
+	typeAndLeave(edit, "07:38:00.5");
+	QCOMPARE_EQ(f.document.model().passengers[0].journeys[0].plannedArrivalEndSeconds, 27480.5);
+	QCOMPARE(f.document.revision(), revision);
 }
 
 void TestPassengerPanel::selectsPassengersAndJourneys() {
@@ -553,7 +602,7 @@ void TestPassengerPanel::editsJourneys() {
 	// Choosing a station writes it to the journey.
 	QCOMPARE(firstPassenger.journeys[2].originStationId, "B");
 	QCOMPARE(firstPassenger.journeys[2].destinationStationId, "C");
-	panel.journeyWindowEdits()[2]->setValue(1234.5);
+	typeAndLeave(panel.journeyWindowEdits()[2], "00:20:34.5");
 	QVERIFY2(firstPassenger.journeys[2].plannedArrivalStartSeconds == 1234.5, "a time window is written to the journey");
 	events.log.clear();
 	typeAndLeave(panel.journeyIdEdit(), "J1");
@@ -1090,8 +1139,8 @@ void TestPassengerPanel::calloutsShowSelectedPassenger() {
 	diagnostics.push_back(diagnostic(SceneSeverity::Error, "Scene has no duration", "scene", "", ""));
 	diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Scene note", "", "", "settings"));
 	for (int index = 0; index < 8; ++index) {
-		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Journey has no route-choice legs", "journey",
-			("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].legs"));
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Planned arrival window ends before the planned departure window starts", "journey",
+			("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].planned_arrival"));
 	}
 	for (int index = 0; index < 7; ++index)
 		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Journey window is wrong", "", "", "passengers[0].journeys[0].window"));
@@ -1117,8 +1166,8 @@ void TestPassengerPanel::calloutsShowSelectedPassenger() {
 	// The warnings are those of the passenger, five lines and the count of the rest. Each names its journey, so the
 	// warnings of the journeys can be told apart.
 	QCOMPARE(noteLines.size(), qsizetype(6));
-	QCOMPARE(noteLines.front(), "Warning: Journey has no route-choice legs (journey XJ0)");
-	QCOMPARE(noteLines.at(1), "Warning: Journey has no route-choice legs (journey XJ1)");
+	QCOMPARE(noteLines.front(), "Warning: Planned arrival window ends before the planned departure window starts (journey XJ0)");
+	QCOMPARE(noteLines.at(1), "Warning: Planned arrival window ends before the planned departure window starts (journey XJ1)");
 	QCOMPARE(noteLines.back(), "and 3 more");
 	QVERIFY(!panel.warningLabel()->text().contains("Scene"));
 	QVERIFY(!panel.warningLabel()->text().contains("Other"));
@@ -1277,6 +1326,44 @@ void TestPassengerPanel::importReportsRejectedPassengers() {
 	QVERIFY(merge.accepted.empty());
 	QVERIFY(merge.report.empty());
 	QVERIFY(!merge.changesScene());
+}
+
+// In a short, narrow dock with a long warning the journey fields keep their height, and the dock scrolls instead.
+void TestPassengerPanel::journeyFieldsKeepTheirHeightInShortDock() {
+	SceneDocument document;
+	document.replace(passengerScene(), false);
+	// The dock content as the window builds it: a tab widget with the panel, in the scroll area of an editor dock.
+	EditorLayout::DockScrollArea scroll;
+	scroll.setWidgetResizable(true);
+	auto* tabs = new QTabWidget();
+	auto* panel = new PassengerPanel(tabs);
+	tabs->addTab(panel, "Passengers");
+	tabs->addTab(new QWidget(tabs), "Demand");
+	scroll.setWidget(tabs);
+	panel->setDocument(&document);
+	SceneDiagnostic warning;
+	warning.severity = SceneSeverity::Warning;
+	warning.message = "Planned arrival window ends before the planned departure window starts, and no service of the "
+					  "timetable reaches the destination station inside the arrival window of this journey";
+	warning.itemType = "journey";
+	warning.itemId = "J1";
+	std::vector<SceneDiagnostic> diagnostics = {warning, warning, warning};
+	panel->setDiagnostics(&diagnostics);
+	panel->refresh();
+	scroll.resize(340, 360);
+	scroll.show();
+	QVERIFY(QTest::qWaitForWindowExposed(&scroll));
+	panel->journeyList()->setCurrentRow(0);
+	QCoreApplication::processEvents();
+	QVERIFY(!panel->warningLabel()->isHidden());
+	std::vector<QWidget*> fields = {panel->journeyIdEdit(), panel->journeyActivityEdit(), panel->journeyOriginCombo(),
+		panel->journeyDestinationCombo()};
+	for (QLineEdit* edit : panel->journeyWindowEdits())
+		fields.push_back(edit);
+	for (const QWidget* field : fields)
+		QVERIFY2(field->height() >= field->minimumSizeHint().height(),
+			qPrintable(QStringLiteral("%1 is %2 px high, needs %3").arg(field->objectName()).arg(field->height()).arg(field->minimumSizeHint().height())));
+	QVERIFY(scroll.verticalScrollBar()->maximum() > 0);
 }
 
 QTEST_MAIN(TestPassengerPanel)

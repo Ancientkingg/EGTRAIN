@@ -266,11 +266,14 @@ private:
 	bool m_inStep = false, m_hasStep = false;
 };
 
+/// The margin (m) of the ends of authority that the trains report at levels 3 and 4.
+constexpr double kEndOfAuthorityMarginMetres = 50;
+
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
 /// Arrays indexed by stop hold kMaxTimetableStations entries.
-class Train {
+class Train { // NOLINT(clang-analyzer-optin.performance.Padding): reordering the members is out of scope
 public:
 	/// The run that the train is part of, which the operations builder sets. The train does not own it.
 	SimulationRun* run_ = nullptr;
@@ -402,6 +405,12 @@ public:
 
 	/// Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.
 	double StationArrivals[kMaxTimetableStations];
+	/// First step in seconds from the start of the run in which the train stood at each stop for its service stop; -1 when it never
+	/// did. This is later than StationArrivals, which is the passage of the timetable point of the stop.
+	double StationStandStarts[kMaxTimetableStations];
+	/// Last step in seconds from the start of the run in which the train stood at each stop, the one in which it left; -1 when it
+	/// never stood there or had not left by the end of the run.
+	double StationDepartures[kMaxTimetableStations];
 	std::string StationArrivalNames[kMaxTimetableStations]; ///< Preserves served station names for post-run arrival analysis.
 	/// Arrival delay at each stop in seconds: StationArrivals minus ScheduledArrivals; -1 when there is none.
 	/// computeArrivalDelaysAtStations makes a negative delay 0.
@@ -427,7 +436,6 @@ public:
 	/// True when a train in following mode falls behind its leader because of speed limits, gradient or curvature, not
 	/// because their routes split.
 	bool IsInUnintentionalDecoupling;
-	bool IsTrainDecoupling;					 ///< This boolean is true when the train is Decoupling from the VC mode
 	int CounterFollowingMode;				 ///< Number of steps the train has been in following mode.
 	std::string LeadingTrainInFollowingMode; ///< trainDescription of the leader in following mode; "None" otherwise.
 	/// Route position in metres of the current braking target.
@@ -447,11 +455,10 @@ public:
 
 	/// Index of the last entry of the stored braking plan; -1 when there is none.
 	int BrakStep;
-	bool BrakingForEoA = false;					  ///< True while the train brakes for an ETCS end of authority on the route.
-	MovementAuthority Predicted_MA_To_CoupleAt;	  ///< Authority where the train is predicted to couple virtually to the train ahead.
-	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
-	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
-	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
+	bool BrakingForEoA = false;					///< True while the train brakes for an ETCS end of authority on the route.
+	MovementAuthority Predicted_MA_To_CoupleAt; ///< Authority where the train is predicted to couple virtually to the train ahead.
+	MovementAuthority Last_Received_MA;			///< Last movement authority applied to the train.
+	MovementAuthority Last_MA_StoppedAt;		///< Last movement authority the train has stopped at.
 	/// The branch that the current step took, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) until it takes one.
 	/// Each step starts at 0.
 	int stepBranch = 0;
@@ -472,6 +479,15 @@ public:
 	float GibsonDwellTimeParameters[8]; ///< The eight parameters of the passenger dwell model (computePaxDependentDwellTimeAtStations); -1 until set.
 	/// Passenger capacity of the train (trainPassengerCapacity).
 	int MAX_OnBoard_Passengers, Current_OnBoard_Passengers; ///< Passengers on board now; the train starts empty.
+	/// Most passengers on board after any step of the run in which the train was in service; 0 until the first such step.
+	int peakOnBoardPassengers = 0;
+	/// Sum, over the steps in which the train was in service, of the passengers on board after the step.
+	long long onBoardPassengerStepSum = 0;
+	/// Number of steps counted in onBoardPassengerStepSum; stays 0 for a run without passengers or a train that never ran.
+	int onBoardPassengerSteps = 0;
+	/// Counts the passengers on board now into peakOnBoardPassengers, onBoardPassengerStepSum and onBoardPassengerSteps. Call it
+	/// once per step, after the passenger step, for a train in service: one that has entered and is not out of the simulation.
+	void recordOnBoardPassengers();
 
 	/// Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.
 	Train();
@@ -555,7 +571,8 @@ public:
 	void checkEntrance(int i, Section* BS);
 
 	/// Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over
-	/// the doors at random; 0 when nobody boards or alights.
+	/// the doors at random; 0 when nobody boards or alights. The three crowding thresholds are those of run_->settings
+	/// (passengerPlatformCrowdingThreshold, passengerOnboardCrowdingThreshold and passengerCarBoardingThreshold).
 	double computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
 	/// True when the aspect of the block section is restrictive: red, or red-red at level 5.
@@ -572,8 +589,13 @@ public:
 	/// Position in metres of the authority on the route of this train, for an authority on section.
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
-	/// The "TrainEnd" "Tale" authority of this step that matches Last_Received_MA, on a level 4 section from the one at head (m) to
-	/// eight sections further, and lies ahead of head; nullptr when there is none. leaderHead receives its route position (m).
+	/// True when the tail of a train ahead is still ahead of head (m), given the route position of the "Tale" authority it reported.
+	/// This holds while head is less than kEndOfAuthorityMarginMetres past the authority: the reported tail lags the real tail by at
+	/// least the margin plus the reporting delay, so the real tail is still ahead of a train that has come inside the margin.
+	static bool leaderTailAhead(double authorityPosition, double head);
+
+	/// The "TrainEnd" "Tale" authority of this step of the train ahead (the leader in following mode, else the train to couple at), on a level 4 section from the one at head (m) to
+	/// eight sections further, and lies ahead of head by leaderTailAhead; nullptr when there is none. leaderHead receives its route position (m).
 	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
 
 	/// When IsTrainStoppedForEoA is set, keeps it only while the train stands (speed 0) on section, the section of the authority it
@@ -582,8 +604,9 @@ public:
 	/// target is chosen, so that an old hold cannot clear the new one.
 	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section);
 
-	/// A leader that reports no movement authority any more cannot be followed. Its last one would keep
-	/// this train in following mode, with the leader's last speed and acceleration as its target.
+	/// A leader that cannot be followed any more ends following mode: one that reports no movement authority, and one that reports
+	/// none on a section of this train's route, because the routes have split and its tail has passed the split. Its last
+	/// authority would keep this train in following mode, with the leader's last speed and acceleration as its target.
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
@@ -728,9 +751,8 @@ public:
 	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S
 	/// (m) and V (m/s) has to start braking the earliest. closest receives it as a signalled braking target and closestSpeed its
 	/// speed (m/s); both keep their values when there is none. Sets Last_Received_MA and, for a target where the train can couple,
-	/// Predicted_MA_To_CoupleAt. In following mode, decouplingPoints receives the points where the train decouples from its leader.
-	void closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed,
-		std::list<Node>& decouplingPoints);
+	/// Predicted_MA_To_CoupleAt.
+	void closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed);
 
 	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
 	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
@@ -761,9 +783,6 @@ public:
 	/// Does nothing.
 	virtual ~Train() {}
 
-	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
-	std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
-
 	/// Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is the first.
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
 		double locationMeters);
@@ -779,10 +798,9 @@ public:
 	/// is recorded as a direct incident.
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
-	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. signalCode1,
-	/// signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to
+	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. It first moves the target that the call before kept (currentXob and currentVob) to
 	/// previousXob and previousVob, so each call is for the step after that of the call before.
-	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
+	void trajectoryComputationIncludingMovingBlock(int time_seconds);
 
 	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
 	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds] to
@@ -799,10 +817,10 @@ public:
 
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
 	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
-	/// of the leader; a decoupling at diverging routes ends once its authority has come; and in following mode the step is counted,
-	/// and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than 30 m
-	/// ahead of head (m). Returns true when the train was in following mode with no decoupling under way at the start of the
-	/// call, the case in which the step may follow the leader; that holds for the step in which the decoupling starts too.
+	/// of the leader; and in following mode the step is counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling)
+	/// when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in following mode
+	/// with no unintentional decoupling under way, the case in which the step may follow the leader; that holds for the step in
+	/// which the unintentional decoupling starts too.
 	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
 
 	/// Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or
@@ -880,8 +898,15 @@ public:
 	/// Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay, and TotalInputDelays is not changed.
 	void Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 
-	/// Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet.
+	/// The index of the call at the station called name that the train halts at now, or -1 when no stop has that name. A halt belongs to
+	/// one call: the stop that the train stands at, or else the first stop of that name after the latest stop it has stood at. When
+	/// the train has stood at every stop of that name, the last one.
+	int serviceStopOf(const std::string& name) const;
+	/// Records time_seconds * timestep as the arrival (s) at the call of CurrentServiceStop (serviceStopOf) when it has none yet.
 	void recordCurrentServiceStopArrival(int time_seconds);
+	/// Records time_seconds * timestep as the departure (s) from the call of CurrentServiceStop (serviceStopOf) when the train has
+	/// stood there and not yet left.
+	void recordCurrentServiceStopDeparture(int time_seconds);
 
 	/// True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty.
 	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
@@ -909,7 +934,7 @@ public:
 	/// direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run.
 	/// nextServiceRouteID is a route index or -1. Throws std::runtime_error when the file cannot be written
 	/// (simulation/RunOutputFile.h).
-	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
+	void printTrainServicePathDiagram(const std::string& FolderName, int nextServiceRouteID);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
 	/// -1 when it is on no section of the route. Works on routes that cross regions.
@@ -958,16 +983,16 @@ void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyM
 
 /// Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m,
 /// times s). Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
-void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
+void PrintTrainBlockingTimes(SimulationRun& run, const std::string& MainFolder);
 
 /// Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions
 /// (twice), the arrival times and the departure times of its timetable points. Throws std::runtime_error when the file cannot
 /// be written (simulation/RunOutputFile.h).
-void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
+void PrintTimetablePoints(SimulationRun& run, const std::string& MainFolder);
 
 /// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas, same arguments) and writes
 /// BlockingTimes.txt to OutputFolder.
-void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, const std::string& OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 /// Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections
 /// ahead of its head, StationBoundarySection::protectEntrance runs for it. It does not run when the entrance is two sections ahead

@@ -1,6 +1,6 @@
 # Main window
 
-This page describes how the main window shows the case that loaded: the **Loaded Data** dock and the source files of rolling stock. [Getting started](getting-started.md#3-look-at-the-case) introduces the window.
+This page describes how the main window shows the case that loaded: the **Loaded Data** dock, the source files of rolling stock and the passengers on the network view. [Getting started](getting-started.md#3-look-at-the-case) introduces the window.
 
 ## Review what loaded
 
@@ -62,3 +62,15 @@ differ and refreshes open input traction plots. Conflicting local edits require
 a Keep Edits/Reload decision, grouped for all units sharing the file. Updates
 observed during a run are offered after the run completes. Completed result
 charts do not change.
+
+## Passengers on the network view
+
+With **Passengers** on in the dock **Case and Layers** (the same switch as **View > Passengers**), a run of a case with passengers shows them on the network view. The switch takes effect from the next run.
+
+- **Platform gauge.** Zoomed in on a station, each platform bar fills up to its capacity with the passengers waiting on it. The fill is teal up to the crowding threshold, amber above it, and red with an end cap over the capacity. The number waiting stands above the bar.
+- **Waiting figures.** Zoomed in further, the number gives way to a row of figures, one for each waiting passenger up to the room along the bar and at most 50, with a chip such as `+184` for the rest.
+- **Station count.** Zoomed out, a pill beside the pin of a station gives the total waiting there, in the colour of its most crowded platform.
+- **Train load.** A train shows its passengers on board and its capacity, such as `351 / 600`, above its speed.
+- **Station card.** A click on a station pin, its count pill or a platform bar opens a card with the passengers waiting by final destination and the latest three calls of trains. It also opens in the replay of a finished run.
+
+The map key explains the colours in its row **Waiting passengers**. [Read the passengers on the network](how-to.md#read-the-passengers-on-the-network) describes each of them and shows a station card.

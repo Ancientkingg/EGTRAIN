@@ -47,7 +47,7 @@ double Train::train_energy_consumption(int t) {
 bool Train::isEntrySectionFailed(const Section& section) const {
 	// The authority of a failed section names it as the next section, also when it stands at the end of the section before.
 	for (const MovementAuthority& authority : run_->etcsMa)
-		if (authority.type == "SignalFailure" && authority.TrainInfo.NextSectionID == section.ID && obeysAuthority(authority))
+		if (authority.type == AuthorityKind::SignalFailure && authority.TrainInfo.NextSectionID == section.ID && obeysAuthority(authority))
 			return true;
 	return false;
 }
@@ -107,7 +107,7 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 		return;
 	const MovementAuthority& saved = Last_MA_StoppedAt;
 	const double distance = saved.RelativePosEoA - head;
-	const bool applicable = obeysAuthority(saved) && (saved.type != "TrainEnd" || (saved.typePart == "Tale" && saved.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction) || (saved.typePart == "Front" && saved.ReversedDirection != run_->infra.routes[indexOfRoute].reversed_direction));
+	const bool applicable = obeysAuthority(saved) && (saved.type != AuthorityKind::TrainEnd || (saved.typePart == AuthorityTrainEnd::Tale && saved.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction) || (saved.typePart == AuthorityTrainEnd::Front && saved.ReversedDirection != run_->infra.routes[indexOfRoute].reversed_direction));
 	bool valid = false;
 	if (speed == 0 && distance >= 0 && distance < kAtPointM && section.ID == saved.BSID && applicable)
 		for (const MovementAuthority& authority : run_->etcsMa)
@@ -126,18 +126,18 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 	if (IsTrainInFollowingMode == 0)
 		return;
+	const Route& route = run_->infra.routes[indexOfRoute];
 	for (const MovementAuthority& authority : run_->etcsMa)
 		if (authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-			return;
-	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
+			for (int block = 0; block < route.N_Block_Sections; ++block)
+				if (route.sequence_of_block_sections[block].ID == authority.BSID)
+					return;
+	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position on this route any more\n";
 	run_->vcMsgTimestep.push_back(time_seconds);
 	run_->vcMsgTrain.push_back(trainDescription);
 	run_->vcMsgText.push_back("Decoupled");
-	MovementAuthority ResetPredictedMAToDecoupleAt;
 	IsTrainInFollowingMode = false;
-	LeadingTrainInFollowingMode = "None";
-	IsTrainDecoupling = false;
-	Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
+	LeadingTrainInFollowingMode = kNoneId;
 	IsInUnintentionalDecoupling = false;
 	CounterFollowingMode = 0;
 }
@@ -187,76 +187,6 @@ const std::string& Train::blockSectionIdAt(int t) const {
 	return run_->infra.routes[static_cast<std::size_t>(indexOfRoute)].sequence_of_block_sections[static_cast<std::size_t>(index)].ID;
 }
 
-string Train::DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed) {
-	string Occupied_TDS_ID = "";
-	double BeginningNode = -1, FinalNode = -1; // This are the Beginning and End Node of the TDS
-	// if the route of the train is not reversed
-	if (IsRouteReversed == 0) {
-		if (Bs.TDS_in_block.size() > 0) {
-			for (auto i = Bs.TDS_in_block.begin(); i != Bs.TDS_in_block.end(); i++) {
-				// if the TDS is straight and not on a diverging switch
-				if ((*i)->node_on_switch.X == -1) {
-					BeginningNode = (*i)->start_node.X * 1000;
-					FinalNode = (*i)->end_node.X * 1000;
-				}
-				// if instead the TDS is on a diverging switch
-				else {
-					// Determine Beginning and final nodes
-					if ((*i)->node_on_switch.X >= (*i)->connection_node.X) {
-						BeginningNode = (*i)->start_node.X * 1000;
-						FinalNode = (*i)->node_on_switch.X * 1000;
-					}
-					// Otherwise it is valid the following condition
-					else {
-						BeginningNode = (*i)->node_on_switch.X * 1000;
-						FinalNode = (*i)->end_node.X * 1000;
-					}
-				}
-
-				if ((instant_spatial_position[timeinstant] >= BeginningNode) && (instant_spatial_position[timeinstant] < FinalNode)) {
-					Occupied_TDS_ID = (*i)->ID;
-					break; // break the for loop over the TDS in the block section
-				}
-			}
-		}
-	}
-	// if instead the route of the train is reversed
-	else {
-		// the the TDS nodes should be reversed as well
-		if (Bs.TDS_in_block.size() > 0) {
-			for (auto i = Bs.TDS_in_block.begin(); i != Bs.TDS_in_block.end(); i++) {
-				// if the TDS is straight and not on a diverging switch
-				if ((*i)->node_on_switch.X == -1) {
-					// Beginning Node is the absolute distance between the end Node of the TDS ( as it is reversed) and the absolute position of the Beginning Node of the reversed block + the relative start Node position of the reversed block
-					BeginningNode = (Bs.GeoXBegNode - (*i)->end_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					FinalNode = (Bs.GeoXBegNode - (*i)->start_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-				}
-
-				// if instead the TDS is on a diverging switch
-				else {
-					// Determine Beginning and final nodes
-					if ((*i)->node_on_switch.X >= (*i)->connection_node.X) {
-						BeginningNode = (Bs.GeoXBegNode - (*i)->node_on_switch.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-						FinalNode = (Bs.GeoXBegNode - (*i)->start_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					}
-					// Otherwise it is valid the following condition
-					else {
-						BeginningNode = (Bs.GeoXBegNode - (*i)->end_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-						FinalNode = (Bs.GeoXBegNode - (*i)->node_on_switch.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					}
-				}
-
-				if ((instant_spatial_position[timeinstant] >= BeginningNode) && (instant_spatial_position[timeinstant] < FinalNode)) {
-					Occupied_TDS_ID = (*i)->ID;
-					break; // break the for loop over the TDS in the block section
-				}
-			}
-		}
-	}
-	// finally return the ID of teh occupied TDS
-	return Occupied_TDS_ID;
-}
-
 void Train::recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
 	double locationMeters) {
 	if (incidentId.empty())
@@ -277,7 +207,7 @@ void Train::recordDirectIncident(const SimulationIncident& incident, double time
 }
 
 void Train::recordDirectSignalFailure(const MovementAuthority& authority, double timeSeconds) {
-	if (authority.type != "SignalFailure")
+	if (authority.type != AuthorityKind::SignalFailure)
 		return;
 	const std::string prefix = "signal_failure:";
 	const std::string& encoded = authority.TrainInfo.trainDescription;
@@ -295,7 +225,7 @@ void recordSignalFailuresAtRedAspect(Train& train, double head, double timeSecon
 		return;
 	const Route& route = train.run_->infra.routes[train.indexOfRoute];
 	for (const MovementAuthority& authority : train.run_->etcsMa) {
-		if (authority.type != "SignalFailure" || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
+		if (authority.type != AuthorityKind::SignalFailure || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
 			continue;
 		const double distance = train.authorityRoutePosition(authority, train.Bs) - head;
 		if (distance < 0 || distance >= kAtPointM)
@@ -320,7 +250,14 @@ double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 	return candidate;
 }
 
+bool Train::leaderTailAhead(double authorityPosition, double head) {
+	return head < authorityPosition + kEndOfAuthorityMarginMetres;
+}
+
 const MovementAuthority* Train::currentFollowingAuthority(double head, double& leaderHead) const {
+	const std::string& leader = IsTrainInFollowingMode ? LeadingTrainInFollowingMode : Predicted_MA_To_CoupleAt.TrainInfo.trainDescription;
+	if (isNoneId(leader))
+		return nullptr;
 	const Route& route = run_->infra.routes[indexOfRoute];
 	int current = -1;
 	for (int block = 0; block < route.N_Block_Sections; ++block)
@@ -333,27 +270,21 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 		return nullptr;
 	for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
 		const Section& section = route.sequence_of_block_sections[block];
-		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling) || section.ID != Last_Received_MA.BSID)
+		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling))
 			continue;
 		for (const MovementAuthority& authority : run_->etcsMa)
-			if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
+			if (authority.BSID == section.ID && authority.type == AuthorityKind::TrainEnd && authority.typePart == AuthorityTrainEnd::Tale
 				&& authority.ReversedDirection == route.reversed_direction
-				&& authority.TrainInfo.trainDescription != trainDescription
-				&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
-				&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
-				&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
-				&& std::abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
-				&& (authority.TrainInfo.NextSectionID == "None"
-					|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
+				&& authority.TrainInfo.trainDescription == leader) {
 				leaderHead = authorityRoutePosition(authority, section);
-				if (leaderHead > head)
+				if (leaderTailAhead(leaderHead, head))
 					return &authority;
 			}
 	}
 	return nullptr;
 }
 
-void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
+void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 	// The target that the step before kept, and no target or branch yet of this step
 	previousXob = currentXob;
 	previousVob = currentVob;
@@ -389,8 +320,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 		checkEntrance(time_seconds, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data());
 		if ((time_seconds >= departure_time) && (CanEnter == 1)) {
 			double V_lim;
-			int U;
-			U = time_seconds;
 			Arc As; // use local variable instead of Train class member (faster simulation)
 			// Indices of Bs on the route and of As in Bs; -1 when they are not found in this step
 			int BsIndex = -1, AsIndex = -1;
@@ -546,11 +475,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					const double resistance = total_train_resistances(speed, As.gradient, As.curvature);
 					const double minimum = brakingCurveSpeed(speed, As);
 					const double maximum = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
-					const double acceleration = std::max((minimum - speed) / timestep,
-						std::min((maximum - speed) / timestep, liveLeader->TrainInfo.Acceleration));
-					double proposedSpeed = (acceleration < 0 ? liveLeader->TrainInfo.TrainSpeed : speed) + acceleration * timestep;
-					if (acceleration == 0 && liveLeader->TrainInfo.TrainSpeed == 0)
-						proposedSpeed = 0;
+					// Hold the speed of the leader plus the step of its acceleration, within the force bounds of this train.
+					double proposedSpeed = liveLeader->TrainInfo.TrainSpeed + liveLeader->TrainInfo.Acceleration * timestep;
 					// Bound the final leader-relative intent by this train's own actual-start force interval.
 					proposedSpeed = std::min(V_lim, std::max(minimum, std::min(maximum, std::max(0.0, proposedSpeed))));
 					const double proposedHead = head + speed * timestep;
@@ -620,9 +546,6 @@ void Train::locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex) {
 				break;
 		}
 	}
-
-	// Determine the TDS which is currently occupied in the Block section Bs by the nose of the train
-	string Occupied_TDS = DetermineOccupiedTDS((time_seconds - 1), run_->infra.routes[indexOfRoute].reversed_direction);
 
 	// Determination of the right running Arc
 	for (int j = 0; j < Bs.total_arcs; j++) {
@@ -703,34 +626,9 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 		//-------------------------------
 	}
 
-	// Determination of Train Uncoupling from the leader when it is in following mode and the route diverges from the leader's
-	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 1)) {
-		// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type="TrainUncoupled"
-		if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
-			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-			&& (Predicted_MA_To_DecoupleAt.type == "TrainUncoupled")) {
-
-			EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
-
-			//-------------------------------
-			// GUI notification
-			run_->vcMsgTimestep.push_back(time_seconds);
-			run_->vcMsgTrain.push_back(trainDescription);
-			run_->vcMsgText.push_back("Decoupled");
-			//-------------------------------
-
-			MovementAuthority ResetPredictedMAToDecoupleAt;
-			IsTrainInFollowingMode = false;
-			LeadingTrainInFollowingMode = "None";
-			IsTrainDecoupling = false;
-			Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
-			IsInUnintentionalDecoupling = false;
-		}
-	}
-
 	/*******************  Virtual Coupling Following mode equations  ***************************************************************************************************************************/
 
-	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 0) && (IsInUnintentionalDecoupling == 0)) {
+	if ((IsTrainInFollowingMode == 1) && (IsInUnintentionalDecoupling == 0)) {
 		CounterFollowingMode++; // This sets the number of time steps that the train is in following mode
 		// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
 		if (liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
@@ -833,24 +731,23 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	double stoptime = 0;
 	double dep_time = 0;
 	counter = 0;
-	for (int s = 0; s < numStations; s++) {
-		if (Stations[s].stationName == As.endNode.stationName) {
-			this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
-			this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
-			this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
-			recordCurrentServiceStopArrival(time_seconds);
+	if (const int s = serviceStopOf(As.endNode.stationName); s >= 0) {
+		this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
+		this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
+		this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
+		recordCurrentServiceStopArrival(time_seconds);
 
-			EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
+		EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
 
-			stoptime = Stations[s].StopTime;
-			dep_time = ScheduledDepartures[s];
-			recordCurrentServiceStopArrival(time_seconds);
-			if (Stations[s].StepStopped == 0)
-				stop = time_seconds;
-			Stations[s].StepStopped++;
-			if (Stations[s].StepStopped > Stations[s].StopTime)
-				stoptime = 0;
+		stoptime = Stations[s].StopTime;
+		dep_time = ScheduledDepartures[s];
+		if (Stations[s].StepStopped == 0) {
+			stop = time_seconds;
+			StationStandStarts[s] = time_seconds * timestep;
 		}
+		Stations[s].StepStopped++;
+		if (Stations[s].StepStopped > Stations[s].StopTime)
+			stoptime = 0;
 	}
 
 
@@ -861,8 +758,9 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		if ((Condition_To_Stop_Train == 0) && ((time_seconds - stop) > stoptime) && (time_seconds > dep_time) && (authorityHold == 0)) {
 			instant_train_speed[time_seconds] = kRestartSpeedMs;
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
+			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
-			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
+			this->CurrentServiceStop = kNoneId;	 // This states that the train is no longer stopping at the service station
 		}
 		// Otherwise the train has to remain stopped at the station
 		else {
@@ -882,9 +780,10 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		} else {
 			instant_train_speed[time_seconds] = kRestartSpeedMs;
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
+			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
-			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
-			this->CurrentServiceStopPlatform = "None";
+			this->CurrentServiceStop = kNoneId;	 // This states that the train is no longer stopping at the service station
+			this->CurrentServiceStopPlatform = kNoneId;
 			this->currentServiceStopPlatformNumber = 0;
 			BrakingForEoA = false; // setting the variable Braking for EoA to false since the train is starting to move again
 		}
@@ -894,15 +793,40 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	train_energy_consumption(time_seconds);
 }
 
+int Train::serviceStopOf(const std::string& name) const {
+	int latest = -1;
+	for (int s = 0; s < numStations; s++)
+		if (Stations[s].StepStopped > 0)
+			latest = s;
+	if (latest >= 0 && Stations[latest].stationName == name && StationDepartures[latest] < 0)
+		return latest;
+	int last = -1;
+	for (int s = 0; s < numStations; s++) {
+		if (Stations[s].stationName != name)
+			continue;
+		if (s > latest)
+			return s;
+		last = s;
+	}
+	return last;
+}
+
 void Train::recordCurrentServiceStopArrival(int time_seconds) {
-	if (time_seconds < 0 || CurrentServiceStop == "None")
+	if (time_seconds < 0 || isNoneId(CurrentServiceStop))
 		return;
 
-	for (int s = 0; s < numStations; s++) {
-		if (Stations[s].stationName == CurrentServiceStop && StationArrivals[s] < 0) {
-			StationArrivals[s] = time_seconds * timestep;
-			StationArrivalNames[s] = CurrentServiceStop;
-			break;
-		}
+	const int s = serviceStopOf(CurrentServiceStop);
+	if (s >= 0 && StationArrivals[s] < 0) {
+		StationArrivals[s] = time_seconds * timestep;
+		StationArrivalNames[s] = CurrentServiceStop;
 	}
+}
+
+void Train::recordCurrentServiceStopDeparture(int time_seconds) {
+	if (time_seconds < 0 || isNoneId(CurrentServiceStop))
+		return;
+
+	const int s = serviceStopOf(CurrentServiceStop);
+	if (s >= 0 && Stations[s].StepStopped > 0 && StationDepartures[s] < 0)
+		StationDepartures[s] = time_seconds * timestep;
 }

@@ -1,6 +1,6 @@
 #ifndef Signalling_hpp
 #define Signalling_hpp
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS // NOLINT(bugprone-reserved-identifier): the MSVC macro
 
 #include <tuple>
 #include <map>
@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "scene/SceneDiagnostic.h"
+#include "scene/SceneModel.h"
 
 #include "simulation/Infrastructure.h"
 
@@ -25,18 +26,18 @@ void resetNativeInfrastructureState(SimulationRun& run);
 /// An incident of the selected scenario, as the scene gives it. Times are seconds from the start of the run, compared
 /// with the step index.
 struct SimulationIncident {
-	std::string type;							 ///< "signal_failure" or "train_breakdown".
-	std::string target;							 ///< Signal or section ID of a signal failure; service ID of a breakdown.
-	double startSeconds = 0.0;					 ///< Start of the incident.
-	double endSeconds = 0.0;					 ///< End of the incident; meaningful when hasEndSeconds is true.
-	std::vector<std::string> resolvedSectionIDs; ///< Runtime section IDs that a signal failure affects.
-	std::string id;								 ///< ID of the incident.
-	bool hasOccurrence = false;					 ///< True when the breakdown applies to one occurrence of the service only.
-	int occurrence = 1;							 ///< 1-based occurrence of the service when hasOccurrence is true.
-	bool hasReducedSpeed = false;				 ///< True when the breakdown caps the speed instead of holding the train.
-	double reducedSpeedKmh = 0.0;				 ///< Speed cap of the breakdown in km/h.
-	bool terminateAtDestination = false;		 ///< True when the broken-down train is marked as terminated at the end of its route.
-	bool hasEndSeconds = false;					 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
+	IncidentType type = IncidentType::SignalFailure; ///< The kind of incident.
+	std::string target;								 ///< Signal or section ID of a signal failure; service ID of a breakdown.
+	double startSeconds = 0.0;						 ///< Start of the incident.
+	double endSeconds = 0.0;						 ///< End of the incident; meaningful when hasEndSeconds is true.
+	std::vector<std::string> resolvedSectionIDs;	 ///< Runtime section IDs that a signal failure affects.
+	std::string id;									 ///< ID of the incident.
+	bool hasOccurrence = false;						 ///< True when the breakdown applies to one occurrence of the service only.
+	int occurrence = 1;								 ///< 1-based occurrence of the service when hasOccurrence is true.
+	bool hasReducedSpeed = false;					 ///< True when the breakdown caps the speed instead of holding the train.
+	double reducedSpeedKmh = 0.0;					 ///< Speed cap of the breakdown in km/h.
+	bool terminateAtDestination = false;			 ///< True when the broken-down train is marked as terminated at the end of its route.
+	bool hasEndSeconds = false;						 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
 };
 
 /// True while a train_breakdown incident without a reduced speed holds the train trainDesc ("<service>-<occurrence>") in step
@@ -53,6 +54,13 @@ void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepInde
 /// that route, at levels 0 to 5. The authorities last for the current step.
 void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 
+/// The position of a switch when a train passes it.
+enum class SwitchPosition {
+	NotASwitch, ///< The element is not a switch, so it has no position.
+	Straight,	///< The switch is set to the straight track.
+	Diverging	///< The switch is set to the diverging track.
+};
+
 /// A record of a train at a place and time. It serves as the passage of a train at an infrastructure element
 /// (InfraEvent), as a timetable point of a train (Train::TimetablePoints) and as the train data of a movement authority.
 /// Times are seconds from the start of the run, positions metres and speeds m/s. Numbers are -10000 and strings "None"
@@ -67,14 +75,14 @@ public:
 	/// Position in metres: the route position of a passage, the scene position of an authority or a timetable point. A
 	/// timetable point the train never reached keeps the X of its node in kilometres.
 	double Position;
-	std::string SuccessorID;	  ///< ID of the next infrastructure element of the route; for a timetable point the name of its station.
-	std::string CurrentSectionID; ///< Section of the train when it made a movement authority.
-	std::string NextSectionID;	  ///< Next section on the route of the train; "None" at the end of the route.
-	double TrainSpeed;			  ///< Train speed at the position given by Position
-	double Acceleration;		  ///< Acceleration of the train in m/s2 when it made a movement authority.
-	std::string InfraElemStatus;  ///< Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.
+	std::string SuccessorID;		///< ID of the next infrastructure element of the route; for a timetable point the name of its station.
+	std::string CurrentSectionID;	///< Section of the train when it made a movement authority.
+	std::string NextSectionID;		///< Next section on the route of the train; "None" at the end of the route.
+	double TrainSpeed;				///< Train speed at the position given by Position
+	double Acceleration;			///< Acceleration of the train in m/s2 when it made a movement authority.
+	SwitchPosition InfraElemStatus; ///< Position of a switch at the passage; NotASwitch for other elements.
 
-	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs and the status to "None".
+	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs to "None" and the status to NotASwitch.
 	TrainEvent();
 };
 
@@ -95,7 +103,7 @@ public:
 
 /// Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head
 /// passed in step t, from route position Xt_1 to Xt (m). The event has the time t - 1 (s), the speed Vt_1 (m/s), the next element of
-/// the route, and for a switch the position "Straight" or "Diverging".
+/// the route, and for a switch its position.
 void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
 
 /// Sorts the recorded events of every element with orderListOfTrainEvents.
@@ -126,6 +134,12 @@ enum class SignalState : unsigned char {
 	Yellow, ///< Code 180.
 	Red,	///< Code 75.
 	RedRed	///< Code 751, level 5 only.
+};
+
+/// The part of a block section that a cut removes.
+enum class CutPart : unsigned char {
+	End,  ///< From the cutting abscissa to the end node.
+	Begin ///< From the start node to the cutting abscissa.
 };
 
 /// A block section. RunInfrastructure::sections holds the sections of the scene and the sections derived at switches, and
@@ -172,6 +186,9 @@ public:
 
 	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.
 	Section();
+
+	/// Copies every member, including every entry of IDConnectedBS.
+	Section(const Section&) = default;
 
 	/// Copies the members, but IDConnectedBS only up to N_ConnectedBS: the entries after that keep their values. The copy
 	/// constructor copies every entry. The node list stays shared.
@@ -233,9 +250,9 @@ public:
 			return false;
 	}
 
-	/// Cut block section: CutPart="CutEnd" removes from CuttingAbscissa to end;
-	/// "CutBegin" removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres.
-	void CutBlockSection(std::string CutPart, double CuttingAbscissa);
+	/// Cut block section: CutPart::End removes from CuttingAbscissa to end;
+	/// CutPart::Begin removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres.
+	void CutBlockSection(CutPart part, double CuttingAbscissa);
 
 	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
 	void reverseBlockSection(const Section& blockSets, double RouteLength);
@@ -254,7 +271,7 @@ void createBlockConn(SimulationRun& run, const Node& Nb, const Section& BS1, int
 void setAllConnections(SimulationRun& run);
 
 /// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
-void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
+void setList(SimulationRun& run, const std::string& input, std::list<Section>& BSConnected);
 
 /// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most
 /// RuntimeLimits::kNativeMaxDependencies).
@@ -330,17 +347,32 @@ void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std
 /// borders. A diverging switch edge is listed under its switch name.
 void setListAllInfrastructureElementsFromRoutes(SimulationRun& run);
 
+/// What a movement authority stands for.
+enum class AuthorityKind {
+	None,					 ///< No authority; the default.
+	TrainEnd,				 ///< An end of a train.
+	DivergingSwitchOccupied, ///< A diverging switch a train is on.
+	SignalFailure			 ///< A failed signal or a held single-track section.
+};
+
+/// Which end of a train a movement authority belongs to.
+enum class AuthorityTrainEnd {
+	None,  ///< No train end; the default.
+	Front, ///< The head of the train.
+	Tale   ///< The rear of the train (the code spells it this way).
+};
+
+/// The name of a train end as the test records write it: "None", "Front" or "Tale".
+const char* authorityTrainEndName(AuthorityTrainEnd end);
+
 /// An end of authority for levels 3 and 4, and for a failed signal at every level. SimulationRun::etcsMa holds the
 /// authorities of the current step. Positions are metres.
 class MovementAuthority {
 public:
-	std::string BSID; ///< ID of the block section of the end of authority; "None" by default.
-	/// What the authority stands for: "TrainEnd" (an end of a train), "DivergingSwitchOccupied" (a diverging switch a train
-	/// is on) or "SignalFailure" (a failed signal or a held single-track section). "None" by default.
-	std::string type;
-	/// Which end of the train it is: "Front" or "Tale" (the code spells the rear end this way). A signal failure has
-	/// "Front". "None" by default.
-	std::string typePart;
+	std::string BSID;						  ///< ID of the block section of the end of authority; "None" by default.
+	AuthorityKind type = AuthorityKind::None; ///< What the authority stands for.
+	/// Which end of the train it is. A signal failure has Front.
+	AuthorityTrainEnd typePart = AuthorityTrainEnd::None;
 	bool ReversedDirection; ///< True when the route of the train that made it runs against the direction of the sections.
 	/// Position of the end of authority in scene coordinates, which do not depend on the direction of the route; -1 by default.
 	double AbsPosEoA;
@@ -351,7 +383,7 @@ public:
 	double EoA_Dist_From_BSID_Beg;
 	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
 
-	/// Sets BSID, type and typePart to "None" and the positions to -1.
+	/// Sets BSID to "None" and the positions to -1.
 	MovementAuthority();
 };
 
@@ -381,8 +413,8 @@ void unlockDoubleSwitches(SimulationRun& run);
 void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
 /// The fixed-block form of activateBlocksWithSwitchesDiv: both block sections named in the ID of BS go to run.blocksOccupied and
-/// run.blocksConnected. S is not read.
-void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
+/// run.blocksConnected.
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS);
 
 /// Puts BLS, its connected sections and, for a section with a diverging switch, the two block sections named in its ID in
 /// run.blocksConnected, so that releaseMixedSignallingSystem clears them.
@@ -396,16 +428,16 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 /// Adds to run.etcsMa an end of authority of the given type and typePart for the train at route position S_i (m) on BLS, with its
 /// speed V_i (m/s) and acceleration Acc_i (m/s2), unless the train has one on the same section within 1 mm. A position before the
 /// route is moved to the start of its first section; on a reversed route AbsPosEoA is in the coordinates of the original direction.
-void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const std::string& type, const std::string& typePart);
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, AuthorityKind type, AuthorityTrainEnd typePart);
 
 /// The form of elaborateRbcMas for the section BS with a diverging switch: adds "TrainEnd" ends of authority at S_i (m) on BS and on
 /// the block sections named in its ID that S_i covers, the first before the switch, both on it and the second after it.
-void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart);
 
 /// While the train spans the diverging switch of BLS (FrontEndPos at or past its start and BackEndPos at or before its end, m), adds
 /// "DivergingSwitchOccupied" ends of authority at both switch edges, on BLS and on the two block sections named in its ID, and locks
 /// the switches that connect to those (lockSwitchesOnAllConnectedSections, 10 m on either side of each edge).
-void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart);
 
 // --- Mixed Signalling: multi-system signalling areas ---
 /// Sets speedInBraking of every arc of the Blocks route sections BS to the speed limit of the next arc (m/s). The last arc of the
@@ -443,7 +475,7 @@ void releaseMixedSignallingSystem(SimulationRun& run);
 
 /// Releases section blockID when a train leaves its route there; see "Codes and what they do to a following train" in
 /// docs/guides/signalling-levels.md.
-void relLastSectionMixedSignalling(SimulationRun& run, std::string blockID);
+void relLastSectionMixedSignalling(SimulationRun& run, const std::string& blockID);
 
 
 /// Marks the middle of each double switch as a virtual signal: in a track line of three arcs that is 30 m long, the section that

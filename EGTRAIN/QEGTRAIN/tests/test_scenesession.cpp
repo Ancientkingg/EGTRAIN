@@ -718,7 +718,7 @@ void TestSceneSession::saveShowsFileAndPath() {
 		scene.services.push_back(service);
 		SceneIncident incident;
 		incident.id = "new_incident";
-		incident.type = "signal_failure";
+		incident.type = IncidentType::SignalFailure;
 		incident.hasEndSeconds = true;
 		defaultScenarioIncidents(scene).push_back(incident);
 	});
@@ -728,12 +728,12 @@ void TestSceneSession::saveShowsFileAndPath() {
 	QCOMPARE(saved.scene.services.size(), std::size_t(1));
 	QVERIFY(saved.scene.services[0].composition.empty());
 
-	// An incident without a type is not written.
-	f.document.edit(SceneDocument::Scenarios, "Clear type",
-		[](SceneModel& scene) { defaultScenarioIncidents(scene)[0].type.clear(); });
+	// An incident without an id is not written.
+	f.document.edit(SceneDocument::Scenarios, "Clear id",
+		[](SceneModel& scene) { defaultScenarioIncidents(scene)[0].id.clear(); });
 	QVERIFY(!f.session->saveSceneToCurrentDir());
 	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
-	QVERIFY2(f.prompts.errorMessage.contains("\nFile: scenarios.json\nPath: scenarios[0].incidents[0].type"),
+	QVERIFY2(f.prompts.errorMessage.contains("\nFile: scenarios.json\nPath: scenarios[0].incidents[0].id"),
 		qPrintable(f.prompts.errorMessage));
 }
 

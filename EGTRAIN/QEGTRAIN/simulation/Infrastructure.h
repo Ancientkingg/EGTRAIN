@@ -9,12 +9,14 @@
 #include <new>
 #include <list>
 #include <string>
+#include <string_view>
 #include <ctime>
 #include <sstream>
 #include <map>
 #include <algorithm>
 #include "scene/RuntimeLimits.h"
 #include "simulation/NumberGenerator.h"
+#include "simulation/NoneId.h"
 #include <vector>
 #include "util/portability.h"
 #include "simulation/InitialParameters.h"
@@ -25,14 +27,17 @@ struct SimulationRun;
 /// The length of a simulation step in seconds. A step index t is the time in seconds from the start of the run.
 inline constexpr double timestep = 1;
 /// Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double
-/// red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
-inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
+/// red section of level 5
+inline constexpr double signalCode1 = 11.111, signalCode2 = 0;
+
+/// The tdsbId of the node at a cut end of a section: the element after a cut is not a real one, so the blocking times skip it.
+inline constexpr std::string_view virtualTdsbId = "VirtualTDSB";
 
 /// A point element on the route of a train: a signal, a switch edge, a station stop or a border of a track detection
 /// section. Route::setListInfrastructureElementsForRoute makes one per node that has a tdsbId.
 class InfraElement {
 public:
-	/// ID of the element, the tdsbId of its node; "VirtualTDSB" at the cut end of a section; "None" when not set.
+	/// ID of the element, the tdsbId of its node; virtualTdsbId at the cut end of a section; "None" when not set.
 	std::string ID;
 	std::string SectionID;		///< ID of the block section the element belongs to.
 	std::string stationName;	///< Name of the station at this element; "None" when it is not a station.
@@ -216,13 +221,11 @@ public:
 
 	/// Sets the IDs to "None" and the numbers to -1.
 	StationPlatform() {
-		ID = StationID = BlockSectionID = "None";
+		ID = StationID = BlockSectionID = kNoneId;
 		X = Y = length = width = -1;
 		Max_Passenger_Volume = Current_N_Passengers = -1;
 	}
 };
-
-bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
 
 /// The name that the station statistics files give to the statistics at the last stop of every train, SimulationRun::finalStation.
 inline constexpr char kFinalStationName[] = "Final_Station";
@@ -263,6 +266,6 @@ public:
 /// Writes the delay statistics of the stations to Name_StationDelay/Stats_Stations.txt for kindofdelay "pos" and to
 /// Name_StationDelay/Pos&Neg_Stats_Stations.txt for "pos&neg". Throws std::runtime_error when the file cannot be written
 /// (simulation/RunOutputFile.h).
-void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
+void Print_Station_Delay_Stats(const SimulationRun& run, const std::string& Name_StationDelay, const std::string& kindofdelay);
 
 #endif

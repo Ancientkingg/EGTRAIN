@@ -241,12 +241,12 @@ void TestReplayLive::paimpolWithPassengers() {
 	QVERIFY(!QTest::currentTestFailed());
 	QVERIFY2(changesBetweenKept(run.kept,
 				 [](const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
-					 for (std::size_t i = 0; i < std::min(a.passengers.size(), b.passengers.size()); ++i)
-						 if (a.passengers[i].status != b.passengers[i].status)
+					 for (std::size_t i = 0; i < std::min(a.platforms.size(), b.platforms.size()); ++i)
+						 if (a.platforms[i].passengerCount != b.platforms[i].passengerCount || !(a.platforms[i].passengers == b.platforms[i].passengers))
 							 return true;
 					 return false;
 				 }),
-		"no passenger changes status between two kept seconds");
+		"no platform changes its passengers between two kept seconds");
 	QVERIFY2(changesBetweenKept(run.kept,
 				 [](const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
 					 for (std::size_t i = 0; i < std::min(a.trains.size(), b.trains.size()); ++i)

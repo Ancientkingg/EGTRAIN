@@ -55,11 +55,12 @@ struct GuiReplayTrains {
 		GuiReplaySeries position;	 ///< Head position along the route, in m.
 		GuiReplaySeries speed;		 ///< Speed in m/s.
 	};
-	std::vector<Route> routes;				///< By route index of the run.
-	std::vector<Train> trains;				///< In the order of the run.
-	std::vector<int> messageSteps;			///< The step of each virtual coupling message of the run.
-	std::vector<std::string> messageTrains; ///< The train of each message.
-	std::vector<std::string> messageTexts;	///< The text of each message.
+	std::vector<Route> routes;				  ///< By route index of the run.
+	std::vector<Train> trains;				  ///< In the order of the run.
+	std::vector<int> messageSteps;			  ///< The step of each virtual coupling message of the run.
+	std::vector<std::string> messageTrains;	  ///< The train of each message.
+	std::vector<std::string> messageTexts;	  ///< The text of each message.
+	std::vector<GuiStationCall> stationCalls; ///< Every call of a train at a station, ordered by arrival.
 	/// Accounted bytes of everything except the vectors shared with the completed run.
 	std::size_t ownedBytes() const;
 	/// Capacity bytes of the vectors shared with the completed run.
@@ -74,7 +75,7 @@ std::shared_ptr<const GuiReplayTrains> makeGuiReplayTrains(const SimulationRun& 
 /// The changes of a completed run, kept for replay.
 ///
 /// What is the same for the whole run (identity, route and direction of each train, capacities, signal, section and
-/// platform ids, passenger ids) is stored once in a layout. What changes is stored as the difference to the second
+/// platform ids) is stored once in a layout. What changes is stored as the difference to the second
 /// before, one record of 8 bytes for each value that changed, with a full copy of the values (a keyframe) at the start of
 /// every interval of keyframeSeconds. at() starts from the keyframe of the interval and applies the changes up to the
 /// second asked for. Lists and strings that change are stored once in the table of their interval or in the string table.
@@ -151,14 +152,13 @@ public:
 	std::shared_ptr<const GuiSimulationSnapshot> at(int time) const;
 
 private:
-	// The data of a run that does not change. The fields of a train, signal, section, platform and passenger that
+	// The data of a run that does not change. The fields of a train, signal, section and platform that
 	// change hold their default values here.
 	struct Layout {
 		std::vector<GuiTrainState> trains;
 		std::vector<GuiSignalState> signalStates;
 		std::vector<GuiSectionState> sectionStates;
 		std::vector<GuiPlatformState> platforms;
-		std::vector<GuiPassengerState> passengers;
 		int totalTimesteps = 0;
 	};
 
@@ -178,27 +178,38 @@ private:
 		// List number k holds [ends[k - 1], ends[k]) of the values, from 0 for k = 0.
 		std::vector<GuiOccupiedArc> arcs;
 		std::vector<std::uint32_t> arcEnds;
-		std::vector<std::uint32_t> platformIds;
+		// The passengers that the platforms list, five string numbers each: id, status, waiting platform, next train, next
+		// destination. List number k holds the entries [ends[k - 1], ends[k]) of the values, counted in values.
+		std::vector<std::uint32_t> platformEntries;
 		std::vector<std::uint32_t> platformEnds;
+		// The destinations that the platforms list, two values each: string number and count. List number k holds the values
+		// [ends[k - 1], ends[k]).
+		std::vector<std::uint32_t> destinationEntries;
+		std::vector<std::uint32_t> destinationEnds;
 		std::size_t bytes = 0;
 	};
 
 	// First slot of each group of values, in the order of the layout.
 	struct Slots {
 		std::size_t signalCode = 0, signalLevel = 0, signalFailed = 0, sectionFlags = 0, trainOut = 0, trainOnboard = 0, trainArcs = 0,
-					platformList = 0, passenger = 0, total = 0;
+					platformList = 0, platformCount = 0, platformDestinations = 0, total = 0;
 	};
 
 	static bool sameCounts(const Layout& layout, const GuiSimulationSnapshot& snapshot);
 	static bool sameStatic(const Layout& layout, const GuiSimulationSnapshot& snapshot);
 	static std::size_t layoutPayload(const Layout& layout);
 	static std::size_t intervalPayload(const Interval& interval);
+	void internDestinations(const std::vector<GuiDestinationCount>& listed, std::vector<std::uint32_t>& entries);
+	bool sameDestinations(const std::vector<GuiDestinationCount>& listed, const std::vector<std::uint32_t>& entries) const;
+	std::int32_t addDestinationList(Interval& interval, const std::vector<std::uint32_t>& entries);
+	void internEntries(const std::vector<GuiPassengerState>& listed, std::vector<std::uint32_t>& entries);
+	bool sameEntries(const std::vector<GuiPassengerState>& listed, const std::vector<std::uint32_t>& entries) const;
 	void makeLayout(const GuiSimulationSnapshot& snapshot);
 	void startInterval(const GuiSimulationSnapshot& snapshot);
 	void addChanges(const GuiSimulationSnapshot& snapshot);
 	void putValue(std::size_t slot, std::int32_t value);
 	std::int32_t addArcList(Interval& interval, const std::vector<GuiOccupiedArc>& arcs);
-	std::int32_t addPlatformList(Interval& interval, const std::vector<std::uint32_t>& ids);
+	std::int32_t addPlatformList(Interval& interval, const std::vector<std::uint32_t>& entries);
 	std::size_t statePayload() const;
 	void refreshBytes();
 	void enforceBudget();
@@ -217,6 +228,7 @@ private:
 	std::vector<std::int32_t> current_;
 	std::vector<std::vector<GuiOccupiedArc>> currentArcs_;
 	std::vector<std::vector<std::uint32_t>> currentPlatforms_;
+	std::vector<std::vector<std::uint32_t>> currentDestinations_;
 	std::deque<std::string> strings_;
 	std::unordered_map<std::string_view, std::uint32_t> stringNumbers_;
 	std::size_t layoutBytes_ = 0;

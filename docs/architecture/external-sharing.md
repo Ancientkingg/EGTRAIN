@@ -110,7 +110,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 
 - A headless Paimpol run that the client follows from start to end, and a run without `--live`: the two output folders are equal file by file, except `Computing_Times.txt`, the standard output is equal, and no endpoint file is left.
 - A client that sends `set_delay_ms` with `--set-delay-ms`: the server accepts it, the run reports one `applied` event for it, and the output folder and the standard output are equal to those of a run without `--live`. A delay above the limit is answered with `bad_argument`, and the run reports no event for it.
-- A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.
+- A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality. The run that the client leaves is the whole Paimpol case with a frame for every step, because a run does not wait for a client: a shorter run can be half over before a client on a busy machine has joined.
 - A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.
 - A headless Paimpol run with `--live-commands` that the client stops at the hello: the stop is accepted, the status is `cancelled`, the program exits with 3 and prints `ERROR: The run was stopped before it completed.`, there is no `End of Simulation`, and no `TrainServicePathDiagram.txt` is written.
 - A window run (`QEGTRAIN_AUTOSTART`) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.
@@ -197,7 +197,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 ### Compatibility
 
 - The server speaks one version. It sets `v` to 1 in every frame, reply and in the endpoint file, and it rejects a request with another `v` as `bad_version`.
-- Within version 1 a frame, a reply or the endpoint file can get new members, an `event` can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know.
+- Within version 1 a frame, a reply or the endpoint file can get new members, an `event` can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know. In a run with passengers each train entry of a `state` frame also has `capacity` (next to `onboard`, the load) and the frame has a `platforms` array with `station_id`, `platform_id`, `waiting` and `capacity` per platform; a run without passengers has none of them.
 - A change that removes a member, changes a unit or the meaning of a member, or changes the rules of ordering or sampling raises `v`. A consumer stops when it sees a `v` that it does not know.
 - `docs/live/frame-v1.schema.json` names every member of every frame. `test_liveframe` checks the frames of the code against it and fails for a member that the schema does not name.
 

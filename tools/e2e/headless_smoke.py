@@ -61,8 +61,8 @@ ORIGINAL_CASE_PARITY = {
         "station_ids": "76ee593e12c0ed1fc4ead4d497d16dc3f658e8a13e4fd60d233f2d8b4d7c05b5",
         "route_ids": "b05b7d25ec4a281c582032a3b86c6cfef9c4cdd344be4da1340856531086b7ca",
         "trains": 2,
-        "representative": ("Guin-Paim-EXPRESS-1-1", 10, 0.595063, 2571, 37081.3, 250, 10),
-        "stops": ("9d358eb8bb2575c8111f98791e0f1bca7b84381fafba1197173f684e7a998331", 43, 2558, 10, 150),
+        "representative": ("Guin-Paim-EXPRESS-1-1", 10, 0.595063, 3114, 37076.9, 250, 10),
+        "stops": ("9d358eb8bb2575c8111f98791e0f1bca7b84381fafba1197173f684e7a998331", 43, 2906, 10, 150),
     },
     3: {
         "structure": (1513, 328, 94, 203, 24),

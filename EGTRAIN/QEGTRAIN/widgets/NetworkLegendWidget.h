@@ -11,7 +11,7 @@ enum class NetworkLegendEntryKind { Track, ///< A line in the colour and style o
 	Train,								   ///< A train body in its fill and outline.
 	Station,							   ///< The mark of a station class.
 	Signal,								   ///< A signal head.
-	Passenger };						   ///< The icon of iconResource, else a filled square.
+	Passenger };						   ///< A passenger figure beside a platform gauge.
 
 /// How a signal row draws its head: a lit lamp, an empty ring or a crossed lamp.
 enum class NetworkLegendSignalLook { Lamp, ///< A lamp filled with color, with the mark of signalCue.
@@ -33,7 +33,7 @@ struct NetworkLegendEntry {
 	NetworkLegendSignalLook signalLook = NetworkLegendSignalLook::Lamp; ///< How a signal head is drawn.
 	StationClass stationClass = StationClass::Station;					///< The mark of a station.
 	StationMarkStyle stationMarkStyle = StationMarkStyle::MapPin;		///< The style of the mark of a station.
-	QString iconResource;												///< The Qt resource path of the icon of a passenger row; empty for none.
+	QString iconResource;												///< The Qt resource path of the icon of a signal row; empty for none.
 };
 
 /// One train on the canvas. serviceId is empty for a train without a service.

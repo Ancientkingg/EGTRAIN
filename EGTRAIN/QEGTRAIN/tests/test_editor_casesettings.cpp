@@ -107,6 +107,7 @@ private slots:
 	void longDescriptionShowsStartAfterFocus();
 	void accessibilityStepsBySingleStep();
 	void namesCommandLineOverrides();
+	void editsPassengerTransfers();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -174,6 +175,36 @@ void TestCaseSettingsPanel::keepsUntouchedNumbers() {
 	QCOMPARE_EQ(kept.recoveryTimePercent, 3.0);
 	QCOMPARE_EQ(kept.durationSeconds, -60.0);
 	QCOMPARE(document.revision(), revision + 3);
+}
+
+// The transfer limit of live passenger journeys is shown, edited as one Undo step, kept when another field is edited, and
+// shown at the nearest limit while a stored value lies outside 0 to 10.
+void TestCaseSettingsPanel::editsPassengerTransfers() {
+	SceneModel scene = caseScene("Case T", "08:00:00");
+	CaseFixture f(scene);
+	SceneDocument& document = f.document;
+	CaseSettingsPanel& panel = f.panel;
+	// A case without the setting shows the default of 2.
+	QCOMPARE(panel.maxTransfersEdit()->value(), kDefaultPassengerMaxTransfers);
+	QVERIFY(panel.maxTransfersEdit()->isEnabled());
+	const quint64 revision = document.revision();
+	panel.maxTransfersEdit()->setValue(4);
+	// An edit is stored as one change.
+	QCOMPARE(document.model().settings.passengerMaxTransfers, 4);
+	QCOMPARE(document.revision(), revision + 1);
+	QCOMPARE(document.lastChangeLabel(), "Edit case settings");
+	typeAndLeave(panel.nameEdit(), "Renamed");
+	// A name edit keeps the transfer limit.
+	QCOMPARE(document.model().settings.passengerMaxTransfers, 4);
+
+	SceneModel outside = caseScene("Case U", "08:00:00");
+	outside.settings.passengerMaxTransfers = 12;
+	CaseFixture g(outside);
+	// A stored value above the range is shown at 10 and stays stored until the user edits the field.
+	QCOMPARE(g.panel.maxTransfersEdit()->value(), kMaxPassengerMaxTransfers);
+	g.panel.commitPendingEditors();
+	typeAndLeave(g.panel.nameEdit(), "Renamed");
+	QCOMPARE(g.document.model().settings.passengerMaxTransfers, 12);
 }
 
 void TestCaseSettingsPanel::namesFields() {

@@ -136,13 +136,20 @@ GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int tota
 		platform.stationId = "station " + std::to_string(p);
 		platform.platformId = "platform " + std::to_string(p);
 		platform.maxVolume = 50 + p;
-		for (int k = 0; k < (step + p) % 4; ++k) platform.passengerIds.push_back("pax " + std::to_string((step + k) % 7));
+		const char* statuses[] = {"waiting", "onboard", "arrived"};
+		for (int k = 0; k < (step + p) % 4; ++k) {
+			const int id = (step + k) % 7;
+			platform.passengers.push_back({"pax " + std::to_string(id), statuses[(step + k) % 3], "platform " + std::to_string(k % 2),
+				k == 1 ? std::string() : "train " + std::to_string(k), "station " + std::to_string((step + k) % 2),
+				k == 2 ? std::string() : "final " + std::to_string((step + k) % 3)});
+		}
+		// the destinations change at some steps only, as they do in a run
+		for (int d = 0; d < (step / 5 + p) % 3; ++d)
+			platform.destinations.push_back({"final " + std::to_string(d), 9 - d});
+		// Some of the passengers have no entry in the list.
+		platform.passengerCount = static_cast<int>(platform.passengers.size()) + (step % 3 == 0 ? 2 : 0);
 		snapshot.platforms.push_back(std::move(platform));
 	}
-	const char* statuses[] = {"waiting", "onboard", "arrived"};
-	for (int k = 0; k < 3; ++k)
-		snapshot.passengers.push_back({"pax " + std::to_string(k), statuses[(step + k) % 3], "platform " + std::to_string(k % 2),
-			k == 1 ? std::string() : "train " + std::to_string(k), "station " + std::to_string((step + k) % 2)});
 	if (step % 3 == 0) {
 		snapshot.virtualCouplingMessages.push_back({t - 5, "train 0", "couple " + std::to_string(t)});
 		snapshot.virtualCouplingMessages.push_back({t, "train 1", ""});
@@ -240,7 +247,6 @@ const StaticChange kStaticChanges[] = {
 	{"platform station", [](GuiSimulationSnapshot& s) { s.platforms[1].stationId += "x"; }},
 	{"platform id", [](GuiSimulationSnapshot& s) { s.platforms[1].platformId += "x"; }},
 	{"platform capacity", [](GuiSimulationSnapshot& s) { s.platforms[1].maxVolume += 1; }},
-	{"passenger id", [](GuiSimulationSnapshot& s) { s.passengers[1].id += "x"; }},
 	{"total steps", [](GuiSimulationSnapshot& s) { s.totalTimesteps += 1; }},
 };
 }
@@ -261,6 +267,7 @@ private slots:
 	void emptyAndSingleSecond();
 	void secondsComeBackAsRecorded();
 	void valueChangesBackWithinFiveSeconds();
+	void platformListsAndCountsReplay();
 	void seekBetweenKeyframes();
 	void newRunReplacesHistory();
 	void evictsWholeIntervals();
@@ -270,6 +277,8 @@ private slots:
 	void trainsDerivedFromSource();
 	void virtualCouplingFromSource();
 	void virtualCouplingFromRun();
+	void stationCallsFromSource();
+	void replayListsStationCallsOnlyOfARunWithPassengers();
 	void keepsSecondHandedOutLast();
 	void sameSecondSameObject();
 	void accountedBytes();
@@ -536,7 +545,7 @@ void TestGuiSimulationSnapshot::secondsComeBackAsRecorded() {
 	// The sample sets every recorded field to something other than its default in some second.
 	bool sawExited = false, sawArcs = false, sawLevel = false, sawNoLevel = false;
 	bool sawFailed = false, sawPrepared = false, sawBlocked = false;
-	bool sawPlatformIds = false, sawNextTrain = false, sawNoNextTrain = false;
+	bool sawPlatformIds = false, sawUnlisted = false, sawNextTrain = false, sawNoNextTrain = false;
 	for (const GuiSimulationSnapshot& snapshot : recorded) {
 		for (const GuiTrainState& train : snapshot.trains) {
 			sawExited = sawExited || train.outOfSimulation;
@@ -551,10 +560,13 @@ void TestGuiSimulationSnapshot::secondsComeBackAsRecorded() {
 			sawPrepared = sawPrepared || section.prepared;
 			sawBlocked = sawBlocked || section.blocked;
 		}
-		for (const GuiPlatformState& platform : snapshot.platforms) sawPlatformIds = sawPlatformIds || !platform.passengerIds.empty();
-		for (const GuiPassengerState& passenger : snapshot.passengers) {
-			sawNextTrain = sawNextTrain || !passenger.nextTrain.empty();
-			sawNoNextTrain = sawNoNextTrain || passenger.nextTrain.empty();
+		for (const GuiPlatformState& platform : snapshot.platforms) {
+			sawPlatformIds = sawPlatformIds || !platform.passengers.empty();
+			sawUnlisted = sawUnlisted || platform.passengerCount > static_cast<int>(platform.passengers.size());
+			for (const GuiPassengerState& passenger : platform.passengers) {
+				sawNextTrain = sawNextTrain || !passenger.nextTrain.empty();
+				sawNoNextTrain = sawNoNextTrain || passenger.nextTrain.empty();
+			}
 		}
 	}
 	QVERIFY(sawExited);
@@ -565,6 +577,7 @@ void TestGuiSimulationSnapshot::secondsComeBackAsRecorded() {
 	QVERIFY(sawPrepared);
 	QVERIFY(sawBlocked);
 	QVERIFY(sawPlatformIds);
+	QVERIFY(sawUnlisted);
 	QVERIFY(sawNextTrain);
 	QVERIFY(sawNoNextTrain);
 	QVERIFY(history.at(300)->trains[2].outOfSimulation);
@@ -584,8 +597,9 @@ void TestGuiSimulationSnapshot::valueChangesBackWithinFiveSeconds() {
 		if (t == 7 || t == 8) {
 			snapshot.signalStates[1].code = 751;
 			snapshot.sectionStates[2].blocked = !snapshot.sectionStates[2].blocked;
-			snapshot.platforms[0].passengerIds.push_back("late passenger");
-			snapshot.passengers[0].status = "boarding";
+			snapshot.platforms[0].passengers.push_back({"late passenger", "waiting", "platform 0", "train 9", "station 1"});
+			snapshot.platforms[0].passengerCount += 1;
+			snapshot.platforms[1].passengers[0].status = "boarding";
 			snapshot.trains[1].currentOnboardPassengers += 17;
 		}
 		return snapshot;
@@ -601,11 +615,41 @@ void TestGuiSimulationSnapshot::valueChangesBackWithinFiveSeconds() {
 	const auto changed = history.at(7);
 	QCOMPARE(changed->signalStates[1].code, 751);
 	QCOMPARE(changed->sectionStates[2].blocked, !base.sectionStates[2].blocked);
-	QCOMPARE(changed->platforms[0].passengerIds.back(), std::string("late passenger"));
-	QCOMPARE(changed->passengers[0].status, std::string("boarding"));
+	QCOMPARE(changed->platforms[0].passengers.back().id, std::string("late passenger"));
+	QCOMPARE(changed->platforms[0].passengerCount, base.platforms[0].passengerCount + 1);
+	QCOMPARE(changed->platforms[1].passengers[0].status, std::string("boarding"));
 	QCOMPARE(changed->trains[1].currentOnboardPassengers, base.trains[1].currentOnboardPassengers + 17);
 	QCOMPARE(history.at(9)->signalStates[1].code, base.signalStates[1].code);
 	QCOMPARE(history.at(9)->trains[1].currentOnboardPassengers, base.trains[1].currentOnboardPassengers);
+}
+
+// The lists that platforms show and their counts come back as recorded when both change, the count beyond the 50 that the
+// list holds and across the keyframes of the intervals, and an unlisted passenger adds only a count.
+void TestGuiSimulationSnapshot::platformListsAndCountsReplay() {
+	const auto stateAt = [](int t) {
+		GuiSimulationSnapshot snapshot = sampleSnapshot(t, 1, 40);
+		GuiPlatformState& platform = snapshot.platforms[0];
+		platform.passengers.clear();
+		const int listed = t % 7 == 0 ? 3 : kGuiPlatformPassengerIcons;
+		for (int k = 0; k < listed; ++k)
+			platform.passengers.push_back({"q" + std::to_string(t / 5 + k), t % 4 == 0 ? "OnPlatform" : "None", "P1", "T" + std::to_string(k % 3), "B"});
+		platform.passengerCount = listed + (t / 10) * 5 - (t > 25 ? 9 : 0);
+		return snapshot;
+	};
+	GuiReplayHistory history(GuiReplayHistory::payloadLimit, 10);
+	for (int t = 0; t < 40; ++t) history.record(shared(stateAt(t)));
+	QVERIFY(!history.truncated());
+	bool sawUnlisted = false;
+	for (int t = 0; t < 40; ++t) {
+		const auto replay = history.at(t);
+		QVERIFY2(sameRecorded(*replay, stateAt(t)), qPrintable(QString("second %1 is not as recorded").arg(t)));
+		const GuiPlatformState& platform = replay->platforms[0];
+		QCOMPARE(platform.passengerCount, stateAt(t).platforms[0].passengerCount);
+		sawUnlisted = sawUnlisted || platform.passengerCount > static_cast<int>(platform.passengers.size());
+	}
+	QVERIFY(sawUnlisted);
+	QCOMPARE(history.at(14)->platforms[0].passengers.size(), std::size_t(3));
+	QCOMPARE(history.at(15)->platforms[0].passengers.size(), std::size_t(kGuiPlatformPassengerIcons));
 }
 
 // With an interval of 10 seconds, a second between two keyframes, one on a keyframe and one before a keyframe are
@@ -746,7 +790,6 @@ void TestGuiSimulationSnapshot::countChangeRestarts() {
 		[](GuiSimulationSnapshot& s) { s.signalStates.pop_back(); },
 		[](GuiSimulationSnapshot& s) { s.sectionStates.push_back(s.sectionStates.back()); },
 		[](GuiSimulationSnapshot& s) { s.platforms.pop_back(); },
-		[](GuiSimulationSnapshot& s) { s.passengers.push_back(s.passengers.back()); },
 	};
 	for (const Change change : changes) {
 		GuiReplayHistory history(GuiReplayHistory::payloadLimit, 10);
@@ -925,6 +968,57 @@ void TestGuiSimulationSnapshot::virtualCouplingFromSource() {
 	QVERIFY(!guiVirtualCouplingMessageShown(100, 99));
 }
 
+// The calls of the source show from the step they began, the latest three of a station, newest first, and a call that has
+// not left by the step has no counts.
+// The window lists the calls of a station only in a run with passengers, and so does the replay of that run: a run without
+// passengers gives the replay no calls, although its trains stop at stations too.
+void TestGuiSimulationSnapshot::replayListsStationCallsOnlyOfARunWithPassengers() {
+	SimulationRun run;
+	Train train;
+	train.trainDescription = "IC 1";
+	train.numStations = 1;
+	train.Stations.resize(1);
+	train.Stations[0].stationName = "A";
+	train.Stations[0].StepStopped = 5;
+	train.StationStandStarts[0] = 10;
+	run.trains.push_back(train);
+	run.numTrains = 1;
+	QVERIFY(makeGuiReplayTrains(run, {})->stationCalls.empty());
+
+	run.passengers.emplace_back();
+	const std::shared_ptr<const GuiReplayTrains> withPassengers = makeGuiReplayTrains(run, {});
+	QCOMPARE(withPassengers->stationCalls.size(), std::size_t(1));
+	QCOMPARE(withPassengers->stationCalls[0].station, std::string("A"));
+}
+
+void TestGuiSimulationSnapshot::stationCallsFromSource() {
+	GuiReplayHistory history;
+	for (int t = 0; t < 150; ++t) history.record(shared(sampleSnapshot(t, 3, 150)));
+	auto source = std::make_shared<GuiReplayTrains>();
+	for (int arrival : {10, 40, 70, 100}) {
+		GuiStationCall call;
+		call.station = "A";
+		call.train = "T" + std::to_string(arrival);
+		call.arrival = arrival;
+		call.departure = arrival + 20;
+		call.boarded = arrival;
+		source->stationCalls.push_back(call);
+	}
+	history.setTrains(source);
+	QVERIFY(history.at(9)->stationCalls.empty());
+	const auto at80 = history.at(80)->stationCalls;
+	QCOMPARE(at80.size(), std::size_t(3));
+	QCOMPARE(at80[0].train, std::string("T70"));
+	QVERIFY(!at80[0].counted);
+	QVERIFY(at80[1].counted);
+	QCOMPARE(at80[2].train, std::string("T10"));
+	const auto at149 = history.at(149)->stationCalls;
+	QCOMPARE(at149.size(), std::size_t(3));
+	QCOMPARE(at149[0].train, std::string("T100"));
+	QCOMPARE(at149[2].train, std::string("T40"));
+	QVERIFY(at149[0].counted);
+}
+
 // The messages that a run holds, pushed in the steps that the simulation pushes them in, reach the replay through
 // makeGuiReplayTrains and show from their step up to 40 seconds after it, and not outside that window.
 void TestGuiSimulationSnapshot::virtualCouplingFromRun() {
@@ -1071,10 +1165,11 @@ void TestGuiSimulationSnapshot::storesStringsOnce() {
 	GuiReplayHistory passengersOnly(8u << 20);
 	auto crowd = std::make_shared<GuiSimulationSnapshot>();
 	crowd->totalTimesteps = 1000;
-	crowd->passengers.resize(10000);
-	for (std::size_t i = 0; i < crowd->passengers.size(); ++i) {
-		crowd->passengers[i].id = "p" + std::to_string(i);
-		crowd->passengers[i].status = std::string(1000, 'p');
+	crowd->platforms.resize(200);
+	for (std::size_t i = 0; i < 10000; ++i) {
+		GuiPlatformState& platform = crowd->platforms[i / kGuiPlatformPassengerIcons];
+		platform.passengers.push_back({"p" + std::to_string(i), std::string(1000, 'p'), {}, {}, {}});
+		platform.passengerCount = static_cast<int>(platform.passengers.size());
 	}
 	for (int t = 0; t < 12; ++t) {
 		auto second = std::make_shared<GuiSimulationSnapshot>(*crowd);
@@ -1085,8 +1180,8 @@ void TestGuiSimulationSnapshot::storesStringsOnce() {
 	QVERIFY(!passengersOnly.truncated());
 	QCOMPARE(passengersOnly.lastTime(), 11);
 	QCOMPARE_LE(passengersOnly.payloadBytes(), passengersOnly.budgetBytes());
-	QCOMPARE(passengersOnly.at(5)->passengers[9999].status, std::string(1000, 'p'));
-	crowd->passengers.front().status = std::string(passengersOnly.budgetBytes(), 'x');
+	QCOMPARE(passengersOnly.at(5)->platforms[199].passengers[49].status, std::string(1000, 'p'));
+	crowd->platforms.front().passengers.front().status = std::string(passengersOnly.budgetBytes(), 'x');
 	crowd->timestep = 12;
 	passengersOnly.record(crowd);
 	// An oversize second disables replay.

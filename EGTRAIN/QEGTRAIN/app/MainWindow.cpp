@@ -120,6 +120,7 @@
 #include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
+#include "editors/PassengerDemandPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/SceneDocument.h"
@@ -817,6 +818,10 @@ void MainWindow::connectSceneToInspector() {
 	connect(scene, &NetworkScene::MousePressedOnSignal, m_inspector, &InspectorPanel::displaySignallingInfo);
 	connect(scene, &NetworkScene::MousePressedOnTrain, m_inspector, &InspectorPanel::displayTrainInfo);
 	connect(scene, &NetworkScene::MousePressedOnPassenger, m_inspector, &InspectorPanel::displayPassengerInfo);
+	// A click on the mark, a platform bar or the count of a station opens its card; a click on empty canvas closes the cards.
+	connect(scene, &NetworkScene::MousePressedOnStation, this,
+		[this](const QString& station) { m_presenter->openStationCallout(station, m_snapshot.get()); });
+	connect(scene, &NetworkScene::DisableHighlight, this, [this] { m_presenter->closeStationCallouts(); });
 	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
 	// Mac keyboards have no Menu key, so Shift+F10 asks for the menu of the selected item there and everywhere.
 	for (const QKeySequence& keys : {QKeySequence(Qt::SHIFT | Qt::Key_F10), QKeySequence(Qt::Key_Menu)}) {
@@ -1231,6 +1236,7 @@ void MainWindow::setupValidationDocks() {
 	connect(m_validation, &ValidationPanel::refreshed, this, [this] {
 		m_editorDocks.scenarioPanel()->refresh();
 		m_editorDocks.passengerPanel()->refresh();
+		m_editorDocks.demandPanel()->refresh();
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
@@ -2066,8 +2072,8 @@ void MainWindow::openEntityEditor(const QString& targetType, const QString& targ
 
 // The editor of the item that a row of Case Validation names: the row of an infrastructure item (a track, node, arc,
 // block, connection, station, signal, signalling area or route) selected in Infrastructure, which marks it on the network
-// view, or the row of a unit, composition, service or incident, or of a passenger, journey or leg in Passengers. A kind
-// without an editor row does nothing.
+// view, or the row of a unit, composition, service or incident, or of a passenger, journey or leg on the tab Passengers,
+// or a demand slice on the tab Demand. A kind without an editor row does nothing.
 void MainWindow::openDiagnosticItem(const QString& itemType, const QString& itemId) {
 	if (itemType.isEmpty())
 		return;
@@ -2076,8 +2082,19 @@ void MainWindow::openDiagnosticItem(const QString& itemType, const QString& item
 		revealEditorDock(m_editorDocks.infrastructureDock());
 		return;
 	}
-	if (PassengerPanel* panel = m_editorDocks.passengerPanel(); panel && panel->selectEntity(itemType, itemId)) {
+	// The two passenger editors share a dock: the tab of the editor that has the item comes to the front.
+	const auto showPassengerTab = [this](QWidget* tab) {
+		if (auto* tabs = m_editorDocks.passengerDock()->findChild<QTabWidget*>("passengerDockTabs"))
+			tabs->setCurrentWidget(tab);
 		revealEditorDock(m_editorDocks.passengerDock());
+	};
+	if (PassengerPanel* panel = m_editorDocks.passengerPanel(); panel && panel->selectEntity(itemType, itemId)) {
+		showPassengerTab(panel);
+		return;
+	}
+	if (PassengerDemandPanel* panel = m_editorDocks.demandPanel();
+		panel && itemType == QLatin1String("demand_slice") && panel->selectSlice(itemId)) {
+		showPassengerTab(panel);
 		return;
 	}
 	openEntityEditor(itemType, itemId, captureTelemetryOperation());
@@ -2501,7 +2518,7 @@ QString viewIncidentText(const QString& what) {
 IncidentTarget signalFailureOf(const SceneModel& model, const std::string& section, QString* why) {
 	const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
 	if (!target.empty())
-		return {"signal_failure", QString::fromStdString(target), 0};
+		return {IncidentType::SignalFailure, QString::fromStdString(target), 0};
 	if (why)
 		*why = QStringLiteral("No block or signal to fail here");
 	return {};
@@ -2561,13 +2578,13 @@ IncidentTarget MainWindow::trainIncidentTarget(int trainIndex, QString* why) con
 			*why = QStringLiteral("This train runs no service");
 		return {};
 	}
-	return {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
+	return {IncidentType::TrainBreakdown, QString::fromStdString(train->serviceId), train->occurrence};
 }
 
 QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const {
 	if (m_runController->running())
 		return QStringLiteral("Not available while the case runs");
-	if (target.type.isEmpty())
+	if (!target.type)
 		return why;
 	if (!m_editorDocks.incidentPanel()->offersTarget(target))
 		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
@@ -2597,7 +2614,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		if (!m_editorDocks.incidentPanel()->addIncident(target)) {
 			// The target can have gone since the menu or the button was shown.
 			const QString blocked = viewIncidentBlocked(target,
-				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
+				target.type == IncidentType::TrainBreakdown ? QStringLiteral("train") : QStringLiteral("signal"), QString());
 			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
 			return;
 		}
@@ -2607,7 +2624,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		m_editorDocks.incidentPanel()->startSecondsEdit()->setFocus(Qt::OtherFocusReason);
 		m_editorDocks.incidentPanel()->startSecondsEdit()->selectAll();
 		// As short as the hint of a pick.
-		const QString added = target.type == "train_breakdown"
+		const QString added = target.type == IncidentType::TrainBreakdown
 			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
 			: QStringLiteral("Added a signal failure of %1").arg(target.id);
 		statusBar()->showMessage(added + (discardsResults ? QStringLiteral(". Run results discarded.") : QStringLiteral(".")), 8000);
@@ -2689,8 +2706,9 @@ void MainWindow::updateCaseLayersPanel() {
 }
 
 void MainWindow::updatePassengerSwitch() {
-	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
+	const bool hasPassengers = m_document->isLoaded() && m_document->model().hasPassengers();
 	const QString passengerTip = hasPassengers ? QString() : QStringLiteral("This case has no passengers");
+	m_presenter->setCaseHasPassengers(hasPassengers);
 	m_passengerLayerCheck->setEnabled(hasPassengers);
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);
@@ -3951,7 +3969,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->runSignals().isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->previewHasSignals();
-	content.hasPassengers = !preview && passengerGui() && m_presenter->passengerLayerVisible() && !m_document->model().passengers.empty();
+	content.hasPassengers = !preview && passengerGui() && m_presenter->passengerLayerVisible() && m_document->model().hasPassengers();
 	m_networkLegendWidget->setCaseContent(content);
 }
 

@@ -135,6 +135,14 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-full-gui1
 	pax-transfer-gui0
 	pax-transfer-gui1
+	pax-live-direct
+	pax-live-transfer
+	pax-live-full
+	pax-fixed-missed
+	pax-live-noroute
+	pax-live-missed
+	pax-live-full-gui1
+	pax-live-missed-gui1
 	entrance-delay-f2-level-0
 	breakdown-f1-level-0)
 
@@ -291,3 +299,15 @@ add_test(NAME characterization_signalling_aspects
 	COMMAND test_signalling_aspects --expect ${EGTRAIN_CHARACTERIZATION_EXPECTED}/signalling-aspects.txt
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(characterization_signalling_aspects PROPERTIES LABELS "characterization;unit" TIMEOUT 60)
+
+# A faster follower catches a slower running leader on the line fixture: at level 4 it couples, follows and never overlaps the
+# leader, and at level 3 it never enters following mode. No expected file; the checks are in the test.
+add_executable(test_virtual_coupling ${SRC_DIR}/tests/characterization/test_virtual_coupling.cpp)
+target_link_libraries(test_virtual_coupling PRIVATE egtrain_dispatch egtrain_diagrams egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
+add_test(NAME characterization_virtual_coupling
+	COMMAND test_virtual_coupling --fixture ${EGTRAIN_CHARACTERIZATION_FIXTURE}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(characterization_virtual_coupling PROPERTIES
+	LABELS "characterization;unit"
+	TIMEOUT 60
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

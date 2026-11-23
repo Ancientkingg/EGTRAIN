@@ -200,7 +200,8 @@ scripts that build, sign and check the release packages.
   [Self-hosted publication](#self-hosted-publication)). It is a job of its own,
   so that it can run again after the release exists. Before
   building, the pipeline increments the highest patch version
-  among the CMake baseline, existing stable tags, and reserved release versions.
+  among the CMake baseline, existing stable tags, and reserved release versions,
+  unless a release has notes in `docs/releases/` (see [Named releases](#named-releases)).
   Every build job, the package metadata and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
   `update-manifest.json` has one entry per distribution key under `assets`, each with
@@ -248,6 +249,9 @@ scripts that build, sign and check the release packages.
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,
   rerun all jobs on the latest production commit to allocate a new version.
+  A named release is the exception: a draft that a failed run left for a version
+  with a notes file stops the next run. Delete that draft release, then rerun all
+  jobs, so that the release keeps its version and name.
 - `v*` tags supply their application version explicitly. Tags containing a
   prerelease suffix remain prereleases and are not offered by the updater.
   `workflow_dispatch` validates the pipeline without publishing.
@@ -255,6 +259,22 @@ scripts that build, sign and check the release packages.
   A stable release appears in the update checks of the application once the job
   `publish-site` has added it to the update feed of the website, after its files.
   Copies of EGTRAIN 1.0.5 and earlier read the releases that the release job creates instead.
+
+### Named releases
+
+A file `docs/releases/X.Y.Z.md` names release X.Y.Z and holds its notes. Its first line is `# Title` and the notes
+follow. The release is called `EGTRAIN vX.Y.Z: Title`, and the GitHub release, its page and the update feed on the
+website, and the update check of the application show the notes. The update check shows about the first 360
+characters, so the notes open with a short paragraph that stands alone. A release without such a file is called
+`EGTRAIN vX.Y.Z` and has the standard text. `tools/release/version.py name TAG` and `version.py notes TAG` print the
+name and the notes that the release job uses. Add a new notes file to the Release contents in `docs/index.md`.
+
+A push to `production` publishes the lowest version of a notes file that is above every stable tag and every reserved
+release version, and the next patch version when there is none. A minor or major release is therefore prepared by
+adding its notes file on `main` before the release branch is cut. A run that does not publish prints the version and
+name that a push of its commit to `production` would publish, in the step **Select version**, so the run of the release
+pull request shows it before the merge. A file in `docs/releases/` with another name, or without a title line or notes,
+stops the run.
 
 Pushes and pull requests to `production` skip the release workflow when changes
 are limited to Markdown files (`**.md`), `docs/`, the root `LICENSE`, or

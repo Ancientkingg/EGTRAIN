@@ -13,6 +13,7 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QSpinBox;
 class QTabWidget;
 class QTableWidget;
 
@@ -23,7 +24,8 @@ class QTableWidget;
 /// speed (m/s), maximum deceleration (m/s²), frontal area (m²), resistance coefficient (the factor of the speed term of
 /// the wagon resistance; no unit is stated), jerk (m/s³) and length (m). A traction curve row holds the lower and upper
 /// speed of its band in m/s and the coefficients c0, c1 and c2 of the tractive effort c0 + c1 v + c2 v² in N, with v in
-/// m/s.
+/// m/s. The passenger capacity below the physical values shows "Default" when the unit has none, and its trains then take
+/// the capacity from the number of wagons.
 class TrainUnitPanel : public SceneEditorPanel, public EditorLayout::PreferredWidth {
 	Q_OBJECT
 
@@ -65,6 +67,8 @@ public:
 	/// Takes the value of the physical field with this index, 0 to PhysicalFieldCount - 1, from its editor. The unit then
 	/// has physical values.
 	void commitPhysical(int fieldIndex);
+	/// Takes the passenger capacity from its field; "Default" removes it from the unit.
+	void commitPassengerCapacity();
 	/// Appends a traction curve row whose speed band starts at the upper speed of the last row, or at 0 m/s when the
 	/// curve is empty, and is 1 m/s wide, with zero coefficients.
 	void addTractionRow();
@@ -92,6 +96,8 @@ public:
 	QTabWidget* tabs() const { return m_tabs; }
 	/// The editors of the physical values, in the order and units of the class description.
 	const std::array<QDoubleSpinBox*, PhysicalFieldCount>& physicalEdits() const { return m_physicalEdits; }
+	/// The passenger capacity of the unit; its minimum, -1, shows "Default" and stands for none.
+	QSpinBox* passengerCapacityEdit() const { return m_passengerCapacityEdit; }
 	/// The reference to the parameter file of the unit; it may be empty.
 	QLineEdit* sourceDataEdit() const { return m_sourceDataEdit; }
 	/// The reference to the traction file of the unit; it may be empty.
@@ -149,6 +155,7 @@ private:
 	QLabel* m_emptyStateLabel = nullptr;
 	QTabWidget* m_tabs = nullptr;
 	std::array<QDoubleSpinBox*, PhysicalFieldCount> m_physicalEdits{};
+	QSpinBox* m_passengerCapacityEdit = nullptr;
 	QLineEdit* m_sourceDataEdit = nullptr;
 	QLineEdit* m_sourceTractionEdit = nullptr;
 	QPushButton* m_linkDataButton = nullptr;

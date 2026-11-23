@@ -99,7 +99,10 @@ one row containing `category`, optional `source_file`, `source_count`,
 The scene-level simulation settings are deliberately small: `base_time`,
 `simulation_settings.duration_seconds`,
 `simulation_settings.buffer_time_seconds`, and
-`simulation_settings.recovery_time_percent`. Legacy case counts, GUI flags,
+`simulation_settings.recovery_time_percent`, the optional
+`simulation_settings.passenger_max_transfers`, and the optional passenger dwell
+keys (`passenger_dwell_coefficients` and the three crowding thresholds), which
+the writer leaves out while they are absent. Legacy case counts, GUI flags,
 output paths, and network feature flags are not scene-model settings.
 
 Services keep physical and traction provenance explicit. A train unit's
@@ -162,7 +165,8 @@ preserve it; legacy export omits it. A non-empty value in any other form
 gives the warning `scene.service.color.invalid`, which does not block Run, and
 the default train colour is used for that service.
 
-Passenger journey windows use absolute seconds from midnight. They are not
+Passenger journey windows use absolute seconds from midnight, which the Passengers
+dock shows and accepts as a time of day, `HH:MM:SS`. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
 are read only by explicit legacy import and written only by explicit legacy
 export.

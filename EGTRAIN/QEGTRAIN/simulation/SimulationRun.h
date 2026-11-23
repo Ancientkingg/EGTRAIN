@@ -4,6 +4,9 @@
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
+#include "simulation/PassengerFlow.h"
+#include "simulation/PassengerJourneys.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -99,7 +102,7 @@ struct RunInfrastructure {
 ///
 /// Besides the run, the simulation uses this process-wide state: initial_variables (the options, which the operations
 /// builder reads and writes and prepareScene copies into settings), the controller simulation, SimulationWorker::active(),
-/// and the constants timestep (1 s), signalCode1 to signalCode3.
+/// and the constants timestep (1 s), signalCode1 and signalCode2.
 struct SimulationRun {
 	/// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
 	/// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
@@ -136,6 +139,15 @@ struct SimulationRun {
 	PassengerIndex passengerIndex;
 	/// Looks platforms up by ID. The rule of passengerIndex applies.
 	PlatformIndex platformIndex;
+	/// Where the passengers are: the journeys about to start, the passengers on board and those waiting at the platforms. The
+	/// passenger step builds it from the passengers when it first needs it, and reset() and adopt() empty it.
+	PassengerFlow passengerFlow;
+	/// The router of the run and what the passenger step needs to plan journeys on it. Built when the step first needs it, and
+	/// reset() and adopt() empty it with passengerFlow.
+	PassengerJourneys passengerJourneys;
+	/// What the passenger step counted at each call of a train at a stop, for StationStops.txt. reset() and adopt() empty it
+	/// with passengerFlow.
+	StopCallLog stopCalls;
 
 	/// Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.
 	DelayStats totalInputDelays;
@@ -187,7 +199,7 @@ double trainXPositionOf(const Train& train, int t, int wagon = 0);
 
 // These two read the route of the train, so they are defined here and not in RollingStock.h.
 inline bool Train::obeysAuthority(const MovementAuthority& authority) const {
-	return authority.type != "SignalFailure" || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
+	return authority.type != AuthorityKind::SignalFailure || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
 }
 
 inline double Train::authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {

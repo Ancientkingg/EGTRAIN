@@ -324,6 +324,11 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 		result.units.push_back(it->second);
 	}
 
+	result.passengerCapacity = 0;
+	for (const SceneTrainUnit* unit : result.units)
+		result.passengerCapacity = unit->hasPassengerCapacity && result.passengerCapacity >= 0
+			? result.passengerCapacity + unit->passengerCapacity
+			: -1;
 	if (result.units.size() == 1) {
 		result.physical = result.units.front()->physical;
 		result.tractionCurve = result.units.front()->tractionCurve;
@@ -493,7 +498,7 @@ bool sceneFileWritten(const SceneFile& file, const SceneModel& scene) {
 		case SceneFileWrite::WithViews:
 			return !scene.trackViews.empty() || !scene.stationViews.empty();
 		case SceneFileWrite::WithPassengers:
-			return !scene.passengers.empty();
+			return !scene.passengers.empty() || !scene.passengerDemand.empty();
 		case SceneFileWrite::Never:
 			return false;
 	}
@@ -651,4 +656,32 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 
 	result.inputSnapshot = buildSceneDirectorySnapshot(inputFiles);
 	return result;
+}
+
+const char* incidentTypeName(IncidentType type) {
+	return type == IncidentType::TrainBreakdown ? "train_breakdown" : "signal_failure";
+}
+
+bool incidentTypeFromName(const std::string& name, IncidentType& type) {
+	if (name == "signal_failure")
+		type = IncidentType::SignalFailure;
+	else if (name == "train_breakdown")
+		type = IncidentType::TrainBreakdown;
+	else
+		return false;
+	return true;
+}
+
+std::optional<int> sceneBaseTimeSeconds(const std::string& text) {
+	if (text.size() != 8 || text[2] != ':' || text[5] != ':')
+		return std::nullopt;
+	for (const std::size_t index : {std::size_t(0), std::size_t(1), std::size_t(3), std::size_t(4), std::size_t(6), std::size_t(7)})
+		if (text[index] < '0' || text[index] > '9')
+			return std::nullopt;
+	const int hours = (text[0] - '0') * 10 + (text[1] - '0');
+	const int minutes = (text[3] - '0') * 10 + (text[4] - '0');
+	const int seconds = (text[6] - '0') * 10 + (text[7] - '0');
+	if (hours > 23 || minutes > 59 || seconds > 59)
+		return std::nullopt;
+	return hours * 3600 + minutes * 60 + seconds;
 }

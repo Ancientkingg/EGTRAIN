@@ -294,6 +294,7 @@ private slots:
 	void reportsFolderThatCannotBeRead();
 	void reportsMalformedSceneFiles();
 	void reportsMalformedScenarioItems();
+	void reportsUnknownIncidentType();
 	void reportsMalformedPassengers();
 };
 
@@ -1373,6 +1374,33 @@ void TestSceneImporter::readsStationNamesWithSpaces() {
 	QCOMPARE(stops[1].stationId, std::string("MorengoBariano"));
 	// No timetable row refers to an unresolved station.
 	QVERIFY(!hasDiag(imported.diagnostics, "scene.import.ref", SceneSeverity::Warning));
+}
+
+// An incident type that is not signal_failure or train_breakdown is reported once, where a scene file or a legacy row is
+// read, and gives no incident.
+void TestSceneImporter::reportsUnknownIncidentType() {
+	const auto countType = [](const std::vector<SceneDiagnostic>& diagnostics) {
+		return std::count_if(diagnostics.begin(), diagnostics.end(),
+			[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "scene.incident.type"; });
+	};
+	TempDir directory;
+	const json incident = {{"id", "i"}, {"type", "meteor"}, {"target", "t"}, {"start_seconds", 1}, {"end_seconds", 2}};
+	const json scenario = {{"id", "s"}, {"name", "n"}, {"incidents", json::array({incident})}};
+	writeText(fs::path(directory.dir) / "scenarios.json",
+		json({{"default_scenario_id", "s"}, {"scenarios", json::array({scenario})}}).dump());
+	const SceneLoadResult loaded = loadScene(directory.dir);
+	// A scene file with an unknown incident type reports it once and keeps no incident.
+	QCOMPARE(countType(loaded.diagnostics), 1);
+	QVERIFY(loaded.scene.scenarios[0].incidents.empty());
+
+	TempDir root;
+	const fs::path legacy = fs::path(root.dir) / "legacy";
+	writeSmallLegacyCase(legacy);
+	writeText(legacy / "Incidents.txt", "meteor\t0-B0\t10\t20\nsignal_failure\t0-B0\t30\t40\n");
+	const SceneImportResult imported = importLegacyScene(legacy.string(), (fs::path(root.dir) / "scene").string(), "Meteor");
+	// A legacy row with an unknown incident type reports it once and is skipped; the other row is kept.
+	QCOMPARE(countType(imported.diagnostics), 1);
+	QVERIFY(!imported.success());
 }
 
 // A case with three routes and an incident and then a case with one route and none, exported into the same folder,
