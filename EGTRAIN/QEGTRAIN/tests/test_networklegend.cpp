@@ -288,8 +288,9 @@ void TestNetworkLegend::labelsFollowTheWidth() {
 	NetworkLegendWidget& legend = f.legend;
 	const auto labelAt = [&legend](int width, int index) {
 		legend.setFixedWidth(width);
-		QApplication::processEvents();
-		QApplication::processEvents();
+		// A label sets its wrapped height when it is resized, and its row grows a few event loop passes later.
+		for (int i = 0; i < 6; ++i)
+			QApplication::processEvents();
 		auto* label = legend.findChild<QLabel*>(QString("mapKeyEntry%1").arg(index));
 		return label;
 	};
@@ -303,8 +304,14 @@ void TestNetworkLegend::labelsFollowTheWidth() {
 	const int shortest = wide->heightForWidth(4000);
 	QCOMPARE_EQ(wide->heightForWidth(wideWidth), shortest);
 	QCOMPARE_LE(wide->minimumHeight(), shortest);
+	// At the width of the key in a dock of default width the speed ranges take one line.
+	for (int index : {0, 1}) {
+		QLabel* atDefault = labelAt(170, index);
+		QVERIFY2(atDefault != nullptr, "the map key lacks a speed row");
+		QCOMPARE_EQ(atDefault->heightForWidth(atDefault->width()), atDefault->heightForWidth(4000));
+	}
 	// A narrow key wraps the speed range and the wrapped text stays within its row.
-	QLabel* narrow = labelAt(140, 0);
+	QLabel* narrow = labelAt(120, 0);
 	QVERIFY2(narrow != nullptr, "the map key lacks its first row");
 	QCOMPARE_LT(narrow->width(), wideWidth);
 	QCOMPARE_GT(narrow->heightForWidth(narrow->width()), shortest);
@@ -400,7 +407,7 @@ void TestNetworkLegend::previewKeyExplainsMarkOfSelectedItem() {
 	content.hasSelectedItem = true;
 	content.stationVisuals = {classifyStation(true)};
 	legend.setCaseContent(content);
-	QCOMPARE(legend.entryLabels(), QStringList({"High speed track (200+ km/h)", "Mainline track (120+ km/h)", "Local track", "Selected item", "Station"}));
+	QCOMPARE(legend.entryLabels(), QStringList({"Track 200+ km/h", "Track 120+ km/h", "Local track", "Selected item", "Station"}));
 	const NetworkLegendEntry selected = legend.entries().at(3);
 	QCOMPARE(selected.color, kNetworkMarkColor);
 	QCOMPARE(selected.lineWidth, qRound(NetworkMarkItem::BandPixels));
@@ -683,7 +690,7 @@ void TestNetworkLegend::wrappedTextFitsRail() {
 	// The first row is the high speed track.
 	if (highSpeed == nullptr)
 		QFAIL("the map key has no first row");
-	QVERIFY(highSpeed->text().startsWith("High speed track"));
+	QVERIFY(highSpeed->text().startsWith("Track 200+"));
 	const QString text = highSpeed->text();
 	const int unitStart = text.indexOf("km");
 	const int unitEnd = text.indexOf('h', unitStart);
