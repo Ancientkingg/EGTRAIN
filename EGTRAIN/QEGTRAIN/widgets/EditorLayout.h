@@ -116,6 +116,16 @@ public:
 	explicit DockScrollArea(QWidget* parent = nullptr)
 		: QScrollArea(parent) {}
 
+	/// Sets the panel of the area. QScrollArea asks a panel for its height at its width only when the layout of the panel
+	/// or its size policy depends on the width. A QTabWidget has no layout, so its policy says so here: a tab with wrapped
+	/// text then gets its full height and the area scrolls, instead of squeezing the fields of the tab.
+	void setWidget(QWidget* panel) {
+		QSizePolicy policy = panel->sizePolicy();
+		policy.setHeightForWidth(true);
+		panel->setSizePolicy(policy);
+		QScrollArea::setWidget(panel);
+	}
+
 	/// The width that the panel needs now, within the limits described above.
 	QSize sizeHint() const override {
 		QSize hint = QScrollArea::sizeHint();

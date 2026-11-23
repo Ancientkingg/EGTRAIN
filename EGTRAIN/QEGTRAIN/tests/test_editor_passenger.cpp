@@ -8,6 +8,7 @@
 #include "scene/SceneDiagnostic.h"
 #include "support/FakePrompts.h"
 #include "widgets/ChoiceComboBox.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -19,6 +20,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QScopeGuard>
 #include <QSpinBox>
 #include <QStringList>
@@ -270,6 +272,7 @@ private slots:
 	void forgetsDeletedDocument();
 	void importsPassengers();
 	void calloutsShowSelectedPassenger();
+	void journeyFieldsKeepTheirHeightInShortDock();
 	void showsInvalidValues();
 	void importRejectsTakenIds();
 	void importRejectsRepeatedIds();
@@ -1323,6 +1326,44 @@ void TestPassengerPanel::importReportsRejectedPassengers() {
 	QVERIFY(merge.accepted.empty());
 	QVERIFY(merge.report.empty());
 	QVERIFY(!merge.changesScene());
+}
+
+// In a short, narrow dock with a long warning the journey fields keep their height, and the dock scrolls instead.
+void TestPassengerPanel::journeyFieldsKeepTheirHeightInShortDock() {
+	SceneDocument document;
+	document.replace(passengerScene(), false);
+	// The dock content as the window builds it: a tab widget with the panel, in the scroll area of an editor dock.
+	EditorLayout::DockScrollArea scroll;
+	scroll.setWidgetResizable(true);
+	auto* tabs = new QTabWidget();
+	auto* panel = new PassengerPanel(tabs);
+	tabs->addTab(panel, "Passengers");
+	tabs->addTab(new QWidget(tabs), "Demand");
+	scroll.setWidget(tabs);
+	panel->setDocument(&document);
+	SceneDiagnostic warning;
+	warning.severity = SceneSeverity::Warning;
+	warning.message = "Planned arrival window ends before the planned departure window starts, and no service of the "
+					  "timetable reaches the destination station inside the arrival window of this journey";
+	warning.itemType = "journey";
+	warning.itemId = "J1";
+	std::vector<SceneDiagnostic> diagnostics = {warning, warning, warning};
+	panel->setDiagnostics(&diagnostics);
+	panel->refresh();
+	scroll.resize(340, 360);
+	scroll.show();
+	QVERIFY(QTest::qWaitForWindowExposed(&scroll));
+	panel->journeyList()->setCurrentRow(0);
+	QCoreApplication::processEvents();
+	QVERIFY(!panel->warningLabel()->isHidden());
+	std::vector<QWidget*> fields = {panel->journeyIdEdit(), panel->journeyActivityEdit(), panel->journeyOriginCombo(),
+		panel->journeyDestinationCombo()};
+	for (QLineEdit* edit : panel->journeyWindowEdits())
+		fields.push_back(edit);
+	for (const QWidget* field : fields)
+		QVERIFY2(field->height() >= field->minimumSizeHint().height(),
+			qPrintable(QStringLiteral("%1 is %2 px high, needs %3").arg(field->objectName()).arg(field->height()).arg(field->minimumSizeHint().height())));
+	QVERIFY(scroll.verticalScrollBar()->maximum() > 0);
 }
 
 QTEST_MAIN(TestPassengerPanel)
