@@ -334,10 +334,10 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	m_entries.clear();
 	if (content.hasTracks) {
-		NetworkLegendEntry high = trackEntry("High speed track (200+ km/h)", TrackOperationalState::Free);
+		NetworkLegendEntry high = trackEntry("Track 200+ km/h", TrackOperationalState::Free);
 		high.color = classifyTrackSpeed(200.0 / 3.6).color;
 		high.lineWidth = 4;
-		NetworkLegendEntry main = trackEntry("Mainline track (120+ km/h)", TrackOperationalState::Free);
+		NetworkLegendEntry main = trackEntry("Track 120+ km/h", TrackOperationalState::Free);
 		main.color = classifyTrackSpeed(120.0 / 3.6).color;
 		main.lineWidth = 3;
 		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
