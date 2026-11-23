@@ -1684,6 +1684,13 @@ void NetworkPresenter::refreshStationCounts() {
 	}
 }
 
+StationOverlayItem* NetworkPresenter::stationOverlay(const std::string& station, bool withMark) const {
+	for (StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+		if (overlay && (!withMark || overlay->pictureItem()) && overlay->stationName().toStdString() == station)
+			return overlay;
+	return nullptr;
+}
+
 void NetworkPresenter::updateStationCounts() {
 	struct Total {
 		int waiting = 0;
@@ -1715,12 +1722,7 @@ void NetworkPresenter::updateStationCounts() {
 			[&station](const StationCount& candidate) { return candidate.station == station; });
 		if (entry == m_stationCounts.end()) {
 			// the first overlay of the station carries the pill
-			StationOverlayItem* overlay = nullptr;
-			for (StationOverlayItem* candidate : std::as_const(m_stationOverlays))
-				if (candidate && candidate->stationName().toStdString() == station) {
-					overlay = candidate;
-					break;
-				}
+			StationOverlayItem* overlay = stationOverlay(station, false);
 			if (!overlay)
 				continue;
 			StationCount created;
@@ -3682,10 +3684,7 @@ void NetworkPresenter::openStationCallout(const QString& stationName, const GuiS
 	if (!m_scene || !snapshot || !passengerGui() || !m_passengerLayerVisible)
 		return;
 	const std::string station = stationName.toStdString();
-	const bool marked = std::any_of(m_stationOverlays.begin(), m_stationOverlays.end(), [&station](const StationOverlayItem* overlay) {
-		return overlay && overlay->pictureItem() && overlay->stationName().toStdString() == station;
-	});
-	if (!marked)
+	if (!stationOverlay(station, true))
 		return;
 	auto found = std::find_if(m_stationCallouts.begin(), m_stationCallouts.end(), [&station](const StationCallout& callout) { return callout.station == station; });
 	if (found == m_stationCallouts.end()) {
@@ -3730,14 +3729,10 @@ void NetworkPresenter::placeStationCallouts() {
 		if (!callout.item || !callout.item->isVisible())
 			continue;
 		// the first overlay of the station that has a mark carries the card, as it carries the count
-		const QGraphicsPixmapItem* picture = nullptr;
-		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
-			if (overlay && overlay->pictureItem() && overlay->stationName().toStdString() == callout.station) {
-				picture = overlay->pictureItem();
-				break;
-			}
-		if (!picture)
+		const StationOverlayItem* overlay = stationOverlay(callout.station, true);
+		if (!overlay)
 			continue;
+		const QGraphicsPixmapItem* picture = overlay->pictureItem();
 		// beside the mark, and in the near look beside the platform bars of the station, which the card must not cover
 		QRectF mark = picture->sceneBoundingRect();
 		const QPointF centre = mark.center();
