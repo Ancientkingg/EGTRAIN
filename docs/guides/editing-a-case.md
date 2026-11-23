@@ -122,7 +122,30 @@ without legs.
 **Passenger transfers** in the dock **Case Settings** is the most transfers that
 such a passenger plans. It takes 0 to 10 and shows 2 for a case that does not set
 it; in `scene.json` it is `passenger_max_transfers` under `simulation_settings`.
-A change is one step of **Edit > Undo**. The model of the passenger-dependent dwell
+A change is one step of **Edit > Undo**.
+
+**Passenger walking (s per platform)** is the walking time at a transfer: the seconds
+for each platform number of difference between the platform of the arriving train and
+the platform of the next one, so that platform 1 to 2 takes 30 s and 1 to 3 takes 60 s
+at the default. It takes 0 to 600 and shows 30 for a case that does not set it. There
+is no walk on the same platform, or when one of the platform numbers is unknown. In
+`scene.json` it is `passenger_walking_seconds_per_platform` under
+`simulation_settings`. The plans use it to see whether a passenger reaches the next
+train in time, and the run counts the walk as walking time.
+
+Three rules decide the plan of a passenger:
+
+1. A plan takes the earliest arrival, and among the same arrivals the fewest trains.
+   When arrival and number of trains are equal, the train that leaves earlier is taken.
+2. A passenger who has a plan, at the start of a journey with legs or after a transfer,
+   and who stands on a platform where another train stands that goes to the destination
+   without a change no later than the plan, boards that train. The plan becomes that
+   train. The arrival of that train counts with the delay it has at that moment, as in
+   the other plans. Only the trains that stand at the platform of the passenger at that
+   moment are looked at, not trains that arrive later.
+3. The walking time between platforms is the setting above.
+
+The model of the passenger-dependent dwell
 time has no field: its coefficients and the three crowding thresholds are optional
 keys of `simulation_settings`, listed in the
 [scene schema](scene-schema.md#scenejson), and a case that does not set them uses

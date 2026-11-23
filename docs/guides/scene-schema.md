@@ -46,7 +46,12 @@ Optional keys:
   `duration_seconds`, `buffer_time_seconds`, and
   `recovery_time_percent`, and an optional integer `passenger_max_transfers`
   from 0 to 10 (default 2) that limits the transfers of a planned passenger
-  journey. The writer leaves it out while it has the default. Four optional
+  journey. The writer leaves it out while it has the default. An optional
+  integer `passenger_walking_seconds_per_platform` from 0 to 600 (default 30) is
+  the walking time at a transfer in seconds for each platform number of
+  difference between the two platforms; there is no walk on the same platform or
+  when a platform number is unknown. The writer leaves it out while it has the
+  default. Four optional
   keys set the passenger-dependent dwell model; a key that is absent keeps the
   value below, and the writer leaves a key out while it is absent:
   `passenger_dwell_coefficients` is an array of exactly 8 numbers from 0 to
@@ -64,7 +69,8 @@ Optional keys:
   rate of a platform counts the passengers who waited there before the train
   let anyone off and those who alight, each once, against the capacity of the
   platform. The legacy
-  export cannot hold `passenger_max_transfers` or the four dwell keys, so it
+  export cannot hold `passenger_max_transfers`,
+  `passenger_walking_seconds_per_platform` or the four dwell keys, so it
   leaves them out with a warning and a legacy run uses the built-in values.
 - `import_report`: array of conversion rows.
 
@@ -480,7 +486,10 @@ Journey and leg IDs are stable across the scene. A journey with an empty `legs`
 array is live: when the passenger appears on the platform, the run plans the
 earliest arrival at the destination on the timetable of the moment, with at
 most `simulation_settings.passenger_max_transfers` transfers, and plans again
-when the passenger misses a train or finds it full. A journey with legs follows
+when the passenger misses a train or finds it full. Of two plans with the same
+arrival and the same number of trains, the one that leaves earlier is taken. A
+passenger with a plan who stands on a platform where another train stands that
+reaches the destination without a change no later than the plan boards that train. A journey with legs follows
 them until one cannot be taken and is then planned the same way. A journey for
 which no train reaches the destination ends with the outcome `no_route`, and the
 passenger leaves the network at the station it is at. A journey that comes from
@@ -675,11 +684,14 @@ require a newer app.
 
 The passenger keys that came after release 1.0.9 are part of schema version 1:
 `demand` in `passengers.json`, `passenger_capacity` of a train unit, and
-`passenger_max_transfers`, `passenger_dwell_coefficients` and the three passenger
-thresholds in `simulation_settings`. Release 1.0.9 and older releases read
+`passenger_max_transfers`, `passenger_walking_seconds_per_platform`,
+`passenger_dwell_coefficients` and the three passenger thresholds in
+`simulation_settings`. Release 1.0.9 and older releases read
 version 1 and skip a key they do not know, so they open a case that has these
 keys without a message. They run it without the demand passengers and with the
-built-in capacity and dwell values, and they leave the keys out when they save
+built-in capacity and dwell values, and with the walking rule that they have (no
+walk to the same or the next platform number, 30 s per platform of difference
+from two on), and they leave the keys out when they save
 the case. A case with demand and no listed passenger is then saved without
 `passengers.json`. Those releases also report a journey without legs, which the
 run now plans by itself, with the warning `scene.passenger.legs.empty`. Keep a
