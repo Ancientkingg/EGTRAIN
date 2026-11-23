@@ -187,7 +187,6 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
             tag="$GITHUB_REF_NAME"
-            name="EGTRAIN $GITHUB_REF_NAME"
             if [[ "$GITHUB_REF_NAME" == *-* ]]; then
               prerelease=true
               make_latest=false
@@ -197,7 +196,6 @@ jobs:
             fi
           else
             tag="v${{ needs.version.outputs.version }}"
-            name="EGTRAIN $tag"
             prerelease=false
             make_latest=true
             production_commit="$(git ls-remote origin refs/heads/production | cut -f1)"
@@ -212,6 +210,9 @@ jobs:
             fi
           fi
 
+          # A release with a notes file in docs/releases takes its title and notes.
+          name="$(python3 tools/release/version.py name "$tag")"
+          python3 tools/release/version.py notes "$tag" > "$RUNNER_TEMP/release-notes.md"
           {
             echo "tag=$tag"
             echo "name=$name"
@@ -235,10 +236,7 @@ jobs:
           make_latest: ${{ steps.release-meta.outputs.make_latest }}
           fail_on_unmatched_files: true
           draft: true
-          body: |
-            Automated EGTRAIN build for `${{ steps.release-meta.outputs.name }}`.
-
-            Download the package for your platform. The bundled cases are also available as `.egscene` files.
+          body_path: ${{ runner.temp }}/release-notes.md
 
       - name: Publish complete release
         env:
@@ -279,5 +277,7 @@ jobs:
           PRERELEASE: ${{ needs.release.outputs.prerelease }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: >-
+          python3 tools/release/version.py notes "$RELEASE_TAG" > "$RUNNER_TEMP/release-notes.md" &&
           python3 tools/release/publish_selfhost.py release --tag "$RELEASE_TAG" --name "$RELEASE_NAME"
-          --prerelease "$PRERELEASE" --assets release-assets --commit "$GITHUB_SHA" --run-url "$RUN_URL"
+          --prerelease "$PRERELEASE" --assets release-assets --notes "$RUNNER_TEMP/release-notes.md"
+          --commit "$GITHUB_SHA" --run-url "$RUN_URL"

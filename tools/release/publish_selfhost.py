@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Publishes a release and the documentation site on egtrain.samuelbruin.com, and the release files on bin.samuelbruin.com.
 
-usage: publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR [--new-feed]
+usage: publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR --notes FILE [--new-feed]
        publish_selfhost.py import TAG [--new-feed]
        publish_selfhost.py notes TAG FILE
        publish_selfhost.py site PAGES [DIR ...]
@@ -13,7 +13,8 @@ number of bytes with the file. A name that Zipline already has is not uploaded a
 the file here, so a second run of the same release adds nothing; another size stops the script. The release then gets its
 page, releases/<version>/index.html, and its entry in the update feed releases/feed.json, newest release first, in place
 of an entry with the same tag. The feed is written last, after every file and the page are in place. The entry has the
-fields of a GitHub release that EGTRAIN reads, and its notes are the text of the GitHub release that release.yml creates.
+fields of a GitHub release that EGTRAIN reads, and its notes are the text of --notes, which release.yml writes with
+tools/release/version.py notes, as it does for the GitHub release.
 <version> is TAG without its leading v. A second run keeps the publication time of the entry. When the website has no
 feed, the script stops, so that a feed that was lost is never replaced by one with only the new release; --new-feed
 starts a new feed instead, for the first release on the site. release also takes --commit and --run-url, which
@@ -73,13 +74,6 @@ RATE_LIMIT_ATTEMPTS = 6
 MAX_RETRY_SECONDS = 120
 TIMEOUT_SECONDS = 300
 CHUNK_BYTES = 1024 * 1024
-
-# The text of a release, the same as the body of the GitHub release in .github/workflows/release.yml.
-RELEASE_BODY = """Automated EGTRAIN build for `{name}`.
-
-Download the package for your platform. The bundled cases are also available as `.egscene` files.
-"""
-
 
 def request(method: str, url: str, data=None, headers=None, stream=False):
     """Sends one request and returns the response, or the HTTPError for a status of 300 or more. A failed connection
@@ -331,7 +325,7 @@ def release_from_workflow(site: str, zipline: str, arguments) -> dict:
     release = {
         "tag_name": arguments.tag,
         "name": arguments.name,
-        "body": RELEASE_BODY.format(name=arguments.name),
+        "body": arguments.notes.read_text(encoding="utf-8"),
         "prerelease": arguments.prerelease == "true",
         "published_at": None,
     }
@@ -415,6 +409,7 @@ def main(argv=None) -> None:
     release.add_argument("--name", required=True)
     release.add_argument("--prerelease", required=True, choices=("true", "false"))
     release.add_argument("--assets", required=True, type=Path)
+    release.add_argument("--notes", required=True, type=Path, help="the notes of the release, as tools/release/version.py prints them")
     # release.yml passes these two, which the script does not use.
     release.add_argument("--commit", help=argparse.SUPPRESS)
     release.add_argument("--run-url", help=argparse.SUPPRESS)

@@ -41,6 +41,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_release_assets  # noqa: E402
 import publish_selfhost  # noqa: E402
+import version  # noqa: E402
 import home_page  # noqa: E402  (publish_selfhost puts tools/docs on the path)
 
 SITE_TOKEN = "made-up-site-token"
@@ -211,8 +212,11 @@ class PublishTests(unittest.TestCase):
 
     def release(self, new_feed=True):
         """Runs release with the arguments of the publish step of release.yml, which passes --commit and --run-url too."""
+        notes = Path(self.temp.name, "release-notes.md")
+        notes.write_text(version.DEFAULT_NOTES.format(name=f"EGTRAIN {self.tag}"), encoding="utf-8")
         arguments = ["release", "--tag", self.tag, "--name", f"EGTRAIN {self.tag}", "--prerelease", "false",
-                     "--assets", str(self.assets), "--commit", "0123abc", "--run-url", "https://example.org/runs/1"]
+                     "--assets", str(self.assets), "--notes", str(notes), "--commit", "0123abc",
+                     "--run-url", "https://example.org/runs/1"]
         with mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments + (["--new-feed"] if new_feed else []))
 
@@ -256,7 +260,7 @@ class PublishTests(unittest.TestCase):
         self.assertEqual(set(entry), FIELDS)
         self.assertEqual((entry["tag_name"], entry["name"], entry["draft"], entry["prerelease"]), ("v1.2.3", "EGTRAIN v1.2.3", False, False))
         self.assertEqual(entry["html_url"], f"{self.site.url}/releases/1.2.3/")
-        self.assertEqual(entry["body"], publish_selfhost.RELEASE_BODY.format(name="EGTRAIN v1.2.3"))
+        self.assertEqual(entry["body"], version.DEFAULT_NOTES.format(name="EGTRAIN v1.2.3"))
         self.assertRegex(entry["published_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
         self.assertEqual([asset["name"] for asset in entry["assets"]], sorted(NAMES))
         for asset in entry["assets"]:
@@ -427,8 +431,10 @@ class PublishTests(unittest.TestCase):
             publish_selfhost.main(["notes", "v9.9.9", str(notes)])
 
     def test_a_prerelease_has_no_documentation_link(self):
+        notes = Path(self.temp.name, "release-notes.md")
+        notes.write_text(version.DEFAULT_NOTES.format(name="EGTRAIN v1.2.3-rc1"), encoding="utf-8")
         arguments = ["release", "--tag", "v1.2.3-rc1", "--name", "EGTRAIN v1.2.3-rc1", "--prerelease", "true",
-                     "--assets", str(self.assets), "--new-feed"]
+                     "--assets", str(self.assets), "--notes", str(notes), "--new-feed"]
         with mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments)
         entry = self.feed()[0]
@@ -559,12 +565,14 @@ class StubOnly(unittest.TestCase):
             with self.assertRaises(SystemExit, msg=tag):
                 publish_selfhost.check_tag(tag)
 
-    def test_release_body_matches_the_github_release(self):
+    def test_release_notes_come_from_one_place(self):
         workflow = (publish_selfhost.ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-        body = publish_selfhost.RELEASE_BODY.format(name="${{ steps.release-meta.outputs.name }}")
-        self.assertIn("body: |\n" + "".join(f"            {line}\n" if line else "\n" for line in body.splitlines()), workflow)
+        # The GitHub release and the website take the notes that version.py prints.
+        self.assertIn("body_path: ${{ runner.temp }}/release-notes.md", workflow)
+        self.assertEqual(workflow.count('python3 tools/release/version.py notes "$'), 2)
+        self.assertIn('--notes "$RUNNER_TEMP/release-notes.md"', workflow)
         # The notes on the website carry no link to GitHub.
-        self.assertNotIn("github", publish_selfhost.RELEASE_BODY.lower())
+        self.assertNotIn("github", version.DEFAULT_NOTES.lower())
 
     def test_markdown_of_release_notes(self):
         text = "Line one\nline <two> & `code <x>`\n\n- item **bold**\n  continued\n* other https://example.org/a.\n\n## Heading\n"
