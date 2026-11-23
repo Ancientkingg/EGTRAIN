@@ -110,6 +110,20 @@ TEST_NOINLINE void operator delete(void* memory, std::size_t /*size*/) noexcept 
 	std::free(memory);
 }
 
+// std::stable_sort allocates its buffer with the nothrow form. Without this replacement AddressSanitizer allocates it
+// with its own operator new and reports the free in the operator delete above as a mismatch.
+TEST_NOINLINE void* operator new(std::size_t size, const std::nothrow_t& /*tag*/) noexcept {
+	try {
+		return ::operator new(size);
+	} catch (const std::bad_alloc&) {
+		return nullptr;
+	}
+}
+
+TEST_NOINLINE void operator delete(void* memory, const std::nothrow_t& /*tag*/) noexcept {
+	std::free(memory);
+}
+
 // The builders write the run of the process. The slots run in the order of their declaration, which is the order of the
 // groups of checks before them, and each slot builds the scene that it reads, so that it also passes alone.
 class TestOperationsBuilder : public QObject {
