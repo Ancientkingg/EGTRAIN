@@ -4058,7 +4058,7 @@ std::map<std::string, PreviewStationMembership> previewStationMemberships(const 
 		const auto assign = [&](const std::string& nodeId) -> PreviewStationMembership& {
 			auto& membership = result[nodeId];
 			membership.stationId = station.id;
-			membership.name = station.name.empty() ? station.id : station.name;
+			membership.name = sceneStationLabel(station);
 			return membership;
 		};
 		if (!station.platforms.empty()) {

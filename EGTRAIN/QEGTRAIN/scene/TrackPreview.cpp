@@ -408,7 +408,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	}
 
 	for (const auto& station : scene.stations) {
-		const std::string name = station.name.empty() ? station.id : station.name;
+		const std::string name = sceneStationLabel(station);
 		const SceneNode* anchor = nullptr;
 		for (const auto& platform : station.platforms) {
 			for (const auto& nodeId : platform.nodeIds) {

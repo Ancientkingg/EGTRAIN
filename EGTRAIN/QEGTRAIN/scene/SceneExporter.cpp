@@ -522,7 +522,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const Exp
 			} else {
 				std::vector<std::pair<double, std::string>> rows;
 				for (const auto& station : scene.stations) {
-					const std::string name = station.name.empty() ? station.id : station.name;
+					const std::string name = sceneStationLabel(station);
 					std::vector<double> positions;
 					for (const auto& platform : station.platforms) {
 						for (const auto& nodeId : platform.nodeIds) {
@@ -544,14 +544,6 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const Exp
 			}
 		}
 	}
-}
-
-static std::string legacyStationName(const SceneModel& scene, const std::string& stationId) {
-	for (const auto& station : scene.stations) {
-		if (station.id == stationId)
-			return station.name.empty() ? station.id : station.name;
-	}
-	return stationId;
 }
 
 static std::string legacyBoundaryToken(const std::string& token) {
@@ -761,8 +753,8 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 				valid = false;
 			}
 
-			const std::string origin = legacyStationName(scene, journey.originStationId);
-			const std::string destination = legacyStationName(scene, journey.destinationStationId);
+			const std::string origin = sceneStationLabel(scene, journey.originStationId);
+			const std::string destination = sceneStationLabel(scene, journey.destinationStationId);
 			if (journey.activity.find_first_of(",\r\n") != std::string::npos
 				|| origin.find_first_of(",\r\n") != std::string::npos
 				|| destination.find_first_of(",\r\n") != std::string::npos) {
@@ -798,8 +790,8 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 					addUnsupported("Passenger legs are not contiguous: " + journey.id, "passengers.json");
 					valid = false;
 				}
-				const std::string legOrigin = legacyStationName(scene, leg.originStationId);
-				const std::string legDestination = legacyStationName(scene, leg.destinationStationId);
+				const std::string legOrigin = sceneStationLabel(scene, leg.originStationId);
+				const std::string legDestination = sceneStationLabel(scene, leg.destinationStationId);
 				if (legOrigin.find_first_of(",\r\n") != std::string::npos
 					|| legDestination.find_first_of(",\r\n") != std::string::npos) {
 					addUnsupported("Passenger CSV field contains a comma or newline: " + journey.id, "passengers.json");
@@ -872,7 +864,7 @@ static void writeViewLayout(const SceneModel& scene, const std::unordered_map<st
 
 	std::ostringstream stations, tracks, hidden;
 	for (const auto& view : scene.stationViews) {
-		const std::string name = legacyStationName(scene, view.stationId);
+		const std::string name = sceneStationLabel(scene, view.stationId);
 		if (name.find_first_of("\t\r\n") != std::string::npos) {
 			addDiag(SceneSeverity::Warning, "scene.export.compatibility",
 				"Station " + view.stationId + " has a tab or line break in its name, so its layout was not exported", "views.json");

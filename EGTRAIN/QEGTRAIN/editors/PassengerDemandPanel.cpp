@@ -429,7 +429,7 @@ QString cappedLines(const QStringList& lines) {
 
 // The name of a station as the matrix shows it.
 QString stationLabel(const SceneStation& station) {
-	return QString::fromStdString(station.name.empty() ? station.id : station.name);
+	return QString::fromStdString(sceneStationLabel(station));
 }
 
 long long totalOf(const ScenePassengerDemandSlice& slice) {

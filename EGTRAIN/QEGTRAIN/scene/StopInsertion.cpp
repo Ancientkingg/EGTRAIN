@@ -27,17 +27,9 @@ LowerBound lowerBound(const std::vector<SceneStopResolution>& resolutions, std::
 	return bound;
 }
 
-std::string stationLabel(const SceneModel& model, const std::string& stationId) {
-	for (const SceneStation& station : model.stations) {
-		if (station.id == stationId)
-			return station.name.empty() ? station.id : station.name;
-	}
-	return stationId;
-}
-
 // The text followed by the station in brackets, or the text alone when the stop has no station.
 std::string withStation(const SceneModel& model, const std::string& text, const std::string& stationId) {
-	const std::string station = stationLabel(model, stationId);
+	const std::string station = sceneStationLabel(model, stationId);
 	return station.empty() ? text : text + " (" + station + ")";
 }
 
@@ -162,7 +154,7 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 		damaged += (damaged.empty() ? "" : ", ") + stopLabel(model, service, index);
 	}
 	if (!damaged.empty()) {
-		result.error = "Inserting " + stationLabel(model, stop.stationId)
+		result.error = "Inserting " + sceneStationLabel(model, stop.stationId)
 			+ " here would move these stops to another place on the route or off it: "
 			+ damaged + ". Choose an earlier position or another station.";
 		return result;

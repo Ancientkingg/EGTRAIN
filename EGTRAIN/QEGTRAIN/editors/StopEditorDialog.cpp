@@ -111,13 +111,7 @@ long long baseTimeToSeconds(const std::string& hhmmss) {
 }
 
 QString stationDisplayName(const SceneModel& model, const std::string& stationId) {
-	for (const auto& station : model.stations) {
-		if (station.id == stationId)
-			return station.name.empty()
-				? QString::fromStdString(station.id)
-				: QString::fromStdString(station.name);
-	}
-	return stationId.empty() ? QStringLiteral("(missing station)") : QString::fromStdString(stationId);
+	return stationId.empty() ? QStringLiteral("(missing station)") : QString::fromStdString(sceneStationLabel(model, stationId));
 }
 
 QString stopResolutionText(SceneStopResolutionStatus status) {

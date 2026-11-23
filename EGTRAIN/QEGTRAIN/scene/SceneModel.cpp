@@ -672,6 +672,13 @@ bool incidentTypeFromName(const std::string& name, IncidentType& type) {
 	return true;
 }
 
+std::string sceneStationLabel(const SceneModel& model, const std::string& stationId) {
+	for (const SceneStation& station : model.stations)
+		if (station.id == stationId)
+			return sceneStationLabel(station);
+	return stationId;
+}
+
 std::optional<int> sceneBaseTimeSeconds(const std::string& text) {
 	if (text.size() != 8 || text[2] != ':' || text[5] != ':')
 		return std::nullopt;
