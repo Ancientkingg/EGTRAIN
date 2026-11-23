@@ -721,6 +721,7 @@ private slots:
 	void writesSignallingAreas();
 	void omitsAbsentSignallingAreas();
 	void writesPassengerTransferLimitOnlyWhenNotDefault();
+	void writesPassengerWalkingTimeOnlyWhenNotDefault();
 	void writesPassengerDwellSettingsOnlyWhenSet();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
@@ -945,6 +946,30 @@ void TestSceneWriter::writesPassengerTransferLimitOnlyWhenNotDefault() {
 	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no transfers saves");
 	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
 	QCOMPARE(reloaded.settings.passengerMaxTransfers, 0);
+}
+
+// The walking time per platform is written only when it is not the default, and a scene without the key loads as the default.
+void TestSceneWriter::writesPassengerWalkingTimeOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	scene.settings.passengerWalkingSecondsPerPlatform = kDefaultPassengerWalkingSeconds;
+	const fs::path defaultPath = temp.path / "default-walking";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with the default walking time saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY2(!written["simulation_settings"].contains("passenger_walking_seconds_per_platform"), "the default is not written");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerWalkingSecondsPerPlatform, kDefaultPassengerWalkingSeconds);
+
+	scene.settings.passengerWalkingSecondsPerPlatform = 0;
+	const fs::path zeroPath = temp.path / "zero-walking";
+	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no walking time saves");
+	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerWalkingSecondsPerPlatform, 0);
 }
 
 // The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.

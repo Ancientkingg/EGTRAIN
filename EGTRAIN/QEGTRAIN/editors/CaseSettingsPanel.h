@@ -55,6 +55,8 @@ public:
 	QDoubleSpinBox* recoveryPercentEdit() const { return m_recoveryPercentEdit; }
 	/// The field of the most transfers that a live passenger journey plans, 0 to 10.
 	QSpinBox* maxTransfersEdit() const { return m_maxTransfersEdit; }
+	/// The field of the walking time in seconds per platform of difference at a transfer.
+	QSpinBox* walkingSecondsEdit() const { return m_walkingSecondsEdit; }
 
 Q_SIGNALS:
 	/// The base time of the model has been set to this text. Emitted before the document is marked changed.
@@ -69,6 +71,7 @@ private:
 	QDoubleSpinBox* m_bufferSecondsEdit = nullptr;
 	QDoubleSpinBox* m_recoveryPercentEdit = nullptr;
 	QSpinBox* m_maxTransfersEdit = nullptr;
+	QSpinBox* m_walkingSecondsEdit = nullptr;
 };
 
 #endif // CASESETTINGSPANEL_H

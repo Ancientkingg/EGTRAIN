@@ -926,6 +926,7 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
 			: 0.0;
 	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
+	stagedParameters.passengerWalkingSecondsPerPlatform = std::clamp(scene.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds);
 	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
 		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,

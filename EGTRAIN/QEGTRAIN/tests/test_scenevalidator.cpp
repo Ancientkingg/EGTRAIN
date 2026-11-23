@@ -574,6 +574,7 @@ private slots:
 	void defaultPlatformHoldsAbout99Passengers();
 	void rejectsNonFinitePassengerWindow();
 	void limitsPassengerTransfers();
+	void limitsPassengerWalkingTime();
 	void checksPassengerDwellSettings();
 	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
@@ -1116,6 +1117,21 @@ void TestSceneValidator::limitsPassengerTransfers() {
 		scene.settings.passengerMaxTransfers = refused;
 		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
 			"other transfer limits are rejected");
+	}
+}
+
+void TestSceneValidator::limitsPassengerWalkingTime() {
+	for (const int allowed : {0, 30, 600}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerWalkingSecondsPerPlatform = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), "scene.passenger.walking.invalid", "simulation_settings.passenger_walking_seconds_per_platform"),
+			"0 to 600 s are allowed");
+	}
+	for (const int refused : {-1, 601}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerWalkingSecondsPerPlatform = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.walking.invalid", "simulation_settings.passenger_walking_seconds_per_platform"),
+			"other walking times are rejected");
 	}
 }
 

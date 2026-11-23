@@ -150,7 +150,7 @@ void PassengerJourneys::ensureBuilt(const SimulationRun& run) {
 		}
 		timetables.push_back(std::move(timetable));
 	}
-	router_ = make_unique<passenger_routing::Router>(std::move(timetables), stationIndices_.size());
+	router_ = make_unique<passenger_routing::Router>(std::move(timetables), stationIndices_.size(), run.settings.passengerWalkingSecondsPerPlatform);
 	watches_.assign(static_cast<size_t>(run.numTrains), Watch());
 }
 
@@ -273,7 +273,7 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 		journey.FirstPlanArrival = journey.Trips.back().Planned_Arrival_Time;
 	Trip& first = *next(journey.Trips.begin(), static_cast<ptrdiff_t>(keptTrips));
 	// A passenger who stands on another platform walks to the platform of the first train, as at a transfer.
-	const int walking = static_cast<int>(passenger_routing::walkingSeconds(platformNumber, first.depPlatformNumber));
+	const int walking = static_cast<int>(passenger_routing::walkingSeconds(platformNumber, first.depPlatformNumber, run.settings.passengerWalkingSecondsPerPlatform));
 	journey.Walkingtime += walking;
 	waitForTrip(passenger, first, readyAt + walking);
 }

@@ -788,6 +788,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene", "", "simulation_settings.passenger_max_transfers", "",
 			"Use a whole number from 0 to 10");
 	}
+	if (scene.settings.passengerWalkingSecondsPerPlatform < 0
+		|| scene.settings.passengerWalkingSecondsPerPlatform > kMaxPassengerWalkingSeconds) {
+		diagnostics.error("scene.passenger.walking.invalid", "The passenger walking time per platform must be from 0 to 600 s",
+			"scene.json", "scene", "", "simulation_settings.passenger_walking_seconds_per_platform", "",
+			"Use a whole number of seconds from 0 to 600");
+	}
 	if (scene.settings.passengerDwellCoefficients) {
 		const std::vector<double>& coefficients = *scene.settings.passengerDwellCoefficients;
 		const bool valid = coefficients.size() == kPassengerDwellCoefficientCount

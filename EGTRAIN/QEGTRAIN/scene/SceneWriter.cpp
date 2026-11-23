@@ -689,6 +689,8 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
 	if (scene.settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers)
 		settings["passenger_max_transfers"] = scene.settings.passengerMaxTransfers;
+	if (scene.settings.passengerWalkingSecondsPerPlatform != kDefaultPassengerWalkingSeconds)
+		settings["passenger_walking_seconds_per_platform"] = scene.settings.passengerWalkingSecondsPerPlatform;
 	if (scene.settings.passengerDwellCoefficients)
 		settings["passenger_dwell_coefficients"] = *scene.settings.passengerDwellCoefficients;
 	if (scene.settings.passengerPlatformCrowdingThreshold)

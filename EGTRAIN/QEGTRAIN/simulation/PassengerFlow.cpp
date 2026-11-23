@@ -355,7 +355,7 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 namespace {
 // The passenger p, who is on board of train T, alights at the service stop of T: the trip ends, and the passenger leaves the
 // network or waits for the next trip.
-void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime) {
+void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime, double walkingSecondsPerPlatform) {
 	Passenger* p = &passenger;
 
 	// Update travel information of the alighted passenger
@@ -433,7 +433,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 								// Set first of all that the next trip has started
 								nexttrip->IsTripStarted = true;
 								// The walk between the platforms is the one the routing plans (an unknown platform number needs none).
-								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber);
+								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber, walkingSecondsPerPlatform);
 								nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
 								j->Walkingtime = j->Walkingtime + Walkingtime;
 							}
@@ -457,7 +457,7 @@ int alightPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, i
 	const std::vector<int> alighting = flow.takeOnBoardArrivingAt(T.trainDescription, T.CurrentServiceStop);
 	for (const int position : alighting) {
 		T.Current_OnBoard_Passengers--; // the passenger leaves the train
-		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime);
+		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime, run.settings.passengerWalkingSecondsPerPlatform);
 		// A passenger who transfers plans again when the train of the next trip is already gone, from the platform of this train.
 		run.passengerJourneys.checkWaiting(run, flow.passenger(position), t, T.currentServiceStopPlatformNumber);
 		flow.alighted(position);
