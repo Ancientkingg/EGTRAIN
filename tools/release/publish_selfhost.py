@@ -17,8 +17,7 @@ fields of a GitHub release that EGTRAIN reads, and its notes are the text of --n
 tools/release/version.py notes, as it does for the GitHub release.
 <version> is TAG without its leading v. A second run keeps the publication time of the entry. When the website has no
 feed, the script stops, so that a feed that was lost is never replaced by one with only the new release; --new-feed
-starts a new feed instead, for the first release on the site. release also takes --commit and --run-url, which
-release.yml passes and the script does not use.
+starts a new feed instead, for the first release on the site.
 
 import publishes the release TAG of the GitHub releases of EGTRAIN in the same way: its files, its name, its notes and
 its publication time, which it reads with the GitHub CLI gh. A second run uploads no file again and writes the same page
@@ -410,9 +409,6 @@ def main(argv=None) -> None:
     release.add_argument("--prerelease", required=True, choices=("true", "false"))
     release.add_argument("--assets", required=True, type=Path)
     release.add_argument("--notes", required=True, type=Path, help="the notes of the release, as tools/release/version.py prints them")
-    # release.yml passes these two, which the script does not use.
-    release.add_argument("--commit", help=argparse.SUPPRESS)
-    release.add_argument("--run-url", help=argparse.SUPPRESS)
     release.add_argument("--new-feed", action="store_true", help="start a new feed when the website has none")
     imported = commands.add_parser("import", help="publish a release of the GitHub releases, with its files and notes")
     imported.add_argument("tag")
