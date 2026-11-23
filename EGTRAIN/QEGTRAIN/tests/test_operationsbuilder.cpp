@@ -187,6 +187,7 @@ private slots:
 	void platformListKeepsTheFirstPassengersAndDestinationsCountAll();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
+	void brakingTargetsStayPerTrain();
 	void brakingStartCacheMatchesComputation();
 	void brakingStartCacheBelongsToOneTrain();
 	void drawsBrakingCurveThatReachesSpeed();
@@ -2603,6 +2604,29 @@ static bool brakingTargetAdmissible(Train& train, double head, double speed, dou
 		return false;
 	const double maximum = std::max(0.0, speed + (train.tractiveEffort(speed) - train.total_train_resistances(speed, arc->gradient, arc->curvature)) / (train.total_train_mass * train.massFactor) * timestep);
 	return std::isfinite(targetSpeed) && targetSpeed >= std::max(0.0, speed - (train.max_train_decelaration + train.total_train_resistances(speed, arc->gradient, arc->curvature) / (train.total_train_mass * train.massFactor)) * timestep) && targetSpeed <= maximum;
+}
+
+// The braking targets at the ends of the arcs are the speed of each train, and the nodes of a route, which all its trains
+// share, keep what they were given.
+void TestOperationsBuilder::brakingTargetsStayPerTrain() {
+	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+	Arc& arc = route[0].arcs_in_signalling_block_section[0];
+	arc.speedLimit = 30.0;
+	arc.speedInBraking = 20.0;
+	const auto brakingStart = [&route](double performance) {
+		Train train = brakingTrain(1.0);
+		train.servicePerformancePercent = performance;
+		bool cached = false;
+		return train.europeanVitalComputerWithListsImproved(100.0, 25.0, 0, route.data(), 1, cached);
+	};
+	const double full = brakingStart(100.0);
+	const double half = brakingStart(50.0);
+	QCOMPARE_EQ(arc.endNode.arcSpeedLimit, 0.0);
+	// A train that has to reach a lower speed than the other starts to brake sooner, and each gets the same answer
+	// whichever train ran before it.
+	QVERIFY(half < full);
+	QCOMPARE_EQ(brakingStart(100.0), full);
+	QCOMPARE_EQ(brakingStart(50.0), half);
 }
 
 void TestOperationsBuilder::brakingPointSearch() {

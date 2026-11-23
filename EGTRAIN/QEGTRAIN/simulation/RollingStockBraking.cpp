@@ -798,10 +798,12 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	double TargetSpeedForMA = -1;			// This is the Speed the train needs to target to meet the most restrictive MA
 
 	// The braking points: end nodes of the arcs of the route and the closest end of authority. The list points to them
-	// instead of copying them; stop marks a stop of this train.
+	// instead of copying them; stop marks a stop of this train, and arcSpeed is the speed this train has to reach at the
+	// node, which the nodes of a route cannot hold because the trains of a route share them.
 	struct BrakingPoint {
 		const Node* node;
 		bool stop;
+		double arcSpeed;
 	};
 	std::vector<BrakingPoint> BrakingPoints;
 
@@ -827,9 +829,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 	// Putting in the list of braking points the nodes of the Arc where the train currently is
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
-		// Setting the target speed at the end of the current Arc to its final Node
-		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, BlockPos, p);
-		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false});
+		// The target speed at the end of the current Arc is the one of its final Node
+		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false, arcEndTargetSpeed(BS, Blocks, BlockPos, p)});
 		targetStop(BlockPos, p);
 	}
 
@@ -842,8 +843,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	// Putting in list of Braking Points all the nodes belonging to the other block sections
 	for (int z = 0; z < Cons_Block; z++) {
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
-			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, z + BlockPos + 1, p);
-			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false});
+			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false,
+				arcEndTargetSpeed(BS, Blocks, z + BlockPos + 1, p)});
 			targetStop(z + BlockPos + 1, p);
 		}
 	}
@@ -852,7 +853,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	closestEndOfAuthority(S, V, BS, Blocks, BlockPos, BlockPos + Cons_Block, ClosestETCSBrakingPoint, TargetSpeedForMA);
 	// if there is a Closest ETCS Braking point that has been assigned, then add it to the list of braking points
 	if (ClosestETCSBrakingPoint.X != 9999999999) {
-		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false});
+		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false, ClosestETCSBrakingPoint.arcSpeedLimit});
 	}
 
 	// Resolve each collected target once, before deciding whether the incumbent is still live.
@@ -867,7 +868,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		const double position = node.isSignalled ? node.X : node.X * 1000;
 		const double speed = node.isSignalled ? TargetSpeedForMA
 			: point.stop					  ? 0
-											  : node.arcSpeedLimit;
+											  : point.arcSpeed;
 		targets.push_back({&node, position, speed});
 		if (position > S && position == previousXob && speed == previousVob)
 			incumbent = static_cast<int>(targets.size()) - 1;
