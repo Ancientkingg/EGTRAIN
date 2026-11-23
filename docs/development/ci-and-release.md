@@ -448,8 +448,7 @@ Zipline first. After the files, the script publishes the release page `releases/
 and their sizes, and last the entry of the release in the update feed `releases/feed.json`, newest release first. The
 entry has the fields of a release that the application reads, the release text as its notes and the Zipline addresses
 as its downloads. The release text is the body that the release job of `release.yml` writes: it names the build, points
-to the packages and the case files, and links neither the commit nor the run. The job still passes `--commit` and
-`--run-url`, which the script accepts and does not use. A second run keeps the time of the first.
+to the packages and the case files, and links neither the commit nor the run. A second run keeps the time of the first.
 When the website answers 404 for the feed, `release` stops before it publishes the page: a feed that was lost, for
 example with the volume of the website, must be restored, not replaced by one that has only the new release. Only the
 first release on a new site passes `--new-feed`, which starts a feed when there is none.

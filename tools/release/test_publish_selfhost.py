@@ -211,12 +211,11 @@ class PublishTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
 
     def release(self, new_feed=True):
-        """Runs release with the arguments of the publish step of release.yml, which passes --commit and --run-url too."""
+        """Runs release with the arguments of the publish step of release.yml."""
         notes = Path(self.temp.name, "release-notes.md")
         notes.write_text(version.DEFAULT_NOTES.format(name=f"EGTRAIN {self.tag}"), encoding="utf-8")
         arguments = ["release", "--tag", self.tag, "--name", f"EGTRAIN {self.tag}", "--prerelease", "false",
-                     "--assets", str(self.assets), "--notes", str(notes), "--commit", "0123abc",
-                     "--run-url", "https://example.org/runs/1"]
+                     "--assets", str(self.assets), "--notes", str(notes)]
         with mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments + (["--new-feed"] if new_feed else []))
 
