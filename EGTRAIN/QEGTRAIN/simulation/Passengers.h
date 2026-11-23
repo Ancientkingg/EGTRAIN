@@ -137,7 +137,17 @@ public:
 	std::vector<std::pair<std::string, std::string>> RefusedBy;
 	double Walkingtime;			  ///< Total walking time between platforms at transfers in seconds.
 	double Waitingtime;			  ///< Total waiting time on platforms in seconds.
-	int totalJourneyArrivalDelay; ///< Arrival delay of the last leg in seconds; 0 until the journey is completed.
+	int totalJourneyArrivalDelay; ///< Arrival delay of the journey in seconds; 0 until the journey is completed.
+	/// Planned arrival of the first plan of the journey: the last given leg, or the last leg of the first plan of the run. -9999
+	/// until set; it is set once and a later plan does not change it.
+	int FirstPlanArrival = -9999;
+
+	/// The arrival delay of the journey that has arrived at `actualArrival`, when its last leg was `lastLegDelay` late. A journey
+	/// that was planned again is measured against the arrival of its first plan, so that a replacement train does not move the
+	/// reference. Any other journey has the delay of its last leg.
+	int arrivalDelay(double actualArrival, int lastLegDelay) const {
+		return IsReplanned && FirstPlanArrival != -9999 ? static_cast<int>(actualArrival - FirstPlanArrival) : lastLegDelay;
+	}
 
 	/// True when the journey is over, because the passenger arrived or no route was found.
 	bool isFinished() const { return IsJourneyCompleted || Outcome == JourneyOutcome::NoRoute; }

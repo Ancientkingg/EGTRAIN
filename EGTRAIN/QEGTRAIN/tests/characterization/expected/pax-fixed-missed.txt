@@ -137,17 +137,17 @@ onboard Q2-1 t=900 n=2 max=300
 pax m1 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax m2 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 onboard Q2-1 t=1274 n=0 max=300
-journey m1 m1.1 started=1 completed=1 dep=26100.000000 arr=26474.000000 walking=0.000000 waiting=0.000000 delay=-126 replanned=1
+journey m1 m1.1 started=1 completed=1 dep=26100.000000 arr=26474.000000 walking=0.000000 waiting=0.000000 delay=24 replanned=1
 trip m1 m1.1.live1 started=1 completed=1 dep=26100 arr=26474 delay=-126
 journey m2 m2.1 started=1 completed=1 dep=25350.000000 arr=26474.000000 walking=0.000000 waiting=71.000000 delay=-126
 trip m2 m2.1.leg.1 started=1 completed=1 dep=25350 arr=25823 delay=0
 trip m2 m2.1.leg.2 started=1 completed=1 dep=25823 arr=26474 delay=-126
 file PassengerStatus.txt Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation
 file JourneyDelays.txt PaxID JourneyID TotalArrivalDelay[s]
-file JourneyDelays.txt m1 m1.1 -126
+file JourneyDelays.txt m1 m1.1 24
 file JourneyDelays.txt m2 m2.1 -126
 file PassengerJourneys.txt PaxID JourneyID Mode Origin Destination Appeared Trains Wait Walk InVehicle Arrival Delay Replanned Outcome
-file PassengerJourneys.txt m1 m1.1 assigned B C 26100 Q2-1 0 0 374 26474 -126 1 completed
+file PassengerJourneys.txt m1 m1.1 assigned B C 26100 Q2-1 0 0 374 26474 24 1 completed
 file PassengerJourneys.txt m2 m2.1 assigned P C 25350 Q1-1+Q2-1 71 0 1053 26474 -126 0 completed
 file StationStops.txt Train Station Platform Arrival Departure Boarded Alighted LeftBehind LoadAfterDeparture Capacity LoadFactor
 file StationStops.txt Q1-1 P P.platform.1 25421 25661 1 0 0 1 300 0.003
@@ -158,5 +158,5 @@ file StationStops.txt Q2-1 C C.platform.1 26474 26534 0 2 0 0 300 0.000
 file StationStops.txt Q3-1 B Platform_4 25972 26161 0 0 0 0 300 0.000
 file StationStops.txt Q3-1 C C.platform.1 26434 26494 0 0 0 0 300 0.000
 file ODSummary.txt Origin Destination Journeys Completed NoRoute MeanWait P95Wait MeanTravel MeanDelay
-file ODSummary.txt B C 1 1 0 0.000 0 374.000 -126.000
+file ODSummary.txt B C 1 1 0 0.000 0 374.000 24.000
 file ODSummary.txt P C 1 1 0 71.000 71 1124.000 -126.000
