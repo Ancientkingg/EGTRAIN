@@ -126,14 +126,35 @@ const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
 // The orange of the line and the box of a callout.
 const QColor kCalloutColor(242, 161, 106);
 
-// The text of the platform in a card: "2" for "Guingamp.platform.2", the form in which the import names the platforms of
-// a station, and any other id as it is.
-QString platformShortName(const std::string& platformId) {
+// A platform id split at its last ".platform.": the station part and the platform part. The import names the platforms
+// of a station "Guingamp.platform.2". Any other id, and one with nothing after the separator, is whole in `platform`.
+struct PlatformIdParts {
+	std::string station;  // What stands before the separator; empty for an id that is not split.
+	std::string platform; // What stands after it, or the whole id.
+	bool split = false;	  // True when the id holds the separator with something after it.
+};
+
+PlatformIdParts splitPlatformId(const std::string& platformId) {
 	const std::string separator = ".platform.";
 	const std::size_t at = platformId.rfind(separator);
-	return QString::fromStdString(at == std::string::npos || at + separator.size() == platformId.size()
-			? platformId
-			: platformId.substr(at + separator.size()));
+	if (at == std::string::npos || at + separator.size() == platformId.size())
+		return {std::string(), platformId, false};
+	return {platformId.substr(0, at), platformId.substr(at + separator.size()), true};
+}
+
+// The text of the platform in a card, in a tooltip and in a list: "2" for "Guingamp.platform.2", and any other id as it
+// is.
+QString platformShortName(const std::string& platformId) {
+	return QString::fromStdString(splitPlatformId(platformId).platform);
+}
+
+// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", "platform 2" for ".platform.2", and any other
+// id as it is.
+std::string platformWords(const std::string& platformId) {
+	const PlatformIdParts parts = splitPlatformId(platformId);
+	if (!parts.split)
+		return platformId;
+	return (parts.station.empty() ? std::string() : parts.station + ", ") + "platform " + parts.platform;
 }
 
 // The most destinations that the card of a station gives a bar.
@@ -275,16 +296,6 @@ QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && !isNoneId(platformId);
-}
-
-// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", the form in which the import names the
-// platforms of a station, and any other id as it is.
-std::string platformWords(const std::string& platformId) {
-	const std::string separator = ".platform.";
-	const std::size_t at = platformId.rfind(separator);
-	if (at == std::string::npos || at == 0 || at + separator.size() == platformId.size())
-		return platformId;
-	return platformId.substr(0, at) + ", platform " + platformId.substr(at + separator.size());
 }
 
 // A station node gets a platform bar for a platform of a station that is not virtual: its name does not hold "virtual",
@@ -1697,7 +1708,7 @@ void NetworkPresenter::updateStationCounts() {
 			total.worst = fraction;
 			total.crowding = platform->crowding();
 		}
-		total.lines << QStringLiteral("Platform %1: %2").arg(QString::fromStdString(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
+		total.lines << QStringLiteral("Platform %1: %2").arg(platformShortName(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
 	}
 	for (const auto& stationTotal : totals) {
 		const std::string& station = stationTotal.first;
