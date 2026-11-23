@@ -194,12 +194,10 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	// The passenger of a waiting ID, the first of the list when an ID repeats, or null.
 	const bool indexed = run.passengerIndex.covers(run.passengers);
 	const auto passengerOf = [&run, indexed](const std::string& id) -> const Passenger* {
-		if (indexed) {
-			const std::vector<Passenger*>& found = run.passengerIndex.find(id);
-			return found.empty() ? nullptr : found.front();
-		}
-		const auto found = std::find_if(run.passengers.begin(), run.passengers.end(), [&id](const Passenger& value) { return value.ID == id; });
-		return found == run.passengers.end() ? nullptr : &*found;
+		if (!indexed)
+			return nullptr;
+		const std::vector<Passenger*>& found = run.passengerIndex.find(id);
+		return found.empty() ? nullptr : found.front();
 	};
 
 	const auto listPassenger = [](const Passenger& passenger) {

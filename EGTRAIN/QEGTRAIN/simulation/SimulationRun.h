@@ -102,7 +102,7 @@ struct RunInfrastructure {
 ///
 /// Besides the run, the simulation uses this process-wide state: initial_variables (the options, which the operations
 /// builder reads and writes and prepareScene copies into settings), the controller simulation, SimulationWorker::active(),
-/// and the constants timestep (1 s), signalCode1 to signalCode3.
+/// and the constants timestep (1 s), signalCode1 and signalCode2.
 struct SimulationRun {
 	/// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
 	/// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
