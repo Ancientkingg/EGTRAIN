@@ -35,7 +35,9 @@ protected:
 
 private:
 	void updateWrappedHeight() {
-		// A narrow rail must reserve every wrapped line, including after a font change.
+		// A narrow rail must reserve every wrapped line, including after a font change. The old minimum goes first: the
+		// label would otherwise keep the height of its widest wrap after the rail has grown.
+		setMinimumHeight(0);
 		setMinimumHeight(qMax(0, heightForWidth(width())));
 	}
 };
@@ -57,7 +59,7 @@ protected:
 			QPen pen(m_entry.color, qMax(2, m_entry.lineWidth));
 			pen.setStyle(m_entry.penStyle);
 			painter.setPen(pen);
-			const QLineF line(3.0, 9.0, 43.0, 9.0);
+			const QLineF line(11.0, 9.0, 35.0, 9.0);
 			painter.drawLine(line);
 			if (m_entry.trackState != TrackOperationalState::Free) {
 				const TrackVisual base = freeTrackVisual();
@@ -300,7 +302,7 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 
 	auto* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
-	layout->setSpacing(2);
+	layout->setSpacing(4);
 	m_toggle = new QToolButton(this);
 	m_toggle->setObjectName("mapKeyToggle");
 	m_toggle->setText("Map key");
@@ -308,6 +310,11 @@ NetworkLegendWidget::NetworkLegendWidget(QWidget* parent)
 	m_toggle->setCheckable(true);
 	m_toggle->setChecked(true);
 	m_toggle->setArrowType(Qt::DownArrow);
+	m_toggle->setAutoRaise(true);
+	m_toggle->setAccessibleName("Map key");
+	QFont headingFont = m_toggle->font();
+	headingFont.setCapitalization(QFont::AllUppercase);
+	m_toggle->setFont(headingFont);
 	m_toggle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	layout->addWidget(m_toggle);
 
@@ -413,9 +420,8 @@ void NetworkLegendWidget::rebuildRows() {
 		const NetworkLegendEntry& entry = m_entries.at(i);
 		auto* row = new QWidget(m_body);
 		row->setObjectName(QString("mapKeyRow%1").arg(i));
-		row->setMaximumWidth(160);
 		auto* rowLayout = new QHBoxLayout(row);
-		rowLayout->setContentsMargins(2, 1, 2, 1);
+		rowLayout->setContentsMargins(2, 2, 2, 2);
 		rowLayout->setSpacing(5);
 		auto* swatch = new LegendSwatch(entry, row);
 		swatch->setObjectName(QString("mapKeySwatch%1").arg(i));
@@ -423,7 +429,6 @@ void NetworkLegendWidget::rebuildRows() {
 		// A word joiner after each slash keeps a unit such as km/h on one line; the label still wraps between words.
 		auto* label = new LegendLabel(QString(entry.label).replace(QLatin1Char('/'), QString("/") + QChar(0x2060)), row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
-		label->setMaximumWidth(121);
 		label->setWordWrap(true);
 		if (!entry.toolTip.isEmpty())
 			label->setToolTip(entry.toolTip);

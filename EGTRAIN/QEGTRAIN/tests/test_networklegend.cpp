@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QMap>
 #include <QPainter>
+#include <QPair>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QTest>
@@ -106,7 +107,9 @@ private slots:
 	void drawsSwatches();
 	void removesDuplicateEntries();
 	void collapsesAndExpands();
-	void rowsStayNarrow();
+	void labelsFollowTheWidth();
+	void headingAndRowsShareOneEdge();
+	void symbolsShareOneCentre();
 	void previewKeyExplainsSignalAspects();
 	void previewKeyExplainsMarkOfSelectedItem();
 	void stationSwatchesShowPinOfClass();
@@ -280,11 +283,82 @@ void TestNetworkLegend::collapsesAndExpands() {
 	QVERIFY(std::equal(labelsAfterExpand.cbegin(), labelsAfterExpand.cend(), labelsBeforeCollapse.cbegin()));
 }
 
-void TestNetworkLegend::rowsStayNarrow() {
+void TestNetworkLegend::labelsFollowTheWidth() {
 	LegendFixture f;
-	// A map key row stays within 160 logical pixels.
-	for (QLabel* row : f.legend.findChildren<QLabel*>(QRegularExpression("^mapKeyEntry")))
-		QCOMPARE_LE(row->maximumWidth(), 160);
+	NetworkLegendWidget& legend = f.legend;
+	const auto labelAt = [&legend](int width, int index) {
+		legend.setFixedWidth(width);
+		QApplication::processEvents();
+		QApplication::processEvents();
+		auto* label = legend.findChild<QLabel*>(QString("mapKeyEntry%1").arg(index));
+		return label;
+	};
+	// A label has no width cap, so it takes what its row is given.
+	QLabel* wide = labelAt(600, 0);
+	QVERIFY2(wide != nullptr, "the map key lacks its first row");
+	const int wideWidth = wide->width();
+	QCOMPARE_GE(wideWidth, 300);
+	QCOMPARE_EQ(wide->maximumWidth(), QWIDGETSIZE_MAX);
+	// As short as the label gets at any width: the fonts of a platform decide how many lines that is.
+	const int shortest = wide->heightForWidth(4000);
+	QCOMPARE_EQ(wide->heightForWidth(wideWidth), shortest);
+	QCOMPARE_LE(wide->minimumHeight(), shortest);
+	// A narrow key wraps the speed range and the wrapped text stays within its row.
+	QLabel* narrow = labelAt(140, 0);
+	QVERIFY2(narrow != nullptr, "the map key lacks its first row");
+	QCOMPARE_LT(narrow->width(), wideWidth);
+	QCOMPARE_GT(narrow->heightForWidth(narrow->width()), shortest);
+	QCOMPARE_GE(narrow->height(), narrow->heightForWidth(narrow->width()));
+	QVERIFY2(narrow->parentWidget()->rect().contains(narrow->geometry()), "wrapped map key text stays within its own row");
+}
+
+void TestNetworkLegend::headingAndRowsShareOneEdge() {
+	LegendFixture f;
+	NetworkLegendWidget& legend = f.legend;
+	legend.setFixedWidth(220);
+	QApplication::processEvents();
+	auto* heading = legend.findChild<QToolButton*>("mapKeyToggle");
+	auto* row = legend.findChild<QWidget*>("mapKeyRow0");
+	if (heading == nullptr || row == nullptr)
+		QFAIL("the map key lacks its heading or a row");
+	// The heading and the rows start at the same left edge and are as wide as the key, with no frame.
+	QCOMPARE(heading->mapTo(&legend, QPoint(0, 0)).x(), row->mapTo(&legend, QPoint(0, 0)).x());
+	QCOMPARE(heading->width(), row->width());
+	QCOMPARE(row->width(), legend.width());
+}
+
+// The first and the one past the last x that a swatch draws on, or 0 and 0 when it draws nothing.
+static QPair<int, int> swatchExtent(QWidget* swatch) {
+	QImage image(swatch->size(), QImage::Format_ARGB32_Premultiplied);
+	image.fill(Qt::transparent);
+	swatch->render(&image, QPoint(), QRegion(), QWidget::RenderFlags());
+	int left = image.width();
+	int right = -1;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (qAlpha(image.pixel(x, y)) > 40) {
+				left = qMin(left, x);
+				right = qMax(right, x);
+			}
+	return right < left ? qMakePair(0, 0) : qMakePair(left, right + 1);
+}
+
+void TestNetworkLegend::symbolsShareOneCentre() {
+	LegendFixture f;
+	const QList<QWidget*> swatches = f.legend.findChildren<QWidget*>(QRegularExpression("^mapKeySwatch"));
+	QVERIFY(!swatches.isEmpty());
+	const QPair<int, int> firstExtent = swatchExtent(swatches.constFirst());
+	const double first = (firstExtent.first + firstExtent.second) / 2.0;
+	for (int i = 0; i < swatches.size(); ++i) {
+		const QPair<int, int> extent = swatchExtent(swatches.at(i));
+		const double centre = (extent.first + extent.second) / 2.0;
+		QVERIFY2(extent.second > extent.first, qPrintable(QString("%1 draws nothing").arg(swatches.at(i)->objectName())));
+		QVERIFY2(std::abs(centre - first) <= 1.5,
+			qPrintable(QString("%1 is centred at %2, the first at %3").arg(swatches.at(i)->objectName()).arg(centre).arg(first)));
+		// A track line is no longer than the signal and station marks are wide.
+		if (f.legend.entries().at(i).kind == NetworkLegendEntryKind::Track)
+			QVERIFY2(extent.second - extent.first <= 30, qPrintable(QString("%1 draws %2 px wide").arg(swatches.at(i)->objectName()).arg(extent.second - extent.first)));
+	}
 }
 
 void TestNetworkLegend::previewKeyExplainsSignalAspects() {
@@ -604,7 +678,7 @@ void TestNetworkLegend::wrappedTextFitsRail() {
 		}
 	}
 
-	// The label wraps its text as a QTextLayout with word wrap does. No width up to its maximum starts a line inside km/h.
+	// The label wraps its text as a QTextLayout with word wrap does. No width up to 400 pixels starts a line inside km/h.
 	auto* highSpeed = constrainedLegend->findChild<QLabel*>("mapKeyEntry0");
 	// The first row is the high speed track.
 	if (highSpeed == nullptr)
@@ -614,7 +688,7 @@ void TestNetworkLegend::wrappedTextFitsRail() {
 	const int unitStart = text.indexOf("km");
 	const int unitEnd = text.indexOf('h', unitStart);
 	bool unitWhole = unitStart > 0 && unitEnd > unitStart;
-	for (int width = 1; width <= highSpeed->maximumWidth(); ++width) {
+	for (int width = 1; width <= 400; ++width) {
 		QTextLayout layout(text, highSpeed->font());
 		layout.beginLayout();
 		for (QTextLine line = layout.createLine(); line.isValid(); line = layout.createLine()) {
