@@ -76,11 +76,11 @@ std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
 // The step range of a signal failure in the simulation (see
 // Apply_Signal_Failures_Mixed_Signalling): from the start, and to the end when
 // the incident has one.
-bool signalFailureActive(const SimulationIncident& incident, int timestep) {
-	if (incident.type != IncidentType::SignalFailure || timestep < incident.startSeconds)
+bool signalFailureActive(const SimulationIncident& incident, int step) {
+	if (incident.type != IncidentType::SignalFailure || step < incident.startSeconds)
 		return false;
 	const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
-	return !hasEnd || timestep <= incident.endSeconds;
+	return !hasEnd || step <= incident.endSeconds;
 }
 
 // What names a train in a snapshot and does not change during a run.
@@ -98,9 +98,9 @@ GuiTrainState trainIdentity(int index, const Train& train) {
 }
 } // namespace
 
-GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep) {
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int step) {
 	GuiSimulationSnapshot snapshot;
-	snapshot.timestep = timestep;
+	snapshot.timestep = step;
 	snapshot.totalTimesteps = run.settings.times;
 
 	snapshot.trains.reserve(static_cast<std::size_t>(run.numTrains));
@@ -113,17 +113,17 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		state.length = train.train_length;
 		state.departureTime = static_cast<int>(train.departure_time);
 		state.outOfSimulation = train.OutOfSimulation;
-		state.speedKmh = train.speedKmhAt(timestep);
+		state.speedKmh = train.speedKmhAt(step);
 		state.currentOnboardPassengers = train.Current_OnBoard_Passengers;
 		state.maxOnboardPassengers = train.MAX_OnBoard_Passengers;
 
-		if (validRoute && timestep >= 0 && timestep < static_cast<int>(train.instant_spatial_position.size())) {
-			state.routeAxisPosition = train.instant_spatial_position[static_cast<std::size_t>(timestep)];
+		if (validRoute && step >= 0 && step < static_cast<int>(train.instant_spatial_position.size())) {
+			state.routeAxisPosition = train.instant_spatial_position[static_cast<std::size_t>(step)];
 			state.wagonHeadPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
 			state.wagonTailPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
 			for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
-				state.wagonHeadPositions.push_back(trainXPositionOf(train, timestep, wagon));
-				state.wagonTailPositions.push_back(trainXPositionOf(train, timestep, wagon + 1));
+				state.wagonHeadPositions.push_back(trainXPositionOf(train, step, wagon));
+				state.wagonTailPositions.push_back(trainXPositionOf(train, step, wagon + 1));
 			}
 		}
 
@@ -175,7 +175,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	}
 	// A failed section is blocked and its signals fail in both directions, for as long as the failure is active.
 	for (const SimulationIncident& incident : run.incidents) {
-		if (!signalFailureActive(incident, timestep))
+		if (!signalFailureActive(incident, step))
 			continue;
 		for (const std::string& id : incident.resolvedSectionIDs) {
 			if (id.empty())
@@ -266,11 +266,11 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	}
 
 	if (!run.passengers.empty())
-		snapshot.stationCalls = latestStationCalls(run, timestep);
+		snapshot.stationCalls = latestStationCalls(run, step);
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {
-		if (guiVirtualCouplingMessageShown(run.vcMsgTimestep[i], timestep))
+		if (guiVirtualCouplingMessageShown(run.vcMsgTimestep[i], step))
 			snapshot.virtualCouplingMessages.push_back({run.vcMsgTimestep[i], run.vcMsgTrain[i], run.vcMsgText[i]});
 	}
 	return snapshot;
@@ -552,11 +552,11 @@ std::string DispatchController::liveEndpoint() const {
 	return live_ ? live_->server.stateEndpoint() : std::string();
 }
 
-void DispatchController::publishSimulationSnapshot(int timestep) {
+void DispatchController::publishSimulationSnapshot(int step) {
 	// A run that nothing draws still builds the snapshot of a step for which the live stream has a frame due.
-	const bool liveDue = live_ && live_->inRun && timestep % live_->every == 0;
+	const bool liveDue = live_ && live_->inRun && step % live_->every == 0;
 	if (!snapshotsEnabled_ && !liveDue) {
-		PlaybackProfiler::instance().noteTimestep(timestep);
+		PlaybackProfiler::instance().noteTimestep(step);
 		return;
 	}
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish", "worker", "");
@@ -564,7 +564,7 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/build_gui_snapshot", "worker",
 			"worker/playback_step/snapshot_build_publish");
-		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(run(), timestep));
+		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(run(), step));
 	}
 	if (liveDue)
 		publishLiveState(*live_, snapshot);
@@ -577,7 +577,7 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 				emit snapshotAvailable();
 		}
 	}
-	PlaybackProfiler::instance().noteTimestep(timestep);
+	PlaybackProfiler::instance().noteTimestep(step);
 }
 
 void DispatchController::runSimulation() {

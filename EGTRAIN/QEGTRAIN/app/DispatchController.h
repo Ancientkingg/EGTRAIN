@@ -31,7 +31,7 @@ struct SimulationRun;
 
 /// The snapshot of a run at a step. It reads the run and changes nothing. The thread that steps the run builds it, and the
 /// window and the live stream see the run through it.
-GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int step);
 
 /// Prepares a scene into the run of the process and runs it.
 ///
@@ -156,7 +156,7 @@ private:
 	void beginScenePreparation();
 	// The output folder of the next run, as makeNextRunOutputFolders describes it.
 	std::string resolvedNextRunOutputFolder() const;
-	void publishSimulationSnapshot(int timestep);
+	void publishSimulationSnapshot(int step);
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
 	GuiReplayHistory replayCandidate_;

@@ -92,15 +92,12 @@ clang-tidy 23.1.3 over all analysed modules.
 (`/W4` with MSVC) to the C++ sources of one target. The flags are private to the target, so a
 target that links a library does not get them.
 
-- Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_live`, `egtrain_http`, `egtrain_update`,
-  `egtrain_sceneopen`, `egtrain_openrelay`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
+- Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_sim`, `egtrain_dispatch`, `egtrain_live`,
+  `egtrain_http`, `egtrain_update`, `egtrain_sceneopen`, `egtrain_openrelay`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`,
+  the `egtrain_telemetry` libraries, `egtrain_diagrams`,
   `scene_tool`, `egtrain_update_helper` and the test executables. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
   warning fails the build.
-- `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
-  build log come from the simulation headers.
-- `egtrain_sim` has the flags only. It builds without a warning on Clang and GCC, and it is not strict until the MSVC
-  warnings are fixed.
 - These have no flags: the vendored `egtrain_miniz` and `QEGTRAIN`. A comment next to the calls gives the number of warnings.
 - A test that includes the simulation headers passes `SIMULATION_HEADERS` to `egtrain_add_test`.
   The headers below `SRC_DIR` are then system headers for that test, so the warnings of the

@@ -498,7 +498,7 @@ void Section::reverseBlockSection(const Section& blockSets, double RouteLength) 
 	}
 
 	// reversing the order of the TDS in the block section
-	int N_TDS = blockSets.TDS_in_block.size();
+	int N_TDS = static_cast<int>(blockSets.TDS_in_block.size());
 	if (N_TDS > 0) {
 		list<TDS*>::const_iterator td = blockSets.TDS_in_block.end();
 		td--; // pointer to the last element of the list of TDS in the block section
@@ -1767,11 +1767,11 @@ void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Secti
 }
 
 // Function to occupy a double switch
-void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev) {
+void occupyDoubleSwitch(SimulationRun& run, const Section& section, const Section& previous) {
 	const Section* doubleSwitchBS[2] = {};
 	ConnectedSectionIdentity identities[2];
 	Section* branchSections[2][2] = {};
-	if (!resolveDoubleSwitchSections(run, BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
+	if (!resolveDoubleSwitchSections(run, section, previous, doubleSwitchBS, identities, branchSections))
 		return;
 
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
@@ -1837,25 +1837,25 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 			std::list<Section*> branchBS = {
 				branchSections[switchIndex][0], branchSections[switchIndex][1]};
 			for (auto itb = branchBS.begin(); itb != branchBS.end(); ++itb) {
-				const auto& BLS = **itb;
+				const auto& branch = **itb;
 
 				// occupy compound signalling_block_sections
-				int NumBlocksToFind = BLS.N_ConnectedBS + 1;
+				int NumBlocksToFind = branch.N_ConnectedBS + 1;
 				// The section and the sections connected to it, to add to BlocksOccupied
-				std::vector<string> IDToAdd(NumBlocksToFind);
-				IDToAdd[0] = BLS.ID;
+				std::vector<string> branchIDs(NumBlocksToFind);
+				branchIDs[0] = branch.ID;
 				for (int i = 1; i < NumBlocksToFind; i++) {
-					IDToAdd[i] = BLS.IDConnectedBS[i - 1];
+					branchIDs[i] = branch.IDConnectedBS[i - 1];
 				}
 				// Filling in the BlocksOccupied list
 				for (int i = 0; i < NumBlocksToFind; i++) {
 					bool IsThere = false;
 					for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
-						if (*it == IDToAdd[i])
+						if (*it == branchIDs[i])
 							IsThere = true;
 					}
 					if (IsThere == 0)
-						run.blocksOccupied.push_back(IDToAdd[i]);
+						run.blocksOccupied.push_back(branchIDs[i]);
 				}
 			}
 		}
@@ -1863,11 +1863,11 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 }
 
 // Function to release a double switch
-void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev) {
+void releaseDoubleSwitch(SimulationRun& run, const Section& section, const Section& previous) {
 	const Section* doubleSwitchBS[2] = {};
 	ConnectedSectionIdentity identities[2];
 	Section* branchSections[2][2] = {};
-	if (!resolveDoubleSwitchSections(run, BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
+	if (!resolveDoubleSwitchSections(run, section, previous, doubleSwitchBS, identities, branchSections))
 		return;
 
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {

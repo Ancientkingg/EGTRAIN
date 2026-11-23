@@ -324,8 +324,8 @@ run on as reference. For each of them it writes the text dump of the chart and t
 
 ### Warnings
 
-The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and
-to `egtrain_dispatch`. The cache option `EGTRAIN_WARNINGS_AS_ERRORS` is OFF by
+The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets. The
+cache option `EGTRAIN_WARNINGS_AS_ERRORS` is OFF by
 default. With `-DEGTRAIN_WARNINGS_AS_ERRORS=ON` a warning in a strict target
 fails the build:
 
