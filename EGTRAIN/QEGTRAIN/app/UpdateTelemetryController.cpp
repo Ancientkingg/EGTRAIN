@@ -73,6 +73,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.id.duplicate",
 		"scene.id.empty",
 		"scene.id.reserved",
+		"scene.id.separator",
 		"scene.incident.fields",
 		"scene.incident.speed",
 		"scene.incident.type",

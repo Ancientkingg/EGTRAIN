@@ -109,11 +109,22 @@ std::string capitalized(std::string text) {
 	return text;
 }
 
+// The result files are tab separated, one row to a line, and write the IDs of stations, platforms, trains and passengers
+// as they are, so an ID with a tab or a line break would break the columns or rows of a file.
+void rejectFieldSeparators(DiagnosticBuilder& diagnostics, const std::string& id, const std::string& file, const std::string& type,
+	const std::string& path) {
+	if (id.find_first_of("\t\r\n") == std::string::npos)
+		return;
+	diagnostics.error("scene.id.separator", capitalized(type) + " ID must not hold a tab or a line break", file, type, id, path, "",
+		"Remove the tab or line break from the ID");
+}
+
 // `type` is the item type of the diagnostics; `noun` names the item in the messages when it differs from the type.
+// `inResults` is false for an item whose ID no result file holds, which may then hold a tab.
 template <typename T>
 void collectIds(const std::vector<T>& items, const std::string& file, const std::string& type,
 	const std::string& category, DiagnosticBuilder& diagnostics,
-	std::unordered_set<std::string>& ids, const std::string& noun = "") {
+	std::unordered_set<std::string>& ids, const std::string& noun = "", bool inResults = true) {
 	const std::string name = noun.empty() ? type : noun;
 	for (std::size_t index = 0; index < items.size(); ++index) {
 		const std::string& id = items[index].id;
@@ -123,6 +134,8 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 				"");
 			continue;
 		}
+		if (inResults)
+			rejectFieldSeparators(diagnostics, id, file, type, path);
 		if (!ids.insert(id).second) {
 			diagnostics.error("scene.id.duplicate", "Duplicate " + name + " ID", file, type, id,
 				path, id, "Give each " + name + " a unique ID");
@@ -1095,6 +1108,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.id.duplicate", "Duplicate station ID", "stations.json", "station",
 				station.id, path + ".id", station.id);
 		}
+		rejectFieldSeparators(diagnostics, station.id, "stations.json", "station", path + ".id");
 		if (!station.id.empty())
 			stations[station.id] = &station;
 		if (station.hasPosition && !std::isfinite(station.positionKm))
@@ -1107,6 +1121,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
 			const ScenePlatform& platform = station.platforms[platformIndex];
 			const std::string platformPath = path + ".platforms[" + std::to_string(platformIndex) + "]";
+			rejectFieldSeparators(diagnostics, platform.id, "stations.json", "platform", platformPath + ".id");
 			if (platform.id.empty())
 				diagnostics.error("scene.id.empty", "Platform ID must not be empty", "stations.json", "platform",
 					platform.id, platformPath + ".id", "");
@@ -1185,7 +1200,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	}
 	std::unordered_set<std::string> signallingAreaIds;
 	collectIds(scene.signallingAreas, "signalling.json", "signalling area", "signalling_areas",
-		diagnostics, signallingAreaIds);
+		diagnostics, signallingAreaIds, "", false);
 	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
 		const SceneSignallingArea& area = scene.signallingAreas[index];
 		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
@@ -1797,12 +1812,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	for (std::size_t passengerIndex = 0; passengerIndex < scene.passengers.size(); ++passengerIndex) {
 		const ScenePassenger& passenger = scene.passengers[passengerIndex];
 		const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
+		rejectFieldSeparators(diagnostics, passenger.id, "passengers.json", "passenger", passengerPath + ".id");
 		if (!passengerIds.insert(passenger.id).second)
 			diagnostics.error("scene.id.duplicate", "Duplicate passenger ID", "passengers.json", "passenger",
 				passenger.id, passengerPath + ".id", passenger.id);
 		for (std::size_t journeyIndex = 0; journeyIndex < passenger.journeys.size(); ++journeyIndex) {
 			const ScenePassengerJourney& journey = passenger.journeys[journeyIndex];
 			const std::string journeyPath = passengerPath + ".journeys[" + std::to_string(journeyIndex) + "]";
+			rejectFieldSeparators(diagnostics, journey.id, "passengers.json", "journey", journeyPath + ".id");
 			if (!journeyIds.insert(journey.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate passenger journey ID", "passengers.json",
 					"journey", journey.id, journeyPath + ".id", journey.id);
@@ -1841,6 +1858,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				std::optional<double> legDeparture;
 				std::optional<double> legArrival;
 				const std::string legPath = journeyPath + ".legs[" + std::to_string(legIndex) + "]";
+				rejectFieldSeparators(diagnostics, leg.id, "passengers.json", "leg", legPath + ".id");
 				if (!passengerLegIds.insert(leg.id).second)
 					diagnostics.error("scene.id.duplicate", "Duplicate passenger leg ID", "passengers.json",
 						"leg", leg.id, legPath + ".id", leg.id);
