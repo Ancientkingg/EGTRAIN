@@ -267,7 +267,7 @@ follow. The release is called `EGTRAIN vX.Y.Z: Title`, and the GitHub release, i
 website, and the update check of the application show the notes. The update check shows about the first 360
 characters, so the notes open with a short paragraph that stands alone. A release without such a file is called
 `EGTRAIN vX.Y.Z` and has the standard text. `tools/release/version.py name TAG` and `version.py notes TAG` print the
-name and the notes that the release job uses. Link a new notes file from `docs/README.md`.
+name and the notes that the release job uses. Add a new notes file to the Release contents in `docs/index.md`.
 
 A push to `production` publishes the lowest version of a notes file that is above every stable tag and every reserved
 release version, and the next patch version when there is none. A minor or major release is therefore prepared by
