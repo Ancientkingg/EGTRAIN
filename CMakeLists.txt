@@ -232,6 +232,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/FollowCamera.cpp
     ${SRC_DIR}/graphics/NetworkPresenter.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
+    ${SRC_DIR}/graphics/NetworkImage.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
@@ -252,7 +253,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp)
 target_link_libraries(egtrain_graphics
-    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
+    PUBLIC Qt::Core Qt::Gui Qt::Widgets Qt::Svg egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
 add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/AboutDialog.cpp
