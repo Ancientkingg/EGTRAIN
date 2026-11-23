@@ -237,6 +237,93 @@ struct MissedChangeRun {
 	}
 };
 
+// A run at step 500 at station B: T1 from A stands at platform 2 with passenger `rider` on board, who changes there to T4 for C
+// (planned to arrive at C at 1060). T3 also stands at platform 2, planned to leave at 510, and reaches C at `thirdAtC`. With
+// t1GoesOn, T1 goes on to C at 600 and T3 does not stand there.
+struct StandingTrainRun {
+	SimulationRun run;
+
+	explicit StandingTrainRun(double thirdAtC, bool t1GoesOn = false) {
+		run.settings.startingSimulationTime = 0;
+		Train arriving = namedTrain("T1", 400);
+		if (!t1GoesOn) {
+			arriving.numStations = 2;
+			arriving.Stations.resize(2);
+		}
+		arriving.Stations[1].stationPlatformId = "B.platform.2";
+		arriving.stationPlatformNumber[1] = 2;
+		arriving.Stations[0].StepStopped = 10;
+		arriving.Stations[1].StepStopped = 2;
+		arriving.StationArrivals[0] = 5;
+		arriving.StationDepartures[0] = 310;
+		arriving.StationArrivals[1] = 499;
+		arriving.StationDepartures[1] = -1;
+		arriving.StoppedForServiceStop = true;
+		arriving.CurrentServiceStop = "B";
+		arriving.CurrentServiceStopPlatform = "B.platform.2";
+		arriving.currentServiceStopPlatformNumber = 2;
+		arriving.MAX_OnBoard_Passengers = 100;
+		arriving.Current_OnBoard_Passengers = 1;
+		run.trains.push_back(arriving);
+		Train standing = trainFromB("T3", 2, thirdAtC - 160);
+		standing.ScheduledDepartures[0] = 510;
+		if (!t1GoesOn) {
+			standing.Stations[0].StepStopped = 1;
+			standing.StationArrivals[0] = 490;
+			standing.StoppedForServiceStop = true;
+			standing.CurrentServiceStop = "B";
+			standing.CurrentServiceStopPlatform = "B.platform.2";
+			standing.currentServiceStopPlatformNumber = 2;
+			standing.MAX_OnBoard_Passengers = 100;
+		}
+		run.trains.push_back(standing);
+		run.trains.push_back(trainFromB("T4", 2, 900));
+		run.numTrains = static_cast<int>(run.trains.size());
+
+		Trip toB;
+		toB.TripID = "r.1";
+		toB.JourneyID = "r";
+		toB.Dep_Station_ID = "A";
+		toB.Arr_Station_ID = "B";
+		toB.Arr_Station_Platform_ID = "B.platform.2";
+		toB.TrainServiceDescription = "T1";
+		toB.IsTripStarted = true;
+		toB.Actual_Departure_Time = 250;
+		toB.Actual_Boarding_Time = 300;
+		Trip onward;
+		onward.TripID = "r.2";
+		onward.JourneyID = "r";
+		onward.Dep_Station_ID = "B";
+		onward.Arr_Station_ID = "C";
+		onward.Dep_Station_Platform_ID = "B.platform.2";
+		onward.depPlatformNumber = 2;
+		onward.TrainServiceDescription = "T4";
+		onward.Planned_Arrival_Time = 1060;
+		Journey riding;
+		riding.ID = "r";
+		riding.Dep_Station_ID = "A";
+		riding.Arr_Station_ID = "C";
+		riding.Trips = {toB, onward};
+		riding.N_Trips = 2;
+		riding.IsJourneyStarted = true;
+		Passenger rider;
+		rider.ID = "rider";
+		rider.Journeys.push_back(riding);
+		rider.IsIntheNetwork = true;
+		rider.CurrentStatus = PassengerStatus::OnBoard;
+		rider.current_JourneyID = "r";
+		rider.current_TripID = "r.1";
+		rider.Current_Train_Boarded = "T1";
+		rider.Current_Arrival_Station = "B";
+		run.passengers.push_back(rider);
+		run.numPassengers = 1;
+
+		simulateTrainPassengerInteractions(run, 500);
+	}
+
+	const Passenger& rider() const { return run.passengers.front(); }
+};
+
 } // namespace
 
 class TestPassengerJourneys : public QObject {
@@ -258,6 +345,9 @@ private slots:
 	void trainThatEndsEarlyCountsThePassengersItSetsDown();
 	void passengerWhoAlightsAfterTheChangeLeftPlansFromTheArrivalPlatform();
 	void passengerWhoWaitedSinceMidnightKeepsTheWaitAndThePlatform();
+	void passengerBoardsStandingTrainThatGoesDirectInTime();
+	void passengerKeepsPlanWhenStandingTrainArrivesLater();
+	void passengerDoesNotBoardTheTrainItLeft();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -451,6 +541,43 @@ void TestPassengerJourneys::passengerWhoWaitedSinceMidnightKeepsTheWaitAndThePla
 	QCOMPARE(journey.Walkingtime, 180.0);
 	QCOMPARE(next.Actual_Departure_Time, 680);
 	QCOMPARE(waiter.Current_Train_To_Wait, std::string("T4"));
+}
+
+// After the change the passenger's plan is T4, which reaches C at 1060. T3 stands on the same platform and reaches C at 650, so
+// the passenger takes T3.
+void TestPassengerJourneys::passengerBoardsStandingTrainThatGoesDirectInTime() {
+	const StandingTrainRun standing(650);
+	const Passenger& rider = standing.rider();
+	const Journey& journey = rider.Journeys.front();
+	QCOMPARE(journey.Trips.size(), std::size_t(2));
+	QCOMPARE(journey.Trips.back().TrainServiceDescription, std::string("T3"));
+	QCOMPARE(journey.Trips.back().Arr_Station_ID, std::string("C"));
+	QVERIFY(journey.IsReplanned);
+	QCOMPARE(journey.FirstPlanArrival, 1060);
+	QCOMPARE(rider.current_TripID, journey.Trips.back().TripID);
+	QCOMPARE(journey.Walkingtime, 0.0);
+	// The passenger waits for T3 on its platform.
+	QCOMPARE(rider.CurrentStatus, PassengerStatus::OnPlatform);
+	QCOMPARE(rider.Current_Train_To_Wait, std::string("T3"));
+	QCOMPARE(rider.Current_WaitingStationPlatformID, std::string("B.platform.2"));
+}
+
+// T3 would reach C at 1100, later than the plan, so the passenger keeps waiting for T4.
+void TestPassengerJourneys::passengerKeepsPlanWhenStandingTrainArrivesLater() {
+	const StandingTrainRun standing(1100);
+	const Passenger& rider = standing.rider();
+	const Journey& journey = rider.Journeys.front();
+	QCOMPARE(journey.Trips.back().TrainServiceDescription, std::string("T4"));
+	QVERIFY(!journey.IsReplanned);
+	QCOMPARE(rider.CurrentStatus, PassengerStatus::OnPlatform);
+}
+
+// T1, which the passenger has just left, goes on to C before T4 does, but it is not another train.
+void TestPassengerJourneys::passengerDoesNotBoardTheTrainItLeft() {
+	const StandingTrainRun standing(1100, true);
+	const Journey& journey = standing.rider().Journeys.front();
+	QCOMPARE(journey.Trips.back().TrainServiceDescription, std::string("T4"));
+	QVERIFY(!journey.IsReplanned);
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {

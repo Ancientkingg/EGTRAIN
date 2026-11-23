@@ -44,6 +44,10 @@ passenger_routing::TrainState liveTrainState(const Train& train, int firstStop, 
 /// there any more), when the train is full, and when the train ends its service before the stop where the passenger leaves it.
 /// A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 ///
+/// A passenger who has a plan and comes to wait on a platform, at the start of a journey with legs or after a transfer, boards
+/// a train that stands at that platform then and reaches the destination without a change no later than the plan does (with the
+/// delay the train has now, as the router counts it); the plan becomes that train.
+///
 /// The searches of one phase of a step are shared: passengers who plan from one station at one time use one search. The
 /// planning and the settling of the trains each start a phase, because the trains move between them.
 class PassengerJourneys {
@@ -87,8 +91,13 @@ private:
 	int trainIndex(const std::string& description) const;
 	bool callsAt(const SimulationRun& run, int train, const std::string& station, const std::string& platformId) const;
 	passenger_routing::Plan planFrom(const SimulationRun& run, const Journey& journey, const std::string& origin, int t, int readyAt, int platformNumber);
-	void planInto(SimulationRun& run, Passenger& passenger, Journey& journey, std::size_t keptTrips, int t, int readyAt, int platformNumber, bool isReplan);
-	void replanWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt);
+	/// Plans the rest of the journey after keptTrips trips: with `given` that plan, otherwise the earliest arrival from the station.
+	void planInto(SimulationRun& run, Passenger& passenger, Journey& journey, std::size_t keptTrips, int t, int readyAt, int platformNumber, bool isReplan,
+		const passenger_routing::Plan* given = nullptr);
+	void replanWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt,
+		const passenger_routing::Plan* given = nullptr);
+	std::optional<passenger_routing::Plan> standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
+		const Trip& current, int t, std::optional<int> alightedAtPlatform) const;
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t);
