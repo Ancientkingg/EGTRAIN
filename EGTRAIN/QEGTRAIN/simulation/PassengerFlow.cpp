@@ -260,6 +260,18 @@ std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
 	return positions;
 }
 
+std::vector<int> PassengerFlow::waitingAt(int platform) const {
+	std::vector<int> positions;
+	if (platform < 0 || static_cast<std::size_t>(platform) >= queues_.size())
+		return positions;
+	std::set<int> seen;
+	for (const auto& [train, line] : queues_[static_cast<std::size_t>(platform)].byTrain)
+		for (const Waiter& waiter : line.all)
+			if (seen.insert(waiter.position).second)
+				positions.push_back(waiter.position);
+	return positions;
+}
+
 std::vector<int> PassengerFlow::takeAllOnBoard(const string& train) {
 	std::vector<int> positions;
 	const int trainId = findId(train);
@@ -599,6 +611,10 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 		return;
 	StopCallCounts* counts = currentCall(run, train);
 	const StationPlatform* stop = platformOfStop(run, T);
+	// A train that has just arrived is offered to the passengers who wait on its platform for another train.
+	const int call = T.serviceStopOf(T.CurrentServiceStop);
+	if (call >= 0 && T.Stations[static_cast<size_t>(call)].StepStopped == 1)
+		run.passengerJourneys.offerStandingTrain(run, flow, train, t);
 	// The occupation rate of the platform counts the passengers who waited there before the train let anyone off and those who
 	// alight. A passenger who alights and waits there for another train is among the second and not among the first.
 	const int waitingBefore = stop != nullptr ? flow.waitingCount(stop->StationID, stop->ID) : 0;

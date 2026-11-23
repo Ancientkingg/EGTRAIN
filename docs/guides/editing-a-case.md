@@ -137,12 +137,14 @@ Three rules decide the plan of a passenger:
 
 1. A plan takes the earliest arrival, and among the same arrivals the fewest trains.
    When arrival and number of trains are equal, the train that leaves earlier is taken.
-2. A passenger who has a plan, at the start of a journey with legs or after a transfer,
-   and who stands on a platform where another train stands that goes to the destination
-   without a change no later than the plan, boards that train. The plan becomes that
-   train. The arrival of that train counts with the delay it has at that moment, as in
-   the other plans. Only the trains that stand at the platform of the passenger at that
-   moment are looked at, not trains that arrive later.
+2. A passenger who has a plan and waits on a platform boards another train that stands
+   there and goes to the destination without a change no later than the plan, if it has
+   room. The plan becomes that train. The arrival of that train counts with the delay it
+   has at that moment, as in the other plans. This is checked when a train arrives, for
+   the passengers who already wait on its platform, and when a passenger comes to wait
+   on a platform (the start of a journey with legs, or a transfer), for the trains that
+   stand there then. Other trains are not looked at, and neither is the train that the
+   passenger has just left.
 3. The walking time between platforms is the setting above.
 
 The model of the passenger-dependent dwell

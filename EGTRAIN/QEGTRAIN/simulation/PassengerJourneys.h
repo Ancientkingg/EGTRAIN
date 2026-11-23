@@ -44,9 +44,11 @@ passenger_routing::TrainState liveTrainState(const Train& train, int firstStop, 
 /// there any more), when the train is full, and when the train ends its service before the stop where the passenger leaves it.
 /// A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 ///
-/// A passenger who has a plan and comes to wait on a platform, at the start of a journey with legs or after a transfer, boards
-/// a train that stands at that platform then and reaches the destination without a change no later than the plan does (with the
-/// delay the train has now, as the router counts it); the plan becomes that train.
+/// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
+/// destination without a change no later than the plan does (with the delay the train has now, as the router counts it, and
+/// when it has room); the plan becomes that train. It is looked at when the passenger comes to wait there (the start of a journey
+/// with legs, or a transfer) for the trains that stand then, and when a train arrives for the passengers who wait there. The
+/// train that the passenger has just left is not another train.
 ///
 /// The searches of one phase of a step are shared: passengers who plan from one station at one time use one search. The
 /// planning and the settling of the trains each start a phase, because the trains move between them.
@@ -74,6 +76,10 @@ public:
 	void replanRefused(SimulationRun& run, Passenger& passenger, const Train& full, int t);
 
 
+	/// The train has just arrived at its stop at `t`: the passengers who wait on its platform for another train board it when it
+	/// reaches their destination without a change no later than their plan does (see the rule above).
+	void offerStandingTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
+
 	/// Settles the trains at the start of the passenger step at `t`: the passengers who wait for a train that has left a stop,
 	/// or cannot call there any more, plan again, and the passengers on a train that ended its service are set down at its last
 	/// stop and plan again from there.
@@ -96,8 +102,11 @@ private:
 		const passenger_routing::Plan* given = nullptr);
 	void replanWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt,
 		const passenger_routing::Plan* given = nullptr);
+	/// The direct ride of the earliest train that stands at the platform of the passenger and beats the plan (see the rule above),
+	/// or none; with onlyTrain at least 0, only that train. A passenger who alighted just now is ready after the walk from the
+	/// platform of the train that was left.
 	std::optional<passenger_routing::Plan> standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
-		const Trip& current, int t, std::optional<int> alightedAtPlatform) const;
+		const Trip& current, int t, std::optional<int> alightedAtPlatform, int onlyTrain = -1) const;
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t);

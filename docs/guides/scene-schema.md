@@ -488,8 +488,9 @@ earliest arrival at the destination on the timetable of the moment, with at
 most `simulation_settings.passenger_max_transfers` transfers, and plans again
 when the passenger misses a train or finds it full. Of two plans with the same
 arrival and the same number of trains, the one that leaves earlier is taken. A
-passenger with a plan who stands on a platform where another train stands that
-reaches the destination without a change no later than the plan boards that train. A journey with legs follows
+passenger with a plan who waits on a platform where another train stands that
+reaches the destination without a change no later than the plan boards that train
+if it has room. A journey with legs follows
 them until one cannot be taken and is then planned the same way. A journey for
 which no train reaches the destination ends with the outcome `no_route`, and the
 passenger leaves the network at the station it is at. A journey that comes from
@@ -684,18 +685,21 @@ require a newer app.
 
 The passenger keys that came after release 1.0.9 are part of schema version 1:
 `demand` in `passengers.json`, `passenger_capacity` of a train unit, and
-`passenger_max_transfers`, `passenger_walking_seconds_per_platform`,
-`passenger_dwell_coefficients` and the three passenger thresholds in
-`simulation_settings`. Release 1.0.9 and older releases read
+`passenger_max_transfers`, `passenger_dwell_coefficients` and the three passenger
+thresholds in `simulation_settings`. Release 1.0.9 and older releases read
 version 1 and skip a key they do not know, so they open a case that has these
 keys without a message. They run it without the demand passengers and with the
-built-in capacity and dwell values, and with the walking rule that they have (no
-walk to the same or the next platform number, 30 s per platform of difference
-from two on), and they leave the keys out when they save
+built-in capacity and dwell values, and they leave the keys out when they save
 the case. A case with demand and no listed passenger is then saved without
 `passengers.json`. Those releases also report a journey without legs, which the
 run now plans by itself, with the warning `scene.passenger.legs.empty`. Keep a
 copy of a case with these keys before you save it with an older release.
+
+`passenger_walking_seconds_per_platform` came after release 1.1.0 and is also part
+of schema version 1. Release 1.1.0 and older releases skip it without a message,
+run the case with the walking rule they have (no walk when the platform numbers
+differ by 1 or less, and 30 s for each platform of difference from 2 on), and
+leave the key out when they save the case.
 
 ## Case files
 

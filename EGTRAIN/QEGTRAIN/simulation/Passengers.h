@@ -128,7 +128,8 @@ public:
 	/// True once the passenger has entered the network for this journey.
 	bool IsJourneyStarted, IsJourneyCompleted; ///< True once the passenger has reached the destination.
 	/// True once the legs after the first plan of the journey were replaced: the passenger missed a train, was refused by a
-	/// full one, or was set down early by a train that ended its service.
+	/// full one, was set down early by a train that ended its service, or took a standing train that reaches the destination
+	/// directly in time.
 	bool IsReplanned = false;
 	JourneyOutcome Outcome = JourneyOutcome::InProgress; ///< Set when the journey completes or finds no route.
 	int LiveTripCount = 0;								 ///< Number of legs the passenger step planned for this journey; the IDs of its legs count it.

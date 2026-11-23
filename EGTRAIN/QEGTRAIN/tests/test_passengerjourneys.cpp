@@ -324,6 +324,68 @@ struct StandingTrainRun {
 	const Passenger& rider() const { return run.passengers.front(); }
 };
 
+// A run at step 500 at station B: passenger `waiter` has stood on platform 2 since 400 for T4, planned to reach C at 1060. T3 arrives
+// at platform 2 in this step (its first step there) and reaches C at `thirdAtC`, with no room when `full`.
+struct ArrivingTrainRun {
+	SimulationRun run;
+
+	explicit ArrivingTrainRun(double thirdAtC, bool full = false) {
+		run.settings.startingSimulationTime = 0;
+		const auto standAtB = [](Train& train, int arrival) {
+			train.Stations[0].StepStopped = 1;
+			train.StationArrivals[0] = arrival;
+			train.StoppedForServiceStop = true;
+			train.CurrentServiceStop = "B";
+			train.CurrentServiceStopPlatform = "B.platform.2";
+			train.currentServiceStopPlatformNumber = 2;
+			train.MAX_OnBoard_Passengers = 100;
+		};
+		Train arriving = trainFromB("T3", 2, thirdAtC - 160);
+		arriving.ScheduledDepartures[0] = 510;
+		standAtB(arriving, 499);
+		arriving.Current_OnBoard_Passengers = full ? 100 : 0;
+		run.trains.push_back(arriving);
+		run.trains.push_back(trainFromB("T4", 2, 900));
+		run.numTrains = static_cast<int>(run.trains.size());
+
+		Trip onward;
+		onward.TripID = "w.1";
+		onward.JourneyID = "w";
+		onward.Dep_Station_ID = "B";
+		onward.Arr_Station_ID = "C";
+		onward.Dep_Station_Platform_ID = "B.platform.2";
+		onward.depPlatformNumber = 2;
+		onward.TrainServiceDescription = "T4";
+		onward.Planned_Arrival_Time = 1060;
+		onward.IsTripStarted = true;
+		onward.Actual_Departure_Time = 400;
+		Journey waiting;
+		waiting.ID = "w";
+		waiting.Dep_Station_ID = "B";
+		waiting.Arr_Station_ID = "C";
+		waiting.Trips = {onward};
+		waiting.N_Trips = 1;
+		waiting.IsJourneyStarted = true;
+		Passenger waiter;
+		waiter.ID = "waiter";
+		waiter.Journeys.push_back(waiting);
+		waiter.IsIntheNetwork = true;
+		waiter.CurrentStatus = PassengerStatus::OnPlatform;
+		waiter.current_JourneyID = "w";
+		waiter.current_TripID = "w.1";
+		waiter.current_location_ID = waiter.Current_WaitingStationID = "B";
+		waiter.Current_WaitingStationPlatformID = "B.platform.2";
+		waiter.Current_Train_To_Wait = "T4";
+		waiter.Current_Arrival_Station = "C";
+		run.passengers.push_back(waiter);
+		run.numPassengers = 1;
+
+		simulateTrainPassengerInteractions(run, 500);
+	}
+
+	const Passenger& waiter() const { return run.passengers.front(); }
+};
+
 } // namespace
 
 class TestPassengerJourneys : public QObject {
@@ -348,6 +410,9 @@ private slots:
 	void passengerBoardsStandingTrainThatGoesDirectInTime();
 	void passengerKeepsPlanWhenStandingTrainArrivesLater();
 	void passengerDoesNotBoardTheTrainItLeft();
+	void waitingPassengerSwitchesToTrainThatArrivesAndGoesDirect();
+	void waitingPassengerKeepsPlanWhenTheDirectTrainArrivesLater();
+	void waitingPassengerIgnoresFullStandingTrain();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -578,6 +643,28 @@ void TestPassengerJourneys::passengerDoesNotBoardTheTrainItLeft() {
 	const Journey& journey = standing.rider().Journeys.front();
 	QCOMPARE(journey.Trips.back().TrainServiceDescription, std::string("T4"));
 	QVERIFY(!journey.IsReplanned);
+}
+
+// The passenger waits for T4, which reaches C at 1060. T3 arrives at the platform and reaches C at 650.
+void TestPassengerJourneys::waitingPassengerSwitchesToTrainThatArrivesAndGoesDirect() {
+	const ArrivingTrainRun arrived(650);
+	const Journey& journey = arrived.waiter().Journeys.front();
+	QCOMPARE(journey.Trips.back().TrainServiceDescription, std::string("T3"));
+	QVERIFY(journey.IsReplanned);
+	QCOMPARE(journey.FirstPlanArrival, 1060);
+	QCOMPARE(arrived.waiter().Current_Train_To_Wait, std::string("T3"));
+}
+
+void TestPassengerJourneys::waitingPassengerKeepsPlanWhenTheDirectTrainArrivesLater() {
+	const ArrivingTrainRun arrived(1100);
+	QCOMPARE(arrived.waiter().Current_Train_To_Wait, std::string("T4"));
+	QVERIFY(!arrived.waiter().Journeys.front().IsReplanned);
+}
+
+// T3 reaches C in time but has no room, so the passenger keeps waiting for T4.
+void TestPassengerJourneys::waitingPassengerIgnoresFullStandingTrain() {
+	const ArrivingTrainRun arrived(650, true);
+	QCOMPARE(arrived.waiter().Current_Train_To_Wait, std::string("T4"));
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {
