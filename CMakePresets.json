@@ -16,7 +16,7 @@
         "rhs": "Windows"
       },
       "environment": {
-        "QT_ROOT_DIR": "C:/Qt/6.8.3/msvc2022_64",
+        "QT_ROOT_DIR": "C:/Qt/6.12.1/msvc2022_64",
         "PATH": "$env{QT_ROOT_DIR}/bin;$penv{PATH}",
         "PYTHONUTF8": "1"
       },

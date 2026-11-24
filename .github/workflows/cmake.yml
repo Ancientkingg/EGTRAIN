@@ -49,7 +49,7 @@ jobs:
         run: python3 tools/docs/check_docs.py
 
   # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
-  # of the changes job. Every leg builds with Qt 6.8.3 from install-qt-action. The Linux leg and the Linux sanitizer jobs
+  # of the changes job. Every leg builds with Qt 6.12.1 from install-qt-action. The Linux leg and the Linux sanitizer jobs
   # run on Ubuntu 24.04, the system that builds the AppImage in package.yml.
   build:
     name: build (${{ matrix.name }})
@@ -107,7 +107,7 @@ jobs:
           "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
-      # Qt 6.8.3, and the libraries from Homebrew on macOS and from apt on Linux. On Windows the MSVC environment; the
+      # Qt 6.12.1, and the libraries from Homebrew on macOS and from apt on Linux. On Windows the MSVC environment; the
       # configure step installs the libraries of the vcpkg manifest.
       - name: Set up the dependencies
         if: needs.changes.outputs.build == 'true'
@@ -161,15 +161,13 @@ jobs:
       # errors and no interprocedural optimization (EGTRAIN_IPO=OFF), in build/. Linking with interprocedural optimization
       # generates the code of the whole program again for every test executable, which a compiler cache cannot store. The
       # package and release workflows still build with it, so the shipped binaries and the package checks use it.
-      # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked Homebrew Qt. Qt 6.8.3
-      # links the AGL framework, which the macOS 26 SDK no longer has, so the OpenGL framework stands in for it.
+      # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked Homebrew Qt.
       - name: Configure (macOS)
         if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
         run: >
           cmake --preset ci-macos
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
-          -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Configure (Linux)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'

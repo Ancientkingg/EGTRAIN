@@ -12,7 +12,7 @@ name: Package
 # AppImage, on a runner with a virtual display. Its screenshots and logs are the artifact linux-rehearsal-evidence, which is
 # for diagnosis and is not a release asset.
 # The release workflow and the package check call this workflow with the version to build. Every package is built with
-# Qt 6.8.3 from install-qt-action.
+# Qt 6.12.1 from install-qt-action.
 on:
   workflow_call:
     inputs:
@@ -51,8 +51,7 @@ jobs:
       - name: Set up the dependencies
         uses: ./.github/actions/setup-deps
 
-      # As in cmake.yml: the keg folders of the other libraries, and the OpenGL framework in place of the AGL framework that
-      # Qt 6.8.3 links and that the macOS 26 SDK no longer has.
+      # As in cmake.yml: the keg folders of the other libraries.
       - name: Configure
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
@@ -61,7 +60,6 @@ jobs:
           -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
-          -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Build
         run: cmake --build build --config Release -j

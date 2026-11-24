@@ -1,6 +1,6 @@
 name: Set up the build dependencies
 description: >
-  Installs Qt 6.8.3 with Qt Charts through install-qt-action and the other libraries of the build: ZeroMQ, cppzmq and
+  Installs Qt 6.12.1 with Qt Charts through install-qt-action and the other libraries of the build: ZeroMQ, cppzmq and
   nlohmann-json from Homebrew on macOS and from apt on Linux. On Windows it sets up the MSVC environment, and the
   configure step installs the libraries from the vcpkg manifest.
 
@@ -13,13 +13,17 @@ inputs:
 runs:
   using: composite
   steps:
-    # The action caches the Qt install and sets QT_ROOT_DIR, which the configure steps pass to CMake.
+    # The action caches the Qt install and sets QT_ROOT_DIR, which the configure steps pass to CMake. aqtinstall 3.3.0,
+    # its newest release, cannot install Qt 6.11 or later on Windows, whose packages Qt keeps in one folder per compiler
+    # since 6.11, so the action installs aqtinstall from a commit of its main branch that can. The release jobs of
+    # release.yml install Qt with the same inputs. Go back to a release of aqtinstall once one installs Qt 6.12.1.
     - name: Install Qt 6
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.8.3'
+        version: '6.12.1'
         modules: qtcharts
         cache: true
+        aqtsource: 'git+https://github.com/miurahr/aqtinstall.git@4c759852b1108cc801d8e24979136b895b5155d4'
 
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'

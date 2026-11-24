@@ -61,6 +61,9 @@ KNOWN_GAPS = {
     ("release.yml", "setup action"),
 }
 
+# aqtinstall 3.3.0, the newest release, cannot install Qt 6.12.1 on Windows, so every Qt install takes it from this commit.
+AQTINSTALL = "git+https://github.com/miurahr/aqtinstall.git@4c759852b1108cc801d8e24979136b895b5155d4"
+
 
 def workflow_text(name: str) -> str:
     return (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
@@ -559,11 +562,11 @@ def check_references(checks: Checks, texts: dict, tests_cmake: str, characteriza
 
 
 def check_dependency_setup(checks: Checks, workflows: dict, texts: dict, action: dict) -> None:
-    """Qt 6.8.3 and the other libraries come from the setup action, and every job that installs Qt gets the same version."""
+    """Qt 6.12.1 and the other libraries come from the setup action, and every job that installs Qt installs it the same way."""
     expect = checks.expect
     install = next((step for step in action["runs"]["steps"] if step.get("uses", "").startswith("jurplel/install-qt-action@")), {})
-    expect(install.get("with", {}) == {"version": "6.8.3", "modules": "qtcharts", "cache": "true"},
-           "setup-deps: Qt 6.8.3 with Qt Charts from install-qt-action, cached")
+    expect(install.get("with", {}) == {"version": "6.12.1", "modules": "qtcharts", "cache": "true", "aqtsource": AQTINSTALL},
+           "setup-deps: Qt 6.12.1 with Qt Charts from install-qt-action, cached, with the aqtinstall that installs it on Windows")
     expect("ilammy/msvc-dev-cmd@v1" in flat(action) and "brew install zeromq cppzmq nlohmann-json" in flat(action)
            and "apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES" in flat(action),
            "setup-deps: the MSVC environment, and ZeroMQ, cppzmq and nlohmann-json from Homebrew and apt")
@@ -572,8 +575,8 @@ def check_dependency_setup(checks: Checks, workflows: dict, texts: dict, action:
             for item in job.get("steps", []):
                 installs = item.get("uses", "").startswith("jurplel/install-qt-action@")
                 expect(not installs, f"{name}: job {job_id} installs Qt with the setup action", gap=(name, "setup action"))
-                expect(not installs or item.get("with", {}).get("version") == install.get("with", {}).get("version"),
-                       f"{name}: job {job_id} installs the Qt version of the setup action")
+                expect(not installs or item.get("with", {}) == install.get("with", {}),
+                       f"{name}: job {job_id} installs Qt with the inputs of the setup action")
     qt5 = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|matrix\.qt|ARTIFACT_SUFFIX")
     for name, text in texts.items():
         found = qt5.search(text)

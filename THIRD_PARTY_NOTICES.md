@@ -1,14 +1,14 @@
 # Third-party notices
 
-EGTRAIN is licensed under the GNU General Public License, version 3 only (see `LICENSE`). The release packages bundle the libraries below, each under its own licence. They are built with Qt 6.8. The Linux AppImage also holds the copyright file of every system library under `usr/share/doc/<package>/copyright`. The table says where the source of each library is available.
+EGTRAIN is licensed under the GNU General Public License, version 3 only (see `LICENSE`). The release packages bundle the libraries below, each under its own licence. They are built with Qt 6.12. The Linux AppImage also holds the copyright file of every system library under `usr/share/doc/<package>/copyright`. The table says where the source of each library is available.
 
 | Library | macOS | Windows | Linux | Licence | Source |
 | --- | :-: | :-: | :-: | --- | --- |
-| Qt 6.8 Core, Gui, Widgets, Network, Svg, OpenGL, OpenGL Widgets and plugins | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
-| Qt 6.8 Help and Sql with its SQLite plugin, for the manual | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
+| Qt 6.12 Core, Gui, Widgets, Network, Svg, OpenGL, OpenGL Widgets and plugins | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.12/ |
+| Qt 6.12 Help, Concurrent and Sql with its SQLite plugin, for the manual | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.12/ |
 | SQLite, inside the Qt SQLite plugin | yes | yes | yes | public domain | https://sqlite.org |
-| Qt 6.8 DBus (macOS, Linux) | yes | | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
-| Qt Charts 6.8 | yes | yes | yes | GPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
+| Qt 6.12 DBus (macOS, Linux) | yes | | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.12/ |
+| Qt Charts 6.12 | yes | yes | yes | GPL-3.0 | https://download.qt.io/archive/qt/6.12/ |
 | ZeroMQ (libzmq) | yes | yes | yes | MPL-2.0 | https://github.com/zeromq/libzmq |
 | libsodium | yes | | yes | ISC | https://github.com/jedisct1/libsodium |
 | OpenPGM (libpgm) | | | yes | LGPL-2.1 | https://github.com/steve-o/openpgm |
