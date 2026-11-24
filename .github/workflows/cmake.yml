@@ -239,6 +239,8 @@ jobs:
           Copy-Item build/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --no-quick-import "$dist/QEGTRAIN.exe"
+          # As in package.yml: the program uses the ICU of Windows, and the package holds no copy of it.
+          Remove-Item -LiteralPath "$dist/icuuc.dll" -ErrorAction SilentlyContinue
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           python tools/release/package_start_smoke.py $dist --exports
 

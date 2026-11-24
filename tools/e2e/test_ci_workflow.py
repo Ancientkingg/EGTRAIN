@@ -682,7 +682,8 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     deploy = [line.strip() for line in runs(package["jobs"]["package-windows"]).splitlines() if "windeployqt.exe" in line]
     expect(
         len(deploy) == 1 and [line.strip() for line in start.splitlines() if "windeployqt.exe" in line] == deploy
-        and all(part in start and part in release_text for part in ('installed/x64-windows/bin/*.dll" $dist/', 'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"')),
+        and all(part in start and part in release_text for part in ('installed/x64-windows/bin/*.dll" $dist/', 'Remove-Item -LiteralPath "$dist/icuuc.dll"',
+                                                                   'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"')),
         "cmake.yml: the Windows start check assembles the package with the windeployqt line and the commands of the package job",
     )
     # A failed leg uploads the CTest log, the GUI smoke log and the folders of the smokes. CTest writes below runner.temp.
@@ -1026,19 +1027,19 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
         "document type and the programs of the app in it and of a copy, and runs the copy; no later step uses the app",
     )
 
-    # Windows: the job leaves out the OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and redistributable files,
+    # Windows: the job leaves out the OpenGL, Direct3D, DXC, ICU, Qt Quick, QML, virtual keyboard and redistributable files,
     # copies the Visual C++ runtime DLLs, checks the imports, reports the size and the signatures, starts a copy and checks
     # HTTPS from it, and then uploads the folder that it checked.
     windows = jobs["package-windows"]
     windows_runs = runs(windows)
     expect(
         all(option in windows_runs for option in ("--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler", "--no-system-dxc-compiler", "--no-quick-import"))
-        and '@("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")' in windows_runs
+        and '@("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","icu*.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")' in windows_runs
         and all(f'if (-not (Test-Path "$dist/{name}")) {{ throw "missing {name}" }}' in windows_runs for name in ("iconengines/qsvgicon.dll", "styles/qmodernwindowsstyle.dll"))
         and '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' in windows_runs and "python tools/release/pe_imports.py $dist --missing" in windows_runs
         and not re.search(r"\d+\.\d+\.\d+", step(windows, "VCToolsRedistDir").get("run", ""))
         and "$env:GITHUB_STEP_SUMMARY" in windows_runs and "zip" not in flat(windows).lower(),
-        "package.yml: the Windows package without the software OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and "
+        "package.yml: the Windows package without the software OpenGL, Direct3D, DXC, ICU, Qt Quick, QML, virtual keyboard and "
         "redistributable files, with the runtime DLLs that it imports and its size in the job summary",
     )
     # The HTTPS probe exits with this code on a rate limit or an outage of GitHub, which does not fail the job.

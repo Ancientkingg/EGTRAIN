@@ -118,9 +118,11 @@ What the jobs prove today:
   `Qt6Charts.dll`, `Qt6Svg.dll`, `Qt6Network.dll`, `Qt6Help.dll`, `Qt6Sql.dll`,
   `platforms/qwindows.dll`, `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
   `styles/qmodernwindowsstyle.dll`, `sqldrivers/qsqlite.dll`, a `libzmq` DLL,
-  `scene_tool.exe` and `Scenes/Paimpol`. It fails when the software
-  OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
-  keyboard files or `vc_redist.x64.exe` are in the package. It copies the Visual
+  `scene_tool.exe` and `Scenes/Paimpol`. It removes the copy of `icuuc.dll`, the ICU
+  of Windows that Qt Core uses, which `windeployqt` takes from the build machine, and
+  fails when the software OpenGL, Direct3D or DXC compiler libraries, an ICU
+  library, Qt Quick, QML or virtual keyboard files or `vc_redist.x64.exe` are in
+  the package. It copies the Visual
   C++ runtime DLLs that the program files import next to `QEGTRAIN.exe` and
   fails when a program file imports a DLL that is neither in the package nor part
   of Windows (`tools/release/pe_imports.py`). The Finalize Windows job runs the
