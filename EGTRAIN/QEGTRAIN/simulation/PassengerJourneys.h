@@ -25,27 +25,48 @@ int advanceFirstStop(const Train& train, int from);
 /// just before its first stop does.
 bool haltsAtStop(const Train& train, int stop);
 
-/// What the routing knows about the train at `elapsed` seconds from the start of the run, with firstStop from advanceFirstStop.
+/// Seconds that the train needs under a speed limit of limitMs (m/s) from the first of positions, route positions in metres in
+/// ascending order, to each of them; 0 for the first. Each arc of the route runs at the lower of its track speed limit for the train
+/// (Train::trackSpeedLimit), the maximum speed of the train and the limit, and a stretch that no arc covers at the limit
+/// (passenger_routing::limitedStretchSeconds). One pass over the arcs of the route gives every time.
+std::vector<double> limitedRunningSeconds(const SimulationRun& run, const Train& train, const std::vector<double>& positions, double limitMs);
+
+/// What the routing knows about the train at `elapsed` seconds from the start of the run, with firstStop from advanceFirstStop
+/// (passenger_routing::TrainProgress, with times on the clock of the day: SimulationRun::settings.startingSimulationTime plus the
+/// seconds of the run).
+///
 /// The delay is the arrival delay at the latest stop where the train arrived, and never negative. Before the train arrived anywhere
 /// it is the lateness of its entry (the step of entering minus Train::departure_time) when it has entered, and 0 when it has not.
 /// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
 /// there, so that a passenger who comes to the platform now can still board it.
-passenger_routing::TrainState liveTrainState(const Train& train, int firstStop, int elapsed);
+///
+/// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. The
+/// running times under the limit (limitedRunningSeconds) are those to the stop ahead from where the head of the train was at the
+/// step before (passengers who enter the network plan before the trains move), or from where it enters when it has not run a step
+/// yet, and those between the later stops, as far as they follow each other along the route of the train.
+passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, const Train& train, int firstStop, int elapsed);
+
+/// The times on which passengers plan the train at `elapsed`: passenger_routing::predictTrainState of timetable, the timetable of the
+/// train in the router, and liveTrainProgress, with SimulationRun::settings.passengerLateThresholdSeconds. The state also says whether
+/// the train is late or slowed.
+passenger_routing::TrainState liveTrainState(const SimulationRun& run, const Train& train, const passenger_routing::TrainTimetable& timetable,
+	int firstStop, int elapsed);
 
 /// The journeys of the passengers that the timetable of the run plans: journeys without legs, and journeys whose legs can no
 /// longer be followed. It keeps the router of the run and what the planning needs of the trains, next to the PassengerFlow
 /// state in SimulationRun, and is emptied with it.
 ///
 /// A plan is the earliest arrival at the destination from the station where the passenger is now, with at most
-/// SimulationRun::settings.passengerMaxTransfers transfers, on the planned times of the trains plus the latest delay each of
-/// them is known to have (liveTrainState). Its rides become the trips of the journey, named <journey>.live<n>, with the
+/// SimulationRun::settings.passengerMaxTransfers transfers, on the times of the trains that liveTrainState gives: the planned times
+/// of a train that is at most SimulationRun::settings.passengerLateThresholdSeconds late and has no speed limit, and the predicted
+/// times of any other. Its rides become the trips of the journey, named <journey>.live<n>, with the
 /// stations and platforms exactly as the stops of the train name them, so that boarding and alighting treat them like trips from
 /// the scene. A passenger plans again from the station where it is when it misses its train (the train left, or cannot call
 /// there any more), when the train is full, and when the train ends its service before the stop where the passenger leaves it.
 /// A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 ///
 /// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
-/// destination without a change no later than the plan does (with the delay the train has now, as the router counts it, and
+/// destination without a change no later than the plan does (on the times that liveTrainState gives for both trains, and
 /// when it has room); the plan becomes that train. It is looked at when the passenger comes to wait there (the start of a journey
 /// with legs, or a transfer) for the trains that stand then, and when a train arrives for the passengers who wait there. The
 /// train that the passenger has just left is not another train.

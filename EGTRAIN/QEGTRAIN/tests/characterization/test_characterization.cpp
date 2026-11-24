@@ -423,6 +423,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"fixed-missed", {"Q1", "Q2", "Q3"}, 0},
 		{"live-noroute", {"Q1"}, 0},
 		{"live-missed", {"Q1", "Q3", "Q4"}, 0},
+		{"live-slowed", {"Q1", "Q2"}, 0},
 	};
 	for (const auto& live : livePassengers) {
 		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
@@ -1162,8 +1163,10 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		return train;
 	};
 	scene.services.push_back(service("Q1", 60, 820, 1250, true, platformB1, 760, transfer && !shortQ1));
-	if (transfer) {
+	// live-slowed has Q2 on the platform of Q1 at B, without Platform_4, so that Q1 keeps its planned arrival at B.
+	if (transfer || set == "live-slowed")
 		scene.services.push_back(service("Q2", 20, 1000, 1400, false, platformB1, 760, true));
+	if (transfer) {
 		scene.services.push_back(service("Q3", 500, 960, 1450, false, platformB2, 900, true));
 		// A train behind Q3 on the same platform: the passenger of live-missed plans it after missing Q3.
 		if (set == "live-missed")
@@ -1214,6 +1217,13 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		// As t1 of live-transfer, but Q1 is held at P (see the incident of the case) and there is no Q2, so t1 plans the change to Q3 on Platform_4. Q1 reaches B so late
 		// that the walk of 90 s ends after Q3 has left: the change is missed and t1 plans Q4, behind Q3 on the same platform.
 		scene.passengers.push_back({"t1", {journey("t1.1", 150, 1400, "P", "C", {})}});
+	} else if (set == "live-slowed") {
+		// Q1 runs at 40 km/h from 130 s (see the incident of the case), so it is predicted at C long after Q2. s1 rides Q1 to B and
+		// leaves it there for Q2. s2 rides Q1 to B, where it still arrives first. s3 appears at B while Q1 stands there, and waits
+		// for Q2.
+		scene.passengers.push_back({"s1", {journey("s1.1", 300, 1400, "P", "C", {})}});
+		scene.passengers.push_back({"s2", {journey("s2.1", 300, 760, "P", "B", {})}});
+		scene.passengers.push_back({"s3", {journey("s3.1", 840, 1400, "B", "C", {})}});
 	} else if (set == "live-transfer") {
 		// P to C is only possible by changing at B: Q1 to B, then Q2 on the same platform. t2 starts at B and takes Q2 direct.
 		scene.passengers.push_back({"t1", {journey("t1.1", 150, 1400, "P", "C", {})}});
@@ -1524,6 +1534,12 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		}
 	if (spec.passengers == "live-missed")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 738.0});
+	if (spec.passengers == "live-slowed") {
+		SceneIncident slow{"slow-q1", IncidentType::TrainBreakdown, "Q1", 130.0, 0.0};
+		slow.hasReducedSpeed = true;
+		slow.reducedSpeedKmh = 40.0;
+		loaded.scene.scenarios[0].incidents.push_back(slow);
+	}
 	if (spec.name.find("stub-breakdown-") == 0)
 		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", IncidentType::TrainBreakdown, "U1", 60.0, 120.0});
 	if (spec.singleTrack)

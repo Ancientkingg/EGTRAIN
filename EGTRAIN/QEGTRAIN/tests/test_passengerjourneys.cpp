@@ -26,6 +26,12 @@ Train threeStops() {
 	return train;
 }
 
+// liveTrainProgress of the train in a run without incidents that starts at 00:00:00.
+passenger_routing::TrainProgress progressOf(const Train& train, int firstStop, int elapsed) {
+	const SimulationRun run;
+	return liveTrainProgress(run, train, firstStop, elapsed);
+}
+
 // The train stands at the stop, having arrived at the time.
 void standAt(Train& train, int stop, double arrival) {
 	for (int earlier = 0; earlier < stop; ++earlier)
@@ -386,6 +392,64 @@ struct ArrivingTrainRun {
 	const Passenger& waiter() const { return run.passengers.front(); }
 };
 
+// A run whose route 0 is one section of three arcs: 0 to 1,000 m with a track speed limit of 10 m/s, 1,000 to 3,000 m with 30 m/s
+// and 3,000 to 4,000 m with 40 m/s. Its train S-1 (threeStops) runs on it at up to 50 m/s and stops at 0, 1 and 3 km. With
+// `capped`, a breakdown caps S-1 at 72 km/h (20 m/s) from 50 s to 1,000 s.
+struct LimitedRun {
+	SimulationRun run;
+
+	explicit LimitedRun(bool capped = true) {
+		Section section;
+		const double ends[] = {0.0, 1.0, 3.0, 4.0};
+		const double speeds[] = {10.0, 30.0, 40.0};
+		for (int a = 0; a < 3; ++a) {
+			Arc arc;
+			arc.startNode.X = ends[a];
+			arc.endNode.X = ends[a + 1];
+			arc.speedLimit = speeds[a];
+			section.arcs_in_signalling_block_section.push_back(arc);
+		}
+		section.total_arcs = 3;
+		Route route;
+		route.sequence_of_block_sections.push_back(section);
+		route.N_Block_Sections = 1;
+		run.infra.routes.push_back(route);
+		run.infra.numRoutes = 1;
+		Train train = threeStops();
+		train.trainDescription = "S-1";
+		train.indexOfRoute = 0;
+		train.max_train_speed = 50.0;
+		for (int stop = 0; stop < 3; ++stop)
+			train.Stations[static_cast<std::size_t>(stop)].X = stop == 2 ? 3.0 : stop;
+		run.trains.push_back(train);
+		run.numTrains = 1;
+		if (capped) {
+			SimulationIncident cap;
+			cap.type = IncidentType::TrainBreakdown;
+			cap.target = "S";
+			cap.startSeconds = 50.0;
+			cap.hasReducedSpeed = true;
+			cap.reducedSpeedKmh = 72.0;
+			cap.hasEndSeconds = true;
+			cap.endSeconds = 1000.0;
+			run.incidents.push_back(cap);
+		}
+	}
+
+	Train& train() { return run.trains.front(); }
+
+	// S-1 left its first stop on time and runs with its head at 500 m at 150 s, the step before 151.
+	void runAt500Metres() {
+		Train& moving = train();
+		moving.Stations[0].StepStopped = 10;
+		moving.StationArrivals[0] = 100.0;
+		moving.CanEnter = true;
+		moving.earliestActiveTrajectoryIndex = 90;
+		moving.instant_spatial_position.assign(200, 0.0);
+		moving.instant_spatial_position[150] = 500.0;
+	}
+};
+
 } // namespace
 
 class TestPassengerJourneys : public QObject {
@@ -402,6 +466,9 @@ private slots:
 	void trainThatEnteredLateIsLateBeforeItsFirstArrival();
 	void trainThatStandsPastItsDepartureIsAsLateAsItStands();
 	void trainDoesNotHaltAtTheStopWhereItEnters();
+	void limitedRunTakesTheLowerSpeedOfEachArc();
+	void breakdownSpeedCapLimitsTheTrain();
+	void trainWithoutSpeedCapIsNotLimited();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
 	void trainThatEndsEarlyCountsThePassengersItSetsDown();
@@ -420,7 +487,7 @@ private slots:
 void TestPassengerJourneys::trainBeforeItsFirstStopCanBeBoardedThere() {
 	const Train train = threeStops();
 	QCOMPARE(advanceFirstStop(train, 0), 0);
-	const passenger_routing::TrainState state = liveTrainState(train, 0, 0);
+	const passenger_routing::TrainProgress state = progressOf(train, 0, 0);
 	QCOMPARE(state.firstStop, std::size_t(0));
 	QCOMPARE(state.delay, 0.0);
 }
@@ -455,7 +522,7 @@ void TestPassengerJourneys::trainThatLeftItsRouteHasNoStopLeft() {
 	standAt(train, 1, 210.0);
 	train.OutOfSimulation = true;
 	QCOMPARE(advanceFirstStop(train, 0), 3);
-	QCOMPARE(liveTrainState(train, 3, 400).firstStop, std::size_t(3));
+	QCOMPARE(progressOf(train, 3, 400).firstStop, std::size_t(3));
 }
 
 void TestPassengerJourneys::delayIsThatOfTheLatestArrival() {
@@ -464,16 +531,16 @@ void TestPassengerJourneys::delayIsThatOfTheLatestArrival() {
 	train.StationArrivals[1] = 245.0; // 45 s late at the second
 	train.Stations[0].StepStopped = 10;
 	train.Stations[1].StepStopped = 10;
-	QCOMPARE(liveTrainState(train, 2, 250).delay, 45.0);
+	QCOMPARE(progressOf(train, 2, 250).delay, 45.0);
 	// Before it arrived at the second stop, the delay is that of the first.
 	train.StationArrivals[1] = -1;
-	QCOMPARE(liveTrainState(train, 1, 170).delay, 60.0);
+	QCOMPARE(progressOf(train, 1, 170).delay, 60.0);
 }
 
 void TestPassengerJourneys::delayIsNeverNegative() {
 	Train train = threeStops();
 	train.StationArrivals[0] = 70.0; // 30 s early
-	QCOMPARE(liveTrainState(train, 1, 80).delay, 0.0);
+	QCOMPARE(progressOf(train, 1, 80).delay, 0.0);
 }
 
 // Before the first recorded arrival, a train that entered later than it may enter is as late as its entry. A train that has not
@@ -481,23 +548,23 @@ void TestPassengerJourneys::delayIsNeverNegative() {
 void TestPassengerJourneys::trainThatEnteredLateIsLateBeforeItsFirstArrival() {
 	Train train = threeStops();
 	train.departure_time = 50.0;
-	QCOMPARE(liveTrainState(train, 0, 100).delay, 0.0); // not entered
+	QCOMPARE(progressOf(train, 0, 100).delay, 0.0); // not entered
 	train.CanEnter = true;
 	train.earliestActiveTrajectoryIndex = 350;
-	QCOMPARE(liveTrainState(train, 0, 400).delay, 300.0 * timestep);
+	QCOMPARE(progressOf(train, 0, 400).delay, 300.0 * timestep);
 	train.earliestActiveTrajectoryIndex = 40;
-	QCOMPARE(liveTrainState(train, 0, 400).delay, 0.0);
+	QCOMPARE(progressOf(train, 0, 400).delay, 0.0);
 	train.earliestActiveTrajectoryIndex = 350;
 	train.StationArrivals[0] = 160.0;
-	QCOMPARE(liveTrainState(train, 1, 400).delay, 60.0);
+	QCOMPARE(progressOf(train, 1, 400).delay, 60.0);
 }
 
 void TestPassengerJourneys::trainThatStandsPastItsDepartureIsAsLateAsItStands() {
 	Train train = threeStops();
 	standAt(train, 0, 100.0);
 	// Planned to leave at 130 s: at 150 s it has stood 20 s over, and a passenger who arrives now can still board it.
-	QCOMPARE(liveTrainState(train, 0, 120).delay, 0.0);
-	QCOMPARE(liveTrainState(train, 0, 150).delay, 20.0);
+	QCOMPARE(progressOf(train, 0, 120).delay, 0.0);
+	QCOMPARE(progressOf(train, 0, 150).delay, 20.0);
 }
 
 void TestPassengerJourneys::trainDoesNotHaltAtTheStopWhereItEnters() {
@@ -512,6 +579,56 @@ void TestPassengerJourneys::trainDoesNotHaltAtTheStopWhereItEnters() {
 	// Entering 10 m before stop 0 (standing before its first stop): it halts there.
 	train.Start_Node_X = -0.010;
 	QVERIFY(haltsAtStop(train, 0));
+}
+
+// Under a limit of 20 m/s the first arc runs at its track speed limit of 10 m/s and the others at the limit; past the arcs of the
+// route the train runs at the limit. A train whose maximum speed is below the limit runs at that speed.
+void TestPassengerJourneys::limitedRunTakesTheLowerSpeedOfEachArc() {
+	LimitedRun limited;
+	const std::vector<double> expected{0.0, 100.0, 200.0, 300.0};
+	QCOMPARE(limitedRunningSeconds(limited.run, limited.train(), {0.0, 1000.0, 3000.0, 5000.0}, 20.0), expected);
+	QCOMPARE(limitedRunningSeconds(limited.run, limited.train(), {500.0, 3500.0}, 20.0).back(), 175.0);
+	QCOMPARE(limitedRunningSeconds(limited.run, limited.train(), {3000.0, 5000.0}, 20.0).back(), 100.0);
+	limited.train().max_train_speed = 16.0;
+	QCOMPARE(limitedRunningSeconds(limited.run, limited.train(), {1000.0, 3000.0}, 20.0).back(), 125.0);
+}
+
+// S-1 ran at 500 m at 150 s under the cap of 20 m/s: it reaches its second stop 50 s later, at the track speed limit of 10 m/s,
+// and needs 100 s from there to its third stop, 30 s more than planned.
+void TestPassengerJourneys::breakdownSpeedCapLimitsTheTrain() {
+	LimitedRun limited;
+	limited.runAt500Metres();
+	const passenger_routing::TrainProgress progress = liveTrainProgress(limited.run, limited.train(), 1, 151);
+	QVERIFY(progress.limited);
+	QVERIFY(!progress.standing);
+	QCOMPARE(progress.delay, 0.0);
+	QCOMPARE(progress.limitEnds, 1000.0);
+	QCOMPARE(progress.nextStop, std::size_t(1));
+	QCOMPARE(progress.nextArrival, 200.0);
+	QCOMPARE(progress.runs.size(), std::size_t(3));
+	QCOMPARE(progress.runs[1], 100.0);
+	QCOMPARE(progress.runs[2], -1.0);
+	const passenger_routing::TrainTimetable timetable{{{0, 0, 100.0, 130.0}, {1, 0, 200.0, 230.0}, {2, 0, 300.0, -1.0}}};
+	const passenger_routing::TrainState state = liveTrainState(limited.run, limited.train(), timetable, 1, 151);
+	QVERIFY(state.slowed);
+	QVERIFY(!state.late);
+	QCOMPARE(state.arrival(timetable, 1), 200.0);
+	QCOMPARE(state.arrival(timetable, 2), 330.0);
+	// A stop off the route of the train has no running time.
+	limited.train().stationBlockSection[2] = -1;
+	QCOMPARE(liveTrainProgress(limited.run, limited.train(), 1, 151).runs[1], -1.0);
+}
+
+// Before the cap starts, after it ends and without a cap the train is not limited.
+void TestPassengerJourneys::trainWithoutSpeedCapIsNotLimited() {
+	LimitedRun limited;
+	QVERIFY(!liveTrainProgress(limited.run, limited.train(), 0, 40).limited);
+	QVERIFY(!liveTrainProgress(limited.run, limited.train(), 0, 1000).limited);
+	LimitedRun uncapped(false);
+	uncapped.runAt500Metres();
+	const passenger_routing::TrainProgress progress = liveTrainProgress(uncapped.run, uncapped.train(), 1, 151);
+	QVERIFY(!progress.limited);
+	QVERIFY(progress.runs.empty());
 }
 
 void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute() {

@@ -39,22 +39,74 @@ struct TrainTimetable {
 	std::vector<Stop> stops; ///< The stops in service order.
 };
 
-/// What a search knows about a train now.
+/// What a search knows about a train now: where it can still be boarded, and the times it uses for its stops.
 struct TrainState {
 	/// The first stop where the train can still be boarded: the stop where it stands, or the next one. The train cannot be
 	/// boarded at earlier stops; it is still left at its later stops. A value at or past the last stop leaves the train out.
 	std::size_t firstStop = 0;
-	/// Seconds added to every planned time from firstStop on; a train ahead of its plan keeps its planned times.
+	/// The predicted arrival at each stop of the train, one per stop of its timetable; below 0 at a stop without an arrival.
+	/// Empty when the search uses the planned times.
+	std::vector<double> arrivals;
+	/// The predicted departure at each stop, like arrivals; empty when arrivals is.
+	std::vector<double> departures;
+	/// Seconds the train is late now, never negative. The search does not read it.
 	double delay = 0.0;
+	/// True when delay is above the late threshold, so that the times are predicted. The search does not read it.
+	bool late = false;
+	/// True while a speed limit applies to the train, so that the times are predicted. The search does not read it.
+	bool slowed = false;
+
+	/// The arrival at stop that a search uses: the predicted one, or the planned one of train when there are none.
+	double arrival(const TrainTimetable& train, std::size_t stop) const { return arrivals.empty() ? train.stops[stop].arrival : arrivals[stop]; }
+	/// The departure at stop that a search uses: the predicted one, or the planned one of train when there are none.
+	double departure(const TrainTimetable& train, std::size_t stop) const {
+		return departures.empty() ? train.stops[stop].departure : departures[stop];
+	}
 };
+
+/// The late threshold in seconds when the case gives no value: passengers plan on the planned times of a train that is late
+/// by this or less.
+inline constexpr double kDefaultLateThresholdSeconds = 300.0;
+
+/// Seconds to run lengthMetres at the lower of speedMs, the speed of the train on that stretch without the limit, and limitMs,
+/// the speed limit (both m/s). A speed of 0 or less, or one that is not finite, is unknown, and the stretch runs at the limit.
+/// Acceleration and braking are not counted.
+double limitedStretchSeconds(double lengthMetres, double speedMs, double limitMs);
+
+/// What a prediction of the times of a train starts from. Times are seconds on the clock of the router.
+struct TrainProgress {
+	std::size_t firstStop = 0; ///< TrainState::firstStop.
+	double delay = 0.0;		   ///< Seconds the train is late now, never negative.
+	double now = 0.0;		   ///< The time now.
+	bool standing = false;	   ///< True while the train stands at firstStop.
+	/// True while a speed limit applies to the train; nextStop, nextArrival, runs and limitEnds then say what it costs.
+	bool limited = false;
+	/// The stop the train runs to: firstStop while it stands there, otherwise the first stop ahead of it. At or past the last
+	/// stop when there is none.
+	std::size_t nextStop = 0;
+	/// The earliest arrival at nextStop under the limit from where the train is now; below 0 when it is not known.
+	double nextArrival = -1.0;
+	/// runs[s]: seconds the train needs under the limit from stop s to stop s + 1; below 0 when not known. Read from nextStop on.
+	std::vector<double> runs;
+	/// When the limit ends; kUnreached when it lasts to the end of the route. A run that starts at this time or later is not
+	/// limited.
+	double limitEnds = kUnreached;
+};
+
+/// The state that a search uses for a train with this timetable and progress. A train that is late by lateThresholdSeconds or
+/// less and has no speed limit keeps its planned times. Otherwise each time is predicted: the planned time plus the delay, and
+/// under a limit each run still to make takes the longer of its planned running time and its running time under the limit,
+/// with the time lost carried to the later stops like a delay. A train that stands at firstStop can be boarded there until now,
+/// whatever its delay.
+TrainState predictTrainState(const TrainTimetable& timetable, const TrainProgress& progress, double lateThresholdSeconds = kDefaultLateThresholdSeconds);
 
 /// One ride of a plan: a train from the stop where the passenger boards to the stop where the passenger leaves it.
 struct Leg {
 	std::size_t train = 0;		   ///< Index of the train.
 	std::size_t boardStop = 0;	   ///< Index in the stops of the train of the stop where the passenger boards.
 	std::size_t alightStop = 0;	   ///< Index in the stops of the train of the stop where the passenger leaves.
-	double departure = kUnreached; ///< At boardStop, with the delay of the train.
-	double arrival = kUnreached;   ///< At alightStop, with the delay of the train.
+	double departure = kUnreached; ///< At boardStop, as the TrainState of the train gives it.
+	double arrival = kUnreached;   ///< At alightStop, as the TrainState of the train gives it.
 };
 
 /// The rides from the origin to one destination, in travel order; empty when the destination is not reached or is the
@@ -104,7 +156,8 @@ public:
 	const std::vector<TrainTimetable>& trains() const { return trains_; }
 
 	/// Searches from origin, where the passenger is ready at readyTime, with at most maxTransfers transfers. states holds
-	/// one TrainState per train and must outlive the result, like the router. A transfer needs walkingSeconds between the
+	/// one TrainState per train, whose predicted times are empty or one per stop, and must outlive the result, like the
+	/// router; other states reach nothing. A transfer needs walkingSeconds between the
 	/// platform of the arrival and that of the departure. The first boarding needs walkingSeconds from originPlatformNumber,
 	/// the platform where the passenger stands; 0, the default, for a passenger who just entered the station.
 	Search search(std::size_t origin, double readyTime, int maxTransfers, const std::vector<TrainState>& states,
