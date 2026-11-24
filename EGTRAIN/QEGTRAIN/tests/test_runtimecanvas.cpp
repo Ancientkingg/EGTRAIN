@@ -49,6 +49,7 @@
 #include <QStringList>
 #include <QTest>
 #include <QTimer>
+#include <QWheelEvent>
 #include <QtMath>
 
 #include <algorithm>
@@ -813,6 +814,7 @@ private slots:
 	void stationCalloutShortensSubtitleThatIsTooWide();
 	void stationCalloutPlacesBelowAtTopOfView();
 	void stationCalloutStaysInSceneIndex();
+	void stationCalloutListsTwentyDestinationsAndScrolls();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
 	void wagonKeepsWidthOverShortConnection();
@@ -1750,16 +1752,14 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	QCOMPARE(content.subtitle, QString("15 waiting · capacity 40 on platform P1"));
 	QVERIFY(!content.nobodyWaiting);
 	QVERIFY(content.destinationHeader);
-	// the four largest, ties by name, and the other two stations summed
-	QCOMPARE(content.destinations.size(), qsizetype(4));
-	const QStringList names{"A", "B", "C", "D"};
-	const QList<int> counts{5, 3, 3, 2};
-	for (int i = 0; i < 4; ++i) {
+	// every destination is listed, largest first and ties by name
+	QCOMPARE(content.destinations.size(), qsizetype(6));
+	const QStringList names{"A", "B", "C", "D", "E", "F"};
+	const QList<int> counts{5, 3, 3, 2, 1, 1};
+	for (int i = 0; i < 6; ++i) {
 		QCOMPARE(content.destinations[i].name, names[i]);
 		QCOMPARE(content.destinations[i].count, counts[i]);
 	}
-	QCOMPARE(content.moreStations, 2);
-	QCOMPARE(content.moreCount, 2);
 	// only the latest three calls, newest first, with the time of the clock, and the left behind in red
 	QCOMPARE(content.calls.size(), qsizetype(3));
 	QCOMPARE(content.calls[0].train, "IC 3");
@@ -1780,7 +1780,6 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QCOMPARE(card->content().subtitle, QString("2 waiting · capacity 40 on platform P1"));
 	QCOMPARE(card->content().destinations.size(), qsizetype(2));
-	QCOMPARE(card->content().moreStations, 0);
 	QCOMPARE(card->content().calls.size(), qsizetype(1));
 	// a call that a replay shows while the train stands has no counts
 	QCOMPARE(card->content().calls[0].boarded, "-");
@@ -2092,6 +2091,165 @@ void TestRuntimeCanvas::stationCalloutStaysInSceneIndex() {
 	press.setScreenPos(f.view.viewport()->mapToGlobal((origin + card->closeRect().center()).toPoint()));
 	f.scene.mousePressEvent(&press);
 	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// A station with 20 destinations lists every one of them, largest first. When the full card is taller than the view
+// allows, the card stays within the view and the destination list scrolls inside it on wheel and scroll bar drag while
+// the title and calls stay put and the wheel still zooms elsewhere.
+void TestRuntimeCanvas::stationCalloutListsTwentyDestinationsAndScrolls() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	f.view.setScene(&f.scene);
+	f.view.resize(640, 420);
+	f.view.show();
+	f.view.fitToBounds(QRectF(-5000.0, -5000.0, 20000.0, 10000.0));
+	PresenterAccess::view(presenter) = &f.view;
+
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 100;
+	GuiPlatformState platform = platformWith("B", "P1", 200, Ids{});
+	platform.passengerCount = 0;
+	// 20 destinations with counts 1..20 supplied in reverse order so the presenter must sort them largest first
+	for (int i = 1; i <= 20; ++i) {
+		const std::string dest = "Dest" + QStringLiteral("%1").arg(i, 2, 10, QLatin1Char('0')).toStdString();
+		platform.destinations.push_back({dest, i});
+		platform.passengerCount += i;
+	}
+	snapshot.platforms = {platform};
+	snapshot.stationCalls = {callOf("IC 3", 300, 12, 7, 0, 90), callOf("IC 2", 200, 5, 4, 2, 80)};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	if (card == nullptr)
+		QFAIL("station card did not open");
+	QCOMPARE(card->content().destinations.size(), qsizetype(20));
+	QCOMPARE(card->content().destinations.first().name, QStringLiteral("Dest20"));
+	QCOMPARE(card->content().destinations.first().count, 20);
+	QCOMPARE(card->content().destinations.last().name, QStringLiteral("Dest01"));
+	QCOMPARE(card->content().destinations.last().count, 1);
+
+	// The card fits inside the 420 px view and enables scrolling over the destination list.
+	const QPointF origin = f.view.mapFromScene(card->pos());
+	const QRectF onScreen(origin + card->cardRect().topLeft(), card->cardRect().size());
+	QCOMPARE_LT(card->cardRect().height(), card->fullHeight());
+	QCOMPARE_GE(onScreen.top(), 0.0);
+	QCOMPARE_LE(onScreen.bottom(), static_cast<qreal>(f.view.viewport()->height()));
+	QVERIFY(card->canScroll());
+	QCOMPARE(card->scrollOffset(), 0.0);
+	QCOMPARE_GT(card->maxScrollOffset(), 0.0);
+	QVERIFY(!card->scrollBarRect().isEmpty());
+	QVERIFY(!card->scrollThumbRect().isEmpty());
+
+	// Render before and after scrolling: header and calls stay identical while the destination rows move.
+	const auto renderCard = [card]() {
+		const QRectF bounds = card->boundingRect();
+		QImage image(qCeil(bounds.width()), qCeil(bounds.height()), QImage::Format_ARGB32_Premultiplied);
+		image.fill(Qt::transparent);
+		QPainter painter(&image);
+		painter.translate(-bounds.topLeft());
+		card->paint(&painter, nullptr, nullptr);
+		return image;
+	};
+	const QImage atTop = renderCard();
+
+	// Wheel down over the destination list scrolls the list and does not zoom the canvas.
+	const qreal zoomBefore = f.view.zoomRatio();
+	const QPoint destPoint = (origin + card->destinationsRect().center()).toPoint();
+	QWheelEvent wheelDown(destPoint, f.view.viewport()->mapToGlobal(destPoint), QPoint(0, 0), QPoint(0, -120),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(f.view.viewport(), &wheelDown);
+	QCOMPARE_GT(card->scrollOffset(), 0.0);
+	QVERIFY(near(f.view.zoomRatio(), zoomBefore));
+
+	// Two-finger pixel scroll over the destination list scrolls smoothly without panning or zooming the view.
+	const qreal offsetAfterNotch = card->scrollOffset();
+	QWheelEvent pixelScroll(destPoint, f.view.viewport()->mapToGlobal(destPoint), QPoint(0, -20), QPoint(0, -20),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(f.view.viewport(), &pixelScroll);
+	QVERIFY(near(card->scrollOffset(), std::min(card->maxScrollOffset(), offsetAfterNotch + 20.0)));
+	QVERIFY(near(f.view.zoomRatio(), zoomBefore));
+
+	const QImage scrolled = renderCard();
+	const QRectF bounds = card->boundingRect();
+	const QRectF destArea = card->destinationsRect();
+	const int destTopPx = qFloor(destArea.top() - bounds.top());
+	const int destBottomPx = qCeil(destArea.bottom() - bounds.top());
+	const int cardLeftPx = qCeil(card->cardRect().left() - bounds.left()) + 2;
+	const int cardRightPx = qFloor(card->cardRect().right() - bounds.left()) - 2;
+	auto regionsDiffer = [&](int yStart, int yEnd) {
+		for (int y = yStart; y < yEnd; ++y)
+			for (int x = cardLeftPx; x < cardRightPx; ++x)
+				if (atTop.pixel(x, y) != scrolled.pixel(x, y))
+					return true;
+		return false;
+	};
+	QVERIFY2(!regionsDiffer(qCeil(card->cardRect().top() - bounds.top()) + 2, destTopPx - 1),
+		"header stayed fixed while scrolling");
+	QVERIFY2(regionsDiffer(destTopPx + 1, destBottomPx - 1),
+		"destination rows changed when scrolled");
+	QVERIFY2(!regionsDiffer(destBottomPx + 2, qFloor(card->cardRect().bottom() - bounds.top()) - 2),
+		"calls table stayed fixed while scrolling");
+
+	// Wheel over the header (outside the destination list) still zooms the canvas and keeps the scroll offset.
+	const qreal offsetBeforeHeaderWheel = card->scrollOffset();
+	const QPoint headerPoint = (origin + QPointF(card->cardRect().center().x(), card->cardRect().top() + 18.0)).toPoint();
+	QWheelEvent headerWheel(headerPoint, f.view.viewport()->mapToGlobal(headerPoint), QPoint(0, 0), QPoint(0, 120),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(f.view.viewport(), &headerWheel);
+	QCOMPARE_GT(f.view.zoomRatio(), zoomBefore);
+	QCOMPARE(card->scrollOffset(), offsetBeforeHeaderWheel);
+	presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+
+	// Dragging the scroll bar thumb to the bottom reaches maxScrollOffset().
+	const QPointF originZoomed = f.view.mapFromScene(card->pos());
+	const QPointF thumbStart = card->scrollThumbRect().center();
+	const QPointF trackEnd(card->scrollBarRect().center().x(), card->scrollBarRect().bottom());
+	const auto sendCardMouse = [&](QEvent::Type type, const QPointF& itemPos, Qt::MouseButton button, Qt::MouseButtons buttons) {
+		const QPoint viewPos = (originZoomed + itemPos).toPoint();
+		QMouseEvent mouse(type, QPointF(viewPos), QPointF(f.view.viewport()->mapToGlobal(viewPos)), button, buttons, Qt::NoModifier);
+		QApplication::sendEvent(f.view.viewport(), &mouse);
+	};
+	sendCardMouse(QEvent::MouseButtonPress, thumbStart, Qt::LeftButton, Qt::LeftButton);
+	sendCardMouse(QEvent::MouseMove, trackEnd, Qt::NoButton, Qt::LeftButton);
+	sendCardMouse(QEvent::MouseButtonRelease, trackEnd, Qt::LeftButton, Qt::NoButton);
+	QVERIFY(near(card->scrollOffset(), card->maxScrollOffset()));
+
+	// Playback update with fewer destinations clamps the scroll offset; when all fit, scrolling turns off and wheel zooms.
+	snapshot.platforms[0].destinations.resize(12);
+	snapshot.timestep = 101;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE_LE(card->scrollOffset(), card->maxScrollOffset());
+
+	// Reopening after closing resets the scroll offset to the top.
+	const qreal beforeClose = card->scrollOffset();
+	QCOMPARE_GT(beforeClose, 0.0);
+	presenter.closeStationCallout("B");
+	presenter.openStationCallout("B", &snapshot);
+	QCOMPARE(card->scrollOffset(), 0.0);
+
+	// Switching an item's content directly to another station also resets its scroll offset.
+	card->setScrollOffset(card->maxScrollOffset());
+	QCOMPARE_GT(card->scrollOffset(), 0.0);
+	StationCalloutContent other = card->content();
+	other.title = QStringLiteral("A");
+	card->setContent(other);
+	QCOMPARE(card->scrollOffset(), 0.0);
+
+	// Shrinking to 2 destinations removes the scroll bar and lets wheel events over the list zoom the view again.
+	snapshot.platforms[0].destinations.resize(2);
+	snapshot.timestep = 102;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!card->canScroll());
+	QVERIFY(card->scrollBarRect().isEmpty());
+	const qreal zoomBeforeShortWheel = f.view.zoomRatio();
+	const QPoint shortDestPoint = (f.view.mapFromScene(card->pos()) + card->destinationsRect().center()).toPoint();
+	QWheelEvent shortWheel(shortDestPoint, f.view.viewport()->mapToGlobal(shortDestPoint), QPoint(0, 0), QPoint(0, 120),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(f.view.viewport(), &shortWheel);
+	QCOMPARE_GT(f.view.zoomRatio(), zoomBeforeShortWheel);
 }
 
 // A zoom alone, with no step, swaps the count of a platform for the queue of figures and back, and a click on a figure

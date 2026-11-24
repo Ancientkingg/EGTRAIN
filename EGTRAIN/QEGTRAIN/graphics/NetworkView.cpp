@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <QCoreApplication>
+#include <QGraphicsSceneWheelEvent>
 #include <QNativeGestureEvent>
 
 namespace {
@@ -284,6 +286,27 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 }
 
 void NetworkView::wheelEvent(QWheelEvent* event) {
+	if (scene()) {
+		QGraphicsSceneWheelEvent sceneWheel(QEvent::GraphicsSceneWheel);
+		sceneWheel.setWidget(viewport());
+		sceneWheel.setScenePos(mapToScene(event->position().toPoint()));
+		sceneWheel.setScreenPos(event->globalPosition().toPoint());
+		sceneWheel.setButtons(event->buttons());
+		sceneWheel.setModifiers(event->modifiers());
+		const bool vertical = event->pixelDelta().y() != 0 || event->angleDelta().y() != 0
+			|| (event->pixelDelta().x() == 0 && event->angleDelta().x() == 0);
+		sceneWheel.setOrientation(vertical ? Qt::Vertical : Qt::Horizontal);
+		sceneWheel.setDelta(vertical ? event->angleDelta().y() : event->angleDelta().x());
+		sceneWheel.setPixelDelta(event->pixelDelta());
+		sceneWheel.setPhase(event->phase());
+		sceneWheel.setInverted(event->isInverted());
+		sceneWheel.setAccepted(false);
+		QCoreApplication::sendEvent(scene(), &sceneWheel);
+		if (sceneWheel.isAccepted()) {
+			event->accept();
+			return;
+		}
+	}
 	m_lastGesture.start();
 	const bool control = event->modifiers() & Qt::ControlModifier;
 	if (!control && !event->pixelDelta().isNull()) {

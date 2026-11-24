@@ -88,8 +88,9 @@ protected:
 	/// Zooms on a pinch gesture, and times the paint of the viewport for the playback profiler and for
 	/// armTimingPaint().
 	bool viewportEvent(QEvent* event) override;
-	/// A scroll in pixels pans the view. A wheel step zooms by 1.15 per notch of 120 units about the pointer.
-	/// With Control held, QGraphicsView handles the wheel.
+	/// Gives the scene item under the pointer first refusal (for example a scrollable station card). Otherwise a scroll
+	/// in pixels pans the view, a wheel step zooms by 1.15 per notch of 120 units about the pointer, and with Control
+	/// held QGraphicsView handles the wheel.
 	void wheelEvent(QWheelEvent* event) override;
 	/// Fills the canvas and draws a grid of lines one device pixel wide on multiples of a spacing in scene
 	/// units. The spacing starts at 80 and is doubled or halved until it is 24 to 96 logical pixels on screen.

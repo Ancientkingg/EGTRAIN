@@ -37,15 +37,12 @@ struct StationCalloutContent {
 	QString subtitle;				 ///< The passengers waiting and the capacity of the platforms.
 	bool nobodyWaiting = false;		 ///< No passenger waits: the card says so instead of listing destinations.
 	bool destinationHeader = false;	 ///< The card has the section of destinations, under the heading "Waiting, by destination".
-	QList<Destination> destinations; ///< The destinations that get a bar, the largest first.
-	int moreStations = 0;			 ///< The number of further destinations, which one line sums up.
-	int moreCount = 0;				 ///< The passengers waiting for those.
+	QList<Destination> destinations; ///< The destinations of the waiting passengers, the largest first.
 	QList<Call> calls;				 ///< The latest calls, newest first.
 	/// True when every field is the same. A field added above has to be added here too.
 	bool operator==(const StationCalloutContent& other) const {
-		return std::tie(title, subtitle, nobodyWaiting, destinationHeader, destinations, moreStations, moreCount, calls)
-			== std::tie(other.title, other.subtitle, other.nobodyWaiting, other.destinationHeader, other.destinations, other.moreStations,
-				other.moreCount, other.calls);
+		return std::tie(title, subtitle, nobodyWaiting, destinationHeader, destinations, calls)
+			== std::tie(other.title, other.subtitle, other.nobodyWaiting, other.destinationHeader, other.destinations, other.calls);
 	}
 };
 
@@ -86,8 +83,29 @@ public:
 	void setBelow(bool below);
 	/// Whether the card stands below the origin.
 	bool below() const { return m_below; }
+	/// Limits the card height in logical pixels. When the destination list would make the card taller, the destination
+	/// section shrinks and scrolls while the header and the calls stay in place. A value of 0 or less removes the limit.
+	void setMaxHeight(qreal maxHeight);
+	/// The height limit in logical pixels, or 0 when unlimited.
+	qreal maxHeight() const { return m_maxHeight; }
+	/// The height in logical pixels that the card takes without a height limit.
+	qreal fullHeight() const;
+	/// Sets the vertical scroll position of the destination list in logical pixels, clamped to maxScrollOffset().
+	void setScrollOffset(qreal offset);
+	/// The vertical scroll position of the destination list in logical pixels.
+	qreal scrollOffset() const { return m_scrollOffset; }
+	/// The largest scroll offset of the destination list in logical pixels, or 0 when every destination fits.
+	qreal maxScrollOffset() const { return m_maxScrollOffset; }
+	/// True when the destination list is taller than its visible area and scrolls.
+	bool canScroll() const { return m_maxScrollOffset > 0.0; }
 	/// The card without the pointer, in item coordinates.
 	QRectF cardRect() const;
+	/// The visible area of the destination rows in item coordinates, or an empty rectangle when no list is shown.
+	QRectF destinationsRect() const;
+	/// The track of the scroll bar in item coordinates, or an empty rectangle when the list does not scroll.
+	QRectF scrollBarRect() const;
+	/// The thumb of the scroll bar in item coordinates, or an empty rectangle when the list does not scroll.
+	QRectF scrollThumbRect() const;
 	/// The area of the × in item coordinates, which closes the card.
 	QRectF closeRect() const;
 	/// The subtitle as the card draws it: whole when it fits in the width of the card, and else shortened with an ellipsis.
@@ -109,16 +127,35 @@ public:
 	static QColor leftBehindColour() { return QColor(0xe5, 0x53, 0x4b); }
 
 protected:
-	/// A press on the × calls onClose(); a press elsewhere on the card is taken so that it does not reach the canvas.
+	/// A press on the × calls onClose(); a press on the scroll bar starts dragging it; a press elsewhere on the card is
+	/// taken so that it does not reach the canvas.
 	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+	/// Updates the scroll position while the scroll bar is dragged.
+	void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+	/// Ends a scroll bar drag.
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+	/// Scrolls the destination list when the pointer is over it and the list overflows, leaving the wheel to the canvas
+	/// elsewhere.
+	void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
 private:
+	qreal fixedHeight() const;
+	qreal fullDestinationsHeight() const;
+	qreal layoutDestinationsHeight() const;
+	QRectF scrollBarHitRect() const;
+	void scrollToThumbTop(qreal thumbTop);
 	void layout();
 	StationCalloutContent m_content;
 	bool m_below = false;
 	qreal m_shift = 0.0;
 	qreal m_pixelScale = 1.0;
+	qreal m_maxHeight = 0.0;
 	qreal m_height = 0.0;
+	qreal m_destinationsHeight = 0.0;
+	qreal m_scrollOffset = 0.0;
+	qreal m_maxScrollOffset = 0.0;
+	bool m_draggingScrollBar = false;
+	qreal m_dragThumbOffset = 0.0;
 };
 
 #endif // STATIONCALLOUTITEM_H
