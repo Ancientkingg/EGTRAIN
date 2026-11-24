@@ -805,6 +805,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene.json", "scene", "", "simulation_settings.passenger_walking_seconds_per_platform", "",
 			"Use a whole number of seconds from 0 to 600");
 	}
+	if (scene.settings.passengerLateThresholdSeconds < 0
+		|| scene.settings.passengerLateThresholdSeconds > kMaxPassengerLateThresholdSeconds) {
+		diagnostics.error("scene.passenger.late_threshold.invalid", "The passenger late threshold must be from 0 to 3600 s",
+			"scene.json", "scene", "", "simulation_settings.passenger_late_threshold_seconds", "",
+			"Use a whole number of seconds from 0 to 3600");
+	}
 	if (scene.settings.passengerDwellCoefficients) {
 		const std::vector<double>& coefficients = *scene.settings.passengerDwellCoefficients;
 		const bool valid = coefficients.size() == kPassengerDwellCoefficientCount

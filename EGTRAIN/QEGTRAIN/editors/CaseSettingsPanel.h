@@ -57,6 +57,8 @@ public:
 	QSpinBox* maxTransfersEdit() const { return m_maxTransfersEdit; }
 	/// The field of the walking time in seconds per platform of difference at a transfer.
 	QSpinBox* walkingSecondsEdit() const { return m_walkingSecondsEdit; }
+	/// The field of the delay in seconds up to which passengers plan on the planned times of a train, 0 to 3600.
+	QSpinBox* lateThresholdEdit() const { return m_lateThresholdEdit; }
 
 Q_SIGNALS:
 	/// The base time of the model has been set to this text. Emitted before the document is marked changed.
@@ -72,6 +74,7 @@ private:
 	QDoubleSpinBox* m_recoveryPercentEdit = nullptr;
 	QSpinBox* m_maxTransfersEdit = nullptr;
 	QSpinBox* m_walkingSecondsEdit = nullptr;
+	QSpinBox* m_lateThresholdEdit = nullptr;
 };
 
 #endif // CASESETTINGSPANEL_H

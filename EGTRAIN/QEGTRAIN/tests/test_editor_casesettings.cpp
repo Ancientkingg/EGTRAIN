@@ -109,6 +109,7 @@ private slots:
 	void namesCommandLineOverrides();
 	void editsPassengerTransfers();
 	void editsPassengerWalkingTime();
+	void editsPassengerLateThreshold();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -220,6 +221,20 @@ void TestCaseSettingsPanel::editsPassengerWalkingTime() {
 	QCOMPARE(f.document.revision(), revision + 1);
 	typeAndLeave(f.panel.nameEdit(), "Renamed");
 	QCOMPARE(f.document.model().settings.passengerWalkingSecondsPerPlatform, 45);
+}
+
+// The late threshold is shown with its default, edited as one Undo step and kept when another field is edited.
+void TestCaseSettingsPanel::editsPassengerLateThreshold() {
+	SceneModel scene = caseScene("Case L", "08:00:00");
+	CaseFixture f(scene);
+	QCOMPARE(f.panel.lateThresholdEdit()->value(), kDefaultPassengerLateThresholdSeconds);
+	QCOMPARE(f.panel.lateThresholdEdit()->maximum(), kMaxPassengerLateThresholdSeconds);
+	const quint64 revision = f.document.revision();
+	f.panel.lateThresholdEdit()->setValue(600);
+	QCOMPARE(f.document.model().settings.passengerLateThresholdSeconds, 600);
+	QCOMPARE(f.document.revision(), revision + 1);
+	typeAndLeave(f.panel.nameEdit(), "Renamed");
+	QCOMPARE(f.document.model().settings.passengerLateThresholdSeconds, 600);
 }
 
 void TestCaseSettingsPanel::namesFields() {

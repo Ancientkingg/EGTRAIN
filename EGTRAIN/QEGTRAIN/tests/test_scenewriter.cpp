@@ -722,6 +722,7 @@ private slots:
 	void omitsAbsentSignallingAreas();
 	void writesPassengerTransferLimitOnlyWhenNotDefault();
 	void writesPassengerWalkingTimeOnlyWhenNotDefault();
+	void writesPassengerLateThresholdOnlyWhenNotDefault();
 	void writesPassengerDwellSettingsOnlyWhenSet();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
@@ -970,6 +971,35 @@ void TestSceneWriter::writesPassengerWalkingTimeOnlyWhenNotDefault() {
 	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no walking time saves");
 	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
 	QCOMPARE(reloaded.settings.passengerWalkingSecondsPerPlatform, 0);
+}
+
+// The late threshold is written only when it is not the default, and a scene without the key loads as the default.
+void TestSceneWriter::writesPassengerLateThresholdOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	scene.settings.passengerLateThresholdSeconds = kDefaultPassengerLateThresholdSeconds;
+	const fs::path defaultPath = temp.path / "default-late-threshold";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with the default late threshold saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY2(!written["simulation_settings"].contains("passenger_late_threshold_seconds"), "the default is not written");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerLateThresholdSeconds, kDefaultPassengerLateThresholdSeconds);
+
+	scene.settings.passengerLateThresholdSeconds = 0;
+	const fs::path zeroPath = temp.path / "zero-late-threshold";
+	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with a threshold of 0 saves");
+	{
+		std::ifstream input(zeroPath / "scene.json");
+		input >> written;
+	}
+	QCOMPARE(written["simulation_settings"].value("passenger_late_threshold_seconds", -1), 0);
+	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerLateThresholdSeconds, 0);
 }
 
 // The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.
