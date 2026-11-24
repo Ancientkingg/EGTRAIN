@@ -263,7 +263,7 @@ void RunResultsDock::refreshSummary() {
 }
 
 QString RunResultsDock::durationText(long long seconds) {
-	return QString("%1:%2:%3").arg(seconds / 3600).arg((seconds % 3600) / 60, 2, 10, QChar('0')).arg(seconds % 60, 2, 10, QChar('0'));
+	return QString::fromStdString(formatDurationSeconds(seconds));
 }
 
 void RunResultsDock::clear(const QString& summary, const QString& title) {

@@ -135,7 +135,6 @@ void addTrackLine(const SceneModel& scene, const SceneTrack& source,
 			return left->id < right->id;
 		});
 		orderedNodes = std::move(nodes);
-		result.warnings.push_back("track " + source.id + " has no unique linear arc chain; preview uses node order");
 	}
 	if (orderedNodes.size() < 2)
 		return;
@@ -229,8 +228,6 @@ void placeUnplacedLines(TrackPreviewResult& preview, std::vector<bool> placed) {
 				target.y + preview.lines[fixed].displayOffset - source.y);
 			placed[moving] = true;
 			progress = true;
-			preview.warnings.push_back("track " + preview.lines[moving].id
-				+ " has no layout in views.json; drawn next to track " + preview.lines[fixed].id);
 		}
 	}
 	if (!std::isfinite(minX))
@@ -253,7 +250,6 @@ void placeUnplacedLines(TrackPreviewResult& preview, std::vector<bool> placed) {
 			continue;
 		translate(line, minX - lineMinX, top - lineMinY);
 		top += lineMaxY - lineMinY + gap;
-		preview.warnings.push_back("track " + line.id + " has no layout in views.json; drawn below the network");
 	}
 }
 
@@ -269,8 +265,8 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	TrackPreviewResult result;
 	std::unordered_map<std::string, const SceneNode*> nodesById;
 	for (const auto& node : scene.nodes)
-		if (!node.id.empty() && nodesById.emplace(node.id, &node).second == false)
-			result.warnings.push_back("duplicate node id " + node.id + " is ambiguous in preview");
+		if (!node.id.empty())
+			nodesById.emplace(node.id, &node);
 
 	for (const auto& track : scene.tracks) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
@@ -392,10 +388,8 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	for (const auto& connection : scene.connections) {
 		const auto first = nodesById.find(connection.fromNodeId);
 		const auto second = nodesById.find(connection.toNodeId);
-		if (first == nodesById.end() || second == nodesById.end()) {
-			result.warnings.push_back("connection " + connection.id + " has an unresolved node anchor");
+		if (first == nodesById.end() || second == nodesById.end())
 			continue;
-		}
 		if (!visibleTrack(first->second->trackId) || !visibleTrack(second->second->trackId))
 			continue;
 		TrackPreviewConnection preview;
@@ -408,15 +402,13 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	}
 
 	for (const auto& station : scene.stations) {
-		const std::string name = station.name.empty() ? station.id : station.name;
+		const std::string name = sceneStationLabel(station);
 		const SceneNode* anchor = nullptr;
 		for (const auto& platform : station.platforms) {
 			for (const auto& nodeId : platform.nodeIds) {
 				const auto node = nodesById.find(nodeId);
-				if (node == nodesById.end()) {
-					result.warnings.push_back("platform " + platform.id + " has an unresolved node anchor");
+				if (node == nodesById.end())
 					continue;
-				}
 				if (anchor == nullptr && visibleTrack(node->second->trackId))
 					anchor = node->second;
 			}
@@ -465,8 +457,6 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 			section.startNodeId, section.startKm, std::move(label), std::move(name)});
 	}
 
-	if (result.lines.empty())
-		result.warnings.push_back("no valid scene track preview is available");
 	return result;
 }
 

@@ -196,6 +196,8 @@ public:
 		return nullptr;
 	}
 	bool passengerGui() const override { return passengers; }
+	// Gives the second platform of the station B another id.
+	void renameSecondPlatform(const std::string& id) { m_platformTwo.ID = id; }
 
 private:
 	// Makes the line two parallel tracks, the scene tracks T and U, with the station B at the end of T only.
@@ -1572,7 +1574,7 @@ void TestRuntimeCanvas::platformBarShowsCrowdingGauge() {
 		painter.end();
 		return image.pixelColor(qRound(bar.width() * (0.1 + along) * scale), qRound(bar.height() * (1.0 + across) * scale));
 	};
-	const QColor trough(0x2c, 0x38, 0x46);
+	const QColor trough = PassengerItem::troughFill();
 	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
 	snapshot.platforms[0].passengerCount = 30;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
@@ -1613,12 +1615,13 @@ void TestRuntimeCanvas::stationShowsWaitingCountInFarLook() {
 	f.source->passengers = true;
 	// a second platform, at the middle of the line
 	f.source->track(0).member[0].endNode.stationName = "B";
-	f.source->track(0).member[0].endNode.stationPlatformId = "P2";
+	f.source->track(0).member[0].endNode.stationPlatformId = "B.platform.2";
+	f.source->renameSecondPlatform("B.platform.2");
 	presenter.showRuntime(f.model);
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
 	const auto deliver = [&](int waitingFirst, int waitingSecond) {
-		snapshot.platforms = {platformWith("B", "P1", 40, Ids{}), platformWith("B", "P2", 30, Ids{})};
+		snapshot.platforms = {platformWith("B", "P1", 40, Ids{}), platformWith("B", "B.platform.2", 30, Ids{})};
 		snapshot.platforms[0].passengerCount = waitingFirst;
 		snapshot.platforms[1].passengerCount = waitingSecond;
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
@@ -1633,7 +1636,8 @@ void TestRuntimeCanvas::stationShowsWaitingCountInFarLook() {
 	QVERIFY(pill->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
 	QCOMPARE(pill->brush().color().name(), PassengerItem::crowdingColour(PlatformCrowding::Busy).name());
 	QVERIFY(pill->toolTip().contains("Platform P1: 30 waiting (capacity 40)"));
-	QVERIFY(pill->toolTip().contains("Platform P2: 10 waiting (capacity 30)"));
+	// the tooltip names the platform as a card does, without the station
+	QVERIFY(pill->toolTip().contains("Platform 2: 10 waiting (capacity 30)"));
 	// It is beside the pin, not over it: to the right of the top of the mark.
 	const QRectF mark = counts[0].overlay->pictureItem()->sceneBoundingRect();
 	QVERIFY(near(pill->pos().x(), mark.right()) && near(pill->pos().y(), mark.top()));
@@ -1745,7 +1749,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	QCOMPARE(content.title, "B");
 	QCOMPARE(content.subtitle, QString("15 waiting · capacity 40 on platform P1"));
 	QVERIFY(!content.nobodyWaiting);
-	QCOMPARE(content.destinationHeader, "Waiting, by destination");
+	QVERIFY(content.destinationHeader);
 	// the four largest, ties by name, and the other two stations summed
 	QCOMPARE(content.destinations.size(), qsizetype(4));
 	const QStringList names{"A", "B", "C", "D"};
@@ -1787,7 +1791,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	snapshot.platforms[0].destinations = {{"A", 200}, {"B", 60}, {"C", 9}};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QCOMPARE(card->content().subtitle, QString("269 waiting \u00b7 capacity 40 on platform P1"));
-	QCOMPARE(card->content().destinationHeader, "Waiting, by destination");
+	QVERIFY(card->content().destinationHeader);
 	QCOMPARE(card->content().destinations.size(), qsizetype(3));
 	QCOMPARE(card->content().destinations[0].count, 200);
 	QCOMPARE(card->content().destinations[1].count, 60);
@@ -1796,7 +1800,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	snapshot.platforms[0].destinations.clear();
 	snapshot.platforms[0].passengers.clear();
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
-	QVERIFY(card->content().destinationHeader.isEmpty());
+	QVERIFY(!card->content().destinationHeader);
 	QVERIFY(!card->content().nobodyWaiting);
 
 	// several cards stand at once, and a station with nobody and no calls opens one with its empty sections

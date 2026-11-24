@@ -389,14 +389,14 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_demandPanel->setPrompts(prompts);
 	m_demandPanel->setDiagnostics(&m_session->diagnostics());
 	m_demandPanel->setOccurrenceDuration([this] { return m_host.serviceOccurrenceDuration(); });
-	m_demandPanel->setCsvFileChooser([this](bool save) -> QString {
+	m_demandPanel->setCsvFileChooser([this](bool save, const QString& suggestedName) -> QString {
 		// The folder of the scene, or the folder that holds a scene bundle.
 		const QString& sceneDir = m_session->sceneDir();
 		const QString startDir = sceneDir.isEmpty() ? QDir::homePath()
 			: m_session->sceneIsBundle()			? QFileInfo(sceneDir).absolutePath()
 													: sceneDir;
 		const QString filter = "CSV files (*.csv);;All files (*)";
-		return save ? QFileDialog::getSaveFileName(m_window, "Export Demand CSV", startDir, filter)
+		return save ? QFileDialog::getSaveFileName(m_window, "Export Demand CSV", QDir(startDir).filePath(suggestedName), filter)
 					: QFileDialog::getOpenFileName(m_window, "Import Demand CSV", startDir, filter);
 	});
 	m_demandPanel->setDocument(m_document);

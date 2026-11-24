@@ -12,6 +12,13 @@
 /// run in seconds since midnight. A negative sum gives "00:00:00", and the result wraps at 24 h.
 std::string formatSimTime(long long simSeconds, long long baseOffsetSeconds = 0);
 
+/// Formats \p seconds as "HH:MM:SS" without wrapping at 24 h, so 86400 gives "24:00:00". A negative value gives
+/// "00:00:00".
+std::string formatClockSeconds(long long seconds);
+
+/// Formats a length of time as "H:MM:SS", with as many digits of hours as it needs. A negative value gives "0:00:00".
+std::string formatDurationSeconds(long long seconds);
+
 /// Formats a planned time, \p value seconds after the base time \p baseOffsetSeconds (seconds since
 /// midnight). An empty \p value gives "". A non-finite \p value, or a base outside [0, 86400),
 /// gives "Invalid". When \p clock is false the result is \p value in seconds; when it is true, the

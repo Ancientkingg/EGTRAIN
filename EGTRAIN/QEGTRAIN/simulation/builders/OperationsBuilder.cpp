@@ -951,7 +951,7 @@ std::list<StationPlatform> nativeStagedPlatforms(const SimulationRun& run, const
 		const ScenePlatform* sourcePlatform = nullptr;
 		if (stationIt != stationById.end()) {
 			sourcePlatform = nativePlatformForStation(*stationIt->second, platform.ID);
-			platform.StationID = stationIt->second->name.empty() ? stationIt->second->id : stationIt->second->name;
+			platform.StationID = sceneStationLabel(*stationIt->second);
 		}
 		platform.length = sourcePlatform != nullptr && sourcePlatform->hasLength
 			? sourcePlatform->lengthM
@@ -995,7 +995,7 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 		const auto found = stationById.find(id);
 		if (found == stationById.end())
 			return std::string();
-		return found->second->name.empty() ? found->second->id : found->second->name;
+		return sceneStationLabel(*found->second);
 	};
 	std::unordered_map<std::string, std::size_t> stationPlace;
 	for (std::size_t place = 0; place < scene.stations.size(); ++place)
@@ -1173,7 +1173,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 					"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].station_id", stop.stationId);
 				continue;
 			}
-			const std::string stationName = station->name.empty() ? station->id : station->name;
+			const std::string stationName = sceneStationLabel(*station);
 			std::string resolvedPlatformId = stop.platformId;
 			const ScenePlatform* explicitPlatform = nullptr;
 			if (!stop.platformId.empty()) {
@@ -1319,8 +1319,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			journey.Mode = sourceJourney.legs.empty() ? JourneyMode::Live : JourneyMode::Assigned;
 			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
 			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
-			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
-			journey.Arr_Station_ID = destination->name.empty() ? destination->id : destination->name;
+			journey.Dep_Station_ID = sceneStationLabel(*origin);
+			journey.Arr_Station_ID = sceneStationLabel(*destination);
 			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
 			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
 			bool omitJourney = false;

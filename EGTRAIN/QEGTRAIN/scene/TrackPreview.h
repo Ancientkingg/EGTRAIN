@@ -70,7 +70,6 @@ struct TrackPreviewResult {
 	std::vector<TrackPreviewStation> stations;		 ///< Stations on a visible track or with a position.
 	/// Block section starts of the visible tracks, without the first section of each track.
 	std::vector<TrackPreviewSignal> previewSignals;
-	std::vector<std::string> warnings; ///< What could not be drawn as authored, as text.
 };
 
 struct SceneModel;

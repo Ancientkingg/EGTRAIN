@@ -481,6 +481,7 @@ set(EGTRAIN_SOURCES
 )
 
 set(EGTRAIN_HEADERS
+    ${SRC_DIR}/widgets/DiagnosticLines.h
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/widgets/ChoiceComboBox.h
     ${SRC_DIR}/widgets/EditorLayout.h

@@ -38,6 +38,7 @@
 #include "scene/SceneReferences.h"
 #include "util/PlaybackProfiler.h"
 #include "util/SpeedFormat.h"
+#include "util/TimeFormat.h"
 
 // The simulation headers still give warnings (#453, #454, #482), so this strict target includes
 // Signalling.h with them switched off, as diagrams/SimulationHeaders.h does.
@@ -126,14 +127,35 @@ const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
 // The orange of the line and the box of a callout.
 const QColor kCalloutColor(242, 161, 106);
 
-// The text of the platform in a card: "2" for "Guingamp.platform.2", the form in which the import names the platforms of
-// a station, and any other id as it is.
-QString platformShortName(const std::string& platformId) {
+// A platform id split at its last ".platform.": the station part and the platform part. The import names the platforms
+// of a station "Guingamp.platform.2". Any other id, and one with nothing after the separator, is whole in `platform`.
+struct PlatformIdParts {
+	std::string station;  // What stands before the separator; empty for an id that is not split.
+	std::string platform; // What stands after it, or the whole id.
+	bool split = false;	  // True when the id holds the separator with something after it.
+};
+
+PlatformIdParts splitPlatformId(const std::string& platformId) {
 	const std::string separator = ".platform.";
 	const std::size_t at = platformId.rfind(separator);
-	return QString::fromStdString(at == std::string::npos || at + separator.size() == platformId.size()
-			? platformId
-			: platformId.substr(at + separator.size()));
+	if (at == std::string::npos || at + separator.size() == platformId.size())
+		return {std::string(), platformId, false};
+	return {platformId.substr(0, at), platformId.substr(at + separator.size()), true};
+}
+
+// The text of the platform in a card, in a tooltip and in a list: "2" for "Guingamp.platform.2", and any other id as it
+// is.
+QString platformShortName(const std::string& platformId) {
+	return QString::fromStdString(splitPlatformId(platformId).platform);
+}
+
+// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", "platform 2" for ".platform.2", and any other
+// id as it is.
+std::string platformWords(const std::string& platformId) {
+	const PlatformIdParts parts = splitPlatformId(platformId);
+	if (!parts.split)
+		return platformId;
+	return (parts.station.empty() ? std::string() : parts.station + ", ") + "platform " + parts.platform;
 }
 
 // The most destinations that the card of a station gives a bar.
@@ -168,7 +190,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 
 	content.nobodyWaiting = waiting <= 0;
 	if (!content.nobodyWaiting && !byDestination.empty()) {
-		content.destinationHeader = QStringLiteral("Waiting, by destination");
+		content.destinationHeader = true;
 		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
 		// the map is in the order of the names, which the stable sort keeps among equal counts
 		std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
@@ -187,10 +209,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 		if (call.station != station || content.calls.size() >= kGuiStationCallsListed)
 			continue;
 		StationCalloutContent::Call row;
-		row.time = QStringLiteral("%1:%2:%3")
-					   .arg(call.clock / 3600, 2, 10, QLatin1Char('0'))
-					   .arg(call.clock / 60 % 60, 2, 10, QLatin1Char('0'))
-					   .arg(call.clock % 60, 2, 10, QLatin1Char('0'));
+		row.time = QString::fromStdString(formatClockSeconds(call.clock));
 		row.train = QString::fromStdString(call.train);
 		row.boarded = cell(call, call.boarded);
 		row.alighted = cell(call, call.alighted);
@@ -275,16 +294,6 @@ QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && !isNoneId(platformId);
-}
-
-// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", the form in which the import names the
-// platforms of a station, and any other id as it is.
-std::string platformWords(const std::string& platformId) {
-	const std::string separator = ".platform.";
-	const std::size_t at = platformId.rfind(separator);
-	if (at == std::string::npos || at == 0 || at + separator.size() == platformId.size())
-		return platformId;
-	return platformId.substr(0, at) + ", platform " + platformId.substr(at + separator.size());
 }
 
 // A station node gets a platform bar for a platform of a station that is not virtual: its name does not hold "virtual",
@@ -1675,6 +1684,13 @@ void NetworkPresenter::refreshStationCounts() {
 	}
 }
 
+StationOverlayItem* NetworkPresenter::stationOverlay(const std::string& station, bool withMark) const {
+	for (StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+		if (overlay && (!withMark || overlay->pictureItem()) && overlay->stationName().toStdString() == station)
+			return overlay;
+	return nullptr;
+}
+
 void NetworkPresenter::updateStationCounts() {
 	struct Total {
 		int waiting = 0;
@@ -1697,7 +1713,7 @@ void NetworkPresenter::updateStationCounts() {
 			total.worst = fraction;
 			total.crowding = platform->crowding();
 		}
-		total.lines << QStringLiteral("Platform %1: %2").arg(QString::fromStdString(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
+		total.lines << QStringLiteral("Platform %1: %2").arg(platformShortName(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
 	}
 	for (const auto& stationTotal : totals) {
 		const std::string& station = stationTotal.first;
@@ -1706,12 +1722,7 @@ void NetworkPresenter::updateStationCounts() {
 			[&station](const StationCount& candidate) { return candidate.station == station; });
 		if (entry == m_stationCounts.end()) {
 			// the first overlay of the station carries the pill
-			StationOverlayItem* overlay = nullptr;
-			for (StationOverlayItem* candidate : std::as_const(m_stationOverlays))
-				if (candidate && candidate->stationName().toStdString() == station) {
-					overlay = candidate;
-					break;
-				}
+			StationOverlayItem* overlay = stationOverlay(station, false);
 			if (!overlay)
 				continue;
 			StationCount created;
@@ -1725,7 +1736,7 @@ void NetworkPresenter::updateStationCounts() {
 			created.pill->setData(PreviewGraphics::CalloutStation, QString::fromStdString(station));
 			created.pill->setVisible(false);
 			created.text = new QGraphicsSimpleTextItem(created.pill);
-			created.text->setBrush(QColor(0x0d, 0x14, 0x1b));
+			created.text->setBrush(PassengerItem::ink());
 			QFont font;
 			font.setPixelSize(11);
 			font.setBold(true);
@@ -3489,8 +3500,8 @@ void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden, in
 	constexpr qreal kChipPadding = 7.0;
 	if (!platform->moreIcon) {
 		auto* chip = new QGraphicsPathItem;
-		chip->setPen(QPen(QColor(0x5c, 0x6a, 0x78), 1.0));
-		chip->setBrush(QColor(0x0d, 0x14, 0x1b));
+		chip->setPen(QPen(PassengerItem::troughOutline(), 1.0));
+		chip->setBrush(PassengerItem::ink());
 		chip->setZValue(3);
 		chip->setAcceptedMouseButtons(Qt::NoButton);
 		auto* label = new QGraphicsSimpleTextItem(chip);
@@ -3673,10 +3684,7 @@ void NetworkPresenter::openStationCallout(const QString& stationName, const GuiS
 	if (!m_scene || !snapshot || !passengerGui() || !m_passengerLayerVisible)
 		return;
 	const std::string station = stationName.toStdString();
-	const bool marked = std::any_of(m_stationOverlays.begin(), m_stationOverlays.end(), [&station](const StationOverlayItem* overlay) {
-		return overlay && overlay->pictureItem() && overlay->stationName().toStdString() == station;
-	});
-	if (!marked)
+	if (!stationOverlay(station, true))
 		return;
 	auto found = std::find_if(m_stationCallouts.begin(), m_stationCallouts.end(), [&station](const StationCallout& callout) { return callout.station == station; });
 	if (found == m_stationCallouts.end()) {
@@ -3721,14 +3729,10 @@ void NetworkPresenter::placeStationCallouts() {
 		if (!callout.item || !callout.item->isVisible())
 			continue;
 		// the first overlay of the station that has a mark carries the card, as it carries the count
-		const QGraphicsPixmapItem* picture = nullptr;
-		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
-			if (overlay && overlay->pictureItem() && overlay->stationName().toStdString() == callout.station) {
-				picture = overlay->pictureItem();
-				break;
-			}
-		if (!picture)
+		const StationOverlayItem* overlay = stationOverlay(callout.station, true);
+		if (!overlay)
 			continue;
+		const QGraphicsPixmapItem* picture = overlay->pictureItem();
 		// beside the mark, and in the near look beside the platform bars of the station, which the card must not cover
 		QRectF mark = picture->sceneBoundingRect();
 		const QPointF centre = mark.center();
@@ -4058,7 +4062,7 @@ std::map<std::string, PreviewStationMembership> previewStationMemberships(const 
 		const auto assign = [&](const std::string& nodeId) -> PreviewStationMembership& {
 			auto& membership = result[nodeId];
 			membership.stationId = station.id;
-			membership.name = station.name.empty() ? station.id : station.name;
+			membership.name = sceneStationLabel(station);
 			return membership;
 		};
 		if (!station.platforms.empty()) {

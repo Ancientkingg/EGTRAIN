@@ -136,6 +136,11 @@ struct SceneStation {
 	std::vector<ScenePlatform> platforms; ///< The platforms, in file order.
 };
 
+/// The name of a station as every view and the run use it: its name, or its id when it has no name.
+inline std::string sceneStationLabel(const SceneStation& station) {
+	return station.name.empty() ? station.id : station.name;
+}
+
 /// Where the preview places a station (views.json). It does not change the simulation.
 struct SceneStationView {
 	std::string stationId;	///< The station it applies to.
@@ -474,6 +479,10 @@ SceneModel makeNewSceneModel();
 
 /// The scenario of a case that stores none: id "baseline", no incidents and no entrance delays.
 SceneScenario makeBaselineScenario();
+
+/// The name of the station with this id, as `sceneStationLabel` gives it; the id itself when the scene has no such
+/// station.
+std::string sceneStationLabel(const SceneModel& model, const std::string& stationId);
 
 /// The scene name as one component of an output path, or "scene" when the name is not a valid file name
 /// on Windows.

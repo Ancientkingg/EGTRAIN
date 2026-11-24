@@ -122,8 +122,8 @@ protected:
 			// A figure and the gauge of a platform with some of its length filled, as on the canvas.
 			painter.drawPixmap(QRectF(8.0, 1.0, 11.0, 16.5), PassengerItem::figure(PlatformCrowding::Normal), QRectF());
 			const QRectF trough(23.0, 6.0, 16.0, 6.0);
-			painter.setPen(QPen(QColor(0x5c, 0x6a, 0x78), 1.0));
-			painter.setBrush(QColor(0x2c, 0x38, 0x46));
+			painter.setPen(QPen(PassengerItem::troughOutline(), 1.0));
+			painter.setBrush(PassengerItem::troughFill());
 			painter.drawRect(trough);
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(PassengerItem::crowdingColour(PlatformCrowding::Normal));

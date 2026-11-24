@@ -30,6 +30,12 @@ QString sceneListKey(const QString& path) {
 	return key;
 }
 
+bool isCasePath(const QString& path) {
+	const QFileInfo info(path);
+	return info.isDir() ? QFileInfo(QDir(path).filePath("scene.json")).exists()
+						: info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0;
+}
+
 QString sceneDisplayName(const QString& rawPath) {
 	const QString path = QDir::cleanPath(rawPath);
 	const QFileInfo info(path);
@@ -110,9 +116,7 @@ void addGroup(QListWidget* list, const QString& title, const QStringList& paths,
 	for (qsizetype i = 0; i < paths.size(); ++i) {
 		const QString& path = paths.at(i);
 		const QString& label = labels.at(i);
-		const QFileInfo info(path);
-		if ((info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
-			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0)) {
+		if (isCasePath(path)) {
 			auto* item = new QListWidgetItem(label, list);
 			item->setData(Qt::UserRole, path);
 			item->setToolTip(rowToolTip(label, path));
@@ -144,8 +148,7 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 		if (!dir.exists()) continue;
 		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 		for (const QFileInfo& entry : entries) {
-			if (!((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
-					|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)))
+			if (!isCasePath(entry.absoluteFilePath()))
 				continue;
 			if (bundledNames.contains(entry.fileName().toCaseFolded())) {
 				seen.insert(sceneListKey(entry.absoluteFilePath()));

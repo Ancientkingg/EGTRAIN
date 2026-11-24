@@ -853,7 +853,7 @@ std::vector<NativeStationBinding> nativeBindStations(SimulationRun& run, const S
 					stationBindings.push_back({&station, &platform, nodeId});
 					nativeUpdateRuntimeNode(run, nodes, nodeId, [&](Node& node) {
 						node.station = true;
-						node.stationName = station.name.empty() ? station.id : station.name;
+						node.stationName = sceneStationLabel(station);
 						node.stationPlatformId = platform.id;
 					});
 				}
@@ -866,7 +866,7 @@ std::vector<NativeStationBinding> nativeBindStations(SimulationRun& run, const S
 				matched = true;
 				nativeUpdateRuntimeNode(run, nodes, node.id, [&](Node& runtimeNode) {
 					runtimeNode.station = true;
-					runtimeNode.stationName = station.name.empty() ? station.id : station.name;
+					runtimeNode.stationName = sceneStationLabel(station);
 				});
 			}
 			if (!matched)
@@ -940,7 +940,7 @@ void nativeBuildStations(SimulationRun& run, const SceneModel& scene, NativeRunt
 	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
 		const SceneStation& source = scene.stations[stationIndex];
 		Stations& station = run.infra.stations[stationIndex];
-		station.stationName = source.name.empty() ? source.id : source.name;
+		station.stationName = sceneStationLabel(source);
 		if (source.hasPosition)
 			station.X = source.positionKm;
 		else if (!source.platforms.empty() && !source.platforms.front().nodeIds.empty()) {

@@ -7,6 +7,7 @@
 #include <QRectF>
 #include <QString>
 #include <functional>
+#include <tuple>
 
 /// What the card of a station shows, as text and counts that StationCalloutItem lays out.
 struct StationCalloutContent {
@@ -14,6 +15,8 @@ struct StationCalloutContent {
 	struct Destination {
 		QString name;  ///< The station, as it is shown.
 		int count = 0; ///< The passengers waiting for it.
+		/// True when both name the same station and count.
+		bool operator==(const Destination& other) const { return std::tie(name, count) == std::tie(other.name, other.count); }
 	};
 	/// One call of a train, as the cells of a table row.
 	struct Call {
@@ -24,15 +27,26 @@ struct StationCalloutContent {
 		QString leftBehind;	  ///< Passengers left behind, or a dash.
 		QString load;		  ///< The load at departure, or a dash.
 		bool anyLeft = false; ///< Some passengers were left behind, which the card draws in red.
+		/// True when every cell and the flag are the same.
+		bool operator==(const Call& other) const {
+			return std::tie(time, train, boarded, alighted, leftBehind, load, anyLeft)
+				== std::tie(other.time, other.train, other.boarded, other.alighted, other.leftBehind, other.load, other.anyLeft);
+		}
 	};
 	QString title;					 ///< The name of the station.
 	QString subtitle;				 ///< The passengers waiting and the capacity of the platforms.
 	bool nobodyWaiting = false;		 ///< No passenger waits: the card says so instead of listing destinations.
-	QString destinationHeader;		 ///< The heading of the destinations; empty when there is no section.
+	bool destinationHeader = false;	 ///< The card has the section of destinations, under the heading "Waiting, by destination".
 	QList<Destination> destinations; ///< The destinations that get a bar, the largest first.
 	int moreStations = 0;			 ///< The number of further destinations, which one line sums up.
 	int moreCount = 0;				 ///< The passengers waiting for those.
 	QList<Call> calls;				 ///< The latest calls, newest first.
+	/// True when every field is the same. A field added above has to be added here too.
+	bool operator==(const StationCalloutContent& other) const {
+		return std::tie(title, subtitle, nobodyWaiting, destinationHeader, destinations, moreStations, moreCount, calls)
+			== std::tie(other.title, other.subtitle, other.nobodyWaiting, other.destinationHeader, other.destinations, other.moreStations,
+				other.moreCount, other.calls);
+	}
 };
 
 /// The card that a click on a station opens on the canvas: a dark box with the passengers waiting at the station by
