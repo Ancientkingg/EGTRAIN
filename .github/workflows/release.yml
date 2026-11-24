@@ -275,9 +275,7 @@ jobs:
           RELEASE_TAG: ${{ needs.release.outputs.tag }}
           RELEASE_NAME: ${{ needs.release.outputs.name }}
           PRERELEASE: ${{ needs.release.outputs.prerelease }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: >-
           python3 tools/release/version.py notes "$RELEASE_TAG" > "$RUNNER_TEMP/release-notes.md" &&
           python3 tools/release/publish_selfhost.py release --tag "$RELEASE_TAG" --name "$RELEASE_NAME"
           --prerelease "$PRERELEASE" --assets release-assets --notes "$RUNNER_TEMP/release-notes.md"
-          --commit "$GITHUB_SHA" --run-url "$RUN_URL"

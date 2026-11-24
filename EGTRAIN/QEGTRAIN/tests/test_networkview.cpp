@@ -1,3 +1,4 @@
+#include "graphics/NetworkImage.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/TrackLineItem.h"
@@ -9,8 +10,10 @@
 #include <QMouseEvent>
 #include <QNativeGestureEvent>
 #include <QScrollBar>
+#include <QSet>
 #include <QTest>
 #include <QWheelEvent>
+#include <QXmlStreamReader>
 #include <cmath>
 #include <utility>
 
@@ -137,6 +140,9 @@ private slots:
 	void resizeKeepsPan_data();
 	void resizeKeepsPan();
 	void zoomLabelsUseMapNotation();
+	void exportsNetworkImages();
+	void exportsWholeLongNetwork_data();
+	void exportsWholeLongNetwork();
 };
 
 void TestNetworkView::drawsBackgroundGrid_data() {
@@ -557,6 +563,107 @@ void TestNetworkView::zoomLabelsUseMapNotation() {
 	view.zoomBy(NetworkView::maximumZoomRatio());
 	// The maximum zoom label uses map notation.
 	QCOMPARE(view.zoomLabel(), "640x");
+}
+
+// The export draws the whole network at Fit from a view of its own: the window view keeps its zoom and scroll, and a track
+// that the case gained since the last fit is in the picture.
+void TestNetworkView::exportsNetworkImages() {
+	ViewFixture f;
+	NetworkView& view = f.view;
+	view.fitToTopology();
+	view.zoomBy(3.0);
+	QApplication::processEvents();
+	const qreal zoomBefore = view.zoomRatio();
+	const QTransform transformBefore = view.transform();
+	const int hBefore = view.horizontalScrollBar()->value();
+	const int vBefore = view.verticalScrollBar()->value();
+	const QSize viewSize = view.viewport()->size();
+
+	const QImage image = renderNetworkImage(f.scene, QRectF(), viewSize);
+	QVERIFY(!image.isNull());
+	QCOMPARE_GE(image.width(), 1600);
+	// The picture is the padded bounds of the fit, 240 by 50 scene units and the padding of the fit around them.
+	QCOMPARE_GT(qreal(image.width()) / image.height(), 1.5);
+	QSet<QRgb> colours;
+	for (int y = 0; y < image.height(); y += 3) {
+		for (int x = 0; x < image.width(); x += 3)
+			colours.insert(image.pixel(x, y));
+	}
+	QCOMPARE_GT(colours.size(), 1);
+	QVERIFY(colours.contains(kCanvas.rgb()));
+
+	const std::optional<std::string> svg = renderNetworkSvg(f.scene, QRectF(), viewSize, QStringLiteral("Test case"));
+	QVERIFY(svg.has_value());
+	QXmlStreamReader xml(QByteArray::fromStdString(*svg));
+	int paths = 0;
+	int families = 0;
+	QString title;
+	while (!xml.atEnd()) {
+		if (xml.readNext() != QXmlStreamReader::StartElement)
+			continue;
+		// Every font has a fallback for systems without the font of this platform.
+		if (const QStringView family = xml.attributes().value(QLatin1String("font-family")); !family.isEmpty()) {
+			QVERIFY2(family.endsWith(QLatin1String(", sans-serif")), qPrintable(family.toString()));
+			++families;
+		}
+		// The tracks are lines, and the other items are paths or polygons.
+		paths += (xml.name() == QLatin1String("path") || xml.name() == QLatin1String("line") || xml.name() == QLatin1String("polyline")
+					 || xml.name() == QLatin1String("polygon"))
+			? 1
+			: 0;
+		if (xml.name() == QLatin1String("title"))
+			title = xml.readElementText();
+	}
+	QVERIFY2(!xml.hasError(), qPrintable(xml.errorString()));
+	QCOMPARE_GT(paths, 0);
+	QCOMPARE_GT(families, 0);
+	QCOMPARE(title, QStringLiteral("Test case"));
+
+	// A track far to the right widens the picture and the window view is as it was.
+	f.scene.addItem(new TrackLineItem(QLineF(1000.0, 0.0, 1200.0, 0.0)));
+	const QImage wider = renderNetworkImage(f.scene, QRectF(), viewSize);
+	QCOMPARE_GT(qreal(wider.width()) / wider.height(), qreal(image.width()) / image.height());
+	QVERIFY(near(view.zoomRatio(), zoomBefore));
+	QCOMPARE(view.transform(), transformBefore);
+	QCOMPARE(view.horizontalScrollBar()->value(), hBefore);
+	QCOMPARE(view.verticalScrollBar()->value(), vBefore);
+	QVERIFY(renderNetworkImage(f.scene, QRectF(), QSize()).isNull());
+}
+
+void TestNetworkView::exportsWholeLongNetwork_data() {
+	QTest::addColumn<QSize>("viewSize");
+	QTest::addColumn<QRectF>("bounds");
+	QTest::newRow("window size, topology") << QSize(1180, 612) << QRectF();
+	QTest::newRow("window size, fit bounds") << QSize(1180, 612) << QRectF(0.0, -20.0, 6000.0, 60.0);
+	QTest::newRow("narrow view") << QSize(300, 700) << QRectF();
+	QTest::newRow("tall view") << QSize(900, 1400) << QRectF();
+}
+
+// A long, low network as Paimpol's: both ends of the line are in the picture, whatever the size of the window.
+void TestNetworkView::exportsWholeLongNetwork() {
+	QFETCH(QSize, viewSize);
+	QFETCH(QRectF, bounds);
+	QGraphicsScene scene;
+	scene.addItem(new TrackLineItem(QLineF(0.0, 0.0, 3000.0, 0.0)));
+	scene.addItem(new TrackLineItem(QLineF(3000.0, 0.0, 6000.0, 20.0)));
+	const QImage image = renderNetworkImage(scene, bounds, viewSize);
+	QVERIFY(!image.isNull());
+	// The columns that hold something besides the canvas and its grid.
+	int first = image.width();
+	int last = -1;
+	for (int x = 0; x < image.width(); ++x) {
+		for (int y = 0; y < image.height(); ++y) {
+			const QColor pixel = image.pixelColor(x, y);
+			if (pixel != kCanvas && pixel != kGrid) {
+				first = qMin(first, x);
+				last = qMax(last, x);
+				break;
+			}
+		}
+	}
+	QVERIFY2(last >= 0, "the picture shows nothing");
+	QCOMPARE_LT(first, image.width() / 10);
+	QCOMPARE_GT(last, image.width() * 9 / 10);
 }
 
 QTEST_MAIN(TestNetworkView)

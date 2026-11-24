@@ -128,7 +128,8 @@ public:
 	/// True once the passenger has entered the network for this journey.
 	bool IsJourneyStarted, IsJourneyCompleted; ///< True once the passenger has reached the destination.
 	/// True once the legs after the first plan of the journey were replaced: the passenger missed a train, was refused by a
-	/// full one, or was set down early by a train that ended its service.
+	/// full one, was set down early by a train that ended its service, or took a standing train that reaches the destination
+	/// directly in time.
 	bool IsReplanned = false;
 	JourneyOutcome Outcome = JourneyOutcome::InProgress; ///< Set when the journey completes or finds no route.
 	int LiveTripCount = 0;								 ///< Number of legs the passenger step planned for this journey; the IDs of its legs count it.
@@ -137,7 +138,17 @@ public:
 	std::vector<std::pair<std::string, std::string>> RefusedBy;
 	double Walkingtime;			  ///< Total walking time between platforms at transfers in seconds.
 	double Waitingtime;			  ///< Total waiting time on platforms in seconds.
-	int totalJourneyArrivalDelay; ///< Arrival delay of the last leg in seconds; 0 until the journey is completed.
+	int totalJourneyArrivalDelay; ///< Arrival delay of the journey in seconds; 0 until the journey is completed.
+	/// Planned arrival of the first plan of the journey: the last given leg, or the last leg of the first plan of the run. -9999
+	/// until set; it is set once and a later plan does not change it.
+	int FirstPlanArrival = -9999;
+
+	/// The arrival delay of the journey that has arrived at `actualArrival`, when its last leg was `lastLegDelay` late. A journey
+	/// that was planned again is measured against the arrival of its first plan, so that a replacement train does not move the
+	/// reference. Any other journey has the delay of its last leg.
+	int arrivalDelay(double actualArrival, int lastLegDelay) const {
+		return IsReplanned && FirstPlanArrival != -9999 ? static_cast<int>(actualArrival - FirstPlanArrival) : lastLegDelay;
+	}
 
 	/// True when the journey is over, because the passenger arrived or no route was found.
 	bool isFinished() const { return IsJourneyCompleted || Outcome == JourneyOutcome::NoRoute; }

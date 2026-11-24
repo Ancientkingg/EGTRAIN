@@ -571,6 +571,9 @@ private:
 	void updateStationCallouts(const GuiSimulationSnapshot& snapshot);
 	// Puts every open card at the mark of its station, above it or, where it would leave the view, below it.
 	void placeStationCallouts();
+	// The first overlay of the station with this name, which carries its pill and its card; with withMark, the first that
+	// has a picture of the mark, or null.
+	StationOverlayItem* stationOverlay(const std::string& station, bool withMark) const;
 	// Works out the waiting passengers and the crowding of every station from its platforms and gives them to the pills.
 	void updateStationCounts();
 	// Shows the pills in the far look with the passengers and the stations, and puts them beside their marks.

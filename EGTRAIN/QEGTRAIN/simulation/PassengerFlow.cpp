@@ -1,4 +1,5 @@
 #include "simulation/PassengerFlow.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "simulation/PassengerJourneys.h"
 #include "simulation/PassengerRouting.h"
 #include "simulation/Simulation.h"
@@ -62,7 +63,17 @@ bool PassengerFlow::Waiter::operator<(const Waiter& other) const {
 }
 
 int PassengerFlow::idOf(const string& name) {
-	return ids_.try_emplace(name, static_cast<int>(ids_.size())).first->second;
+	const auto added = ids_.try_emplace(name, static_cast<int>(ids_.size()));
+	if (added.second)
+		idNames_.push_back(name);
+	return added.first->second;
+}
+
+// The arrival station of the active journey of the passenger, the first journey with the ID of the active one, or -1.
+int PassengerFlow::destinationOf(const Passenger& passenger) {
+	const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
+		[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+	return journey != passenger.Journeys.end() && !journey->Arr_Station_ID.empty() ? idOf(journey->Arr_Station_ID) : -1;
 }
 
 int PassengerFlow::findId(const string& name) const {
@@ -129,6 +140,7 @@ void PassengerFlow::registerState(int position) {
 			&& p.StopThatRefusedBoarding == (known == queue.byTrain.end() ? -1 : known->second.call);
 		queue.count++;
 		int leg = 0;
+		registration.destination = destinationOf(p);
 		forEachWaitingTrip(p, [&](double since) {
 			registration.waiters.push_back({since, position, leg++});
 			TrainQueue& line = queue.byTrain[registration.second];
@@ -136,6 +148,8 @@ void PassengerFlow::registerState(int position) {
 			if (!registration.refused)
 				line.notRefused.insert(registration.waiters.back());
 		});
+		if (registration.destination >= 0 && !registration.waiters.empty())
+			queue.byDestination[registration.destination] += static_cast<int>(registration.waiters.size());
 		markDirty(registration.first);
 	} else if (p.CurrentStatus == PassengerStatus::OnBoard) {
 		registration.kind = Kind::OnBoard;
@@ -150,6 +164,12 @@ void PassengerFlow::unregister(int position) {
 	if (registration.kind == Kind::Waiting) {
 		PlatformQueues& queue = queues_[static_cast<std::size_t>(registration.first)];
 		queue.count--;
+		if (registration.destination >= 0 && !registration.waiters.empty()) {
+			const auto going = queue.byDestination.find(registration.destination);
+			going->second -= static_cast<int>(registration.waiters.size());
+			if (going->second <= 0)
+				queue.byDestination.erase(going);
+		}
 		// A passenger whose journey has no trip for the train is counted on the platform but has no place in a queue.
 		const auto waiting = queue.byTrain.find(registration.second);
 		if (waiting != queue.byTrain.end()) {
@@ -260,6 +280,18 @@ std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
 	return positions;
 }
 
+std::vector<int> PassengerFlow::waitingAt(int platform) const {
+	std::vector<int> positions;
+	if (platform < 0 || static_cast<std::size_t>(platform) >= queues_.size())
+		return positions;
+	std::set<int> seen;
+	for (const auto& [train, line] : queues_[static_cast<std::size_t>(platform)].byTrain)
+		for (const Waiter& waiter : line.all)
+			if (seen.insert(waiter.position).second)
+				positions.push_back(waiter.position);
+	return positions;
+}
+
 std::vector<int> PassengerFlow::takeAllOnBoard(const string& train) {
 	std::vector<int> positions;
 	const int trainId = findId(train);
@@ -295,14 +327,20 @@ std::vector<int> PassengerFlow::takeOnBoardArrivingAt(const string& train, const
 	return positions;
 }
 
-WaitingAtPlatform PassengerFlow::listFor(int platform) const {
+WaitingAtPlatform PassengerFlow::listFor(int platform, std::size_t limit) const {
 	const PlatformQueues& queue = queues_[static_cast<std::size_t>(platform)];
 	WaitingAtPlatform waiting;
 	waiting.count = queue.count;
+	// The first `limit` of all are among the first `limit` of each train.
 	std::vector<Waiter> everyone;
-	for (const auto& train : queue.byTrain)
-		everyone.insert(everyone.end(), train.second.all.begin(), train.second.all.end());
+	for (const auto& train : queue.byTrain) {
+		const std::set<Waiter>& line = train.second.all;
+		const std::size_t take = std::min(limit, line.size());
+		everyone.insert(everyone.end(), line.begin(), std::next(line.begin(), static_cast<std::ptrdiff_t>(take)));
+	}
 	std::sort(everyone.begin(), everyone.end());
+	if (everyone.size() > limit)
+		everyone.resize(limit);
 	for (const Waiter& waiter : everyone)
 		waiting.passengers.emplace_back(passengers_[static_cast<std::size_t>(waiter.position)]->ID, waiter.since);
 	return waiting;
@@ -311,6 +349,17 @@ WaitingAtPlatform PassengerFlow::listFor(int platform) const {
 WaitingAtPlatform PassengerFlow::waitingAt(const string& stationId, const string& platformId) const {
 	const int key = findPlatformKey(stationId, platformId);
 	return key < 0 ? WaitingAtPlatform() : listFor(key);
+}
+
+std::vector<std::pair<string, int>> PassengerFlow::destinationCounts(const string& stationId, const string& platformId) const {
+	std::vector<std::pair<string, int>> counts;
+	const int key = findPlatformKey(stationId, platformId);
+	if (key < 0)
+		return counts;
+	for (const auto& [destination, count] : queues_[static_cast<std::size_t>(key)].byDestination)
+		counts.emplace_back(idNames_[static_cast<std::size_t>(destination)], count);
+	std::sort(counts.begin(), counts.end());
+	return counts;
 }
 
 void PassengerFlow::attachPlatforms(list<StationPlatform>& platforms) {
@@ -332,7 +381,7 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 	if (platformsSource_ != &platforms || platformsCount_ != platforms.size())
 		attachPlatforms(platforms);
 	const auto assign = [this](StationPlatform& platform, int key) {
-		WaitingAtPlatform waiting = listFor(key);
+		WaitingAtPlatform waiting = listFor(key, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		platform.Current_N_Passengers = waiting.count;
 		platform.Current_List_Pax_On_Platform = std::move(waiting.passengers);
 	};
@@ -355,7 +404,7 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 namespace {
 // The passenger p, who is on board of train T, alights at the service stop of T: the trip ends, and the passenger leaves the
 // network or waits for the next trip.
-void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime) {
+void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime, double walkingSecondsPerPlatform) {
 	Passenger* p = &passenger;
 
 	// Update travel information of the alighted passenger
@@ -385,8 +434,9 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 						// if the selected trip is the last trip of the active journey then set that journey j will be completed
 						if ((currenttrip->TripID == LasttripOfJourney->TripID) && (currenttrip->Arr_Station_ID == j->Arr_Station_ID)) {
 							j->Actual_Arrival_Time = currenttrip->Actual_Arrival_Time;
-							j->totalJourneyArrivalDelay = currenttrip->totalArrivalDelay; // Could also be computed as Actual_Arrival_Time - Actual_Planned_Arrival_Time
-							// however it might be that in the rescheduling process the Planned arrival time of the last trip of the journey is changed based on rerouting or replanning of the train service.
+							// The delay of the last leg, unless the journey was planned again: then it is measured against the arrival
+							// of its first plan, because the planned arrival of the last leg is that of the replacement train.
+							j->totalJourneyArrivalDelay = j->arrivalDelay(currenttrip->Actual_Arrival_Time, currenttrip->totalArrivalDelay);
 
 							j->IsJourneyCompleted = true;
 							j->Outcome = JourneyOutcome::Completed;
@@ -432,8 +482,8 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 								// Set first of all that the next trip has started
 								nexttrip->IsTripStarted = true;
 								// The walk between the platforms is the one the routing plans (an unknown platform number needs none).
-								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber);
-								nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
+								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber, walkingSecondsPerPlatform);
+								nexttrip->Actual_Departure_Time = static_cast<int>(t + SimulationStartingTime + Walkingtime);
 								j->Walkingtime = j->Walkingtime + Walkingtime;
 							}
 						}
@@ -456,7 +506,7 @@ int alightPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, i
 	const std::vector<int> alighting = flow.takeOnBoardArrivingAt(T.trainDescription, T.CurrentServiceStop);
 	for (const int position : alighting) {
 		T.Current_OnBoard_Passengers--; // the passenger leaves the train
-		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime);
+		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime, run.settings.passengerWalkingSecondsPerPlatform);
 		// A passenger who transfers plans again when the train of the next trip is already gone, from the platform of this train.
 		run.passengerJourneys.checkWaiting(run, flow.passenger(position), t, T.currentServiceStopPlatformNumber);
 		flow.alighted(position);
@@ -598,6 +648,10 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 		return;
 	StopCallCounts* counts = currentCall(run, train);
 	const StationPlatform* stop = platformOfStop(run, T);
+	// A train that has just arrived is offered to the passengers who wait on its platform for another train.
+	const int call = T.serviceStopOf(T.CurrentServiceStop);
+	if (call >= 0 && T.Stations[static_cast<size_t>(call)].StepStopped == 1)
+		run.passengerJourneys.offerStandingTrain(run, flow, train, t);
 	// The occupation rate of the platform counts the passengers who waited there before the train let anyone off and those who
 	// alight. A passenger who alights and waits there for another train is among the second and not among the first.
 	const int waitingBefore = stop != nullptr ? flow.waitingCount(stop->StationID, stop->ID) : 0;

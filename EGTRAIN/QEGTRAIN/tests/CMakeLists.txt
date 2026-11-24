@@ -228,7 +228,7 @@ egtrain_add_test(test_updatetelemetrycontroller
 		${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
 		${SRC_DIR}/update/SelfUpdater.cpp
 	LIBS egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network
-	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1
+	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1 EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS unit gui)
 
 egtrain_add_test(test_updatechecker

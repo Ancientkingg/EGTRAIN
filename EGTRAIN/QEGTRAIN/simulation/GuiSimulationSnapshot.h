@@ -253,19 +253,29 @@ struct GuiStationCall {
 	bool counted = true; ///< The counts are those of the step: false for a call that a replay shows while it stands.
 };
 
+/// Calls `take(*call)` for the latest kGuiStationCallsListed calls of every station among [`newestFirst`, `end`), which
+/// holds calls of any kind from the newest to the oldest; `stationOf(*call)` is the station name of a call, kept alive
+/// as long as the range is.
+template <typename Iterator, typename StationOf, typename Take>
+void forLatestStationCalls(Iterator newestFirst, const Iterator& end, StationOf stationOf, Take take) {
+	std::unordered_map<std::string_view, int> listed;
+	for (; newestFirst != end; ++newestFirst)
+		if (listed[std::string_view(stationOf(*newestFirst))]++ < kGuiStationCallsListed)
+			take(*newestFirst);
+}
+
 /// Appends the latest kGuiStationCallsListed calls of every station that began at or before `step`, newest first, from
 /// `ascending`, the calls of a finished run ordered by arrival. A call that has not left by `step` is not counted, as
 /// a finished run knows only the totals of its stand.
 inline void appendLatestStationCalls(const std::vector<GuiStationCall>& ascending, int step, std::vector<GuiStationCall>& out) {
-	std::unordered_map<std::string_view, int> listed;
 	const auto end = std::upper_bound(ascending.begin(), ascending.end(), step,
 		[](int at, const GuiStationCall& call) { return at < call.arrival; });
-	for (auto call = std::make_reverse_iterator(end); call != ascending.rend(); ++call) {
-		if (listed[call->station]++ >= kGuiStationCallsListed)
-			continue;
-		out.push_back(*call);
-		out.back().counted = call->departure >= 0 && call->departure <= step;
-	}
+	forLatestStationCalls(
+		std::make_reverse_iterator(end), ascending.rend(), [](const GuiStationCall& call) -> const std::string& { return call.station; },
+		[&](const GuiStationCall& call) {
+			out.push_back(call);
+			out.back().counted = call.departure >= 0 && call.departure <= step;
+		});
 }
 
 /// A message of virtual coupling, which a snapshot shows for 40 seconds after its step.

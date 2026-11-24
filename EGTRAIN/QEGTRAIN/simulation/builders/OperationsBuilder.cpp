@@ -926,6 +926,7 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
 			: 0.0;
 	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
+	stagedParameters.passengerWalkingSecondsPerPlatform = std::clamp(scene.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds);
 	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
 		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,
@@ -950,7 +951,7 @@ std::list<StationPlatform> nativeStagedPlatforms(const SimulationRun& run, const
 		const ScenePlatform* sourcePlatform = nullptr;
 		if (stationIt != stationById.end()) {
 			sourcePlatform = nativePlatformForStation(*stationIt->second, platform.ID);
-			platform.StationID = stationIt->second->name.empty() ? stationIt->second->id : stationIt->second->name;
+			platform.StationID = sceneStationLabel(*stationIt->second);
 		}
 		platform.length = sourcePlatform != nullptr && sourcePlatform->hasLength
 			? sourcePlatform->lengthM
@@ -994,7 +995,7 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 		const auto found = stationById.find(id);
 		if (found == stationById.end())
 			return std::string();
-		return found->second->name.empty() ? found->second->id : found->second->name;
+		return sceneStationLabel(*found->second);
 	};
 	std::unordered_map<std::string, std::size_t> stationPlace;
 	for (std::size_t place = 0; place < scene.stations.size(); ++place)
@@ -1172,7 +1173,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 					"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].station_id", stop.stationId);
 				continue;
 			}
-			const std::string stationName = station->name.empty() ? station->id : station->name;
+			const std::string stationName = sceneStationLabel(*station);
 			std::string resolvedPlatformId = stop.platformId;
 			const ScenePlatform* explicitPlatform = nullptr;
 			if (!stop.platformId.empty()) {
@@ -1318,8 +1319,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			journey.Mode = sourceJourney.legs.empty() ? JourneyMode::Live : JourneyMode::Assigned;
 			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
 			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
-			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
-			journey.Arr_Station_ID = destination->name.empty() ? destination->id : destination->name;
+			journey.Dep_Station_ID = sceneStationLabel(*origin);
+			journey.Arr_Station_ID = sceneStationLabel(*destination);
 			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
 			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
 			bool omitJourney = false;
@@ -1381,18 +1382,18 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		return diagnostics;
 
 	nativeSamplePassengerWindows(run, scene, stagedPassengers);
-	nativeStageDemandPassengers(scene, stationById, stagedPassengers);
-
-	// The new trains are built before the old ones are released, so trains that do not fit in the memory that is free leave
-	// the trains of the run and initial_variables as they were.
+	// The demand passengers and the new trains are built before the old ones are released, so passengers or trains that do not
+	// fit in the memory that is free leave the trains of the run and initial_variables as they were.
 	std::vector<Train> storage;
 	try {
+		nativeStageDemandPassengers(scene, stationById, stagedPassengers);
 		storage = std::vector<Train>(trains.size());
 		for (std::size_t index = 0; index < trains.size(); ++index)
 			nativeCopyTrainPlan(run, trains[index], stagedParameters, storage[index], vectorSize);
 	} catch (const std::bad_alloc&) {
-		// Frees the trains built so far before the message is made.
+		// Frees the passengers and trains built so far before the message is made.
 		storage = std::vector<Train>();
+		stagedPassengers.clear();
 		addNativeMemoryDiagnostic(diagnostics, scene, "scene.native.memory.free",
 			"The run needs more memory than is free for " + nativeRunSizeText(trains.size(), durationSeconds)
 				+ ". Shorten the duration, run fewer trains or close other programs.");

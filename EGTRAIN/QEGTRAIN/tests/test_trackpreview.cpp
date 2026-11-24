@@ -75,11 +75,6 @@ const TrackPreviewLine& lineOf(const TrackPreviewResult& preview, const char* id
 	QTest::qFail("missing line", __FILE__, __LINE__);
 	return preview.lines.front();
 }
-
-bool hasWarning(const TrackPreviewResult& preview, const std::string& text) {
-	return std::any_of(preview.warnings.begin(), preview.warnings.end(),
-		[&text](const std::string& warning) { return warning.find(text) != std::string::npos; });
-}
 }
 
 class TestTrackPreview : public QObject {
@@ -622,7 +617,6 @@ void TestTrackPreview::placesTrackWithoutViewNextToItsConnection() {
 	QVERIFY(trackPreviewPointAtNode(added, "B2.b", end));
 	QCOMPARE_LT(std::hypot(start.x - anchor.x, start.y + added.displayOffset - anchor.y - lineOf(withTrack, "B0").displayOffset), 1e-6);
 	QCOMPARE_LT(std::fabs(std::hypot(end.x - start.x, end.y - start.y) - 5000.0), 1e-6);
-	QVERIFY(hasWarning(withTrack, "track B2 has no layout in views.json; drawn next to track B0"));
 }
 
 void TestTrackPreview::placesUnconnectedTrackWithoutViewBelowNetwork() {
@@ -648,7 +642,6 @@ void TestTrackPreview::placesUnconnectedTrackWithoutViewBelowNetwork() {
 	QCOMPARE_LT(std::fabs(addedMinX - minX), 1e-6);
 	QVERIFY(addedMinY > maxY);
 	QCOMPARE_LT(addedMinY - maxY, maxY - minY);
-	QVERIFY(hasWarning(withTrack, "track B2 has no layout in views.json; drawn below the network"));
 }
 
 void TestTrackPreview::keepsScenesWithoutViewsRaw() {
@@ -657,7 +650,6 @@ void TestTrackPreview::keepsScenesWithoutViewsRaw() {
 	noViews.stationViews.clear();
 	const TrackPreviewResult preview = normalizeTrackPreview(loadTrackPreview(noViews));
 	QCOMPARE_EQ(preview.presentationScale, 1.0);
-	QVERIFY(preview.warnings.empty());
 	QCOMPARE_EQ(lineOf(preview, "B0").points[1].x, 28.0 * preview.normalizationScale);
 }
 

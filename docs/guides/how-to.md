@@ -11,6 +11,7 @@ Short recipes for the common tasks. Each says what you need, what to do and what
   - [Run a case](#run-a-case)
   - [Fix validation errors](#fix-validation-errors)
   - [Move around the network view and follow a train](#move-around-the-network-view-and-follow-a-train)
+  - [Save the network as a picture](#save-the-network-as-a-picture)
   - [Replay a completed run](#replay-a-completed-run)
   - [Close, start a new case or open another during a run](#close-start-a-new-case-or-open-another-during-a-run)
 - Change a case
@@ -140,6 +141,18 @@ You can save a case that has errors, also one with a new service, incident or ro
 - **Follow.** Choose a train in the list next to **Follow** in the toolbar and click **Follow**. The view moves with the train, also while the run is paused. At Fit the view stays where it is; zoom in to follow the train. Click **Follow** again, or choose **Stop following train**, to stop.
 
 **Follow** is disabled before a run, after an edit or a switch of scenario that discards the results of a run, and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example `Rail-1 (scheduled 08:25:50)`, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. [Scenario library and student loop](scenarios.md) describes the camera in detail. For the result windows, see [Inspecting diagrams](diagram-navigation.md).
+
+## Save the network as a picture
+
+You need an open case. A run is not needed.
+
+1. Choose **File > Export Network Image...**.
+2. Choose the format in the format menu of the dialog: the PNG Image entry, or the SVG Image entry to save an SVG. On macOS the dialog keeps the chosen format, so a name that ends in `.svg` still saves a PNG while the PNG Image entry is chosen. The dialog suggests `<case name>-network.png`.
+3. Click **Save**. The status bar names the saved file for a few seconds.
+
+The picture shows the whole network as **Fit** does, on the canvas with its grid, with the layers that are switched on in **Case and Layers**. It includes new tracks you have added and not yet saved. During a run, or after one, it also shows the trains and states that the view shows at that moment. The cards that open over a station and the other controls laid over the view are not part of the picture. The window keeps its zoom and position.
+
+The PNG is twice the size of the view at Fit and at least 1600 pixels wide. The SVG is vector graphics with the name of the case as its title. If the file exists, EGTRAIN asks before it replaces it, and a failed write shows **Export failed** with the path and the reason.
 
 ## Replay a completed run
 

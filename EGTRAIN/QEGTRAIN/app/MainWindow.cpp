@@ -79,6 +79,7 @@
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/ManualWindow.h"
+#include "diagrams/ResultFrame.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
@@ -91,6 +92,7 @@
 #include "widgets/SettingsDialog.h"
 #include "widgets/TimeProgressBar.h"
 #include "graphics/FollowCamera.h"
+#include "graphics/NetworkImage.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
@@ -793,6 +795,9 @@ void MainWindow::setupFileMenu() {
 	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
 	connect(m_saveSceneAction, &QAction::triggered, m_session, &SceneSession::saveScene);
 	connect(m_saveSceneAsAction, &QAction::triggered, m_session, &SceneSession::saveSceneAs);
+	m_exportNetworkImageAction = new QAction("Export Network Image...", this);
+	m_exportNetworkImageAction->setObjectName("actionExportNetworkImage");
+	connect(m_exportNetworkImageAction, &QAction::triggered, this, &MainWindow::exportNetworkImage);
 	// Opening, saving, importing and quitting, each between separators.
 	QAction* importAction = ui->actionLoad_Network;
 	ui->menuFile->insertAction(importAction, m_newSceneAction);
@@ -801,6 +806,7 @@ void MainWindow::setupFileMenu() {
 	ui->menuFile->insertSeparator(importAction);
 	ui->menuFile->insertAction(importAction, m_saveSceneAction);
 	ui->menuFile->insertAction(importAction, m_saveSceneAsAction);
+	ui->menuFile->insertAction(importAction, m_exportNetworkImageAction);
 	ui->menuFile->insertSeparator(importAction);
 	m_session->rebuildRecentScenesMenu();
 	updateSceneActions();
@@ -1954,6 +1960,8 @@ void MainWindow::updateSceneActions() {
 		m_saveSceneAction->setEnabled(m_document->isLoaded());
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_document->isLoaded());
+	if (m_exportNetworkImageAction)
+		m_exportNetworkImageAction->setEnabled(m_document->isLoaded());
 	if (ui->actionSimulationStart) {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
@@ -3687,6 +3695,27 @@ void MainWindow::fitView() {
 	}
 	updateViewportOverlays();
 	updateZoomStatus();
+}
+
+void MainWindow::exportNetworkImage() {
+	if (!m_document->isLoaded() || !networkView || !scene)
+		return;
+	const QRectF bounds = m_presenter->previewFit().bounds;
+	const QSize viewSize = networkView->viewport()->size();
+	QString name = QString::fromStdString(m_document->model().name).trimmed();
+	if (name.isEmpty())
+		name = QStringLiteral("network");
+	QString fileName = name;
+	fileName.replace(QRegularExpression(QStringLiteral("[\\\\/:*?\"<>|]")), QStringLiteral("_"));
+	const auto bytes = [&](const QString& suffix) -> std::optional<std::string> {
+		if (suffix == QLatin1String("svg"))
+			return renderNetworkSvg(*scene, bounds, viewSize, name);
+		return pngBytes(renderNetworkImage(*scene, bounds, viewSize));
+	};
+	const QString path = saveImageInteractive(this, *m_userPrompts, "Export Network Image", fileName + "-network.png",
+		captureTelemetryOperation(), bytes);
+	if (!path.isEmpty())
+		statusBar()->showMessage(QStringLiteral("Saved %1").arg(QDir::toNativeSeparators(path)), 8000);
 }
 
 // slot to update GUI at each timestep (no longer blocks; simulation runs on worker thread)

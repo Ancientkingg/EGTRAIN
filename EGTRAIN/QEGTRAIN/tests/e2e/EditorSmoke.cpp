@@ -539,7 +539,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			return texts;
 		};
 		const QStringList fileMenu = entries(w.ui->menuFile);
-		if (fileMenu != QStringList{"New Case...", "Open Case...", "Recent Cases", "-", "Save", "Save As...", "-", "Import Legacy Case...", "-", "Quit"})
+		if (fileMenu != QStringList{"New Case...", "Open Case...", "Recent Cases", "-", "Save", "Save As...", "Export Network Image...", "-", "Import Legacy Case...", "-", "Quit"})
 			facetFailure(facetOk, "menus", "the File menu reads " + fileMenu.join(" | "));
 		if (w.m_openCaseAction->shortcut() != QKeySequence(QKeySequence::Open)
 			|| !w.m_toolBar->actions().contains(w.m_openCaseAction))
@@ -6322,6 +6322,9 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		for (const std::string& unitId : {linkedUnitId, addedUnitId})
 			trainUnitSourceLinker(w)->m_links[unitId] = link;
 		trainUnitSourceLinker(w)->refreshWatches();
+		// The linker reads the file again on any change in its folder until it has read it once. Read now, the empty file
+		// is not read during a later step, where the message of the failed read would replace the message that it checks.
+		trainUnitSourceLinker(w)->processFile(link.dataPath, false);
 	}
 	if (!step("a duplicated composition", "Add composition", [&] {
 			compositionPanel(w)->listWidget()->setCurrentRow(0);

@@ -6,11 +6,10 @@
 
 namespace passenger_routing {
 
-double walkingSeconds(int fromPlatformNumber, int toPlatformNumber) {
+double walkingSeconds(int fromPlatformNumber, int toPlatformNumber, double secondsPerPlatform) {
 	if (fromPlatformNumber == 0 || toPlatformNumber == 0)
 		return 0.0;
-	const int difference = std::abs(fromPlatformNumber - toPlatformNumber);
-	return difference <= 1 ? 0.0 : kWalkingSecondsPerPlatform * difference;
+	return secondsPerPlatform * std::abs(fromPlatformNumber - toPlatformNumber);
 }
 
 double Search::arrival(std::size_t station) const {
@@ -39,8 +38,8 @@ Plan Search::plan(std::size_t station) const {
 	return result;
 }
 
-Router::Router(std::vector<TrainTimetable> trains, std::size_t stationCount)
-	: trains_(std::move(trains)), stationCount_(stationCount), departures_(stationCount) {
+Router::Router(std::vector<TrainTimetable> trains, std::size_t stationCount, double walkingSecondsPerPlatform)
+	: trains_(std::move(trains)), stationCount_(stationCount), walkingSecondsPerPlatform_(walkingSecondsPerPlatform), departures_(stationCount) {
 	for (std::size_t train = 0; train < trains_.size(); ++train) {
 		const std::vector<Stop>& stops = trains_[train].stops;
 		// A departure at the last stop leads nowhere.
@@ -84,7 +83,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 				if (stop < state.firstStop)
 					continue;
 				const Stop& departure = trains_[train].stops[stop];
-				const double walking = walkingSeconds(reached.platformNumber, departure.platformNumber);
+				const double walking = walkingSeconds(reached.platformNumber, departure.platformNumber, walkingSecondsPerPlatform_);
 				if (reached.arrival + walking > departure.departure + state.delay)
 					continue;
 				if (boardAt[train] == npos)
@@ -106,9 +105,16 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 					continue;
 				const std::size_t station = static_cast<std::size_t>(alight.station);
 				const double arrival = alight.arrival + delay;
-				// Equal arrivals keep the earlier round, which uses fewer trains.
-				if (arrival >= result.best_[station])
+				// Equal arrivals keep the earlier round, which uses fewer trains. In the same round the train that leaves
+				// earlier wins, and the first one found when they leave together.
+				if (arrival > result.best_[station])
 					continue;
+				if (arrival == result.best_[station]) {
+					const Search::Label& held = current[station];
+					if (held.arrival != arrival
+						|| stops[board].departure + delay >= trains_[held.train].stops[held.boardStop].departure + states[held.train].delay)
+						continue;
+				}
 				result.best_[station] = arrival;
 				current[station] = {arrival, alight.platformNumber, train, board, stop};
 				if (!isMarked[station]) {

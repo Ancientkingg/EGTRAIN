@@ -86,7 +86,7 @@ PlatformPlace platformPlace(const SceneModel& model, int row) {
 
 // The name that the Details dock gives a station: its name, or its id when it has none.
 QString stationDisplayName(const SceneStation& station) {
-	return QString::fromStdString(station.name.empty() ? station.id : station.name);
+	return QString::fromStdString(sceneStationLabel(station));
 }
 
 // Chooses the nodes of the platform at `place` from a list of the nodes of the scene. The list offers first the ids of the
@@ -280,7 +280,7 @@ public:
 		for (const SceneStation& station : model.stations) {
 			for (const ScenePlatform& platform : station.platforms) {
 				setCell(table, row, 0, QString::fromStdString(station.id));
-				setCell(table, row, kStationNameColumn, QString::fromStdString(station.name.empty() ? station.id : station.name), false);
+				setCell(table, row, kStationNameColumn, QString::fromStdString(sceneStationLabel(station)), false);
 				setCell(table, row, kPlatformIdColumn, QString::fromStdString(platform.id));
 				setCell(table, row, kNodesColumn, joinCommaList(platform.nodeIds), false);
 				table.setCellWidget(row, kLengthColumn,

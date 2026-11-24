@@ -246,18 +246,9 @@ private:
 						[&blockIds](const std::string& id) { return blockIds.count(id) != 0; });
 				}))
 				routes.push_back(route.id);
-		if (!routes.empty()) {
-			// A box that lists every route can be taller than the screen.
-			constexpr std::size_t kMaxListedRoutes = 10;
-			QStringList lines;
-			for (std::size_t route = 0; route < routes.size() && route < kMaxListedRoutes; ++route)
-				lines << QString::fromStdString(routes[route]);
-			QString list = lines.join("\n• ");
-			if (routes.size() > kMaxListedRoutes)
-				list += QStringLiteral("\nand %1 more").arg(static_cast<int>(routes.size() - kMaxListedRoutes));
+		if (!routes.empty())
 			panel.prompts().showInfo(&panel, QStringLiteral("Track Reversed"),
-				QStringLiteral("Track '%1' is reversed. Check these routes, which run over it:\n• %2").arg(trackText, list));
-		}
+				QStringLiteral("Track '%1' is reversed.").arg(trackText) + listToCheck(QStringLiteral("Check these routes, which run over it:"), routes));
 		panel.showStatus(QStringLiteral("Reversed track '%1'. Undo restores it.").arg(trackText), 8000);
 	}
 

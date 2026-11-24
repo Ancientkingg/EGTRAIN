@@ -9,6 +9,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/DiagnosticLines.h"
 #include "widgets/DisplayPath.h"
 #include "widgets/EditorLayout.h"
 
@@ -109,21 +110,11 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 	combo->setCurrentIndex(selected);
 }
 
-// The most lines of one callout. The rest is counted, and the tooltip of the callout lists all of them.
-constexpr int MaxDiagnosticLines = 5;
-
 // The rows of the import results that the table shows without scrolling.
 constexpr int MinImportResultRows = 8;
 
 // The widest usual text of a journey window field: a time on the next day.
 const QString kNextDayTimeSample = QStringLiteral("+1d 00:00:00");
-
-QString cappedLines(const QStringList& lines) {
-	if (lines.size() <= MaxDiagnosticLines)
-		return lines.join(QLatin1Char('\n'));
-	return lines.mid(0, MaxDiagnosticLines).join(QLatin1Char('\n'))
-		+ QStringLiteral("\nand %1 more").arg(lines.size() - MaxDiagnosticLines);
-}
 
 // True when the diagnostic is about the passenger, one of its journeys or one of its legs: its path starts with the
 // path of the passenger, or it names one of their ids as an item of the matching kind.
@@ -511,9 +502,7 @@ void PassengerPanel::updatePassengerDetail() {
 	m_deleteJourneyButton->setEnabled(enabled && !m_journeyList->selectedItems().isEmpty());
 	updateJourneyDetail();
 
-	QStringList errors;
-	QStringList notes;
-	bool hasWarning = false;
+	DiagnosticLines lines;
 	if (passenger && m_diagnostics) {
 		const QString passengerPrefix = QStringLiteral("passengers[%1]").arg(passengerRow);
 		std::set<std::string> journeyIds;
@@ -532,24 +521,18 @@ void PassengerPanel::updatePassengerDetail() {
 			const std::string item = itemLabel(diagnostic);
 			if (!item.empty())
 				message += QStringLiteral(" (%1)").arg(QString::fromStdString(item));
-			if (diagnostic.severity == SceneSeverity::Error) {
-				errors << message;
-			} else {
-				const bool warning = diagnostic.severity == SceneSeverity::Warning;
-				notes << (warning ? QStringLiteral("Warning: ") : QStringLiteral("Note: ")) + message;
-				hasWarning = hasWarning || warning;
-			}
+			lines.add(diagnostic.severity, message);
 		}
 	}
-	if (errors.isEmpty() && notes.isEmpty()) {
+	if (lines.isEmpty()) {
 		DialogLayout::setHelp(m_diagnosticLabel, passenger ? QString() : QStringLiteral("Select a passenger or add one."));
 	} else {
-		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, cappedLines(errors));
+		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, DiagnosticLines::capped(lines.errors));
 	}
-	m_diagnosticLabel->setToolTip(errors.size() > MaxDiagnosticLines ? errors.join(QLatin1Char('\n')) : QString());
-	DialogLayout::setStatus(m_warningLabel, hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral,
-		cappedLines(notes));
-	m_warningLabel->setToolTip(notes.size() > MaxDiagnosticLines ? notes.join(QLatin1Char('\n')) : QString());
+	m_diagnosticLabel->setToolTip(lines.errors.size() > DiagnosticLines::MaxLines ? lines.errors.join(QLatin1Char('\n')) : QString());
+	DialogLayout::setStatus(m_warningLabel, lines.hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral,
+		DiagnosticLines::capped(lines.notes));
+	m_warningLabel->setToolTip(lines.notes.size() > DiagnosticLines::MaxLines ? lines.notes.join(QLatin1Char('\n')) : QString());
 }
 
 void PassengerPanel::updateJourneyDetail() {

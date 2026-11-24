@@ -77,13 +77,7 @@ void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute&
 	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
 	QStringList stations;
 	for (const std::string& stationId : traversal.stationIds) {
-		QString name = QString::fromStdString(stationId);
-		for (const auto& station : model.stations)
-			if (station.id == stationId && !station.name.empty()) {
-				name = QString::fromStdString(station.name);
-				break;
-			}
-		stations << name;
+		stations << QString::fromStdString(sceneStationLabel(model, stationId));
 	}
 	const QString id = QString::fromStdString(route.id);
 	QString text = !traversal.resolved ? QStringLiteral("%1 (cannot be followed)").arg(id)

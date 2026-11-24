@@ -209,6 +209,8 @@ void TestSceneExporter::warnsAboutPassengerDwellSettings() {
 	QCOMPARE(warningCount("{}"), 0);
 	QCOMPARE(warningCount(R"({"passenger_max_transfers":2})"), 0);
 	QCOMPARE(warningCount(R"({"passenger_max_transfers":3})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_walking_seconds_per_platform":30})"), 0);
+	QCOMPARE(warningCount(R"({"passenger_walking_seconds_per_platform":20})"), 1);
 	QCOMPARE(warningCount(R"({"passenger_dwell_coefficients":[7,0.32,18.23,0.564,4.838,22.24,0.04,0.562]})"), 1);
 	QCOMPARE(warningCount(R"({"passenger_platform_crowding_threshold":0.5})"), 1);
 	QCOMPARE(warningCount(R"({"passenger_onboard_crowding_threshold":0.5})"), 1);

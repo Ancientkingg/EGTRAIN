@@ -232,6 +232,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/FollowCamera.cpp
     ${SRC_DIR}/graphics/NetworkPresenter.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
+    ${SRC_DIR}/graphics/NetworkImage.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
@@ -252,7 +253,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp)
 target_link_libraries(egtrain_graphics
-    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
+    PUBLIC Qt::Core Qt::Gui Qt::Widgets Qt::Svg egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
 add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/AboutDialog.cpp
@@ -441,10 +442,8 @@ foreach(egtrain_lib egtrain_util egtrain_scene egtrain_runselection egtrain_live
         egtrain_graphics egtrain_widgets egtrain_editors ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
-# Flags only: egtrain_dispatch has no warning of its own, and the simulation headers it includes have none on Clang and GCC.
-egtrain_target_warnings(egtrain_dispatch)
-# Flags only: egtrain_sim has no warning on Clang and GCC. It is not STRICT until the MSVC warnings are fixed.
-egtrain_target_warnings(egtrain_sim)
+egtrain_target_warnings(egtrain_dispatch STRICT)
+egtrain_target_warnings(egtrain_sim STRICT)
 # No flags:
 #   egtrain_miniz                   vendored code
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
@@ -482,6 +481,7 @@ set(EGTRAIN_SOURCES
 )
 
 set(EGTRAIN_HEADERS
+    ${SRC_DIR}/widgets/DiagnosticLines.h
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/widgets/ChoiceComboBox.h
     ${SRC_DIR}/widgets/EditorLayout.h

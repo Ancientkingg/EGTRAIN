@@ -345,6 +345,38 @@ void styleResultChart(QChart* chart, const QPalette& palette) {
 	}
 }
 
+namespace {
+
+// Makes and writes the content of an export to `path`, and reports the outcome as `recorded` says, when it is set.
+QString writeExportFile(QWidget* parent, UserPrompts& prompts, const std::optional<telemetry::ExportKind>& recorded, bool image,
+	const QString& path, const char* suffix, const telemetry::OperationObservation& operation,
+	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write) {
+	// The message names the path, and the reason on the line below.
+	const auto showFailure = [&](const QString& reason) {
+		const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
+		prompts.showError(parent, "Export failed", path_message::writeFailed(failed, path) + '\n' + reason, true);
+	};
+	const std::optional<std::string> content = bytes();
+	if (!content) {
+		if (recorded)
+			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
+		showFailure(image ? QStringLiteral("The image could not be made.") : QStringLiteral("The data could not be made."));
+		return QString();
+	}
+	QString error = QStringLiteral("There is no data to export.");
+	if (!content->empty())
+		error = write ? write(path, suffix, *content) : writeAtomically(path, *content);
+	if (recorded)
+		operation.exportFinished(recorded, error.isEmpty(), true, telemetry::Error::IoFailure);
+	if (!error.isEmpty()) {
+		showFailure(error);
+		return QString();
+	}
+	return path;
+}
+
+} // namespace
+
 QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::ExportKind kind, const QString& title,
 	const QString& suggestedName, const telemetry::OperationObservation& operation,
 	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write) {
@@ -359,26 +391,28 @@ QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::
 	path = savePathWithSuffix(parent, prompts, title, path, QLatin1String(suffix));
 	if (path.isEmpty())
 		return QString(); // the file of that name is kept
-	// The message names the path, and the reason on the line below.
-	const auto showFailure = [&](const QString& reason) {
-		const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
-		prompts.showError(parent, "Export failed", path_message::writeFailed(failed, path) + '\n' + reason, true);
-	};
-	const std::optional<std::string> content = bytes();
-	if (!content) {
-		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-		showFailure(image ? QStringLiteral("The image could not be made.") : QStringLiteral("The data could not be made."));
+	return writeExportFile(parent, prompts, kind, image, path, suffix, operation, bytes, write);
+}
+
+QString saveImageInteractive(QWidget* parent, UserPrompts& prompts, const QString& title, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>(const QString&)>& bytes) {
+	const KeepInFront front(parent);
+	QString filter = QStringLiteral("PNG Image (*.png)");
+	QString path = QFileDialog::getSaveFileName(parent, title, dialog_folders::suggestedPath(suggestedName),
+		filter + QStringLiteral(";;SVG Image (*.svg)"), &filter);
+	if (path.isEmpty())
 		return QString();
-	}
-	QString error = QStringLiteral("There is no data to export.");
-	if (!content->empty())
-		error = write ? write(path, suffix, *content) : writeAtomically(path, *content);
-	operation.exportFinished(kind, error.isEmpty(), true, telemetry::Error::IoFailure);
-	if (!error.isEmpty()) {
-		showFailure(error);
+	// A typed suffix decides the format, else the filter that was chosen does.
+	const bool svg = path.endsWith(QLatin1String(".svg"), Qt::CaseInsensitive)
+		|| (!path.endsWith(QLatin1String(".png"), Qt::CaseInsensitive) && filter.contains(QLatin1String("*.svg")));
+	const char* suffix = svg ? "svg" : "png";
+	path = savePathWithSuffix(parent, prompts, title, path, QLatin1String(suffix));
+	if (path.isEmpty())
 		return QString();
-	}
-	return path;
+	// Only a PNG is a kind of the telemetry schema.
+	const std::optional<telemetry::ExportKind> recorded = svg ? std::nullopt : std::optional(telemetry::ExportKind::Png);
+	return writeExportFile(
+		parent, prompts, recorded, true, path, suffix, operation, [&bytes, suffix] { return bytes(QLatin1String(suffix)); }, {});
 }
 
 std::optional<std::string> pngBytes(const QImage& image) {

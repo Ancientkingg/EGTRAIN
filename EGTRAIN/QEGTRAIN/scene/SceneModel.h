@@ -21,6 +21,11 @@ inline constexpr int kDefaultPassengerMaxTransfers = 2;
 /// The largest value of simulation_settings.passenger_max_transfers.
 inline constexpr int kMaxPassengerMaxTransfers = 10;
 
+/// The walking time in seconds per platform number of difference at a transfer when the scene gives no value.
+inline constexpr int kDefaultPassengerWalkingSeconds = 30;
+/// The largest value of simulation_settings.passenger_walking_seconds_per_platform.
+inline constexpr int kMaxPassengerWalkingSeconds = 600;
+
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
 	bool hasDuration = false;		  ///< True when duration_seconds is given.
@@ -32,6 +37,10 @@ struct SceneSimulationSettings {
 	/// The most transfers that a passenger journey without legs, or with legs that cannot be followed, may plan
 	/// (passenger_max_transfers, 0 to 10). Always counts; the scene file holds it only when it differs from the default.
 	int passengerMaxTransfers = kDefaultPassengerMaxTransfers;
+	/// The walking time in seconds per platform number of difference between two platforms of a station
+	/// (passenger_walking_seconds_per_platform, 0 to 600). Always counts; the scene file holds it only when it differs from the
+	/// default.
+	int passengerWalkingSecondsPerPlatform = kDefaultPassengerWalkingSeconds;
 	/// The coefficients beta0 to beta7 of the passenger dwell model (passenger_dwell_coefficients). Empty uses
 	/// kDefaultPassengerDwellCoefficients. The validator wants exactly kPassengerDwellCoefficientCount values.
 	std::optional<std::vector<double>> passengerDwellCoefficients;
@@ -126,6 +135,11 @@ struct SceneStation {
 	double positionKm = 0.0;
 	std::vector<ScenePlatform> platforms; ///< The platforms, in file order.
 };
+
+/// The name of a station as every view and the run use it: its name, or its id when it has no name.
+inline std::string sceneStationLabel(const SceneStation& station) {
+	return station.name.empty() ? station.id : station.name;
+}
 
 /// Where the preview places a station (views.json). It does not change the simulation.
 struct SceneStationView {
@@ -465,6 +479,10 @@ SceneModel makeNewSceneModel();
 
 /// The scenario of a case that stores none: id "baseline", no incidents and no entrance delays.
 SceneScenario makeBaselineScenario();
+
+/// The name of the station with this id, as `sceneStationLabel` gives it; the id itself when the scene has no such
+/// station.
+std::string sceneStationLabel(const SceneModel& model, const std::string& stationId);
 
 /// The scene name as one component of an output path, or "scene" when the name is not a valid file name
 /// on Windows.

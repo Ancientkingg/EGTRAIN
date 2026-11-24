@@ -383,6 +383,10 @@ static const FailureCase kFailureCases[] = {
 		"connections[0].id"},
 	{"empty station id", [](SceneModel& scene) { scene.stations[0].id.clear(); }, "scene.id.empty",
 		"stations[0].id"},
+	{"tab in a station id", [](SceneModel& scene) { scene.stations[0].id += "\t2"; }, "scene.id.separator",
+		"stations[0].id"},
+	{"line break in a track id", [](SceneModel& scene) { scene.tracks[0].id += "\n"; }, "scene.id.separator",
+		"tracks[0].id"},
 	{"empty platform id", [](SceneModel& scene) { scene.stations[0].platforms[0].id.clear(); }, "scene.id.empty",
 		"stations[0].platforms[0].id"},
 	{"duplicate route id", [](SceneModel& scene) { scene.routes.push_back(scene.routes[0]); },
@@ -574,6 +578,7 @@ private slots:
 	void defaultPlatformHoldsAbout99Passengers();
 	void rejectsNonFinitePassengerWindow();
 	void limitsPassengerTransfers();
+	void limitsPassengerWalkingTime();
 	void checksPassengerDwellSettings();
 	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
@@ -1116,6 +1121,21 @@ void TestSceneValidator::limitsPassengerTransfers() {
 		scene.settings.passengerMaxTransfers = refused;
 		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
 			"other transfer limits are rejected");
+	}
+}
+
+void TestSceneValidator::limitsPassengerWalkingTime() {
+	for (const int allowed : {0, 30, 600}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerWalkingSecondsPerPlatform = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), "scene.passenger.walking.invalid", "simulation_settings.passenger_walking_seconds_per_platform"),
+			"0 to 600 s are allowed");
+	}
+	for (const int refused : {-1, 601}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerWalkingSecondsPerPlatform = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.walking.invalid", "simulation_settings.passenger_walking_seconds_per_platform"),
+			"other walking times are rejected");
 	}
 }
 

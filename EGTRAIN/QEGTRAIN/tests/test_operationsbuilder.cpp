@@ -4,6 +4,7 @@
 #include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "simulation/PassengerFlow.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
@@ -183,8 +184,10 @@ private slots:
 	void indexesFindPassengersAndPlatforms();
 	void boardingUsesWaitingListOfPlatform();
 	void waitingPassengersAreListedByDeparture();
+	void platformListKeepsTheFirstPassengersAndDestinationsCountAll();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
+	void brakingTargetsStayPerTrain();
 	void brakingStartCacheMatchesComputation();
 	void brakingStartCacheBelongsToOneTrain();
 	void drawsBrakingCurveThatReachesSpeed();
@@ -2472,6 +2475,60 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	QCOMPARE(waitingIds(std::next(platforms.begin())->Current_List_Pax_On_Platform), "b1 ");
 }
 
+// A platform lists only the first kGuiPlatformPassengerIcons waiting passengers but counts all of them, and the flow counts the waiting
+// passengers by destination as they come and go.
+void TestOperationsBuilder::platformListKeepsTheFirstPassengersAndDestinationsCountAll() {
+	std::list<Passenger> passengers;
+	for (int i = 0; i < 60; ++i) {
+		Passenger passenger = passengerWaitingAt("p" + std::to_string(100 - i), "S1", "P1", 100 - i);
+		passenger.Journeys.front().Arr_Station_ID = i % 3 == 0 ? "Z" : "A";
+		passengers.push_back(passenger);
+	}
+	std::list<StationPlatform> platforms(1);
+	platforms.front().StationID = "S1";
+	platforms.front().ID = "P1";
+	PassengerFlow flow;
+	flow.build(passengers);
+	flow.refreshPlatformLists(platforms);
+	const WaitingAtPlatform all = flow.waitingAt("S1", "P1");
+	QCOMPARE(platforms.front().Current_N_Passengers, 60);
+	QCOMPARE(all.passengers.size(), std::size_t(60));
+	QCOMPARE(platforms.front().Current_List_Pax_On_Platform.size(), std::size_t(kGuiPlatformPassengerIcons));
+	QVERIFY(std::equal(platforms.front().Current_List_Pax_On_Platform.begin(), platforms.front().Current_List_Pax_On_Platform.end(), all.passengers.begin()));
+	using Counts = std::vector<std::pair<std::string, int>>;
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"A", 40}, {"Z", 20}}));
+	QVERIFY(flow.destinationCounts("S1", "P9").empty());
+
+	// A passenger who boards leaves the counts, and one who waits for another destination moves.
+	Passenger& boarding = passengers.front(); // destination Z
+	boarding.CurrentStatus = PassengerStatus::OnBoard;
+	boarding.Current_Train_Boarded = "T1";
+	boarding.Current_Arrival_Station = "Z";
+	flow.placed(0);
+	Passenger& changed = *std::next(passengers.begin()); // destination A
+	changed.Journeys.front().Arr_Station_ID = "Z";
+	flow.placed(1);
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"A", 39}, {"Z", 20}}));
+	for (auto it = std::next(passengers.begin(), 2); it != passengers.end(); ++it)
+		if (it->Journeys.front().Arr_Station_ID == "A") {
+			it->CurrentStatus = PassengerStatus::OnBoard;
+			it->Current_Train_Boarded = "T1";
+			it->Current_Arrival_Station = "A";
+			flow.placed(static_cast<int>(std::distance(passengers.begin(), it)));
+		}
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"Z", 20}}));
+
+	// A transfer: the passenger who boarded alights at another station and waits there for the next trip.
+	boarding.CurrentStatus = PassengerStatus::OnPlatform;
+	boarding.Current_WaitingStationID = "S2";
+	boarding.Current_WaitingStationPlatformID = "P1";
+	boarding.Current_Train_Boarded = "None";
+	flow.alighted(0);
+	QCOMPARE(flow.destinationCounts("S2", "P1"), (Counts{{"Z", 1}}));
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"Z", 20}}));
+	QCOMPARE(flow.waitingCount("S2", "P1"), 1);
+}
+
 // Without the passenger GUI a boarding train works from the list of its own platform.
 void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
 	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the passengers waiting for it.
@@ -2547,6 +2604,29 @@ static bool brakingTargetAdmissible(Train& train, double head, double speed, dou
 		return false;
 	const double maximum = std::max(0.0, speed + (train.tractiveEffort(speed) - train.total_train_resistances(speed, arc->gradient, arc->curvature)) / (train.total_train_mass * train.massFactor) * timestep);
 	return std::isfinite(targetSpeed) && targetSpeed >= std::max(0.0, speed - (train.max_train_decelaration + train.total_train_resistances(speed, arc->gradient, arc->curvature) / (train.total_train_mass * train.massFactor)) * timestep) && targetSpeed <= maximum;
+}
+
+// The braking targets at the ends of the arcs are the speed of each train, and the nodes of a route, which all its trains
+// share, keep what they were given.
+void TestOperationsBuilder::brakingTargetsStayPerTrain() {
+	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+	Arc& arc = route[0].arcs_in_signalling_block_section[0];
+	arc.speedLimit = 30.0;
+	arc.speedInBraking = 20.0;
+	const auto brakingStart = [&route](double performance) {
+		Train train = brakingTrain(1.0);
+		train.servicePerformancePercent = performance;
+		bool cached = false;
+		return train.europeanVitalComputerWithListsImproved(100.0, 25.0, 0, route.data(), 1, cached);
+	};
+	const double full = brakingStart(100.0);
+	const double half = brakingStart(50.0);
+	QCOMPARE_EQ(arc.endNode.arcSpeedLimit, 0.0);
+	// A train that has to reach a lower speed than the other starts to brake sooner, and each gets the same answer
+	// whichever train ran before it.
+	QVERIFY(half < full);
+	QCOMPARE_EQ(brakingStart(100.0), full);
+	QCOMPARE_EQ(brakingStart(50.0), half);
 }
 
 void TestOperationsBuilder::brakingPointSearch() {

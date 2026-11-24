@@ -77,14 +77,6 @@ bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection
 	return true;
 }
 
-// Whether the recent scene at `path` can still be opened: a bundle file, or a folder that holds a scene.json.
-bool recentSceneExists(const QString& path) {
-	const QFileInfo info(path);
-	return info.isFile()
-		? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
-		: QFileInfo(QDir(path).filePath("scene.json")).exists();
-}
-
 QString unavailableLabel(const QString& label) {
 	return QString("Unavailable: %1").arg(label);
 }
@@ -654,7 +646,7 @@ void SceneSession::rebuildRecentScenesMenu() {
 		QString label = labels.at(i);
 		// A scene name may hold '&', which a menu would read as a mnemonic.
 		label.replace('&', "&&");
-		const bool exists = recentSceneExists(path);
+		const bool exists = isCasePath(path);
 		QAction* action = m_recentScenesMenu->addAction(exists ? label : unavailableLabel(label));
 		action->setEnabled(exists);
 		action->setData(path);
@@ -678,7 +670,7 @@ void SceneSession::refreshRecentSceneAvailability() {
 		const QString label = action->property(kRecentLabelProperty).toString();
 		if (path.isEmpty() || label.isEmpty())
 			continue;
-		const bool exists = recentSceneExists(path);
+		const bool exists = isCasePath(path);
 		action->setEnabled(exists);
 		action->setText(exists ? label : unavailableLabel(label));
 	}

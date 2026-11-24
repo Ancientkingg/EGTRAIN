@@ -1,6 +1,8 @@
 #ifndef Signalling_hpp
 #define Signalling_hpp
+#ifndef _CRT_SECURE_NO_WARNINGS // The build defines it for the targets with warning flags.
 #define _CRT_SECURE_NO_WARNINGS // NOLINT(bugprone-reserved-identifier): the MSVC macro
+#endif
 
 #include <tuple>
 #include <map>
@@ -393,15 +395,15 @@ public:
 /// (releaseLastBlockAndConnected). S_i and S_i_1 are the tail positions (route, m) of this step and the step before.
 void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
 
-/// Occupies the two halves BLS and BLSPrev of a double switch: each half with its connected sections, and the two block sections
+/// Occupies the two halves section and previous of a double switch: each half with its connected sections, and the two block sections
 /// named in its ID with theirs, go to run.blocksOccupied; the two block sections also go to run.blocksConnected. Does nothing when an
 /// ID does not name two sections of run.infra.sections.
-void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
+void occupyDoubleSwitch(SimulationRun& run, const Section& section, const Section& previous);
 
-/// Releases the two halves BLS and BLSPrev of a double switch: each half and its connected sections go to run.blocksConnected, and
+/// Releases the two halves section and previous of a double switch: each half and its connected sections go to run.blocksConnected, and
 /// for a half with a diverging switch also the two block sections named in its ID with theirs. Does nothing when an ID does not name
 /// two sections of run.infra.sections.
-void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
+void releaseDoubleSwitch(SimulationRun& run, const Section& section, const Section& previous);
 
 /// Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in
 /// docs/guides/signalling-levels.md.

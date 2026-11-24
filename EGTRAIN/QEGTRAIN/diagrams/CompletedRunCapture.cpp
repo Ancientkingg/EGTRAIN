@@ -19,7 +19,7 @@ RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
 		for (const auto& station : scene->stations)
 			for (const auto& platform : station.platforms)
 				for (const auto& id : platform.nodeIds)
-					stationNodes[id] = {station.id, station.name.empty() ? station.id : station.name};
+					stationNodes[id] = {station.id, sceneStationLabel(station)};
 	const auto add = [&](const Node& node) {
 		if (!std::isfinite(node.X)) return;
 		RouteDiagramNode point;

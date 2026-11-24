@@ -175,9 +175,9 @@ public:
 	/// The validation messages that the selected slice shows. The vector must outlive the panel or be replaced first; null
 	/// shows none. Call refresh() after the diagnostics have changed.
 	void setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics);
-	/// Gives the file for Import CSV and Export CSV: `save` is true for Export. An empty path cancels. Without one the panel
-	/// asks with a file dialog.
-	void setCsvFileChooser(std::function<QString(bool save)> chooser);
+	/// Gives the file for Import CSV and Export CSV: `save` is true for Export, and `suggestedName` is then the file name to
+	/// propose, the id of the selected slice with .csv. An empty path cancels. Without a chooser both cancel.
+	void setCsvFileChooser(std::function<QString(bool save, const QString& suggestedName)> chooser);
 
 	/// Adds a slice over [startSeconds, endSeconds], clamped to the free space around the start, and selects it. False, with
 	/// a message in the diagnostic label, when the period leaves no room or the document refuses the edit.
@@ -256,7 +256,7 @@ private:
 	QString chooseCsvFile(bool save);
 
 	const std::vector<SceneDiagnostic>* m_diagnostics = nullptr;
-	std::function<QString(bool)> m_csvFileChooser;
+	std::function<QString(bool, const QString&)> m_csvFileChooser;
 	QString m_selectedId;
 	QString m_notice;
 	bool m_refreshing = false;

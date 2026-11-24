@@ -41,7 +41,9 @@ private slots:
 	void directTrainIsTaken();
 	void departedTrainIsNotTaken();
 	void earliestArrivalWinsOverEarliestDeparture();
+	void walkingTimeSettingChangesTransfers();
 	void equalArrivalKeepsFewerTrains();
+	void equalArrivalAndTrainsTakesEarlierDeparture();
 	void transferLimitIsKept();
 	void transferNeedsWalkingTime();
 	void trainStateLimitsBoardingAndShiftsTimes();
@@ -51,14 +53,29 @@ private slots:
 
 void TestPassengerRouting::walkingTimeGrowsWithPlatformDifference() {
 	using passenger_routing::walkingSeconds;
-	// The same or a neighbouring platform needs no walking, an unknown platform neither.
+	// The same platform needs no walking, an unknown platform neither.
 	QCOMPARE(walkingSeconds(2, 2), 0.0);
-	QCOMPARE(walkingSeconds(2, 3), 0.0);
 	QCOMPARE(walkingSeconds(0, 5), 0.0);
 	QCOMPARE(walkingSeconds(5, 0), 0.0);
-	// 30 s per platform of difference beyond that.
-	QCOMPARE(walkingSeconds(1, 5), 120.0);
+	// 30 s per platform number of difference, in both directions.
+	QCOMPARE(walkingSeconds(1, 2), 30.0);
+	QCOMPARE(walkingSeconds(1, 3), 60.0);
 	QCOMPARE(walkingSeconds(5, 1), 120.0);
+	// The seconds per platform are a setting.
+	QCOMPARE(walkingSeconds(1, 3, 45.0), 90.0);
+	QCOMPARE(walkingSeconds(1, 3, 0.0), 0.0);
+}
+
+void TestPassengerRouting::walkingTimeSettingChangesTransfers() {
+	// T0 arrives at B on platform 1 at 100; T1 leaves B from platform 3 at 150.
+	const std::vector<TrainTimetable> trains{{{stop(A, -1, 50, 1), stop(B, 100, -1, 1)}}, {{stop(B, -1, 150, 3), stop(C, 300, -1)}}};
+	const auto states = fresh(2);
+	// 2 platforms of difference at 30 s is 60 s: ready at 160, too late for T1.
+	QCOMPARE(Router(trains, kStations).search(A, 0, 2, states).arrival(C), kUnreached);
+	// At 20 s per platform the walk is 40 s and the passenger is in time.
+	QCOMPARE(Router(trains, kStations, 20.0).search(A, 0, 2, states).arrival(C), 300.0);
+	// At 0 s per platform a platform number makes no difference.
+	QCOMPARE(Router(trains, kStations, 0.0).search(A, 0, 2, states).arrival(C), 300.0);
 }
 
 void TestPassengerRouting::directTrainIsTaken() {
@@ -112,6 +129,23 @@ void TestPassengerRouting::equalArrivalKeepsFewerTrains() {
 	QCOMPARE(plan.arrival, 500.0);
 	QCOMPARE(plan.legs.size(), std::size_t{1});
 	QCOMPARE(plan.legs[0].train, std::size_t{0});
+}
+
+void TestPassengerRouting::equalArrivalAndTrainsTakesEarlierDeparture() {
+	// T0 leaves A at 300 and T1 at 100; both reach C at 500 without a change. The first one listed is not taken.
+	const Router router({{{stop(A, -1, 300), stop(C, 500, -1)}}, {{stop(A, -1, 100), stop(C, 500, -1)}}}, kStations);
+	const auto states = fresh(2);
+	const Plan plan = router.search(A, 0, 2, states).plan(C);
+	QCOMPARE(plan.arrival, 500.0);
+	QCOMPARE(plan.legs.size(), std::size_t{1});
+	QCOMPARE(plan.legs[0].train, std::size_t{1});
+	// The delay counts: with T1 delayed by 400 s it arrives later and T0 wins on arrival.
+	std::vector<TrainState> late = fresh(2);
+	late[1].delay = 400.0;
+	QCOMPARE(router.search(A, 0, 2, late).plan(C).legs[0].train, std::size_t{0});
+	// Equal departure keeps the first train.
+	const Router tie({{{stop(A, -1, 100), stop(C, 500, -1)}}, {{stop(A, -1, 100), stop(C, 500, -1)}}}, kStations);
+	QCOMPARE(tie.search(A, 0, 2, states).plan(C).legs[0].train, std::size_t{0});
 }
 
 void TestPassengerRouting::transferLimitIsKept() {

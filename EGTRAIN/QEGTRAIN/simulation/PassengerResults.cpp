@@ -4,9 +4,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <fstream>
 #include <limits>
-#include <string_view>
-#include <unordered_map>
 #include <map>
 #include <utility>
 
@@ -160,12 +159,12 @@ vector<GuiStationCall> stationCalls(const SimulationRun& run) {
 vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int step) {
 	const vector<CallRef> refs = beganCalls(run, step);
 	vector<GuiStationCall> latest;
-	unordered_map<string_view, int> listed;
-	for (auto ref = refs.rbegin(); ref != refs.rend(); ++ref) {
-		const Train& train = run.trains[static_cast<size_t>(ref->train)];
-		if (listed[train.Stations[static_cast<size_t>(ref->stop)].stationName]++ < kGuiStationCallsListed)
-			latest.push_back(callOf(run, ref->train, ref->stop));
-	}
+	forLatestStationCalls(
+		refs.rbegin(), refs.rend(),
+		[&run](const CallRef& ref) -> const string& {
+			return run.trains[static_cast<size_t>(ref.train)].Stations[static_cast<size_t>(ref.stop)].stationName;
+		},
+		[&](const CallRef& ref) { latest.push_back(callOf(run, ref.train, ref.stop)); });
 	return latest;
 }
 
@@ -211,8 +210,22 @@ vector<OriginDestinationSummary> summariseOriginDestinations(const list<Passenge
 	return summaries;
 }
 
+namespace {
+const char* const kJourneysHeader = "PaxID\tJourneyID\tMode\tOrigin\tDestination\tAppeared\tTrains\tWait\tWalk\tInVehicle\tArrival\tDelay\tReplanned\tOutcome\n";
+
+// Writes the rows to the file as they are made, so the whole text is never in memory.
+void writePassengerJourneys(const string& path, const list<Passenger>& passengers) {
+	ofstream file = openRunOutputFile(path, ios::binary);
+	file << kJourneysHeader;
+	for (const Passenger& passenger : passengers)
+		for (const Journey& journey : passenger.Journeys)
+			file << journeyRow(passenger, journey);
+	closeRunOutputFile(file, path);
+}
+} // namespace
+
 string passengerJourneysText(const list<Passenger>& passengers) {
-	string text = "PaxID\tJourneyID\tMode\tOrigin\tDestination\tAppeared\tTrains\tWait\tWalk\tInVehicle\tArrival\tDelay\tReplanned\tOutcome\n";
+	string text = kJourneysHeader;
 	for (const Passenger& passenger : passengers)
 		for (const Journey& journey : passenger.Journeys)
 			text += journeyRow(passenger, journey);
@@ -242,7 +255,7 @@ string originDestinationSummaryText(const list<Passenger>& passengers) {
 }
 
 void printPassengerResultFiles(const SimulationRun& run, const string& mainFolder) {
-	writeText(mainFolder + "/PassengerJourneys.txt", passengerJourneysText(run.passengers));
+	writePassengerJourneys(mainFolder + "/PassengerJourneys.txt", run.passengers);
 	writeText(mainFolder + "/StationStops.txt", stationStopsText(run));
 	writeText(mainFolder + "/ODSummary.txt", originDestinationSummaryText(run.passengers));
 }
