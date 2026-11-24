@@ -158,9 +158,6 @@ std::string platformWords(const std::string& platformId) {
 	return (parts.station.empty() ? std::string() : parts.station + ", ") + "platform " + parts.platform;
 }
 
-// The most destinations that the card of a station gives a bar.
-constexpr int kCalloutDestinations = 4;
-
 // What the card of a station shows at this snapshot: the passengers waiting at its platforms by their final destination,
 // and the latest calls of trains.
 StationCalloutContent stationCalloutContent(const std::string& station, const GuiSimulationSnapshot& snapshot) {
@@ -194,14 +191,8 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
 		// the map is in the order of the names, which the stable sort keeps among equal counts
 		std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
-		for (std::size_t i = 0; i < ranked.size(); ++i) {
-			if (static_cast<int>(i) < kCalloutDestinations)
-				content.destinations.push_back({StationOverlayItem::displayName(ranked[i].first), ranked[i].second});
-			else {
-				++content.moreStations;
-				content.moreCount += ranked[i].second;
-			}
-		}
+		for (const auto& entry : ranked)
+			content.destinations.push_back({StationOverlayItem::displayName(entry.first), entry.second});
 	}
 
 	const auto cell = [](const GuiStationCall& call, int value) { return call.counted ? QString::number(value) : QStringLiteral("-"); };
@@ -3694,7 +3685,10 @@ void NetworkPresenter::openStationCallout(const QString& stationName, const GuiS
 		m_stationCallouts.push_back({station, item});
 		found = std::prev(m_stationCallouts.end());
 	}
+	const bool wasVisible = found->item->isVisible();
 	found->item->setContent(stationCalloutContent(station, *snapshot));
+	if (!wasVisible)
+		found->item->setScrollOffset(0.0);
 	found->item->setVisible(true);
 	placeStationCallouts();
 }
@@ -3741,20 +3735,34 @@ void NetworkPresenter::placeStationCallouts() {
 				if (platform && platform->isVisible() && platform->stationId == callout.station)
 					mark = mark.united(platform->sceneBoundingRect());
 		const QPointF top(centre.x(), mark.top());
-		// below the mark where the card would leave the top of the view
-		const bool below = m_view && m_view->mapFromScene(top).y() - callout.item->cardRect().height() - StationCalloutItem::Gap < 0;
-		// one unit of the card is one pixel of the view
-		callout.item->setPixelScale(m_view ? std::abs(m_view->transform().m11()) : 1.0);
-		callout.item->setBelow(below);
-		callout.item->setPos(below ? QPointF(centre.x(), mark.bottom()) : top);
-		// sideways into the view, the pointer staying at the station
-		if (m_view) {
+		if (m_view && m_view->viewport()->height() > 0) {
 			constexpr qreal kMargin = 8.0;
+			const qreal viewHeight = m_view->viewport()->height();
+			const qreal topY = m_view->mapFromScene(top).y();
+			const qreal bottomY = m_view->mapFromScene(QPointF(centre.x(), mark.bottom())).y();
+			const qreal spaceAbove = topY - StationCalloutItem::Gap - kMargin;
+			const qreal spaceBelow = viewHeight - bottomY - StationCalloutItem::Gap - kMargin;
+			const qreal fullHeight = callout.item->fullHeight();
+			// Above the mark when the full card fits there; otherwise below when it fits there, or on the side with more room.
+			const bool below = fullHeight > spaceAbove && (fullHeight <= spaceBelow || spaceBelow > spaceAbove);
+			const qreal room = below ? spaceBelow : spaceAbove;
+			const qreal maxHeight = std::min(room, viewHeight - 2.0 * kMargin);
+			// one unit of the card is one pixel of the view
+			callout.item->setMaxHeight(std::max<qreal>(1.0, maxHeight));
+			callout.item->setPixelScale(std::abs(m_view->transform().m11()));
+			callout.item->setBelow(below);
+			callout.item->setPos(below ? QPointF(centre.x(), mark.bottom()) : top);
+			// sideways into the view, the pointer staying at the station
 			const qreal half = StationCalloutItem::CardWidth / 2.0;
 			const qreal at = m_view->mapFromScene(centre).x();
 			const qreal low = kMargin + half - at;
 			const qreal high = m_view->viewport()->width() - kMargin - half - at;
 			callout.item->setShift(low > high ? low : std::clamp(0.0, low, high));
+		} else {
+			callout.item->setMaxHeight(0.0);
+			callout.item->setPixelScale(m_view ? std::abs(m_view->transform().m11()) : 1.0);
+			callout.item->setBelow(false);
+			callout.item->setPos(top);
 		}
 	}
 }

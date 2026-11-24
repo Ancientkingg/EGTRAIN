@@ -4,16 +4,28 @@
 #include <QFont>
 #include <QFontMetricsF>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <algorithm>
 
 namespace {
 constexpr qreal kPadding = 12.0;
+constexpr qreal kTopPadding = 10.0;
+constexpr qreal kBottomPadding = 10.0;
+constexpr qreal kTitleHeight = 18.0;
+constexpr qreal kSubtitleHeight = 16.0;
+constexpr qreal kHeaderGap = 6.0;
+constexpr qreal kSectionHeadingHeight = 18.0;
+constexpr qreal kSectionGap = 8.0;
 constexpr qreal kRowHeight = 17.0;
 constexpr qreal kBarHeight = 7.0;
 constexpr qreal kNameWidth = 108.0;
 constexpr qreal kBarWidth = 150.0;
+constexpr qreal kScrollBarWidth = 4.0;
+constexpr qreal kScrollBarInset = 4.0;
+constexpr qreal kMinThumbHeight = 16.0;
+constexpr qreal kWheelRowsPerNotch = 3.0;
 
 const QColor kText(0xd7, 0xdd, 0xe4);
 const QColor kMuted(0x8b, 0x96, 0xa3);
@@ -44,7 +56,10 @@ void StationCalloutItem::setContent(const StationCalloutContent& content) {
 	if (content == m_content)
 		return;
 	prepareGeometryChange();
+	const bool sameStation = content.title == m_content.title;
 	m_content = content;
+	if (!sameStation)
+		m_scrollOffset = 0.0;
 	layout();
 	update();
 }
@@ -77,18 +92,120 @@ void StationCalloutItem::setBelow(bool below) {
 	update();
 }
 
+void StationCalloutItem::setMaxHeight(qreal maxHeight) {
+	if (maxHeight <= 0.0)
+		maxHeight = 0.0;
+	if (maxHeight == m_maxHeight)
+		return;
+	const qreal oldHeight = m_height;
+	const qreal oldScroll = m_scrollOffset;
+	const qreal oldMaxScroll = m_maxScrollOffset;
+	m_maxHeight = maxHeight;
+	if (fixedHeight() + layoutDestinationsHeight() != oldHeight)
+		prepareGeometryChange();
+	layout();
+	if (m_height != oldHeight || m_scrollOffset != oldScroll || m_maxScrollOffset != oldMaxScroll)
+		update();
+}
+
+qreal StationCalloutItem::fullHeight() const {
+	return fixedHeight() + fullDestinationsHeight();
+}
+
+void StationCalloutItem::setScrollOffset(qreal offset) {
+	offset = std::clamp(offset, 0.0, m_maxScrollOffset);
+	if (offset == m_scrollOffset)
+		return;
+	m_scrollOffset = offset;
+	update();
+}
+
+qreal StationCalloutItem::fixedHeight() const {
+	qreal height = kTopPadding + kTitleHeight + kSubtitleHeight + kHeaderGap;
+	if (m_content.nobodyWaiting || m_content.destinationHeader) {
+		height += kSectionHeadingHeight;
+		if (m_content.nobodyWaiting)
+			height += kRowHeight;
+	}
+	height += kSectionGap + kSectionHeadingHeight;
+	height += m_content.calls.isEmpty() ? kRowHeight : kRowHeight * (1 + static_cast<qreal>(m_content.calls.size()));
+	return height + kBottomPadding;
+}
+
+qreal StationCalloutItem::fullDestinationsHeight() const {
+	if (m_content.nobodyWaiting || !m_content.destinationHeader)
+		return 0.0;
+	return kRowHeight * static_cast<qreal>(m_content.destinations.size());
+}
+
+qreal StationCalloutItem::layoutDestinationsHeight() const {
+	const qreal fullDest = fullDestinationsHeight();
+	if (fullDest <= 0.0)
+		return 0.0;
+	const qreal fixed = fixedHeight();
+	if (m_maxHeight > 0.0 && fixed + fullDest > m_maxHeight)
+		return std::min(fullDest, std::max(kRowHeight, m_maxHeight - fixed));
+	return fullDest;
+}
+
 // The height of the card: the title and the subtitle, the waiting section and the calls section.
 void StationCalloutItem::layout() {
-	qreal height = 10.0 + 18.0 + 16.0 + 6.0;
-	if (m_content.nobodyWaiting || m_content.destinationHeader)
-		height += 18.0 + kRowHeight * (m_content.nobodyWaiting ? 1 : static_cast<qreal>(m_content.destinations.size()) + (m_content.moreStations > 0 ? 1 : 0));
-	height += 8.0 + 18.0; // the heading of the calls
-	height += m_content.calls.isEmpty() ? kRowHeight : kRowHeight * (1 + static_cast<qreal>(m_content.calls.size()));
-	m_height = height + 10.0;
+	const qreal fixed = fixedHeight();
+	const qreal fullDest = fullDestinationsHeight();
+	m_destinationsHeight = layoutDestinationsHeight();
+	m_maxScrollOffset = std::max<qreal>(0.0, fullDest - m_destinationsHeight);
+	m_scrollOffset = std::clamp(m_scrollOffset, 0.0, m_maxScrollOffset);
+	if (!canScroll())
+		m_draggingScrollBar = false;
+	m_height = fixed + m_destinationsHeight;
 }
 
 QRectF StationCalloutItem::cardRect() const {
 	return QRectF(-CardWidth / 2.0 + m_shift, m_below ? Gap : -(Gap + m_height), CardWidth, m_height);
+}
+
+QRectF StationCalloutItem::destinationsRect() const {
+	if (m_destinationsHeight <= 0.0)
+		return {};
+	const QRectF card = cardRect();
+	const qreal top = card.top() + kTopPadding + kTitleHeight + kSubtitleHeight + kHeaderGap + kSectionHeadingHeight;
+	return QRectF(card.left(), top, CardWidth, m_destinationsHeight);
+}
+
+QRectF StationCalloutItem::scrollBarRect() const {
+	if (!canScroll())
+		return {};
+	const QRectF area = destinationsRect();
+	return QRectF(area.right() - kScrollBarInset - kScrollBarWidth, area.top(), kScrollBarWidth, area.height());
+}
+
+QRectF StationCalloutItem::scrollThumbRect() const {
+	if (!canScroll())
+		return {};
+	const QRectF track = scrollBarRect();
+	const qreal fullDest = fullDestinationsHeight();
+	const qreal thumbHeight = std::clamp(track.height() * (m_destinationsHeight / fullDest),
+		std::min(kMinThumbHeight, track.height()), track.height());
+	const qreal travel = track.height() - thumbHeight;
+	const qreal thumbTop = track.top() + (travel > 0.0 ? travel * (m_scrollOffset / m_maxScrollOffset) : 0.0);
+	return QRectF(track.left(), thumbTop, track.width(), thumbHeight);
+}
+
+QRectF StationCalloutItem::scrollBarHitRect() const {
+	const QRectF track = scrollBarRect();
+	return track.isEmpty() ? track : track.adjusted(-4.0, 0.0, 4.0, 0.0);
+}
+
+void StationCalloutItem::scrollToThumbTop(qreal thumbTop) {
+	if (!canScroll())
+		return;
+	const QRectF track = scrollBarRect();
+	const QRectF thumb = scrollThumbRect();
+	const qreal travel = track.height() - thumb.height();
+	if (travel <= 0.0)
+		return;
+	const qreal clamped = std::clamp(thumbTop - track.top(), 0.0, travel);
+	setScrollOffset(clamped / travel * m_maxScrollOffset);
 }
 
 QString StationCalloutItem::shownSubtitle() const {
@@ -131,27 +248,27 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
 	const qreal left = card.left() + kPadding;
 	const qreal right = card.right() - kPadding;
-	qreal y = card.top() + 10.0;
+	qreal y = card.top() + kTopPadding;
 
 	painter->setFont(pixelFont(13, true));
 	painter->setPen(Qt::white);
 	const QFontMetricsF titleMetrics(painter->font());
-	painter->drawText(QRectF(left, y, right - left - 22.0, 18.0), Qt::AlignVCenter | Qt::AlignLeft,
+	painter->drawText(QRectF(left, y, right - left - 22.0, kTitleHeight), Qt::AlignVCenter | Qt::AlignLeft,
 		titleMetrics.elidedText(m_content.title, Qt::ElideRight, right - left - 22.0));
 	painter->setFont(pixelFont(15));
 	painter->setPen(kMuted);
 	painter->drawText(closeRect(), Qt::AlignCenter, QString(QChar(0x00d7)));
-	y += 18.0;
+	y += kTitleHeight;
 	painter->setFont(pixelFont(11));
-	painter->drawText(QRectF(left, y, right - left, 16.0), Qt::AlignVCenter | Qt::AlignLeft, shownSubtitle());
-	y += 16.0 + 6.0;
+	painter->drawText(QRectF(left, y, right - left, kSubtitleHeight), Qt::AlignVCenter | Qt::AlignLeft, shownSubtitle());
+	y += kSubtitleHeight + kHeaderGap;
 
 	painter->setFont(sectionFont());
 	painter->setPen(kMuted);
 	if (m_content.nobodyWaiting || m_content.destinationHeader) {
-		painter->drawText(QRectF(left, y, right - left, 18.0), Qt::AlignVCenter | Qt::AlignLeft,
+		painter->drawText(QRectF(left, y, right - left, kSectionHeadingHeight), Qt::AlignVCenter | Qt::AlignLeft,
 			QStringLiteral("Waiting, by destination").toUpper());
-		y += 18.0;
+		y += kSectionHeadingHeight;
 	}
 	painter->setFont(pixelFont(12));
 	if (m_content.nobodyWaiting) {
@@ -163,32 +280,41 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 		for (const auto& destination : m_content.destinations)
 			largest = std::max(largest, destination.count);
 		const QFontMetricsF metrics(painter->font());
+		const QRectF area = destinationsRect();
+		painter->save();
+		painter->setClipRect(area);
+		qreal rowY = area.top() - m_scrollOffset;
 		for (const auto& destination : m_content.destinations) {
-			painter->setPen(kText);
-			painter->drawText(QRectF(left, y, kNameWidth, kRowHeight), Qt::AlignVCenter | Qt::AlignLeft,
-				metrics.elidedText(destination.name, Qt::ElideRight, kNameWidth - 4.0));
-			const qreal width = std::max(3.0, kBarWidth * destination.count / largest);
+			if (rowY + kRowHeight >= area.top() && rowY <= area.bottom()) {
+				painter->setPen(kText);
+				painter->drawText(QRectF(left, rowY, kNameWidth, kRowHeight), Qt::AlignVCenter | Qt::AlignLeft,
+					metrics.elidedText(destination.name, Qt::ElideRight, kNameWidth - 4.0));
+				const qreal width = std::max(3.0, kBarWidth * destination.count / largest);
+				painter->setPen(Qt::NoPen);
+				painter->setBrush(PassengerItem::crowdingColour(PlatformCrowding::Normal));
+				painter->drawRoundedRect(QRectF(left + kNameWidth, rowY + (kRowHeight - kBarHeight) / 2.0, width, kBarHeight), 3.5, 3.5);
+				painter->setPen(kText);
+				painter->drawText(QRectF(left, rowY, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignRight, QString::number(destination.count));
+			}
+			rowY += kRowHeight;
+		}
+		painter->restore();
+		if (canScroll()) {
+			const qreal radius = kScrollBarWidth / 2.0;
 			painter->setPen(Qt::NoPen);
-			painter->setBrush(PassengerItem::crowdingColour(PlatformCrowding::Normal));
-			painter->drawRoundedRect(QRectF(left + kNameWidth, y + (kRowHeight - kBarHeight) / 2.0, width, kBarHeight), 3.5, 3.5);
-			painter->setPen(kText);
-			painter->drawText(QRectF(left, y, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignRight, QString::number(destination.count));
-			y += kRowHeight;
+			painter->setBrush(edgeColour());
+			painter->drawRoundedRect(scrollBarRect(), radius, radius);
+			painter->setBrush(m_draggingScrollBar ? kText : kMuted);
+			painter->drawRoundedRect(scrollThumbRect(), radius, radius);
 		}
-		if (m_content.moreStations > 0) {
-			painter->setPen(kMuted);
-			painter->drawText(QRectF(left, y, kNameWidth + kBarWidth, kRowHeight), Qt::AlignVCenter | Qt::AlignLeft,
-				QStringLiteral("%1 more station%2").arg(m_content.moreStations).arg(m_content.moreStations == 1 ? "" : "s"));
-			painter->drawText(QRectF(left, y, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignRight, QString::number(m_content.moreCount));
-			y += kRowHeight;
-		}
+		y += m_destinationsHeight;
 	}
 
-	y += 8.0;
+	y += kSectionGap;
 	painter->setFont(sectionFont());
 	painter->setPen(kMuted);
-	painter->drawText(QRectF(left, y, right - left, 18.0), Qt::AlignVCenter | Qt::AlignLeft, QStringLiteral("LATEST CALLS"));
-	y += 18.0;
+	painter->drawText(QRectF(left, y, right - left, kSectionHeadingHeight), Qt::AlignVCenter | Qt::AlignLeft, QStringLiteral("LATEST CALLS"));
+	y += kSectionHeadingHeight;
 	painter->setFont(pixelFont(12));
 	if (m_content.calls.isEmpty()) {
 		painter->drawText(QRectF(left, y, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignLeft, QStringLiteral("No calls yet"));
@@ -230,6 +356,63 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
 void StationCalloutItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 	event->accept();
-	if (event->button() == Qt::LeftButton && closeRect().contains(event->pos()) && onClose)
+	if (event->button() != Qt::LeftButton)
+		return;
+	if (closeRect().contains(event->pos()) && onClose) {
 		onClose();
+		return;
+	}
+	if (canScroll() && scrollBarHitRect().contains(event->pos())) {
+		m_draggingScrollBar = true;
+		const QRectF thumb = scrollThumbRect();
+		if (event->pos().y() >= thumb.top() && event->pos().y() <= thumb.bottom())
+			m_dragThumbOffset = event->pos().y() - thumb.top();
+		else {
+			m_dragThumbOffset = thumb.height() / 2.0;
+			scrollToThumbTop(event->pos().y() - m_dragThumbOffset);
+		}
+		update();
+	}
+}
+
+void StationCalloutItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+	if (m_draggingScrollBar && canScroll()) {
+		scrollToThumbTop(event->pos().y() - m_dragThumbOffset);
+		event->accept();
+		return;
+	}
+	QGraphicsItem::mouseMoveEvent(event);
+}
+
+void StationCalloutItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+	if (m_draggingScrollBar) {
+		m_draggingScrollBar = false;
+		update();
+		event->accept();
+		return;
+	}
+	QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void StationCalloutItem::wheelEvent(QGraphicsSceneWheelEvent* event) {
+	if (!canScroll() || !destinationsRect().contains(event->pos())
+		|| (event->modifiers() & Qt::ControlModifier)) {
+		event->ignore();
+		return;
+	}
+	qreal step = 0.0;
+	if (!event->pixelDelta().isNull()) {
+		if (event->pixelDelta().y() == 0) {
+			event->ignore();
+			return;
+		}
+		step = -static_cast<qreal>(event->pixelDelta().y());
+	} else if (event->orientation() == Qt::Vertical && event->delta() != 0) {
+		step = -static_cast<qreal>(event->delta()) / 120.0 * (kWheelRowsPerNotch * kRowHeight);
+	} else {
+		event->ignore();
+		return;
+	}
+	setScrollOffset(m_scrollOffset + step);
+	event->accept();
 }
