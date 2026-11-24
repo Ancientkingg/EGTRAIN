@@ -257,7 +257,7 @@ struct GuiStationCall {
 /// holds calls of any kind from the newest to the oldest; `stationOf(*call)` is the station name of a call, kept alive
 /// as long as the range is.
 template <typename Iterator, typename StationOf, typename Take>
-void forLatestStationCalls(Iterator newestFirst, Iterator end, StationOf stationOf, Take take) {
+void forLatestStationCalls(Iterator newestFirst, const Iterator& end, StationOf stationOf, Take take) {
 	std::unordered_map<std::string_view, int> listed;
 	for (; newestFirst != end; ++newestFirst)
 		if (listed[std::string_view(stationOf(*newestFirst))]++ < kGuiStationCallsListed)
