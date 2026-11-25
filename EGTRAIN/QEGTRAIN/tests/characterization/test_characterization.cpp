@@ -445,6 +445,9 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"live-noroute", {"Q1"}, 0},
 		{"live-missed", {"Q1", "Q3", "Q4"}, 0},
 		{"live-slowed", {"Q1", "Q2"}, 0},
+		{"breakdown-wait", {"Q1", "Q2"}, 0},
+		{"breakdown-terminate", {"Q1", "Q2"}, 0},
+		{"signal-failure-change", {"Q1", "Q3", "Q4"}, 0},
 	};
 	for (const auto& live : livePassengers) {
 		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
@@ -1178,9 +1181,10 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 	station.positionKm = 4.0;
 	station.platforms = {{"P.platform.1", {"B0.node.3"}}};
 	scene.stations.push_back(station);
-	const bool transfer = set == "transfer" || set == "live-transfer" || set == "live-full" || set == "fixed-missed" || set == "live-missed";
+	const bool transfer = set == "transfer" || set == "live-transfer" || set == "live-full" || set == "fixed-missed" || set == "live-missed"
+		|| set == "signal-failure-change";
 	// Q1 ends at B, so that a passenger from P reaches C only by changing to Q2 or Q3.
-	const bool shortQ1 = set == "live-transfer" || set == "live-missed";
+	const bool shortQ1 = set == "live-transfer" || set == "live-missed" || set == "signal-failure-change";
 	// B.platform.1 has no platform number, so a change from or to it needs no walk. Platform_4 has its own node, which adds a second
 	// timetable point at B. live-missed also moves Q1 to Platform_1 on another node, so that the change to Platform_4 is a walk of
 	// 120 s that the plan and the run both use.
@@ -1214,13 +1218,14 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		return train;
 	};
 	scene.services.push_back(service("Q1", 60, 820, 1250, true, platformB1, 760, transfer && !shortQ1));
-	// live-slowed has Q2 on the platform of Q1 at B, without Platform_4, so that Q1 keeps its planned arrival at B.
-	if (transfer || set == "live-slowed")
+	// live-slowed and the breakdown sets have Q2 on the platform of Q1 at B, without Platform_4, so that Q1 keeps its planned
+	// arrival at B.
+	if (transfer || set == "live-slowed" || set == "breakdown-wait" || set == "breakdown-terminate")
 		scene.services.push_back(service("Q2", 20, 1000, 1400, false, platformB1, 760, true));
 	if (transfer) {
 		scene.services.push_back(service("Q3", 500, 960, 1450, false, platformB2, 900, true));
 		// A train behind Q3 on the same platform: the passenger of live-missed plans it after missing Q3.
-		if (set == "live-missed")
+		if (set == "live-missed" || set == "signal-failure-change")
 			scene.services.push_back(service("Q4", 540, 1100, 1550, false, platformB2, 920, true));
 	}
 	const auto journey = [](const std::string& id, int entry, int arrival, const std::string& from,
@@ -1275,6 +1280,32 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		scene.passengers.push_back({"s1", {journey("s1.1", 300, 1400, "P", "C", {})}});
 		scene.passengers.push_back({"s2", {journey("s2.1", 300, 760, "P", "B", {})}});
 		scene.passengers.push_back({"s3", {journey("s3.1", 840, 1400, "B", "C", {})}});
+	} else if (set == "breakdown-wait") {
+		// Q1 stands at P from 220 s and is held there from 400 to 800 s (see the incident of the case), so it leaves P 339 s late.
+		// Q2 stands on the platform of Q1 at B until 1000 s and reaches C later than Q1 on the timetable. All three go from B to C.
+		// w1 appears while Q1 is on time and plans it. w2 appears while Q1 stands at P 140 s after its planned departure: Q1 is
+		// predicted to leave now, which still reaches C before Q2. Both keep waiting for Q1, as nothing plans again for a train
+		// that runs late, and ride it. w3 appears after Q1 has left P late by more than the late threshold and before the planned
+		// departure of Q1 from B: it plans on the predicted times and takes Q2. Below the threshold it would have planned Q1.
+		scene.passengers.push_back({"w1", {journey("w1.1", 300, 1400, "B", "C", {})}});
+		scene.passengers.push_back({"w2", {journey("w2.1", 600, 1400, "B", "C", {})}});
+		scene.passengers.push_back({"w3", {journey("w3.1", 810, 1400, "B", "C", {})}});
+	} else if (set == "breakdown-terminate") {
+		// Q1 stands at B from 622 s and is held there from 700 to 1100 s by a breakdown that also asks it to end its run at its
+		// destination (see the incident of the case). That ends nothing early: Q1 runs on to C, the end of its route, and only
+		// its result is marked. e1 rides Q1 from P to C and stays on board through the hold, although Q2 leaves the same
+		// platform for C at 1000 s. e2 appears at B while Q1 is held there 80 s after its planned departure: Q1 is predicted to
+		// leave now and to reach C before Q2, so e2 boards the held train.
+		scene.passengers.push_back({"e1", {journey("e1.1", 150, 1400, "P", "C", {})}});
+		scene.passengers.push_back({"e2", {journey("e2.1", 900, 1400, "B", "C", {})}});
+	} else if (set == "signal-failure-change") {
+		// As t1 of live-transfer, but without Q2: c1 rides Q1 from P to B and changes there to Q3 on Platform_4. A signal failure
+		// on 1-B0 from 560 to 800 s (see the incident of the case), after Q1 has passed, stops Q3 and Q4 in front of it at 2 km,
+		// so Q3 reaches B after its planned departure; c1 keeps waiting for it and rides it. c2 appears at B after that planned
+		// departure, while Q3 is still on its way: Q3 has not reached a stop yet and so counts as on time and gone, and c2 plans
+		// Q4. When Q3 arrives, it reaches C before Q4 is planned to, and c2 takes it.
+		scene.passengers.push_back({"c1", {journey("c1.1", 150, 1450, "P", "C", {})}});
+		scene.passengers.push_back({"c2", {journey("c2.1", 980, 1450, "B", "C", {})}});
 	} else if (set == "live-transfer") {
 		// P to C is only possible by changing at B: Q1 to B, then Q2 on the same platform. t2 starts at B and takes Q2 direct.
 		scene.passengers.push_back({"t1", {journey("t1.1", 150, 1400, "P", "C", {})}});
@@ -1695,6 +1726,18 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		slow.reducedSpeedKmh = 40.0;
 		loaded.scene.scenarios[0].incidents.push_back(slow);
 	}
+	// A hold stops a running train at once, harder than it can brake, so these holds start while Q1 stands at a stop.
+	if (spec.passengers == "breakdown-wait")
+		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 400.0, 800.0});
+	if (spec.passengers == "breakdown-terminate") {
+		SceneIncident hold{"end-q1", IncidentType::TrainBreakdown, "Q1", 700.0, 1100.0};
+		hold.terminateAtDestination = true;
+		loaded.scene.scenarios[0].incidents.push_back(hold);
+	}
+	// The failure is on 1-B0 and not on 2-B0: a train stopped in front of 2-B0 stands at the node of P, a stop that Q3 and
+	// Q4 do not make, and does not leave it again after the failure.
+	if (spec.passengers == "signal-failure-change")
+		loaded.scene.scenarios[0].incidents.push_back({"fail-1", IncidentType::SignalFailure, "1-B0", 560.0, 800.0});
 	if (spec.name.find("stub-breakdown-") == 0)
 		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", IncidentType::TrainBreakdown, "U1", 60.0, 120.0});
 	if (spec.singleTrack)
@@ -1913,6 +1956,9 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			{integerField("count", static_cast<long long>(train->directIncidentIds.size())),
 				textField("ids", joinSet(train->directIncidentIds)), realField("first_time", train->firstDirectIncidentTime),
 				realField("first_location", train->firstDirectIncidentLocation)});
+		// Only a train that a breakdown asks to end its run at its destination has this line.
+		if (train->destinationTerminationRequested)
+			add(prefix + " destination_termination", {integerField("terminated", train->destinationTerminated ? 1 : 0)});
 		const int blockTimes = std::min(train->N_BlockSections, 1000);
 		add("blocktime " + train->trainDescription, {integerField("n", blockTimes), integerField("complete", train->N_BlockTimeComplete)});
 		for (int b = 0; b < blockTimes; ++b) {
