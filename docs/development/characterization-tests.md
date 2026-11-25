@@ -21,7 +21,7 @@ those sections.
 The case `skip-stop-level-0` adds the service `E1`, a copy of `F1` without its
 stop at B, in the test.
 
-The passenger cases add station `P`, services `Q1` to `Q3` and passengers in the
+The passenger cases add station `P`, services `Q1` to `Q4` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
 walking time calculation, while `B.platform.1` reads as 0. Only transfer cases
 have this platform, because its node adds a second timetable point named B.
@@ -79,6 +79,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `pax-board-gui0`, `pax-board-gui1`, `pax-full-gui0`, `pax-full-gui1` | `Q1` boards passengers at P, including ties and an entry during the stop; a later entry stays at P. Full cases cut ties with three seats at P and B; alighting at B frees seats before boarding |
 | `pax-transfer-gui0`, `pax-transfer-gui1` | `Q1` connects to `Q2` on the same platform and to `Q3` on another label; a passenger also starts a second journey on `Q3` |
 | `pax-live-slowed` | a breakdown caps `Q1` at 40 km/h from 130 s, so passengers plan it on predicted times; `s1` (P to C) rides `Q1` to B and changes there to `Q2`, which reaches C first, `s2` (P to B) stays on `Q1`, and `s3` comes to B while `Q1` stands there and takes `Q2` |
+| `pax-breakdown-wait` | a breakdown holds `Q1` at P from 400 s to 800 s; `w1` and `w2` (B to C) plan `Q1` before it is late enough to lose to `Q2` and wait for it although `Q2` stands on their platform, and `w3` appears after `Q1` left P 339 s late, more than the late threshold, and takes `Q2` |
+| `pax-breakdown-terminate` | a breakdown with `terminate_at_destination` holds `Q1` at B from 700 s to 1100 s; `Q1` still runs to C, where its run is marked as ended, `e1` (P to C) stays on board, and `e2` appears at B during the hold and boards `Q1`, which is predicted to leave at once |
+| `pax-signal-failure-change` | a signal failure on `1-B0` from 560 s to 800 s holds `Q3` and `Q4` at 2 km; `c1` (P to C) changes at B from `Q1` to `Q3` and waits for it, and `c2` appears at B after the planned departure of `Q3`, plans `Q4` and takes `Q3` when it arrives |
 | `entrance-delay-f2-level-0` | trains `F1` and `F2` with an entrance delay of 120 s for `F2` at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals `follow-level-0` and only the planned departure of `F2` at A moves, from 180 s to 300 s |
 | `breakdown-f1-level-0` | the same trains with a breakdown of `F1` from 200 s that caps its speed at 40 km/h until the end of its route; `F1` reaches C late and `F2`, held behind it, has not reached C when the run ends at 1500 s |
 
@@ -256,6 +259,9 @@ one fact: some key words, then `name=value` fields.
 - `incident`, `boundary`, `authority`: the incident definition, and for the steps
   just before and after its start and end, how many signal-failure authorities
   exist and which sections are blocked.
+- `train <id> destination_termination`: only for a train that a breakdown with
+  `terminate_at_destination` targets; `terminated=1` when it reached the end of
+  its route.
 - `stats`: the rows of `TrainTrajectories/Stats_Stations.txt`, which holds six
   significant digits. An early arrival counts there as a delay of 0 in the
   total and in `N_StopTrains`. The average and deviation cover the delayed
