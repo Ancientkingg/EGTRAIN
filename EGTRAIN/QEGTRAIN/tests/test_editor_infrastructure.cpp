@@ -1471,7 +1471,7 @@ void TestInfrastructurePanel::saysWhatTheCanvasMarks() {
 	QCOMPARE(f.markFor("block_dependencies", "0", -1),
 		"Block dependency: B0 10.510 to 10.810 km depends on B0 11.110 to 11.410 km");
 	QCOMPARE(f.markFor("single_track_restrictions", "0", -1),
-		"Single-track restriction: B0 0.310 to 9.310 km, protected at B3 0.230 to 0.250, B0 0.300 to 0.310 km and at B0 9.310 "
+		"Single-track restriction: B0 0.230 to 9.610 km, protected at B3 0.230 to 0.250, B0 0.300 to 0.310 km and at B0 9.310 "
 		"to 9.539, B4 9.549 to 9.675 km");
 	QCOMPARE(f.markFor("station_boundaries", "0", -1),
 		"Station boundary: entrance B0 11.710 to 12.010 km, exit B0 12.310 to 12.610 km");

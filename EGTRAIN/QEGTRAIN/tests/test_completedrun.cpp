@@ -1435,17 +1435,17 @@ void TestCompletedRun::choosesStretchesByStations() {
 		QFAIL("the scene runs");
 	const CompletedRunData& data = paimpol->run.data;
 	const int route0 = routeIndexOf(data, "route0");
-	const int route13 = routeIndexOf(data, "route13");
+	const int route14 = routeIndexOf(data, "route14");
 	const QStringList stations = {"Guingamp", "Gourland", "Tregonneau_Squiffiec", "Brelidy-Plouec", "Pontrieaux_Halte", "Pontrieaux",
 		"Frynaudour", "Traou_Nez", "Lancerf", "Paimpol"};
 	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
-	askScope(blockingTimeScopeChoicesFrom(data), scope, [route0, route13, &stations](QDialog& dialog) {
+	askScope(blockingTimeScopeChoicesFrom(data), scope, [route0, route14, &stations](QDialog& dialog) {
 		const StretchRows rows = stretchRows(dialog, "blockingTime");
 		if (!rows.complete())
 			QFAIL("Paimpol: the Blocking time dialog has the rows of the stretch");
 		// Paimpol: the Blocking time dialog names the routes by their end stations, with their ids and corridors
 		QCOMPARE(rows.route->itemText(rows.route->findData(route0)), "route0: Guingamp to Paimpol  (A)");
-		QCOMPARE(rows.route->itemText(rows.route->findData(route13)), "route13: Tregonneau_Squiffiec to Guingamp  (A)");
+		QCOMPARE(rows.route->itemText(rows.route->findData(route14)), "route14: Tregonneau_Squiffiec to Guingamp  (A)");
 		rows.route->setCurrentIndex(rows.route->findData(route0));
 		// Paimpol: route0 lists its stations in route order, from the first to the last
 		QVERIFY(rows.stations->isChecked());

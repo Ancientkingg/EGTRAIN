@@ -29,6 +29,7 @@
 #include <QTest>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -452,6 +453,7 @@ private slots:
 	void trainStartingAtStopWaitsForItsSections_data();
 	void trainStartingAtStopWaitsForItsSections();
 	void trainStartingAtStopWaitsForSingleTrack();
+	void paimpolTrainsCrossOnSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
 	void trainStartingAtStopBlocksSectionsUnderIt_data();
@@ -907,6 +909,31 @@ void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	QCOMPARE_GT(otherAtNextStop, 2570.0);
 	QCOMPARE_GT(static_cast<double>(train.earliestActiveTrajectoryIndex), otherAtNextStop);
 	QVERIFY(train.OutOfSimulation);
+}
+
+// The eight trains of the Paimpol timetable cross on the single track at the loops of Tregonneau_Squiffiec, Pontrieaux and
+// Lancerf. The first two express trains stand at Pontrieaux together, which the timetable plans from 1570 s to 1627 s. The
+// passengers lengthen the dwells of the all-stops trains, so Paim-Guin-EXPRESS-2 reaches Tregonneau_Squiffiec while
+// Guin-Paim-ALL-STOPS-1 still runs towards the loop there. The express waits on the main track clear of the points of the
+// loop, and every train reaches the end of its route, the last ones after the 9000 s of the case.
+void TestSimulationRun::paimpolTrainsCrossOnSingleTrack() {
+	SceneModel scene = m_passengers;
+	scene.settings.durationSeconds = 11000.0;
+	SceneRunSelection firstRuns;
+	for (const SceneService& service : scene.services)
+		firstRuns.insert({service.id, 1});
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, firstRuns, 11000);
+	if (run == nullptr || run->numTrains != 8)
+		QFAIL("the run is not built");
+	int expressAtPontrieaux = 0;
+	for (Regional& train : run->trains) {
+		QVERIFY2(train.OutOfSimulation, train.trainDescription.c_str());
+		const bool firstExpress = train.trainDescription == "Guin-Paim-EXPRESS-1-1" || train.trainDescription == "Paim-Guin-EXPRESS-2-1";
+		// Pontrieaux lies at km 21.584.
+		if (firstExpress && std::abs(train.trainXPosition(1600) - 21.584) < 0.3)
+			++expressAtPontrieaux;
+	}
+	QCOMPARE(expressAtPontrieaux, 2);
 }
 
 void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt_data() {
