@@ -3,7 +3,7 @@
 # run: scenario=baseline services=Q1,Q2,Q3 level=none passengers=live-full pax_gui=1 capacity=3 horizon=1500
 # known-wrong: none
 run steps=1500 trains=3
-train Q1-1 active start=60 end=1160
+train Q1-1 active start=60 end=1154
 train Q1-1 sample t=60 x=0.615074 v=1.230149
 train Q1-1 sample t=120 x=1278.266026 v=31.292706
 train Q1-1 sample t=180 x=3385.817167 v=32.566466
@@ -23,12 +23,12 @@ train Q1-1 sample t=960 x=12044.641596 v=36.111111
 train Q1-1 sample t=1020 x=14211.308263 v=36.111111
 train Q1-1 sample t=1080 x=15945.285149 v=9.742786
 train Q1-1 sample t=1140 x=15999.999900 v=0.000000
-train Q1-1 sample t=1160 x=16000.000100 v=0.000100
+train Q1-1 sample t=1154 x=16000.000100 v=0.000100
 train Q1-1 stop t_first=220 t_last=461 x=3999.998000 dwell=241
 train Q1-1 braking t=176 x=3250.193838 v=36.111111 stop_t=220
 train Q1-1 stop t_first=622 t_last=821 x=7999.998000 dwell=199
 train Q1-1 braking t=578 x=7250.197152 v=36.111111 stop_t=622
-train Q1-1 stop t_first=1093 t_last=1160 x=15999.998000 dwell=67
+train Q1-1 stop t_first=1093 t_last=1154 x=15999.998000 dwell=61
 train Q1-1 braking t=1048 x=15222.419374 v=36.111111 stop_t=1093
 train Q2-1 active start=20 end=1334
 train Q2-1 sample t=20 x=0.615074 v=1.230149
@@ -91,14 +91,14 @@ aspect route0 @7-B0@ 0:270
 result Q1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result Q1-1 P planned_arr=400.000000 planned_dep=460.000000 sim_arr=220.000000 sim_dep=460.000000 arr_delay=-180.000000 dep_delay=0.000000
 result Q1-1 B planned_arr=n/a planned_dep=820.000000 sim_arr=543.000000 sim_dep=543.000000 arr_delay=n/a dep_delay=-277.000000
-result Q1-1 C planned_arr=1250.000000 planned_dep=n/a sim_arr=1093.000000 sim_dep=1159.000000 arr_delay=-157.000000 dep_delay=n/a
+result Q1-1 C planned_arr=1250.000000 planned_dep=n/a sim_arr=1093.000000 sim_dep=1153.000000 arr_delay=-157.000000 dep_delay=n/a
 result Q2-1 A planned_arr=n/a planned_dep=80.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result Q2-1 B planned_arr=n/a planned_dep=1000.000000 sim_arr=212.000000 sim_dep=212.000000 arr_delay=n/a dep_delay=-788.000000
 result Q2-1 C planned_arr=1400.000000 planned_dep=n/a sim_arr=1273.000000 sim_dep=1333.000000 arr_delay=-127.000000 dep_delay=n/a
 result Q3-1 A planned_arr=n/a planned_dep=560.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result Q3-1 B planned_arr=n/a planned_dep=960.000000 sim_arr=692.000000 sim_dep=692.000000 arr_delay=n/a dep_delay=-268.000000
 result Q3-1 C planned_arr=1450.000000 planned_dep=n/a sim_arr=1233.000000 sim_dep=1293.000000 arr_delay=-217.000000 dep_delay=n/a
-run_result Q1-1 start=60.000000 end=1160.000000 travel=1100.000000
+run_result Q1-1 start=60.000000 end=1154.000000 travel=1094.000000
 run_result Q2-1 start=20.000000 end=1334.000000 travel=1314.000000
 run_result Q3-1 start=500.000000 end=1294.000000 travel=794.000000
 network start=20.000000 end=1334.000000 travel=1314.000000
@@ -168,7 +168,7 @@ file PassengerJourneys.txt f4 f4.1 live B C 25800 Q2-1 23 0 651 26474 24 1 compl
 file StationStops.txt Train Station Platform Arrival Departure Boarded Alighted LeftBehind LoadAfterDeparture Capacity LoadFactor
 file StationStops.txt Q1-1 P P.platform.1 25421 25661 0 0 0 0 3 0.000
 file StationStops.txt Q1-1 B B.platform.1 25823 26021 3 0 1 3 3 1.000
-file StationStops.txt Q1-1 C C.platform.1 26294 26360 0 3 0 0 3 0.000
+file StationStops.txt Q1-1 C C.platform.1 26294 26354 0 3 0 0 3 0.000
 file StationStops.txt Q2-1 B B.platform.1 25492 26201 1 0 0 1 3 0.333
 file StationStops.txt Q2-1 C C.platform.1 26474 26534 0 1 0 0 3 0.000
 file StationStops.txt Q3-1 B Platform_4 25972 26161 0 0 0 0 3 0.000
