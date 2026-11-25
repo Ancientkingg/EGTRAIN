@@ -1211,12 +1211,12 @@ void TestSceneValidator::rejectsUnknownVirtualCouplingService() {
 void TestSceneValidator::validatesPassengerDemandArrivals() {
 	const char* const code = "scene.passenger.demand_arrivals.invalid";
 	const char* const path = "simulation_settings.passenger_demand_arrivals";
-	for (const std::string& allowed : {"even", "random"}) {
+	for (const char* const allowed : {"even", "random"}) {
 		SceneModel scene = completeScene();
 		scene.settings.passengerDemandArrivals = allowed;
 		QVERIFY2(!hasCodeAndPath(validateScene(scene), code, path), "even and random are allowed");
 	}
-	for (const std::string& refused : {"", "poisson", "uniform", "unknown"}) {
+	for (const char* const refused : {"", "poisson", "uniform", "unknown"}) {
 		SceneModel scene = completeScene();
 		scene.settings.passengerDemandArrivals = refused;
 		QVERIFY2(hasCodeAndPath(validateScene(scene), code, path), "other demand arrivals values are rejected");
