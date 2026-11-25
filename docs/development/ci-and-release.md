@@ -8,7 +8,7 @@ scripts that build, sign and check the release packages.
 - `main` is the validation branch. Pull requests build the project and run
   the CTest suite without the tests labelled `network` (those run on Windows only) and `nightly` (those run in the
   [leak check](smoke-tests.md#leak-check)), in parallel, on macOS, Windows (MSVC, vcpkg
-  x64) and Linux (Ubuntu 24.04), each with Qt 6.8.3, unless every changed file matches the
+  x64) and Linux (Ubuntu 24.04), each with Qt 6.12.1, unless every changed file matches the
   documentation rule below. The suite holds the end-to-end smokes of the
   committed scenes (see [Simulation Smoke Test](smoke-tests.md#simulation-smoke-test) and
   [Scene Roundtrip Smoke Test](smoke-tests.md#scene-roundtrip-smoke-test)). The `docs` job runs
@@ -598,7 +598,7 @@ and run the steps in the order of the table, with `tools/release/sign_macos.sh` 
 mkdir -p /tmp/package/build
 ditto build/QEGTRAIN.app /tmp/package/build/QEGTRAIN.app
 cp build/scene_tool build/egtrain_update_helper /tmp/package/build/
-QT_ROOT_DIR="$HOME/Qt/6.8.3/macos" bash tools/release/package_macos.sh bundle /tmp/package/build/QEGTRAIN.app
+QT_ROOT_DIR="$HOME/Qt/6.12.1/macos" bash tools/release/package_macos.sh bundle /tmp/package/build/QEGTRAIN.app
 ```
 
 A build without the Sphinx environment of the manual has no `EGTRAIN.qch`, and `verify-package` then fails.
@@ -880,7 +880,7 @@ removes it with its key. Run it by hand with
 The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
 `CMakePresets.json`. They inherit `ci-base`: a Release build with the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and
 `EGTRAIN_IPO=OFF`, in `build/`, where the later steps look. The configure step of each leg adds the compiler launcher of
-the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. A configure step names no
+the matrix and the prefix path of its runner. A configure step names no
 generator and no variable that its preset sets. The leak check and the nightly sanitizer jobs keep configure lines of
 their own.
 
@@ -897,10 +897,13 @@ checkout.
 ### Dependency caches
 
 The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
-dependencies with the local action `setup-deps`. It installs Qt 6.8.3 with Qt Charts through
+dependencies with the local action `setup-deps`. It installs Qt 6.12.1 with Qt Charts through
 `jurplel/install-qt-action`, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
-extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. The `validation` and
-`sanitizer` jobs of `release.yml` install the same Qt and Homebrew packages in steps of their own.
+extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. aqtinstall 3.3.0, the newest
+release of the installer that the action runs, cannot install Qt 6.11 or later on Windows, so the action installs
+aqtinstall from a fixed commit of its main branch (its `aqtsource` input). The `validation` and `sanitizer` jobs of
+`release.yml` install the same Qt, with the same inputs, and the Homebrew packages in steps of their own;
+`tools/e2e/test_ci_workflow.py` checks that the inputs match.
 
 Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg

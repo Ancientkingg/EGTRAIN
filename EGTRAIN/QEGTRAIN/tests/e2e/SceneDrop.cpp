@@ -77,7 +77,12 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 				mime.setUrls(urls);
 			else
 				mime.setText(QStringLiteral("no URLs"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+			QDragEnterEvent drag(QPointF(dropPoint), actions, &mime, Qt::LeftButton, Qt::NoModifier);
+#else
+			// Qt 6.12 adds the constructor that takes a QPointF and deprecates this one.
 			QDragEnterEvent drag(dropPoint, actions, &mime, Qt::LeftButton, Qt::NoModifier);
+#endif
 			drag.setAccepted(false);
 			QApplication::sendEvent(&w, &drag);
 			if (drag.isAccepted() != dragAccepted)

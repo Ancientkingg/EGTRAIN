@@ -5,7 +5,7 @@ checks a pull request has to pass. It points to the longer guides for details. E
 C++17 desktop application for railway micro-simulation, built with CMake.
 
 The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17; the macOS build was repeated with
-Qt 6.8.3 on 2026-10-20. On Linux the page was followed from a clean clone in a new Ubuntu 24.04 arm64 container with
+Qt 6.8.3 on 2026-10-20 and with Qt 6.12.1 on 2026-11-25. On Linux the page was followed from a clean clone in a new Ubuntu 24.04 arm64 container with
 10 CPUs on 2026-10-20, with the Qt 6.4.2 packages of Ubuntu: installing the packages took 36 s, configuring under
 1 s, the build with four jobs 4 min 7 s, CTest 3 min 8 s (325 of 325 passed), the headless run of all six cases
 1 min 49 s, the round-trip smoke 7 s, the visual polish smoke 4 min 13 s and the test walkthrough below under a
@@ -26,7 +26,7 @@ is not what CI uses and was not checked for this page.
 | Git | any recent release | |
 | CMake | 3.16 or newer | `CMakeLists.txt` at the root of the source tree |
 | C++ compiler | C++17 | Apple Clang on macOS, MSVC 2022 or newer on Windows (x64 only), GCC on Ubuntu |
-| Qt 6 | Core, Gui, Widgets, Charts, Svg, Network and Help | CI uses Qt 6.8.3 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds |
+| Qt 6 | Core, Gui, Widgets, Charts, Svg, Network and Help | CI uses Qt 6.12.1 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds |
 | ZeroMQ, cppzmq, nlohmann-json | any release that CMake finds | `libzmq3-dev cppzmq-dev nlohmann-json3-dev` on Ubuntu, vcpkg on Windows |
 | Python | 3.9 or newer | CMake looks for it when tests are on; CI uses 3.12 |
 | clang-format | 23.1.3 exactly | Only to format C++ sources: `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`, then `~/fmt-venv/bin` on `PATH` |
@@ -39,21 +39,21 @@ commands for each system.
 
 Run the commands below in the root folder of the source tree, the folder that holds `CMakeLists.txt`.
 
-On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
+On macOS, install Qt 6.12.1 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
 (or the [Qt online installer](build.md#qt-online-installer)) and the other libraries with Homebrew:
 
 ```bash
 python3 -m venv ~/aqt-venv
-~/aqt-venv/bin/pip install aqtinstall
-~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"
+~/aqt-venv/bin/pip install "git+https://github.com/miurahr/aqtinstall.git@4c759852b1108cc801d8e24979136b895b5155d4"
+~/aqt-venv/bin/aqt install-qt mac desktop 6.12.1 clang_64 -m qtcharts -O "$HOME/Qt"
 brew install zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
-  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
-  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.12.1/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
 cmake --build build --parallel 4
 ```
 
-[Configure](build.md#configure) explains the prefix path and the AGL option.
+[Requirements](build.md#requirements) says why aqtinstall comes from a commit, and [Configure](build.md#configure)
+explains the prefix path.
 
 On Ubuntu and Windows, install Qt as [Requirements](build.md#requirements) says and take the
 install and configure lines from [Configure](build.md#configure); the Ubuntu line installs `git`

@@ -61,6 +61,9 @@ KNOWN_GAPS = {
     ("release.yml", "setup action"),
 }
 
+# aqtinstall 3.3.0, the newest release, cannot install Qt 6.12.1 on Windows, so every Qt install takes it from this commit.
+AQTINSTALL = "git+https://github.com/miurahr/aqtinstall.git@4c759852b1108cc801d8e24979136b895b5155d4"
+
 
 def workflow_text(name: str) -> str:
     return (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
@@ -559,11 +562,11 @@ def check_references(checks: Checks, texts: dict, tests_cmake: str, characteriza
 
 
 def check_dependency_setup(checks: Checks, workflows: dict, texts: dict, action: dict) -> None:
-    """Qt 6.8.3 and the other libraries come from the setup action, and every job that installs Qt gets the same version."""
+    """Qt 6.12.1 and the other libraries come from the setup action, and every job that installs Qt installs it the same way."""
     expect = checks.expect
     install = next((step for step in action["runs"]["steps"] if step.get("uses", "").startswith("jurplel/install-qt-action@")), {})
-    expect(install.get("with", {}) == {"version": "6.8.3", "modules": "qtcharts", "cache": "true"},
-           "setup-deps: Qt 6.8.3 with Qt Charts from install-qt-action, cached")
+    expect(install.get("with", {}) == {"version": "6.12.1", "modules": "qtcharts", "cache": "true", "aqtsource": AQTINSTALL},
+           "setup-deps: Qt 6.12.1 with Qt Charts from install-qt-action, cached, with the aqtinstall that installs it on Windows")
     expect("ilammy/msvc-dev-cmd@v1" in flat(action) and "brew install zeromq cppzmq nlohmann-json" in flat(action)
            and "apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES" in flat(action),
            "setup-deps: the MSVC environment, and ZeroMQ, cppzmq and nlohmann-json from Homebrew and apt")
@@ -572,8 +575,8 @@ def check_dependency_setup(checks: Checks, workflows: dict, texts: dict, action:
             for item in job.get("steps", []):
                 installs = item.get("uses", "").startswith("jurplel/install-qt-action@")
                 expect(not installs, f"{name}: job {job_id} installs Qt with the setup action", gap=(name, "setup action"))
-                expect(not installs or item.get("with", {}).get("version") == install.get("with", {}).get("version"),
-                       f"{name}: job {job_id} installs the Qt version of the setup action")
+                expect(not installs or item.get("with", {}) == install.get("with", {}),
+                       f"{name}: job {job_id} installs Qt with the inputs of the setup action")
     qt5 = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|matrix\.qt|ARTIFACT_SUFFIX")
     for name, text in texts.items():
         found = qt5.search(text)
@@ -679,7 +682,8 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     deploy = [line.strip() for line in runs(package["jobs"]["package-windows"]).splitlines() if "windeployqt.exe" in line]
     expect(
         len(deploy) == 1 and [line.strip() for line in start.splitlines() if "windeployqt.exe" in line] == deploy
-        and all(part in start and part in release_text for part in ('installed/x64-windows/bin/*.dll" $dist/', 'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"')),
+        and all(part in start and part in release_text for part in ('installed/x64-windows/bin/*.dll" $dist/', 'Remove-Item -LiteralPath "$dist/icuuc.dll"',
+                                                                   'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"')),
         "cmake.yml: the Windows start check assembles the package with the windeployqt line and the commands of the package job",
     )
     # A failed leg uploads the CTest log, the GUI smoke log and the folders of the smokes. CTest writes below runner.temp.
@@ -1023,19 +1027,19 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
         "document type and the programs of the app in it and of a copy, and runs the copy; no later step uses the app",
     )
 
-    # Windows: the job leaves out the OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and redistributable files,
+    # Windows: the job leaves out the OpenGL, Direct3D, DXC, ICU, Qt Quick, QML, virtual keyboard and redistributable files,
     # copies the Visual C++ runtime DLLs, checks the imports, reports the size and the signatures, starts a copy and checks
     # HTTPS from it, and then uploads the folder that it checked.
     windows = jobs["package-windows"]
     windows_runs = runs(windows)
     expect(
         all(option in windows_runs for option in ("--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler", "--no-system-dxc-compiler", "--no-quick-import"))
-        and '@("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")' in windows_runs
+        and '@("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","icu*.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")' in windows_runs
         and all(f'if (-not (Test-Path "$dist/{name}")) {{ throw "missing {name}" }}' in windows_runs for name in ("iconengines/qsvgicon.dll", "styles/qmodernwindowsstyle.dll"))
         and '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' in windows_runs and "python tools/release/pe_imports.py $dist --missing" in windows_runs
         and not re.search(r"\d+\.\d+\.\d+", step(windows, "VCToolsRedistDir").get("run", ""))
         and "$env:GITHUB_STEP_SUMMARY" in windows_runs and "zip" not in flat(windows).lower(),
-        "package.yml: the Windows package without the software OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and "
+        "package.yml: the Windows package without the software OpenGL, Direct3D, DXC, ICU, Qt Quick, QML, virtual keyboard and "
         "redistributable files, with the runtime DLLs that it imports and its size in the job summary",
     )
     # The HTTPS probe exits with this code on a rate limit or an outage of GitHub, which does not fail the job.

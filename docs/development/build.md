@@ -11,7 +11,7 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 - CMake 3.16 or newer, or 3.21 or newer for the presets in `CMakePresets.json`
 - C++17 compiler
 - Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
-  (`qhelpgenerator` builds the manual). CI and the release packages use Qt 6.8.3.
+  (`qhelpgenerator` builds the manual). CI and the release packages use Qt 6.12.1.
 - ZeroMQ, cppzmq, and nlohmann-json
 - Python 3.9 or newer, found by `find_package(Python3)` at configure time;
   CTest runs its Python tests with that interpreter. On Windows, set
@@ -26,30 +26,36 @@ that names Qt 6.
 
 Supported toolchains, as used by CI:
 
-- macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.
-- Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
+- macOS: Qt 6.12.1, Xcode 16 or newer (Qt 6.12 needs the macOS 15 SDK or a newer one) and the Homebrew packages in
+  the configure example below.
+- Windows 10 (1809 or later) or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.12.1
   `msvc2022_64` with Qt Charts, and the vcpkg manifest `tools/vcpkg/vcpkg.json` (ZeroMQ, cppzmq and
-  nlohmann-json at its `builtin-baseline`) for the `x64-windows` triplet. 32-bit Windows is not supported.
-- Linux: Ubuntu 24.04 (the `ubuntu-24.04` runner image) with Qt 6.8.3 and the apt
+  nlohmann-json at its `builtin-baseline`) for the `x64-windows` triplet. 32-bit Windows is not supported. Qt 6.12
+  is the last Qt release that supports Windows 10.
+- Linux: Ubuntu 24.04 (the `ubuntu-24.04` runner image) with Qt 6.12.1 and the apt
   packages in the configure example below. The AppImage needs the glibc of the
   system that builds it, so CI builds and tests on 24.04 and not on `ubuntu-latest`.
 
-CI installs Qt 6.8.3 with the Qt Charts module through `jurplel/install-qt-action`, which runs
+[Supported Platforms](https://doc.qt.io/qt-6.12/supported-platforms.html) of Qt 6.12 lists the systems that Qt
+itself supports.
+
+CI installs Qt 6.12.1 with the Qt Charts module through `jurplel/install-qt-action`, which runs
 [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). The same
 installer works on a developer machine; the [Qt online installer](#qt-online-installer) is the other
-way. Homebrew's `qt` formula follows the newest Qt release, not the 6.8.3 of CI.
+way. Homebrew's `qt` formula follows the newest Qt release, which can differ from the 6.12.1 of CI.
 
 aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
 take packages from `pip` directly. On Windows the commands are in `~\aqt-venv\Scripts` instead of
-`~/aqt-venv/bin`.
+`~/aqt-venv/bin`. aqtinstall 3.3.0, its newest release, cannot install Qt 6.11 or later on Windows, so CI installs
+aqtinstall from a commit of its main branch that can, and the `pip` line below installs the same commit. It needs Git.
 
 ```bash
 python3 -m venv ~/aqt-venv
-~/aqt-venv/bin/pip install aqtinstall
-~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.8.3/macos
-~/aqt-venv/bin/aqt install-qt linux desktop 6.8.3 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.8.3/gcc_64
-~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.8.3 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.8.3/gcc_arm64
-~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
+~/aqt-venv/bin/pip install "git+https://github.com/miurahr/aqtinstall.git@4c759852b1108cc801d8e24979136b895b5155d4"
+~/aqt-venv/bin/aqt install-qt mac desktop 6.12.1 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.12.1/macos
+~/aqt-venv/bin/aqt install-qt linux desktop 6.12.1 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.12.1/gcc_64
+~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.12.1 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.12.1/gcc_arm64
+~/aqt-venv/bin/aqt install-qt windows desktop 6.12.1 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.12.1\msvc2022_64
 ```
 
 ### Qt online installer
@@ -58,12 +64,12 @@ The [Qt online installer](https://www.qt.io/development/download-qt-installer-os
 these choices give the Qt that the Windows presets expect:
 
 1. Sign in with a Qt account when the installer asks for one. A free account is enough.
-2. Set the installation folder to `C:\Qt`, so that Qt ends up in `C:\Qt\6.8.3\msvc2022_64`, where the presets look.
+2. Set the installation folder to `C:\Qt`, so that Qt ends up in `C:\Qt\6.12.1\msvc2022_64`, where the presets look.
    For Qt in another folder, see the `CMakeUserPresets.json` example under [Visual Studio](#visual-studio).
 3. Choose **Custom installation** instead of the default installation.
-4. Qt 6.8.3 is an older release, so the list may not show it at first. Tick **Archive** in the filter on the right
-   and click **Filter**.
-5. Under **Qt > Qt 6.8.3**, tick **MSVC 2022 64-bit** and, under **Additional Libraries**, **Qt Charts**. Leave
+4. Once a newer Qt release is out, the list may not show Qt 6.12.1 at first. Tick **Archive** in the filter on the
+   right and click **Filter**.
+5. Under **Qt > Qt 6.12.1**, tick **MSVC 2022 64-bit** and, under **Additional Libraries**, **Qt Charts**. Leave
    everything else unticked: EGTRAIN needs no MinGW, Android or WebAssembly build and no other additional library.
    The other modules it uses (Svg, Network and Help, and Test for the tests) and the tools that build the manual come
    with **MSVC 2022 64-bit**.
@@ -77,26 +83,24 @@ folder in `CMAKE_PREFIX_PATH` as in [Configure](#configure).
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=<Qt 6 folder>
 ```
 
-On macOS, with Qt in `~/Qt/6.8.3/macos`:
+On macOS, with Qt in `~/Qt/6.12.1/macos`:
 
 ```bash
 brew install zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
-  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
-  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.12.1/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
 ```
 
 The prefix path names the keg folders of the other libraries, not `/opt/homebrew`, whose include folder
-can hold the headers of another Qt. Qt 6.8.3 links the AGL framework, which the macOS 26 SDK no longer
-has; `WrapOpenGL_AGL` links the OpenGL framework in its place.
+can hold the headers of another Qt.
 
-On Ubuntu, with Qt in `~/Qt/6.8.3/gcc_64`:
+On Ubuntu, with Qt in `~/Qt/6.12.1/gcc_64`:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y build-essential cmake git python3 python3-venv libgl-dev \
   libzmq3-dev cppzmq-dev nlohmann-json3-dev
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/gcc_64"
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.12.1/gcc_64"
 ```
 
 To open the window, the X11 platform plugin of that Qt also needs `libxcb-cursor0`.
@@ -114,7 +118,7 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 ```
 
 The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
-the packages use 6.8.3, so a difference between the two shows only there.
+the packages use 6.12.1, so a difference between the two shows only there.
 
 On macOS and Linux, `CMakePresets.json` also has the presets `macos-debug`, `macos-release`, `linux-debug` and
 `linux-release`. They build with Ninja (`brew install ninja`, or `sudo apt-get install -y ninja-build`) and with the
@@ -123,18 +127,17 @@ them, so later configures need only the preset:
 
 ```bash
 cmake --preset macos-release \
-  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
-  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.12.1/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
 cmake --build --preset macos-release
 ctest --preset macos-release
 ```
 
-On Linux, use `linux-release` and leave out `WrapOpenGL_AGL`. A preset build puts the application in
+On Linux, use `linux-release`, with only the Qt folder in the prefix path. A preset build puts the application in
 `out/build/<preset>`, not in `build/`. CTest gives the smoke tests that path; a smoke script run by hand needs it in
 `QEGTRAIN_APP` (see [Platform coverage](testing.md#platform-coverage)).
 
 On Windows, `CMakePresets.json` holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
-`x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.8.3/msvc2022_64`, and the tests.
+`x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.12.1/msvc2022_64`, and the tests.
 From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the root folder of the source tree:
 
 ```powershell
@@ -176,7 +179,7 @@ uses the presets:
 
 1. Install Visual Studio 2022 or newer with the **Desktop development with C++** workload. Its default components
    include the C++ CMake tools and the vcpkg package manager.
-2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
+2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.12.1 `msvc2022_64` with Qt Charts into `C:\Qt`, with
    aqtinstall as in [Requirements](#requirements) or with the [Qt online installer](#qt-online-installer).
 3. Open the root folder of the source tree with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
    first configure on a machine also builds the vcpkg libraries and takes longer.
@@ -196,7 +199,7 @@ and pick its preset in step 4:
     {
       "name": "my-debug",
       "inherits": "x64-debug",
-      "environment": { "QT_ROOT_DIR": "D:/Qt/6.8.3/msvc2022_64" }
+      "environment": { "QT_ROOT_DIR": "D:/Qt/6.12.1/msvc2022_64" }
     }
   ]
 }
@@ -354,7 +357,7 @@ From `EGTRAIN/QEGTRAIN`, use the executable produced by the selected generator:
 A single-config Windows build may place the executable at
 `..\..\build\QEGTRAIN.exe`, and a preset build at `..\..\out\build\x64-release\QEGTRAIN.exe`.
 Started outside Visual Studio, it needs the Qt `bin` folder on `PATH`, for example
-`$env:PATH = "C:\Qt\6.8.3\msvc2022_64\bin;$env:PATH"`. Without it the program exits with no window or message.
+`$env:PATH = "C:\Qt\6.12.1\msvc2022_64\bin;$env:PATH"`. Without it the program exits with no window or message.
 These are local build paths; downloaded release packages are documented in [Installing EGTRAIN](../guides/install.md).
 
 Runtime output defaults to
@@ -372,7 +375,7 @@ against `CMakeLists.txt` and the scripts but not run.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.8.3/macos` or `C:/Qt/6.8.3/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
+| `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.12.1/macos` or `C:/Qt/6.12.1/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
 | `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or Qt Charts in the [Qt online installer](#qt-online-installer); `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows use a preset, or pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
 | `Could not find toolchain file: "/scripts/buildsystems/vcpkg.cmake"` | `VCPKG_ROOT` is not set: the shell is not a Developer PowerShell, or Visual Studio lacks the vcpkg package manager | Use an x64 Developer PowerShell, and add the vcpkg package manager in the Visual Studio Installer |

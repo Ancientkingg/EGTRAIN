@@ -14,7 +14,7 @@ import macos_build_paths
 MACHO_MAGIC = b"\xcf\xfa\xed\xfe"
 
 CLEAN_DEPENDENCIES = """\t@loader_path/libqjpeg.dylib (compatibility version 0.0.0, current version 0.0.0)
-\t@executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore (compatibility version 6.0.0, current version 6.8.3)
+\t@executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore (compatibility version 6.0.0, current version 6.12.1)
 \t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)"""
 CLEAN_LOAD_COMMANDS = """Load command 5
           cmd LC_ID_DYLIB

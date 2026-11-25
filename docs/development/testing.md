@@ -46,7 +46,7 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
   `QVERIFY2(condition, message)`.
 - `QCOMPARE` treats floating-point values as equal within a relative 1e-12, and anything within 1e-12 of zero as zero.
   `QCOMPARE_EQ` compares exactly. Keep it to numbers: with a string literal, Qt 6.8.3 crashes when the comparison
-  fails.
+  fails. Qt 6.12.1 does not, but the tests also build with older Qt releases.
 - A check over a table becomes a `_data()` slot with `QTest::addColumn` and `QTest::newRow`; each row reports on its
   own (`tests/test_timeformat.cpp`).
 - clang-tidy does not know that a failed `QVERIFY` ends the slot. Before a pointer that may be null is used, check it

@@ -75,7 +75,10 @@ class PeImportsTests(unittest.TestCase):
 
     def test_system_dlls_and_shipped_dlls_pass(self):
         make_pe(self.package / "QEGTRAIN.exe", ["KERNEL32.dll", "api-ms-win-crt-runtime-l1-1-0.dll", "Qt6Core.dll", "ucrtbase.dll"])
-        make_pe(self.package / "Qt6Core.dll", ["kernel32.dll"])
+        # Qt 6.12 takes ICU and the colour profiles from Windows.
+        make_pe(self.package / "Qt6Core.dll", ["kernel32.dll", "icuuc.dll"])
+        (self.package / "platforms").mkdir()
+        make_pe(self.package / "platforms" / "qwindows.dll", ["Qt6Core.dll", "mscms.dll"])
         code, out, err = run(self.package)
         self.assertEqual((code, err), (0, ""))
         self.assertIn("OK", out)

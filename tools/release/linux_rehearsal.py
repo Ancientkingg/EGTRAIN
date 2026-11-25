@@ -378,9 +378,15 @@ def walk(accessible, depth: int = 0, max_depth: int = 8):
             yield from walk(child, depth + 1, max_depth)
 
 
+# The roles of a dock widget: Qt 6.8 reports a frame, Qt 6.12 a panel.
+DOCK_ROLES = ("frame", "panel")
+
+
 def matches(root, role=None, name=None, pattern=None, max_depth: int = 8):
+    """The accessibles below root with this role (a role name or a tuple of them), name and name pattern."""
+    roles = (role,) if isinstance(role, str) else role
     for accessible, _ in walk(root, 0, max_depth):
-        if role is not None and role_of(accessible) != role:
+        if roles is not None and role_of(accessible) not in roles:
             continue
         label = name_of(accessible)
         if name is not None and label != name:
@@ -569,13 +575,13 @@ class Rehearsal:
     def show_dock(self, menu_name: str, frame_name: str):
         """Shows a dock through its checkable menu entry unless it is shown, and returns its frame."""
         item = self.menu_item(menu_name)
-        frame = find_first(self.main_frame(), "frame", frame_name, max_depth=1)
+        frame = find_first(self.main_frame(), DOCK_ROLES, frame_name, max_depth=1)
         if frame is None or not is_showing(frame):
             self.press(item)
         return wait_until(lambda: self.dock(frame_name), UI_TIMEOUT_SECONDS, f"the dock {frame_name}")
 
     def dock(self, frame_name: str):
-        frame = find_first(self.main_frame(), "frame", frame_name, max_depth=1)
+        frame = find_first(self.main_frame(), DOCK_ROLES, frame_name, max_depth=1)
         return frame if frame is not None and is_showing(frame) else None
 
     def button(self, root, name: str, timeout: float = UI_TIMEOUT_SECONDS):
@@ -941,7 +947,7 @@ class Rehearsal:
 
     def export(self, button_name: str, dialog_name: str, path: Path) -> None:
         def shown():
-            frame = find_first(self.main_frame(), "frame", pattern=r"^Run Results", max_depth=1)
+            frame = find_first(self.main_frame(), DOCK_ROLES, pattern=r"^Run Results", max_depth=1)
             return frame if frame is not None and is_showing(frame) else None
         if shown() is None:
             self.press(self.menu_item(pattern=r"^Run Results"))

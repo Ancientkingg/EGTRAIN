@@ -112,7 +112,7 @@ include_directories(${SRC_DIR})
 # ToolsTools defines the qhelpgenerator target that builds the manual.
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts Svg Network Help ToolsTools)
 if(NOT Qt6_FOUND)
-    message(FATAL_ERROR "EGTRAIN needs Qt 6 with the Charts, Svg and Help modules; CI builds with Qt 6.8.3. "
+    message(FATAL_ERROR "EGTRAIN needs Qt 6 with the Charts, Svg and Help modules; CI builds with Qt 6.12.1. "
         "Add the folder of the Qt 6 installation to CMAKE_PREFIX_PATH.")
 endif()
 
