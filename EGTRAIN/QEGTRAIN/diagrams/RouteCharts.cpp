@@ -1,9 +1,11 @@
 #include "diagrams/RouteCharts.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
 #include <QPen>
+#include <QPointer>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QLegendMarker>
 #include <QtCharts/QLineSeries>
@@ -11,6 +13,8 @@
 #include <cmath>
 #include <iterator>
 #include <map>
+#include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -37,6 +41,14 @@ constexpr char kBlockingTimeLayer[] = "blocking time";
 // The reference route in the header of a route chart: "route0", with ", right to left" when the route runs that way.
 QString referenceRouteText(const std::string& routeId, bool leftward) {
 	return QString::fromStdString(routeId) + (leftward ? QStringLiteral(", right to left") : QString());
+}
+
+// The train ids of `ids` as standard strings, for the CSV builders.
+std::vector<std::string> toStdStrings(const QStringList& ids) {
+	std::vector<std::string> out;
+	out.reserve(static_cast<std::size_t>(ids.size()));
+	for (const QString& id : ids) out.push_back(id.toStdString());
+	return out;
 }
 
 // Asks setChart for the range of the axis as it is, with round ticks inside it.
@@ -192,6 +204,139 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	return {chart, stationAxis, std::move(stationTicks), referenceRouteText(referencePath.id, end < origin)};
+}
+
+RouteChart buildTrainLoadChart(const TrainLoadDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds,
+	bool darkBackground) {
+	const RouteDiagramPath& referencePath = diagram.referencePath;
+	const double origin = referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.back().positionKm;
+	auto* chart = new QChart();
+	std::vector<double> callPositions;
+	for (const RouteDiagramSeries& source : calls.series)
+		if (source.kind == RouteDiagramSeries::Kind::Event)
+			for (const RouteDiagramPoint& point : source.points) callPositions.push_back(point.positionKm);
+
+	for (const TrainLoadSegment& segment : diagram.segments) {
+		if (segment.points.empty()) continue;
+		const QString name = QString::fromStdString(segment.trainId);
+		auto* series = new QLineSeries();
+		series->setName(name);
+		SeriesMeta meta = metaOfTrain(name);
+		meta.ownColour = true;
+		const double rate = segment.occupancyRate();
+		const QColor colour = passengerLoadColour(rate, diagram.crowdingThreshold, darkBackground);
+		const double width = passengerLoadLineWidth(rate, diagram.crowdingThreshold);
+		const Qt::PenStyle style = segment.capacity > 0 ? Qt::SolidLine : Qt::DotLine;
+		series->setPen(QPen(colour, width, style, Qt::RoundCap, Qt::RoundJoin));
+		series->setPointsVisible(segment.points.size() == 1);
+		if (segment.capacity > 0) {
+			meta.keyKind = QString();
+		} else {
+			meta.keyKind = QStringLiteral("No capacity");
+			meta.keyPen = QPen(colour, 2.0, Qt::DotLine);
+		}
+
+		QStringList lines;
+		if (!segment.fromStation.empty() && !segment.toStation.empty()) {
+			lines << QStringLiteral("%1 to %2").arg(QString::fromStdString(segment.fromStation), QString::fromStdString(segment.toStation));
+		} else if (!segment.fromStation.empty()) {
+			lines << QStringLiteral("After %1").arg(QString::fromStdString(segment.fromStation));
+		} else if (!segment.toStation.empty()) {
+			lines << QStringLiteral("Before %1").arg(QString::fromStdString(segment.toStation));
+		}
+		if (segment.capacity > 0) {
+			const int percent = static_cast<int>(std::lround(rate * 100.0));
+			const QString status = segment.load >= segment.capacity ? QStringLiteral(", full")
+				: segment.isCrowded(diagram.crowdingThreshold)		? QStringLiteral(", crowded")
+																	: QString();
+			lines << QStringLiteral("Load: %1 / %2 (%3%%4)").arg(segment.load).arg(segment.capacity).arg(percent).arg(status);
+		} else {
+			lines << QStringLiteral("Load: %1 (no capacity)").arg(segment.load);
+		}
+		if (segment.leftBehind > 0)
+			lines << QStringLiteral("Left behind: %1").arg(segment.leftBehind);
+		if (segment.hasCall) {
+			const QString station = QString::fromStdString(segment.fromStation);
+			lines << QString() << QStringLiteral("Boarded at %1: %2").arg(station).arg(segment.boarded)
+				  << QStringLiteral("Alighted at %1: %2").arg(station).arg(segment.alighted);
+		}
+		meta.inspectionInterval = lines.join('\n');
+
+		for (const RouteDiagramPoint& point : segment.points)
+			series->append(point.positionKm, point.seconds);
+		describeSeries(series, meta);
+		chart->addSeries(series);
+	}
+	chart->createDefaultAxes();
+	std::vector<StationTick> stationTicks;
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks, callPositions);
+	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
+	axisY->setTitleText("Time (s)");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, horizonSeconds));
+	for (auto* series : chart->series())
+		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
+	return {chart, stationAxis, std::move(stationTicks), referenceRouteText(referencePath.id, end < origin)};
+}
+
+void showTrainPaths(DiagramWindow& window, const TrainPathsSource& source, RouteDiagramData paths) {
+	// The run does not change while the window is open, so what both modes need is made once.
+	const auto pathLines = std::make_shared<const RouteDiagramData>(std::move(paths));
+	// The stops of the timetable graph of the reference route name the busiest stations first.
+	std::optional<RouteDiagramData> stops = routeDiagramData(*source.run, true, source.referenceIndex);
+	const auto calls = std::make_shared<const RouteDiagramData>(stops ? std::move(*stops) : RouteDiagramData());
+	const QHash<QString, QString> services = trainServicesForRun(source.run->results);
+	const QPointer<DiagramWindow> target(&window);
+	const auto show = [target, source, pathLines, calls, services](bool passengerLoad) {
+		if (!target) return;
+		DiagramWindow& win = *target;
+		const CompletedRunData& run = *source.run;
+		const auto zoomX = win.visibleRange(Qt::Horizontal);
+		const auto zoomY = win.visibleRange(Qt::Vertical);
+		std::shared_ptr<const TrainLoadDiagramData> load;
+		bool dark = false;
+		RouteChart route;
+		if (passengerLoad) {
+			std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(run, source.referenceIndex);
+			if (!data) return;
+			load = std::make_shared<const TrainLoadDiagramData>(std::move(*data));
+			dark = isDarkBackground(win.palette());
+			route = buildTrainLoadChart(*load, *calls, run.settings.horizonSeconds(), dark);
+		} else {
+			route = buildRouteDiagramChart(*pathLines, *calls, run.settings.horizonSeconds());
+		}
+		// The header names the run and then the reference route, which the distance axis follows.
+		win.setPresentation(load ? QStringLiteral("Passenger load") : source.title,
+			source.context + QStringLiteral(" \u00b7 ") + route.referenceRoute);
+		// The trains that were hidden stay hidden.
+		win.setChart(route.chart);
+		if (route.stationAxis) win.setStationAxis(route.stationAxis, std::move(route.stationTicks));
+		win.setTrainColors(source.serviceColours);
+		win.setTrainServices(services);
+		if (load) {
+			// The Key and the figure keep the variant of the colours that the lines have, also after a change of palette.
+			win.setLoadScale(DiagramLoadScale{load->crowdingThreshold, dark});
+			win.setCsvProvider([load](const QStringList& visible) { return buildTrainLoadCsv(*load, toStdStrings(visible)); },
+				QStringLiteral("train_load.csv"));
+			win.setFigureFileName(QStringLiteral("train_load.png"));
+		} else {
+			const std::shared_ptr<const CompletedRunData> shared = source.run;
+			const int reference = source.referenceIndex;
+			win.setCsvProvider(
+				[shared, reference](const QStringList& visible) {
+					return buildRouteDiagramCsv(routeDiagramCsvRows(*shared, false, reference), toStdStrings(visible));
+				},
+				QStringLiteral("train_path_graph.csv"));
+			win.setFigureFileName(QString());
+		}
+		win.setTimeAxisY(true, run.settings.startOffsetSeconds);
+		if (zoomX) win.setVisibleRange(Qt::Horizontal, zoomX->first, zoomX->second);
+		if (zoomY) win.setVisibleRange(Qt::Vertical, zoomY->first, zoomY->second);
+	};
+	window.offerPassengerLoadMode(source.run->settings.hasPassengers, show);
+	show(false);
 }
 
 QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, long long startOffsetSeconds) {

@@ -124,6 +124,7 @@ class TestPassengerResults : public QObject {
 
 private slots:
 	void callCountsBoardedAlightedLeftBehindAndLoad();
+	void earlierCallNotMetHasNoCounts();
 	void secondCallOfAStationHasItsOwnCounts();
 	void leftBehindPassengerIsCountedOncePerCall();
 	void stopRowTakesTimesFromTheTrain();
@@ -448,6 +449,19 @@ void TestPassengerResults::unwritableFolderThrowsWithThePath() {
 	} catch (const std::runtime_error& error) {
 		QVERIFY2(std::string(error.what()).rfind("Cannot write " + underFile + "/PassengerJourneys.txt: ", 0) == 0, error.what());
 	}
+}
+
+// Meeting a later call of a train does not make the calls before it count as met: find gives null for them.
+void TestPassengerResults::earlierCallNotMetHasNoCounts() {
+	StopCallLog log;
+	log.at(0, 2).boarded = 3;
+	QVERIFY(log.find(0, 0) == nullptr);
+	QVERIFY(log.find(0, 1) == nullptr);
+	const StopCallCounts* met = log.find(0, 2);
+	QVERIFY(met != nullptr);
+	QCOMPARE(met->boarded, 3);
+	log.at(0, 1);
+	QVERIFY(log.find(0, 1) != nullptr);
 }
 
 QTEST_APPLESS_MAIN(TestPassengerResults)

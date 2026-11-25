@@ -422,7 +422,8 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/diagrams/TrainColors.cpp
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp
-    ${SRC_DIR}/diagrams/TrainKeyList.cpp)
+    ${SRC_DIR}/diagrams/TrainKeyList.cpp
+    ${SRC_DIR}/diagrams/TrainLoadData.cpp)
 target_link_libraries(egtrain_diagrams
     PUBLIC Qt::Core Qt::Gui Qt::Network Qt::Widgets Qt::Charts egtrain_sim)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)

@@ -137,16 +137,19 @@ string formatRatio(double value) {
 StopCallCounts& StopCallLog::at(int train, int stop) {
 	if (static_cast<size_t>(train) >= calls_.size())
 		calls_.resize(static_cast<size_t>(train) + 1);
-	vector<StopCallCounts>& stops = calls_[static_cast<size_t>(train)];
+	vector<Entry>& stops = calls_[static_cast<size_t>(train)];
 	if (static_cast<size_t>(stop) >= stops.size())
 		stops.resize(static_cast<size_t>(stop) + 1);
-	return stops[static_cast<size_t>(stop)];
+	Entry& entry = stops[static_cast<size_t>(stop)];
+	entry.met = true;
+	return entry.counts;
 }
 
 const StopCallCounts* StopCallLog::find(int train, int stop) const {
 	if (static_cast<size_t>(train) >= calls_.size() || static_cast<size_t>(stop) >= calls_[static_cast<size_t>(train)].size())
 		return nullptr;
-	return &calls_[static_cast<size_t>(train)][static_cast<size_t>(stop)];
+	const Entry& entry = calls_[static_cast<size_t>(train)][static_cast<size_t>(stop)];
+	return entry.met ? &entry.counts : nullptr;
 }
 
 vector<GuiStationCall> stationCalls(const SimulationRun& run) {

@@ -186,7 +186,7 @@ private:
 	std::map<std::pair<int, std::string>, std::vector<std::string>> m_cache;
 };
 
-std::vector<CompletedStop> captureStops(const Train& train, StationSections& sections) {
+std::vector<CompletedStop> captureStops(const Train& train, int trainIndex, const StopCallLog& stopCalls, StationSections& sections) {
 	std::vector<CompletedStop> stops;
 	const int count = std::min({train.numStations, static_cast<int>(Train::kMaxTimetableStations),
 		static_cast<int>(train.Stations.size())});
@@ -200,6 +200,15 @@ std::vector<CompletedStop> captureStops(const Train& train, StationSections& sec
 		stop.routePositionMeters = train.stationRoutePositionMeters(index);
 		stop.scheduledArrival = train.ScheduledArrivals[index];
 		stop.scheduledDeparture = train.ScheduledDepartures[index];
+		stop.stopped = node.StepStopped > 0;
+		stop.standStartSeconds = train.StationStandStarts[index];
+		if (const StopCallCounts* counts = stopCalls.find(trainIndex, index)) {
+			stop.hasStopCall = true;
+			stop.boarded = counts->boarded;
+			stop.alighted = counts->alighted;
+			stop.leftBehind = counts->leftBehind;
+			stop.loadAfter = counts->loadAfter;
+		}
 		if (onKnownRoute)
 			stop.routeBlockIds = sections.of(train.indexOfRoute, node.stationName);
 		stops.push_back(std::move(stop));
@@ -207,7 +216,8 @@ std::vector<CompletedStop> captureStops(const Train& train, StationSections& sec
 	return stops;
 }
 
-CompletedTrain captureTrain(const Train& source, BlockNameTable& blocks, StationSections& sections) {
+CompletedTrain captureTrain(const Train& source, int trainIndex, const StopCallLog& stopCalls, BlockNameTable& blocks,
+	StationSections& sections) {
 	CompletedTrain train;
 	train.trainId = source.trainDescription;
 	train.operatingCode = source.operatingCode;
@@ -217,8 +227,9 @@ CompletedTrain captureTrain(const Train& source, BlockNameTable& blocks, Station
 	train.routeId = source.TrainRouteID;
 	train.scheduledDepartureTime = source.scheduled_departure_time;
 	train.runStartTime = source.RunStartTime;
+	train.passengerCapacity = source.MAX_OnBoard_Passengers;
 	train.blockTimes = convertBlockTimes(source);
-	train.stops = captureStops(source, sections);
+	train.stops = captureStops(source, trainIndex, stopCalls, sections);
 	train.trajectory = captureTrajectory(source, blocks);
 	return train;
 }
@@ -232,6 +243,8 @@ CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel*
 	data.settings.horizonSteps = run.settings.times;
 	data.settings.startOffsetSeconds = startOffsetSeconds;
 	data.settings.caseName = provenance.caseName;
+	data.settings.passengerOnboardCrowdingThreshold = run.settings.passengerOnboardCrowdingThreshold;
+	data.settings.hasPassengers = !run.passengers.empty();
 	data.provenance = provenance;
 	if (scene)
 		data.sectionLabels = sceneSectionLabels(buildSceneSectionInventory(*scene));
@@ -243,8 +256,8 @@ CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel*
 	BlockNameTable blocks(data.blockNames);
 	StationSections sections(run.infra.routes);
 	data.trains.reserve(trains.size());
-	for (const Train* train : trains)
-		data.trains.push_back(captureTrain(*train, blocks, sections));
+	for (std::size_t trainIndex = 0; trainIndex < trains.size(); ++trainIndex)
+		data.trains.push_back(captureTrain(*trains[trainIndex], static_cast<int>(trainIndex), run.stopCalls, blocks, sections));
 
 	data.routes.reserve(run.infra.routes.size());
 	for (const Route& route : run.infra.routes) {
