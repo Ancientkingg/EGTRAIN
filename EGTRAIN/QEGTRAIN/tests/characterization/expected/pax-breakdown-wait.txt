@@ -109,37 +109,36 @@ pax w1 state t=300 in=1 status=OnPlatform journey=w1.1 trip=w1.1.live1 waiting=B
 gui_platform B B.platform.1 t=300 ids=- count=1
 pax w2 state t=600 in=1 status=OnPlatform journey=w2.1 trip=w2.1.live1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
 gui_platform B B.platform.1 t=600 ids=- count=2
+pax w1 state t=761 in=1 status=OnBoard journey=w1.1 trip=w1.1.live2 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
+pax w2 state t=761 in=1 status=OnBoard journey=w2.1 trip=w2.1.live2 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
+gui_platform B B.platform.1 t=761 ids=-
+onboard Q2-1 t=761 n=2 max=300
 pax w3 state t=810 in=1 status=OnBoard journey=w3.1 trip=w3.1.live1 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
-onboard Q2-1 t=810 n=1 max=300
-pax w1 state t=962 in=1 status=OnBoard journey=w1.1 trip=w1.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
-pax w2 state t=962 in=1 status=OnBoard journey=w2.1 trip=w2.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
-gui_platform B B.platform.1 t=962 ids=-
-onboard Q1-1 t=962 n=2 max=300
+onboard Q2-1 t=810 n=3 max=300
+pax w1 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
+pax w2 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax w3 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 onboard Q2-1 t=1274 n=0 max=300
-pax w1 state t=1295 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-pax w2 state t=1295 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-onboard Q1-1 t=1295 n=0 max=300
-journey w1 w1.1 started=1 completed=1 dep=25500.000000 arr=26495.000000 walking=0.000000 waiting=662.000000 delay=45
-trip w1 w1.1.live1 started=1 completed=1 dep=25500 arr=26495 delay=45
-journey w2 w2.1 started=1 completed=1 dep=25800.000000 arr=26495.000000 walking=0.000000 waiting=362.000000 delay=45
-trip w2 w2.1.live1 started=1 completed=1 dep=25800 arr=26495 delay=45
+journey w1 w1.1 started=1 completed=1 dep=25500.000000 arr=26474.000000 walking=0.000000 waiting=461.000000 delay=24 replanned=1
+trip w1 w1.1.live2 started=1 completed=1 dep=25961 arr=26474 delay=-126
+journey w2 w2.1 started=1 completed=1 dep=25800.000000 arr=26474.000000 walking=0.000000 waiting=161.000000 delay=24 replanned=1
+trip w2 w2.1.live2 started=1 completed=1 dep=25961 arr=26474 delay=-126
 journey w3 w3.1 started=1 completed=1 dep=26010.000000 arr=26474.000000 walking=0.000000 waiting=0.000000 delay=-126
 trip w3 w3.1.live1 started=1 completed=1 dep=26010 arr=26474 delay=-126
 file PassengerStatus.txt Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation
 file JourneyDelays.txt PaxID JourneyID TotalArrivalDelay[s]
-file JourneyDelays.txt w1 w1.1 45
-file JourneyDelays.txt w2 w2.1 45
+file JourneyDelays.txt w1 w1.1 24
+file JourneyDelays.txt w2 w2.1 24
 file JourneyDelays.txt w3 w3.1 -126
 file PassengerJourneys.txt PaxID JourneyID Mode Origin Destination Appeared Trains Wait Walk InVehicle Arrival Delay Replanned Outcome
-file PassengerJourneys.txt w1 w1.1 live B C 25500 Q1-1 662 0 333 26495 45 0 completed
-file PassengerJourneys.txt w2 w2.1 live B C 25800 Q1-1 362 0 333 26495 45 0 completed
+file PassengerJourneys.txt w1 w1.1 live B C 25500 Q2-1 461 0 513 26474 24 1 completed
+file PassengerJourneys.txt w2 w2.1 live B C 25800 Q2-1 161 0 513 26474 24 1 completed
 file PassengerJourneys.txt w3 w3.1 live B C 26010 Q2-1 0 0 464 26474 -126 0 completed
 file StationStops.txt Train Station Platform Arrival Departure Boarded Alighted LeftBehind LoadAfterDeparture Capacity LoadFactor
 file StationStops.txt Q1-1 P P.platform.1 25421 26000 0 0 0 0 300 0.000
-file StationStops.txt Q1-1 B B.platform.1 26162 26222 2 0 0 2 300 0.007
-file StationStops.txt Q1-1 C C.platform.1 26495 26555 0 2 0 0 300 0.000
-file StationStops.txt Q2-1 B B.platform.1 25492 26201 1 0 0 1 300 0.003
-file StationStops.txt Q2-1 C C.platform.1 26474 26534 0 1 0 0 300 0.000
+file StationStops.txt Q1-1 B B.platform.1 26162 26222 0 0 0 0 300 0.000
+file StationStops.txt Q1-1 C C.platform.1 26495 26555 0 0 0 0 300 0.000
+file StationStops.txt Q2-1 B B.platform.1 25492 26201 3 0 0 3 300 0.010
+file StationStops.txt Q2-1 C C.platform.1 26474 26534 0 3 0 0 300 0.000
 file ODSummary.txt Origin Destination Journeys Completed NoRoute MeanWait P95Wait MeanTravel MeanDelay
-file ODSummary.txt B C 3 3 0 341.333 662 718.000 -12.000
+file ODSummary.txt B C 3 3 0 207.333 461 704.000 -26.000

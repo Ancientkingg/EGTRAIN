@@ -62,6 +62,15 @@ struct TrainState {
 	double departure(const TrainTimetable& train, std::size_t stop) const {
 		return departures.empty() ? train.stops[stop].departure : departures[stop];
 	}
+	/// The latest time at which a passenger can be on the platform to board the train at stop: the departure there, or, at a stop
+	/// without a planned departure, the arrival, as the train leaves such a stop when it gets there. Below 0 when the stop has
+	/// neither. A search boards only at stops with a planned departure, where this is departure().
+	double boardingDeadline(const TrainTimetable& train, std::size_t stop) const {
+		return train.stops[stop].departure >= 0.0 ? departure(train, stop) : arrival(train, stop);
+	}
+	/// The time at which a passenger who leaves the train at stop is there: arrival(), or below 0 at a stop without a planned
+	/// arrival, where a search does not leave the train.
+	double alightingTime(const TrainTimetable& train, std::size_t stop) const { return train.stops[stop].arrival < 0.0 ? -1.0 : arrival(train, stop); }
 };
 
 /// The late threshold in seconds when the case gives no value: passengers plan on the planned times of a train that is late

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <limits>
 
 using namespace std;
 using passenger_routing::Leg;
@@ -13,6 +14,15 @@ using passenger_routing::TrainState;
 namespace {
 int stopCount(const Train& train) {
 	return max(0, min(train.numStations, static_cast<int>(train.Stations.size())));
+}
+
+// The last stop where the train stood (Node::StepStopped), or -1.
+int lastStoodAt(const Train& train) {
+	int last = -1;
+	for (int stop = 0; stop < stopCount(train); ++stop)
+		if (train.Stations[static_cast<size_t>(stop)].StepStopped > 0)
+			last = stop;
+	return last;
 }
 
 bool isStationName(const string& name) {
@@ -70,7 +80,69 @@ void waitForTrip(Passenger& passenger, Trip& trip, int now) {
 	passenger.Current_Arrival_Station = trip.Arr_Station_ID;
 	passenger.Current_Arrival_Platform = trip.Arr_Station_Platform_ID;
 }
+
+// Where a passenger who gives up the trip `givenUp` (null for none) plans from at `now`: the time it is ready (seconds of the day)
+// and the number of its platform. A passenger who has just alighted at alightedAtPlatform is there now. A passenger who waits for
+// the trip is on its platform once the walk there is over; second 0 of the day is a time, and a trip that nothing has started
+// has -9999, which leaves the passenger ready now without a platform.
+pair<int, int> replanStart(const Trip* givenUp, int now, optional<int> alightedAtPlatform) {
+	if (alightedAtPlatform || givenUp == nullptr || !givenUp->IsTripStarted || givenUp->Actual_Departure_Time < 0)
+		return {now, alightedAtPlatform.value_or(0)};
+	return {max(now, givenUp->Actual_Departure_Time), givenUp->depPlatformNumber};
+}
+
+// Whole minutes in seconds, rounded down and held to the range of an int, before the cast; not a number counts as the largest int.
+int wholeMinutes(double seconds) {
+	const double minutes = floor(seconds / 60.0);
+	constexpr double kLargest = static_cast<double>(numeric_limits<int>::max());
+	constexpr double kSmallest = static_cast<double>(numeric_limits<int>::min());
+	if (std::isnan(minutes) || minutes >= kLargest)
+		return numeric_limits<int>::max();
+	return minutes <= kSmallest ? numeric_limits<int>::min() : static_cast<int>(minutes);
+}
+
+// Whether a time has both a planned and a predicted time.
+bool hasLateness(double predicted, double planned) {
+	return planned >= 0.0 && predicted >= 0.0;
+}
+
+// How much later than `reference` the lateness of a predicted time is, in whole minutes, with a millisecond of tolerance so that
+// two times shifted by the same lateness count as equal; -1 where the time has no planned or no predicted time.
+int extraLateMinutes(double predicted, double planned, double reference) {
+	constexpr double kToleranceSeconds = 0.001;
+	return hasLateness(predicted, planned) ? wholeMinutes(predicted - planned - reference + kToleranceSeconds) : -1;
+}
 } // namespace
+
+vector<int> predictionSignature(const passenger_routing::TrainTimetable& timetable, const TrainState& state) {
+	vector<int> seen;
+	if (!state.late && !state.slowed)
+		return seen;
+	const size_t count = timetable.stops.size();
+	// The lateness of the first time ahead that has a planned and a predicted time.
+	double reference = 0.0;
+	bool found = false;
+	for (size_t stop = state.firstStop; stop < count && !found; ++stop) {
+		const double arrival = state.arrival(timetable, stop);
+		const double departure = state.departure(timetable, stop);
+		if (hasLateness(arrival, timetable.stops[stop].arrival)) {
+			reference = arrival - timetable.stops[stop].arrival;
+			found = true;
+		} else if (hasLateness(departure, timetable.stops[stop].departure)) {
+			reference = departure - timetable.stops[stop].departure;
+			found = true;
+		}
+	}
+	seen.reserve(3 + 2 * (count - min(count, state.firstStop)));
+	seen.push_back(state.late ? 1 : 0);
+	seen.push_back(state.slowed ? 1 : 0);
+	seen.push_back(found ? wholeMinutes(reference) : -1);
+	for (size_t stop = state.firstStop; stop < count; ++stop) {
+		seen.push_back(extraLateMinutes(state.arrival(timetable, stop), timetable.stops[stop].arrival, reference));
+		seen.push_back(extraLateMinutes(state.departure(timetable, stop), timetable.stops[stop].departure, reference));
+	}
+	return seen;
+}
 
 // The stops are followed by their index. A halt belongs to one call (Train::serviceStopOf), so a train that visits a station twice
 // marks only the call it stands at as stood at.
@@ -78,10 +150,12 @@ int advanceFirstStop(const Train& train, int from) {
 	const int count = stopCount(train);
 	if (train.OutOfSimulation)
 		return count;
+	// The stops before the last one where the train stood are behind it, however many it passed without standing.
+	const int lastStood = lastStoodAt(train);
 	int stop = max(0, from);
 	while (stop < count) {
 		const bool stoppedHere = train.Stations[static_cast<size_t>(stop)].StepStopped > 0;
-		const bool stoppedLater = stop + 1 < count && train.Stations[static_cast<size_t>(stop) + 1].StepStopped > 0;
+		const bool stoppedLater = lastStood > stop;
 		// Left a stop that it stood at, or passed a stop where it never stood because a later one was reached.
 		if ((stoppedHere && (!train.StoppedForServiceStop || stoppedLater)) || (!stoppedHere && stoppedLater))
 			++stop;
@@ -166,6 +240,43 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 			progress.delay = elapsed - planned;
 	}
 
+	// The route position of a stop in metres; only a stop on the route has one.
+	const auto onRoute = [&train](int stop) { return train.stationBlockSection[stop] >= 0; };
+	const auto position = [&train](int stop) { return train.Stations[static_cast<size_t>(stop)].X * 1000; };
+	// The next stop follows the real progress of the train as well: the stop where it stands, else the stop after the last one it
+	// stood at.
+	const int lastStood = lastStoodAt(train);
+	int next = max(0, firstStop);
+	if (lastStood >= 0)
+		next = max(next, train.StoppedForServiceStop ? lastStood : lastStood + 1);
+	// Where the head of the train is when it does not stand at a stop, and the time at which it sets off from there.
+	double head = 0.0;
+	double setOff = -1.0;
+	if (!progress.standing) {
+		// The position of the step before is known in every phase of this step: passengers who enter plan before the trains move.
+		const int last = elapsed - 1;
+		const bool moving = entered && train.earliestActiveTrajectoryIndex <= last && last >= 0
+			&& static_cast<size_t>(last) < train.instant_spatial_position.size()
+			&& std::isfinite(train.instant_spatial_position[static_cast<size_t>(last)]);
+		head = moving ? train.instant_spatial_position[static_cast<size_t>(last)] : train.Start_Node_X * 1000;
+		while (next < count && !(onRoute(next) && position(next) >= head))
+			++next;
+		// A train that has not run a step yet sets off when it may enter.
+		setOff = moving ? start + last * timestep : start + max(static_cast<double>(elapsed), train.departure_time);
+		// A train that has not reached its next stop is at least as late as the time since it was due there: at its planned
+		// arrival, or at the planned departure of a stop without one. A train that stands at a stop, also while it is held at the
+		// start of its dwell with its head short of the platform, is not on its way there.
+		for (int stop = next; stop < count && !train.StoppedForServiceStop; ++stop) {
+			const size_t at = static_cast<size_t>(stop);
+			const double due = train.ScheduledArrivals[at] >= 0 ? train.ScheduledArrivals[at] : train.ScheduledDepartures[at];
+			if (onRoute(stop) && due >= 0) {
+				progress.delay = max(progress.delay, elapsed - due);
+				break;
+			}
+		}
+	}
+	progress.nextStop = static_cast<size_t>(next);
+
 	// A breakdown with a speed cap; Active_Train_Breakdown gives a hold first, and otherwise the lowest cap.
 	const auto isCap = [](const SimulationIncident* incident) {
 		return incident != nullptr && incident->hasReducedSpeed && incident->reducedSpeedKmh > 0.0 && std::isfinite(incident->reducedSpeedKmh);
@@ -174,29 +285,11 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 	if (!isCap(cap))
 		return progress;
 	progress.limited = true;
-	// The route position of a stop in metres; only a stop on the route has one.
-	const auto onRoute = [&train](int stop) { return train.stationBlockSection[stop] >= 0; };
-	const auto position = [&train](int stop) { return train.Stations[static_cast<size_t>(stop)].X * 1000; };
-	int next = max(0, firstStop);
 	// Where the train sets off from when it does not stand at a stop, then the stops ahead on its route as far as they follow each
 	// other along it.
 	vector<double> positions;
-	// The time at which the train sets off from positions.front() when it does not stand at a stop.
-	double setOff = -1.0;
-	if (!progress.standing) {
-		// The position of the step before is known in every phase of this step: passengers who enter plan before the trains move.
-		const int last = elapsed - 1;
-		const bool moving = entered && train.earliestActiveTrajectoryIndex <= last && last >= 0
-			&& static_cast<size_t>(last) < train.instant_spatial_position.size()
-			&& std::isfinite(train.instant_spatial_position[static_cast<size_t>(last)]);
-		const double head = moving ? train.instant_spatial_position[static_cast<size_t>(last)] : train.Start_Node_X * 1000;
-		while (next < count && !(onRoute(next) && position(next) >= head))
-			++next;
+	if (!progress.standing)
 		positions.push_back(head);
-		// A train that has not run a step yet sets off when it may enter.
-		setOff = moving ? start + last * timestep : start + max(static_cast<double>(elapsed), train.departure_time);
-	}
-	progress.nextStop = static_cast<size_t>(next);
 	// seconds[offset + i] below is the time to stop ahead[i]. A stop off the route is passed over.
 	const size_t offset = positions.size();
 	vector<int> ahead;
@@ -311,13 +404,17 @@ bool PassengerJourneys::callsAt(const SimulationRun& run, int train, const strin
 	return false;
 }
 
-Plan PassengerJourneys::planFrom(const SimulationRun& run, const Journey& journey, const string& origin, int t, int readyAt, int platformNumber) {
+Plan PassengerJourneys::planFrom(const SimulationRun& run, const Journey& journey, const string& origin, int t, int readyAt, int platformNumber,
+	size_t ridden) {
 	const int from = stationIndex(origin);
 	const int to = stationIndex(journey.Arr_Station_ID);
 	if (from < 0 || to < 0)
 		return Plan();
 	ensureStates(run, t);
-	const int transfers = run.settings.passengerMaxTransfers;
+	// The journey may use passengerMaxTransfers + 1 trains, the trains it has ridden included. A passenger who has used them up,
+	// such as one set down by a train that ended early, may still take one train.
+	const int maxTransfers = max(0, run.settings.passengerMaxTransfers);
+	const int transfers = ridden >= static_cast<size_t>(maxTransfers) ? 0 : maxTransfers - static_cast<int>(ridden);
 	// A train that refused the passenger here is left out while it stands at this station.
 	vector<TrainState> without;
 	for (const auto& [description, station] : journey.RefusedBy) {
@@ -334,7 +431,7 @@ Plan PassengerJourneys::planFrom(const SimulationRun& run, const Journey& journe
 	}
 	if (!without.empty())
 		return router_->search(static_cast<size_t>(from), readyAt, transfers, without, platformNumber).plan(static_cast<size_t>(to));
-	const auto key = make_tuple(from, readyAt, platformNumber);
+	const auto key = make_tuple(from, readyAt, platformNumber, transfers);
 	auto found = searches_.find(key);
 	if (found == searches_.end())
 		found = searches_.emplace(key, router_->search(static_cast<size_t>(from), readyAt, transfers, states_, platformNumber)).first;
@@ -362,7 +459,7 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 		leaveNetwork(passenger, station, platformId, now);
 		return;
 	}
-	const Plan plan = given != nullptr ? *given : planFrom(run, journey, station, t, readyAt, platformNumber);
+	const Plan plan = given != nullptr ? *given : planFrom(run, journey, station, t, readyAt, platformNumber, keptTrips);
 	journey.N_Trips = static_cast<int>(journey.Trips.size());
 	if (!plan.reached() || plan.legs.empty()) {
 		journey.Outcome = JourneyOutcome::NoRoute;
@@ -408,27 +505,37 @@ void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, 
 		return;
 	const int now = t + run.settings.startingSimulationTime;
 	const size_t kept = tripsBefore(*journey, passenger.current_TripID);
-	int readyAt = now;
-	int platformNumber = alightedAtPlatform.value_or(0);
-	if (kept < journey->Trips.size()) {
-		const Trip& givenUp = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
-		// Second 0 of the day is a time; a trip that nothing has started has -9999.
-		if (givenUp.IsTripStarted && givenUp.Actual_Departure_Time >= 0) {
-			if (alightedAtPlatform) {
-				// The passenger has just alighted and has not set off for the platform of the train that is given up, so the
-				// walk there that the transfer counted is not made: the plan starts now, on the platform of the arrival.
-				journey->Walkingtime -= max(0, givenUp.Actual_Departure_Time - now);
-			} else {
-				// The time spent waiting for the train that is given up still counts as waiting.
-				if (now > givenUp.Actual_Departure_Time)
-					journey->Waitingtime += now - givenUp.Actual_Departure_Time;
-				// A passenger still walking to the platform cannot leave before getting there.
-				readyAt = max(now, givenUp.Actual_Departure_Time);
-				platformNumber = givenUp.depPlatformNumber;
-			}
+	const Trip* givenUp = kept < journey->Trips.size() ? &*next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept)) : nullptr;
+	// The line the passenger stands in: the train, station and platform of the trip that is given up, and since when.
+	optional<Trip> line;
+	// Second 0 of the day is a time; a trip that nothing has started has -9999.
+	if (givenUp != nullptr && givenUp->IsTripStarted && givenUp->Actual_Departure_Time >= 0) {
+		if (alightedAtPlatform) {
+			// The passenger has just alighted and has not set off for the platform of the train that is given up, so the
+			// walk there that the transfer counted is not made: the plan starts now, on the platform of the arrival.
+			journey->Walkingtime -= max(0, givenUp->Actual_Departure_Time - now);
+		} else {
+			line = *givenUp;
 		}
 	}
+	// A passenger still walking to the platform cannot leave before getting there.
+	const auto [readyAt, platformNumber] = replanStart(givenUp, now, alightedAtPlatform);
 	planInto(run, passenger, *journey, kept, t, readyAt, platformNumber, true, given);
+	if (!line)
+		return;
+	// A passenger whose new plan boards the same train at the same platform keeps the place in its line and goes on waiting from
+	// the same time. One who leaves the line counts the time waited in it and goes to the back of the next one.
+	Trip* first = nullptr;
+	if (passenger.CurrentStatus == PassengerStatus::OnPlatform && activeJourney(passenger) == journey) {
+		const size_t waitedFor = tripsBefore(*journey, passenger.current_TripID);
+		if (waitedFor < journey->Trips.size())
+			first = &*next(journey->Trips.begin(), static_cast<ptrdiff_t>(waitedFor));
+	}
+	if (first != nullptr && first->TrainServiceDescription == line->TrainServiceDescription && first->Dep_Station_ID == line->Dep_Station_ID
+		&& first->Dep_Station_Platform_ID == line->Dep_Station_Platform_ID)
+		first->Actual_Departure_Time = line->Actual_Departure_Time;
+	else if (now > line->Actual_Departure_Time)
+		journey->Waitingtime += now - line->Actual_Departure_Time;
 }
 
 optional<Plan> PassengerJourneys::standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
@@ -524,6 +631,9 @@ void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, i
 	} else if (const optional<Plan> direct = standingDirectPlan(run, passenger, *journey, *trip, t, alightedAtPlatform)) {
 		// A train that stands here and goes direct to the destination in time is taken instead of the plan.
 		replanWaiting(run, passenger, t, alightedAtPlatform, &*direct);
+	} else if (states_[static_cast<size_t>(train)].late || states_[static_cast<size_t>(train)].slowed) {
+		// The prediction of the train is new to this passenger.
+		switchToEarlierPlan(run, passenger, t, alightedAtPlatform);
 	}
 }
 
@@ -622,6 +732,118 @@ void PassengerJourneys::setDownEndedTrain(SimulationRun& run, PassengerFlow& flo
 	call.loadAfter = T.Current_OnBoard_Passengers;
 }
 
+double PassengerJourneys::tripsArrival(const SimulationRun& run, const Journey& journey, size_t from, double readyAt, int platformNumber,
+	const string& platformId) const {
+	double at = readyAt;
+	int platform = platformNumber;
+	const auto first = next(journey.Trips.begin(), static_cast<ptrdiff_t>(min(from, journey.Trips.size())));
+	for (auto trip = first; trip != journey.Trips.end(); ++trip) {
+		const string& boardPlatform = trip == first ? platformId : trip->Dep_Station_Platform_ID;
+		const int train = trainIndex(trip->TrainServiceDescription);
+		if (train < 0)
+			return passenger_routing::kUnreached;
+		const Train& T = run.trains[static_cast<size_t>(train)];
+		const passenger_routing::TrainTimetable& timetable = router_->trains()[static_cast<size_t>(train)];
+		const TrainState& state = states_[static_cast<size_t>(train)];
+		const size_t count = timetable.stops.size();
+		// The first call that the train still makes at the station and platform of the trip and that the passenger reaches in time,
+		// as the router judges it (TrainState::boardingDeadline). A call without times is reached.
+		size_t board = state.firstStop;
+		for (; board < count; ++board) {
+			const Node& node = T.Stations[board];
+			if (node.stationName != trip->Dep_Station_ID || (!isNoneId(boardPlatform) && node.stationPlatformId != boardPlatform)
+				|| !haltsAtStop(T, static_cast<int>(board)))
+				continue;
+			const double deadline = state.boardingDeadline(timetable, board);
+			const double walking = passenger_routing::walkingSeconds(platform, timetable.stops[board].platformNumber, run.settings.passengerWalkingSecondsPerPlatform);
+			if (deadline < 0 || at + walking <= deadline)
+				break;
+		}
+		if (board >= count)
+			return passenger_routing::kUnreached;
+		// The first later call at the arrival station where a search leaves the train (TrainState::alightingTime). A call there
+		// without an arrival leaves the time unknown.
+		size_t alight = board + 1;
+		bool callWithoutArrival = false;
+		for (; alight < count; ++alight) {
+			if (T.Stations[alight].stationName != trip->Arr_Station_ID)
+				continue;
+			if (state.alightingTime(timetable, alight) >= 0)
+				break;
+			callWithoutArrival = true;
+		}
+		if (alight >= count)
+			return callWithoutArrival ? -1.0 : passenger_routing::kUnreached;
+		at = state.alightingTime(timetable, alight);
+		platform = timetable.stops[alight].platformNumber;
+	}
+	return at;
+}
+
+bool PassengerJourneys::switchToEarlierPlan(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
+	Journey* journey = activeJourney(passenger);
+	if (journey == nullptr)
+		return false;
+	const size_t kept = tripsBefore(*journey, passenger.current_TripID);
+	if (kept >= journey->Trips.size())
+		return false;
+	const Trip& current = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
+	const int now = t + run.settings.startingSimulationTime;
+	// The plan the passenger has starts on the platform of its first train, once the walk there is over. A plan whose times are
+	// not known is kept.
+	const auto [waitFrom, waitPlatform] = replanStart(&current, now, nullopt);
+	const double planned = tripsArrival(run, *journey, kept, waitFrom, waitPlatform, passenger.Current_WaitingStationPlatformID);
+	if (planned < 0)
+		return false;
+	// A new plan starts where replanWaiting starts it.
+	const auto [readyAt, platformNumber] = replanStart(&current, now, alightedAtPlatform);
+	const Plan plan = planFrom(run, *journey, passenger.Current_WaitingStationID, t, readyAt, platformNumber, kept);
+	if (!plan.reached() || plan.legs.empty() || plan.arrival + kSwitchMarginSeconds >= planned)
+		return false;
+	replanWaiting(run, passenger, t, alightedAtPlatform, &plan);
+	return true;
+}
+
+vector<int> PassengerJourneys::trainsWithNewPrediction(const SimulationRun& run, int t) {
+	ensureBuilt(run);
+	ensureStates(run, t);
+	predictions_.resize(states_.size());
+	vector<int> changed;
+	for (size_t n = 0; n < states_.size(); ++n) {
+		vector<int> seen = predictionSignature(router_->trains()[n], states_[n]);
+		if (seen == predictions_[n])
+			continue;
+		predictions_[n] = std::move(seen);
+		if (!predictions_[n].empty())
+			changed.push_back(static_cast<int>(n));
+	}
+	return changed;
+}
+
+void PassengerJourneys::offerEarlierPlans(SimulationRun& run, PassengerFlow& flow, const vector<int>& trains, int t) {
+	vector<int> waiting;
+	for (const int train : trains) {
+		const Train& T = run.trains[static_cast<size_t>(train)];
+		const int trainId = flow.trainNumber(T.trainDescription);
+		if (trainId < 0)
+			continue;
+		for (int stop = static_cast<int>(states_[static_cast<size_t>(train)].firstStop); stop < stopCount(T); ++stop) {
+			const Node& node = T.Stations[static_cast<size_t>(stop)];
+			const int platform = flow.platformNumber(node.stationName, node.stationPlatformId);
+			if (platform < 0 || !haltsAtStop(T, stop))
+				continue;
+			const vector<int> found = flow.waitingFor(platform, trainId);
+			waiting.insert(waiting.end(), found.begin(), found.end());
+		}
+	}
+	// In the order of the passenger list, and once for a passenger at a platform where the train calls twice.
+	sort(waiting.begin(), waiting.end());
+	waiting.erase(unique(waiting.begin(), waiting.end()), waiting.end());
+	for (const int position : waiting)
+		if (switchToEarlierPlan(run, flow.passenger(position), t, nullopt))
+			flow.alighted(position);
+}
+
 void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, int t) {
 	beginPhase();
 	if (run.passengers.empty())
@@ -640,4 +862,5 @@ void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, in
 			setDownEndedTrain(run, flow, n, t);
 		}
 	}
+	offerEarlierPlans(run, flow, trainsWithNewPrediction(run, t), t);
 }

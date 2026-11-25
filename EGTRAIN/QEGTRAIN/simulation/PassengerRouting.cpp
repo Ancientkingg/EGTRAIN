@@ -178,7 +178,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 				if (stop < state.firstStop)
 					continue;
 				const double walking = walkingSeconds(reached.platformNumber, trains_[train].stops[stop].platformNumber, walkingSecondsPerPlatform_);
-				const double departure = state.departure(trains_[train], stop);
+				const double departure = state.boardingDeadline(trains_[train], stop);
 				if (departure < 0.0 || reached.arrival + walking > departure)
 					continue;
 				if (boardAt[train] == npos)
@@ -196,10 +196,10 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 			const std::size_t board = boardAt[train];
 			for (std::size_t stop = board + 1; stop < stops.size(); ++stop) {
 				const Stop& alight = stops[stop];
-				if (alight.station < 0 || static_cast<std::size_t>(alight.station) >= stationCount_ || alight.arrival < 0.0)
+				if (alight.station < 0 || static_cast<std::size_t>(alight.station) >= stationCount_)
 					continue;
 				const std::size_t station = static_cast<std::size_t>(alight.station);
-				const double arrival = state.arrival(trains_[train], stop);
+				const double arrival = state.alightingTime(trains_[train], stop);
 				if (arrival < 0.0)
 					continue;
 				// Equal arrivals keep the earlier round, which uses fewer trains. In the same round the train that leaves
