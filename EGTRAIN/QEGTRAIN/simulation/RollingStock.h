@@ -829,9 +829,9 @@ public:
 
 	/// Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or
 	/// leaves, a stop (serviceStopStep), a node with a train order, a signal or an end of authority, and it stays on an arc whose
-	/// speed limit V_lim is 0. mustBrake is the braking decision of the step, and stationAtEndOfAs is true when As ends at a
-	/// platform or at a stop of this train.
-	void standingTrainStep(int time_seconds, const Arc& As, double head, bool mustBrake, bool stationAtEndOfAs, double V_lim);
+	/// speed limit V_lim is 0. mustBrake is the braking decision of the step, and stopAtEndOfAs is true when As ends at a stop of
+	/// this train (isStopArc); a platform where it does not call is an ordinary node.
+	void standingTrainStep(int time_seconds, const Arc& As, double head, bool mustBrake, bool stopAtEndOfAs, double V_lim);
 
 	/// Step time_seconds of a train that stands at the stop at the end of arc As with its head at head (m). It records the arrival
 	/// and counts the dwell, and it leaves once the dwell time and the planned departure have passed and no restrictive aspect or

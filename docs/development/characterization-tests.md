@@ -20,14 +20,20 @@ the fixture would add a movement authority to the cases with a signal failure on
 those sections.
 The case `skip-stop-level-0` adds the service `E1`, a copy of `F1` without its
 stop at B, in the test.
+The cases `sf-passed-station-level-none` and `sf-passed-station-level-0` add
+station `P` at 4 km, the station of the passenger cases below, where `F1` and
+`F2` do not call, and a signal failure on `2-B0` from 150 s to 500 s to the
+baseline scenario, in the test. The case `sf-other-platform-level-none` adds
+`Platform_4` of the transfer cases below to B, at 6 km, and a signal failure on
+`3-B0` from 150 s to 500 s, and its B stops have no planned arrival.
 
 The passenger cases add station `P`, services `Q1` to `Q4` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
 walking time calculation, while `B.platform.1` reads as 0. Only transfer cases
-have this platform, because its node adds a second timetable point named B.
-Their B stops have no planned arrival. The cases set `PAX_GUI` directly with
-the window off; the [command line](../guides/command-line.md) reads `-pax` only
-with `-g 1`.
+and `sf-other-platform-level-none` have this platform, because its node adds a
+second timetable point named B. Their B stops have no planned arrival. The
+passenger cases set `PAX_GUI` directly with the window off; the
+[command line](../guides/command-line.md) reads `-pax` only with `-g 1`.
 
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
@@ -56,6 +62,8 @@ A case is a scenario, a set of services and a level. The case table is in
 | `entry-order-level-0` to `-2` | trains `F2` and `L1` on the `sf-first` scenario; `F2` is listed before `L1` in the scene but `L1` is due first, so `L1` enters first when the failure ends |
 | `sf-late-level-none`, `-0`, `-3` | train `F1` alone with a failure on `2-B0` from 188 s to 600 s; at 188 s `F1` is 316 m before the failed section at top speed, closer than its braking distance of 767 m, so it brakes with full force and its position never goes back; it passes the authority and runs through the failed section |
 | `sf-retarget-level-0` | train `F1` alone with a failure on `6-B0` from 600 s and one on `5-B0` from 752 s to 1200 s; `F1` brakes to 11.1 m/s at the end of `4-B0` for the first failure, and 23 m before that point the second failure makes the end of `4-B0` a stop target, which `F1` cannot reach; it brakes with full force, its position never goes back, it passes the authority and stops at the end of `5-B0` for the failure on `6-B0` |
+| `sf-passed-station-level-none`, `-0` | trains `F1` and `F2` with station `P` at 4 km, where neither calls, and a failure on `2-B0` from 150 s to 500 s; `F1` stops at the platform of `P`, at the end of authority without a level and at the red signal at level 0, and leaves at 502 s, after the failure; without a level `F2` stops there too and leaves with `F1`, at level 0 it waits at A and enters at 514 s |
+| `sf-other-platform-level-none` | trains `F1` and `F2` with `Platform_4` of B at 6 km, before `B.platform.1` where they call at B, and a failure on `3-B0` from 150 s to 500 s; both stop at `Platform_4`, leave at 502 s, after the failure, and call at `B.platform.1`; the result rows of B read the timetable point at `Platform_4` |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
 | `skip-stop-level-0` | trains `F2` and `E1`; `E1` enters first and runs through B at line speed while `F2`, which moves before it in every step, stops there |
 | `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; with a signalling level `R1` waits in front of the section while `S1` is in it |
@@ -342,9 +350,11 @@ both trains reach their last stop and are never inside the stub together. The
 terminating running approaches also must all reach their last stop, and every
 running case checks opposing zone overlap at every shared step. In
 `stop-before-zone-level-0` both trains reach their last stop, and `R1` reaches
-B before `F1` leaves it. In a `closure-lift-*` case all three trains reach their
-last stop, no two of them overlap anywhere on the shared track, and stops count
-as on a block boundary at every kilometre. A case
+B before `F1` leaves it. In an `sf-passed-station-*` case and in
+`sf-other-platform-level-none` both trains reach their last stop. In a
+`closure-lift-*` case all three trains reach their last stop, no two of them
+overlap anywhere on the shared track, and stops count as on a block boundary at
+every kilometre. A case
 without a signalling area is not checked for overlap or for the single-track
 section: a scene without a signalling level does not separate trains, and
 validation warns about it (`scene.signalling.level.missing`,

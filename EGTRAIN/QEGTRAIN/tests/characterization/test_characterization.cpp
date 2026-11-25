@@ -241,6 +241,11 @@ struct CaseSpec {
 	// Lead runs from A to N and stands at M; Oppose runs from C to A and brakes for E, just before the track on which Follow
 	// leaves the restriction; Follow runs from A to E behind Lead once Oppose dwells at E.
 	bool closureLift = false;
+	// Adds station P at 4 km, where no train of the case calls, and a signal failure on 2-B0 from 150 s to 500 s.
+	bool passedStation = false;
+	// Adds Platform_4 of B at 6 km, before B.platform.1 where the trains call at B, and a signal failure on 3-B0 from 150 s to
+	// 500 s. The B stops have no planned arrival, as in the transfer cases.
+	bool otherPlatform = false;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -309,6 +314,20 @@ std::vector<CaseSpec> buildCaseTable() {
 	// F1 brakes to 11.1 m/s at the end of 4-B0 for the failure of 6-B0. At 752 s, 23 m before that point, the failure of 5-B0
 	// turns the target into a stop, which F1 cannot reach.
 	cases.push_back({"sf-retarget-level-0", "signal-failure-retarget", {"F1"}, 0, ""});
+	// The failure of 2-B0 stops F1 at the platform of P, where it does not call: at the end of authority without a level, at
+	// the red signal at level 0. It leaves when the failure has ended.
+	for (int level : {kNoSignallingArea, 0}) {
+		const std::string name = "sf-passed-station-level-" + (level == kNoSignallingArea ? std::string("none") : std::to_string(level));
+		CaseSpec passedStation{name, "baseline", {"F1", "F2"}, level, knownWrongMarker(name)};
+		passedStation.passedStation = true;
+		cases.push_back(passedStation);
+	}
+	// The failure of 3-B0 stops F1 and F2 at Platform_4 of B, a platform where they do not call. They leave when the failure has
+	// ended and call at B.platform.1.
+	const std::string otherPlatformName = "sf-other-platform-level-none";
+	CaseSpec otherPlatform{otherPlatformName, "baseline", {"F1", "F2"}, kNoSignallingArea, knownWrongMarker(otherPlatformName)};
+	otherPlatform.otherPlatform = true;
+	cases.push_back(otherPlatform);
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
@@ -1092,7 +1111,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				}
 			}
 	}
-	if ((spec.stub || spec.stopBeforeZone || spec.closureLift || (spec.runningConflict && !spec.runningThrough)) && !waived)
+	if ((spec.stub || spec.stopBeforeZone || spec.closureLift || spec.passedStation || spec.otherPlatform || (spec.runningConflict && !spec.runningThrough)) && !waived)
 		for (const TrainTrack& track : tracks) {
 			const TimetableResultRow* last = nullptr;
 			for (const TimetableResultRow& row : rows)
@@ -1174,13 +1193,18 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 
 constexpr int kPassengerBaseTime = 7 * 60 * 60;
 
-void addPassengerSet(SceneModel& scene, const std::string& set) {
+// Station P at 4 km, the edge between 1-B0 and 2-B0, with its platform on the node there.
+void addStationP(SceneModel& scene) {
 	SceneStation station;
 	station.id = station.name = "P";
 	station.hasPosition = true;
 	station.positionKm = 4.0;
 	station.platforms = {{"P.platform.1", {"B0.node.3"}}};
 	scene.stations.push_back(station);
+}
+
+void addPassengerSet(SceneModel& scene, const std::string& set) {
+	addStationP(scene);
 	const bool transfer = set == "transfer" || set == "live-transfer" || set == "live-full" || set == "fixed-missed" || set == "live-missed"
 		|| set == "signal-failure-change";
 	// Q1 ends at B, so that a passenger from P reaches C only by changing to Q2 or Q3.
@@ -1734,12 +1758,26 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		hold.terminateAtDestination = true;
 		loaded.scene.scenarios[0].incidents.push_back(hold);
 	}
-	// The failure is on 1-B0 and not on 2-B0: a train stopped in front of 2-B0 stands at the node of P, a stop that Q3 and
-	// Q4 do not make, and does not leave it again after the failure.
+	// The failure on 1-B0 stops Q3 and Q4 at 2 km, before P. The sf-passed-station cases cover a train stopped at P itself.
 	if (spec.passengers == "signal-failure-change")
 		loaded.scene.scenarios[0].incidents.push_back({"fail-1", IncidentType::SignalFailure, "1-B0", 560.0, 800.0});
 	if (spec.name.find("stub-breakdown-") == 0)
 		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", IncidentType::TrainBreakdown, "U1", 60.0, 120.0});
+	if (spec.passedStation) {
+		addStationP(loaded.scene);
+		loaded.scene.scenarios[0].incidents.push_back({"inc.passed", IncidentType::SignalFailure, "2-B0", 150.0, 500.0});
+	}
+	if (spec.otherPlatform) {
+		for (SceneStation& station : loaded.scene.stations)
+			if (station.id == "B")
+				station.platforms.push_back({"Platform_4", {"B0.node.4"}});
+		// The result rows of B read its first timetable point, at Platform_4.
+		for (SceneService& service : loaded.scene.services)
+			for (SceneStop& stop : service.stops)
+				if (stop.stationId == "B")
+					stop.hasPlannedArrival = false;
+		loaded.scene.scenarios[0].incidents.push_back({"inc.other", IncidentType::SignalFailure, "3-B0", 150.0, 500.0});
+	}
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
