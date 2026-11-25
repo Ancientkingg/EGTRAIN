@@ -30,9 +30,10 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | libselinux | | | yes | public domain | Ubuntu 24.04 source package `libselinux` |
 | xz (liblzma), LZ4, bzip2, libbsd, libmd | | | yes | public domain, BSD-2-Clause, bzip2 licence, BSD style | Ubuntu 24.04 source packages `xz-utils`, `lz4`, `bzip2`, `libbsd`, `libmd` |
 | miniz | yes | yes | yes | MIT | https://github.com/richgel999/miniz |
+| pugixml 1.11 | yes | yes | yes | MIT | https://pugixml.org |
 | nlohmann/json | yes | yes | yes | MIT | https://github.com/nlohmann/json |
 | cppzmq | yes | yes | yes | MIT | https://github.com/zeromq/cppzmq |
 
-miniz is compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz, listed at https://doc.qt.io/qt-6/licenses-used-in-qt.html.
+miniz and pugixml are compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz, listed at https://doc.qt.io/qt-6/licenses-used-in-qt.html.
 
 The bundled cases have their own sources and terms, listed on the page Data of the bundled cases of the manual and at https://egtrain.samuelbruin.com/latest/guides/case-data.html.
