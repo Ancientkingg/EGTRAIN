@@ -142,11 +142,16 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 	const double start = run.settings.startingSimulationTime;
 	progress.firstStop = static_cast<size_t>(max(0, firstStop));
 	progress.now = start + elapsed;
+	// The latest stop that the train reached gives the delay: the later of its arrival delay and, once it left, its departure delay.
 	bool arrived = false;
 	for (int stop = min(firstStop, count - 1); stop >= 0 && !arrived; --stop) {
 		const size_t at = static_cast<size_t>(stop);
 		if (train.StationArrivals[at] >= 0 && train.ScheduledArrivals[at] >= 0) {
-			progress.delay = max(0.0, train.StationArrivals[at] - train.ScheduledArrivals[at]);
+			progress.delay = max(progress.delay, train.StationArrivals[at] - train.ScheduledArrivals[at]);
+			arrived = true;
+		}
+		if (train.StationDepartures[at] >= 0 && train.ScheduledDepartures[at] >= 0) {
+			progress.delay = max(progress.delay, train.StationDepartures[at] - train.ScheduledDepartures[at]);
 			arrived = true;
 		}
 	}
@@ -203,13 +208,23 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 		positions.push_back(position(stop));
 		ahead.push_back(stop);
 	}
-	// The caps that apply now, each from the end of the one before, as Active_Train_Breakdown takes the lowest at every step. A cap
-	// that starts later is not foreseen.
-	while (cap != nullptr) {
-		const bool ends = cap->hasEndSeconds || cap->endSeconds != 0.0;
+	// The caps that apply now, as (end, limit in m/s), by end. Between two ends the lowest cap of those that still apply limits the
+	// train, as the simulator takes the lowest cap at every step. A cap that starts later is not foreseen.
+	vector<pair<double, double>> caps;
+	for (const SimulationIncident* incident : Active_Train_Breakdowns(run, train.trainDescription, elapsed))
+		if (isCap(incident))
+			caps.emplace_back(incident->hasEndSeconds || incident->endSeconds != 0.0 ? start + incident->endSeconds : passenger_routing::kUnreached,
+				incident->reducedSpeedKmh / 3.6);
+	sort(caps.begin(), caps.end());
+	for (size_t c = caps.size(); c-- > 1;)
+		caps[c - 1].second = min(caps[c - 1].second, caps[c].second);
+	for (size_t c = 0; c < caps.size(); ++c) {
+		// A cap that ends with the one before adds no period.
+		if (c > 0 && caps[c].first == caps[c - 1].first)
+			continue;
 		passenger_routing::LimitPeriod period;
-		period.ends = ends ? start + cap->endSeconds : passenger_routing::kUnreached;
-		const vector<double> seconds = limitedRunningSeconds(run, train, positions, cap->reducedSpeedKmh / 3.6);
+		period.ends = caps[c].first;
+		const vector<double> seconds = limitedRunningSeconds(run, train, positions, caps[c].second);
 		// A run is known between two stops on the route that follow each other.
 		period.runs.assign(static_cast<size_t>(max(0, count)), -1.0);
 		for (size_t i = 1; i < ahead.size(); ++i)
@@ -219,8 +234,6 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 		if (offset > 0 && !ahead.empty() && progress.nextArrival < 0.0 && setOff < period.ends)
 			progress.nextArrival = setOff + seconds[offset];
 		progress.limits.push_back(std::move(period));
-		const SimulationIncident* later = ends ? Active_Train_Breakdown(run, train.trainDescription, static_cast<int>(std::ceil(cap->endSeconds))) : nullptr;
-		cap = isCap(later) && later->startSeconds <= elapsed ? later : nullptr;
 	}
 	return progress;
 }

@@ -8,6 +8,11 @@
 namespace passenger_routing {
 
 namespace {
+// The planned time at which the train leaves the stop: its departure, or its arrival when it has none; below 0 for neither.
+double plannedLeave(const Stop& stop) {
+	return stop.departure >= 0.0 ? stop.departure : stop.arrival;
+}
+
 // The planned time at which the train reaches the stop: its arrival, or its departure when it has none; below 0 for neither.
 double plannedReach(const Stop& stop) {
 	return stop.arrival >= 0.0 ? stop.arrival : stop.departure;
@@ -68,27 +73,34 @@ TrainState predictTrainState(const TrainTimetable& timetable, const TrainProgres
 	}
 	if (!state.slowed)
 		return state;
-	// When the train is at the stop before, or leaves it; below 0 when not known.
+	// When the train leaves the stop before; below 0 when not known.
 	double atBefore = -1.0;
 	for (std::size_t stop = progress.nextStop; stop < count; ++stop) {
 		double reached = -1.0;
 		if (stop == progress.nextStop) {
 			reached = progress.nextArrival;
-		} else {
-			const double run = limitedRun(progress, stop - 1, atBefore);
-			if (atBefore >= 0.0 && run >= 0.0)
-				reached = atBefore + run;
+		} else if (atBefore >= 0.0) {
+			// The longer of the run under the limit that applies when the train leaves and the planned running time, where both
+			// planned times are known; a train never reaches a stop before it leaves the one before.
+			const std::size_t from = stop - 1;
+			const double planned = plannedLeave(stops[from]) >= 0.0 && plannedReach(stops[stop]) >= 0.0
+				? plannedReach(stops[stop]) - plannedLeave(stops[from])
+				: 0.0;
+			reached = atBefore + std::max({limitedRun(progress, from, atBefore), planned, 0.0});
 		}
-		// The lateness only grows, so a run counts with the longer of its planned running time and run.
+		// The lateness only grows, so the predicted times never decrease along the stops.
 		if (reached >= 0.0 && plannedReach(stops[stop]) >= 0.0)
 			lateness = std::max(lateness, reached - plannedReach(stops[stop]));
 		state.arrivals[stop] = shifted(stops[stop].arrival, lateness);
 		state.departures[stop] = shifted(stops[stop].departure, lateness);
-		// The train leaves at its predicted departure, or at its arrival; a stop without planned times when it gets there.
+		// The train leaves at its predicted departure, or at its arrival; a stop without planned times when it gets there. A train
+		// that stands at its stop leaves it now at the earliest.
 		if (state.departures[stop] >= 0.0)
 			atBefore = state.departures[stop];
 		else
 			atBefore = state.arrivals[stop] >= 0.0 ? state.arrivals[stop] : reached;
+		if (progress.standing && stop == progress.firstStop)
+			atBefore = std::max(atBefore, progress.now);
 	}
 	return state;
 }

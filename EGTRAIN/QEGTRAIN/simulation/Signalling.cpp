@@ -3094,6 +3094,14 @@ const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const
 	return strictestCap;
 }
 
+std::vector<const SimulationIncident*> Active_Train_Breakdowns(const SimulationRun& run, const std::string& trainDesc, int timestepIndex) {
+	std::vector<const SimulationIncident*> active;
+	for (const auto& incident : run.incidents)
+		if (breakdownActive(incident, trainDesc, timestepIndex))
+			active.push_back(&incident);
+	return active;
+}
+
 bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex) {
 	const SimulationIncident* incident = Active_Train_Breakdown(run, trainDesc, timestepIndex);
 	return incident != nullptr && !incident->hasReducedSpeed;

@@ -48,6 +48,9 @@ bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc
 /// The train_breakdown incident of run.incidents that applies to the train trainDesc in step timestepIndex, from its start second up to
 /// its end second, or nullptr. A breakdown that stops the train comes first; of the speed caps the lowest reducedSpeedKmh wins.
 const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
+/// Every train_breakdown incident of run.incidents that applies to the train trainDesc in step timestepIndex, holds and speed caps,
+/// in the order of run.incidents. Active_Train_Breakdown picks one of them.
+std::vector<const SimulationIncident*> Active_Train_Breakdowns(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
 /// Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that
 /// contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to
 /// be released. See "Common behaviour" in docs/guides/signalling-levels.md.

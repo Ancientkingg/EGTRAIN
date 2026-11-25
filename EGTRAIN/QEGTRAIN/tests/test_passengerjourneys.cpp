@@ -489,6 +489,10 @@ private slots:
 	void capThatEndsBeforeTheTrainSetsOffDoesNotDelayIt();
 	void capThatLastsLongerTakesOver();
 	void runsPassOverStopsOffTheRoute();
+	void departureDelayCountsOnceTheTrainLeft();
+	void capWithAVeryLateEndIsOnePeriod();
+	void capThatStartsLaterDoesNotHideOneThatAppliesNow();
+	void capsThatEndWithinOneSecondKeepTheirPeriods();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
 	void trainThatEndsEarlyCountsThePassengersItSetsDown();
@@ -709,6 +713,69 @@ void TestPassengerJourneys::runsPassOverStopsOffTheRoute() {
 	QCOMPARE(runs[1], -1.0);
 	QCOMPARE(runs[2], -1.0);
 	QCOMPARE(runs[3], 50.0);
+}
+
+// The train arrived at A on time at 100, was due out at 130 and left at 431. Once it has left, it is 301 s late, above the
+// threshold, so it is predicted at B at 501 and not on its planned 200.
+void TestPassengerJourneys::departureDelayCountsOnceTheTrainLeft() {
+	Train train = threeStops();
+	train.Stations[0].StepStopped = 10;
+	train.StationArrivals[0] = 100;
+	train.StationDepartures[0] = 431;
+	QCOMPARE(progressOf(train, 1, 440).delay, 301.0);
+	const SimulationRun run;
+	const passenger_routing::TrainTimetable timetable{{{0, 0, -1.0, 130.0}, {1, 0, 200.0, 230.0}, {2, 0, 300.0, -1.0}}};
+	const passenger_routing::TrainState state = liveTrainState(run, train, timetable, 1, 440);
+	QVERIFY(state.late);
+	QCOMPARE(state.arrival(timetable, 1), 501.0);
+}
+
+// A cap that ends long after any time of the run gives one period that ends then.
+void TestPassengerJourneys::capWithAVeryLateEndIsOnePeriod() {
+	LimitedRun limited;
+	limited.run.incidents[0].endSeconds = 3000000000.0;
+	const passenger_routing::TrainProgress progress = liveTrainProgress(limited.run, limited.train(), 1, 60);
+	QCOMPARE(progress.limits.size(), std::size_t(1));
+	QCOMPARE(progress.limits[0].ends, 3000000000.0);
+}
+
+// At 60 s caps of 36 km/h until 100 s and 45 km/h without an end apply; a cap of 18 km/h from 90 s to 105 s has not started. The
+// cap that starts later is not foreseen, and the 45 km/h cap still limits the train after 100 s.
+void TestPassengerJourneys::capThatStartsLaterDoesNotHideOneThatAppliesNow() {
+	LimitedRun limited;
+	limited.run.incidents[0].reducedSpeedKmh = 36.0;
+	limited.run.incidents[0].endSeconds = 100.0;
+	SimulationIncident lasting = limited.run.incidents[0];
+	lasting.startSeconds = 0.0;
+	lasting.reducedSpeedKmh = 45.0;
+	lasting.hasEndSeconds = false;
+	lasting.endSeconds = 0.0;
+	limited.run.incidents.push_back(lasting);
+	SimulationIncident later = limited.run.incidents[0];
+	later.startSeconds = 90.0;
+	later.reducedSpeedKmh = 18.0;
+	later.endSeconds = 105.0;
+	limited.run.incidents.push_back(later);
+	const passenger_routing::TrainProgress progress = liveTrainProgress(limited.run, limited.train(), 1, 60);
+	QCOMPARE(progress.limits.size(), std::size_t(2));
+	QCOMPARE(progress.limits[1].ends, passenger_routing::kUnreached);
+	QCOMPARE(progress.limits[1].runs[1], 160.0);
+}
+
+// Caps of 36 km/h until 100.2 s and 45 km/h until 100.8 s: a run that starts at 100.5 s is still limited, at 45 km/h.
+void TestPassengerJourneys::capsThatEndWithinOneSecondKeepTheirPeriods() {
+	LimitedRun limited;
+	limited.run.incidents[0].reducedSpeedKmh = 36.0;
+	limited.run.incidents[0].endSeconds = 100.2;
+	SimulationIncident second = limited.run.incidents[0];
+	second.reducedSpeedKmh = 45.0;
+	second.endSeconds = 100.8;
+	limited.run.incidents.push_back(second);
+	const passenger_routing::TrainProgress progress = liveTrainProgress(limited.run, limited.train(), 1, 60);
+	QCOMPARE(progress.limits.size(), std::size_t(2));
+	QCOMPARE(progress.limits[0].ends, 100.2);
+	QCOMPARE(progress.limits[1].ends, 100.8);
+	QCOMPARE(progress.limits[1].runs[1], 160.0);
 }
 
 void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute() {

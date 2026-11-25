@@ -106,7 +106,8 @@ struct TrainProgress {
 /// delay. A train that stands at firstStop past its planned departure there leaves it now at the earliest, whatever its delay,
 /// and its later times move as much, so that it can be boarded until now and never arrives before it leaves. Under a limit
 /// each run still to make takes the longer of its planned running time and its running time under the limit, with the time
-/// lost carried to the later stops like a delay; a stop without planned times is left as soon as the train gets there.
+/// lost carried to the later stops like a delay; a stop without planned times is left as soon as the train gets there, and a
+/// standing train leaves its stop now at the earliest. The predicted times never decrease along the stops.
 TrainState predictTrainState(const TrainTimetable& timetable, const TrainProgress& progress, double lateThresholdSeconds = kDefaultLateThresholdSeconds);
 
 /// One ride of a plan: a train from the stop where the passenger boards to the stop where the passenger leaves it.

@@ -90,6 +90,8 @@ private slots:
 	void negativePredictedTimesAreMissing();
 	void stopWithoutTimesIsLeftWhenTheTrainGetsThere();
 	void laterLimitTakesOverWhenTheFirstEnds();
+	void standingTrainLeavesAStopWithoutTimesNow();
+	void stopsAreNeverReachedBeforeTheStopBeforeIsLeft();
 	void limitedStretchRunsAtTheLowerSpeed();
 	void slowedTrainTakesTheLongerRunningTime();
 	void slowedTrainLosesTimeFromWhereItIs();
@@ -463,6 +465,32 @@ void TestPassengerRouting::passengerStaysWithLateTrainThatArrivesFirst() {
 	plan = router.search(A, daySeconds(8, 50), 2, states).plan(B);
 	QCOMPARE(plan.legs[0].train, std::size_t{1});
 	QCOMPARE(plan.arrival, daySeconds(10, 20));
+}
+
+// At 100 the train stands at A, which has no times; B is 2 km on and planned at 200. Under 36 km/h it leaves A now and is at B at
+// 300.
+void TestPassengerRouting::standingTrainLeavesAStopWithoutTimesNow() {
+	const TrainTimetable train{{stop(A, -1, -1), stop(B, 200, -1)}};
+	TrainProgress progress;
+	progress.now = 100.0;
+	progress.standing = true;
+	progress.limited = true;
+	progress.limits = {{kUnreached, {200.0, -1.0}}};
+	QCOMPARE(predictTrainState(train, progress).arrival(train, 1), 300.0);
+}
+
+// The train leaves A at 100 under a limit that ends at 200 and reaches C, which has no times, at 300. The run on from C is not
+// limited, but the train cannot reach B, planned at 220, before it leaves C.
+void TestPassengerRouting::stopsAreNeverReachedBeforeTheStopBeforeIsLeft() {
+	const TrainTimetable train{{stop(A, -1, 100), stop(C, -1, -1), stop(B, 220, -1)}};
+	TrainProgress progress;
+	progress.now = 100.0;
+	progress.standing = true;
+	progress.limited = true;
+	progress.limits = {{200.0, {200.0, 50.0, -1.0}}};
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.departure(train, 0), 100.0);
+	QVERIFY(state.arrival(train, 2) >= 300.0);
 }
 
 QTEST_APPLESS_MAIN(TestPassengerRouting)

@@ -35,14 +35,15 @@ std::vector<double> limitedRunningSeconds(const SimulationRun& run, const Train&
 /// (passenger_routing::TrainProgress, with times on the clock of the day: SimulationRun::settings.startingSimulationTime plus the
 /// seconds of the run).
 ///
-/// The delay is the arrival delay at the latest stop where the train arrived, and never negative. Before the train arrived anywhere
+/// The delay is the later of the arrival delay and, once the train left it, the departure delay (Train::StationDepartures) at the
+/// latest stop the train reached, and never negative. Before the train arrived anywhere
 /// it is the lateness of its entry (the step of entering minus Train::departure_time) when it has entered, and 0 when it has not.
 /// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
 /// there, so that a passenger who comes to the platform now can still board it.
 ///
-/// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. When
-/// another cap that applies now lasts longer, it limits the train from there, as the simulator takes the lowest cap at every step;
-/// a cap that starts later is not foreseen. The running times under a limit (limitedRunningSeconds) are the one to the stop ahead
+/// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. The
+/// caps that apply now (Active_Train_Breakdowns) give the limit over time: between two of their ends the lowest of those that still
+/// apply, as the simulator takes the lowest cap at every step. A cap that starts later is not foreseen. The running times under a limit (limitedRunningSeconds) are the one to the stop ahead
 /// from where the head of the train was at the step before (passengers who enter the network plan before the trains move), or
 /// from where it enters when it has not run a step yet, under the cap that applies when it sets off, and those between two later
 /// stops on the route of the train that follow each other, as far as the stops come in order along the route.
