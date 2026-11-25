@@ -17,10 +17,6 @@ constexpr double kScaleTickExtend = 3;
 constexpr double kScaleGap = 4;
 constexpr double kScaleEntriesGap = 6;
 
-double clampedThreshold(double value) {
-	return std::isfinite(value) ? std::clamp(value, 0.0, 1.0) : 0.7;
-}
-
 QString percentText(double rate) {
 	const double percent = rate * 100.0;
 	const double rounded = std::round(percent);
@@ -126,14 +122,14 @@ double diagramLoadScaleHeight(const QFont& font) {
 
 double diagramLoadScaleWidth(const DiagramLoadScale& scale, const QFont& font) {
 	const QFontMetricsF metrics(font);
-	const double threshold = clampedThreshold(scale.crowdingThreshold);
+	const double threshold = clampedCrowdingThreshold(scale.crowdingThreshold);
 	return std::ceil(std::max({140.0, metrics.horizontalAdvance(loadScaleHeading()),
 		metrics.horizontalAdvance(loadScaleCaption(threshold))}));
 }
 
 double paintLoadScale(QPainter& painter, const QRectF& area, const DiagramLoadScale& scale, const QFont& font,
 	const QColor& textColour) {
-	const double threshold = clampedThreshold(scale.crowdingThreshold);
+	const double threshold = clampedCrowdingThreshold(scale.crowdingThreshold);
 	const QFontMetricsF metrics(font);
 	const double line = std::ceil(metrics.height());
 	const double width = std::max(1.0, area.width());
@@ -226,7 +222,7 @@ DiagramKey::DiagramKey(QWidget* parent)
 void DiagramKey::updateProperties() {
 	QStringList names;
 	if (m_loadScale)
-		names << loadScaleCaption(clampedThreshold(m_loadScale->crowdingThreshold));
+		names << loadScaleCaption(clampedCrowdingThreshold(m_loadScale->crowdingThreshold));
 	for (const DiagramKeyEntry& entry : m_entries) names << entry.name;
 	setProperty("kinds", names);
 	setAccessibleDescription(names.join(QStringLiteral(", ")));
@@ -265,9 +261,8 @@ void DiagramKey::paintEvent(QPaintEvent*) {
 	const QColor text = palette().color(foregroundRole());
 	double y = 0;
 	if (m_loadScale) {
-		DiagramLoadScale drawn = *m_loadScale;
-		drawn.darkBackground = isDarkBackground(palette());
-		y += paintLoadScale(painter, QRectF(0, y, width(), height() - y), drawn, font(), text);
+		// The scale draws the variant of the colours that the lines have, also after a change of palette.
+		y += paintLoadScale(painter, QRectF(0, y, width(), height() - y), *m_loadScale, font(), text);
 		if (!m_entries.isEmpty()) y += kScaleEntriesGap;
 	}
 	for (const DiagramKeyEntry& entry : m_entries)

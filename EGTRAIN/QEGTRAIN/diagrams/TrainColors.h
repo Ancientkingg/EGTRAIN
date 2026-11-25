@@ -79,16 +79,18 @@ void styleBlockingTime(QAreaSeries* fill, QLineSeries* outline, BlockingTimeKind
 /// True when the base surface of palette is dark (lightness below 128).
 bool isDarkBackground(const QPalette& palette);
 
-/// Sequential colour for on-board passenger occupancy from 0 to 1, anchored at crowdingThreshold (clamped to [0, 1]).
+/// The on-board crowding threshold limited to [0, 1], or kDefaultPassengerOnboardCrowdingThreshold when it is not a
+/// finite number. The passenger load colours, line widths, key and segments all use it.
+double clampedCrowdingThreshold(double threshold);
+
+/// Sequential colour for on-board passenger occupancy from 0 to 1, anchored at crowdingThreshold (clampedCrowdingThreshold).
 /// Uses cool blue at or below the threshold and warm amber to deep crimson or magenta above it, adapted for light and
-/// dark surfaces and checked for colour-blind readability.
+/// dark surfaces and checked for colour-blind readability. A negative or unknown rate, as for a train without capacity,
+/// takes a neutral grey.
 QColor passengerLoadColour(double occupancyRate, double crowdingThreshold, bool darkBackground = false);
 
 /// Line width in pixels for on-board passenger occupancy: 2.5 px at or below crowdingThreshold, 4.0 px above it, and
 /// 4.5 px at or above full capacity.
 double passengerLoadLineWidth(double occupancyRate, double crowdingThreshold);
-
-/// Neutral colour for a train segment whose passenger capacity is zero or unknown.
-QColor passengerLoadNoCapacityColour(bool darkBackground = false);
 
 #endif // TRAINCOLORS_H

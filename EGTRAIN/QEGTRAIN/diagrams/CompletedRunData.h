@@ -72,7 +72,6 @@ struct CompletedStop {
 	double scheduledDeparture = 0.0;		///< Planned departure in seconds of the run, negative when the stop has none
 	bool stopped = false;					///< True when the train stood at this stop during the run
 	double standStartSeconds = -1.0;		///< First step the train stood at this stop, in seconds of the run, negative when it did not stop
-	double departureSeconds = -1.0;			///< Step the train left this stop, in seconds of the run, negative when it had not left
 	bool hasStopCall = false;				///< True when the passenger step recorded counts for this stop
 	int boarded = 0;						///< Passengers who boarded during the call
 	int alighted = 0;						///< Passengers who alighted during the call

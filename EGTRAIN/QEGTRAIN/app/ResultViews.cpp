@@ -22,7 +22,6 @@
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/TrainColors.h"
-#include "diagrams/TrainLoadData.h"
 #include "util/TimeFormat.h"
 #include "widgets/UserPrompts.h"
 #include <QDialog>
@@ -239,11 +238,10 @@ void ResultViews::showTimetableGraph() {
 }
 
 void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex) {
-	const std::optional<RouteDiagramData> diagram = routeDiagramData(*run, timetable, referenceIndex);
+	std::optional<RouteDiagramData> diagram = routeDiagramData(*run, timetable, referenceIndex);
 	if (!diagram) return;
 	const QString heading = timetable ? ResultViewName::kTimetableGraph : ResultViewName::kTrainPaths;
 	const QHash<QString, QColor> serviceColours = trainColorsForRun(run->results, m_host.sceneModel());
-	const QHash<QString, QString> trainServices = trainServicesForRun(run->results);
 	// The rows are made from the run when the window exports.
 	const auto graphCsv = [run, timetable, referenceIndex](const QStringList& visible) {
 		std::vector<std::string> ids;
@@ -265,70 +263,12 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 		win->setChart(route.chart);
 		if (route.stationAxis) win->setStationAxis(route.stationAxis, std::move(route.stationTicks));
 		win->setTrainColors(serviceColours);
-		win->setTrainServices(trainServices);
+		win->setTrainServices(trainServicesForRun(run->results));
 		win->setCsvProvider(graphCsv, "timetable_graph.csv");
 		win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	} else {
-		const QPointer<DiagramWindow> target(win);
-		const auto applyMode = [run, referenceIndex, serviceColours, trainServices, graphCsv, target](
-								   const QString& modeId, bool preserveZoom) {
-			if (!target) return;
-			const auto prevX = preserveZoom ? target->visibleRange(Qt::Horizontal) : std::nullopt;
-			const auto prevY = preserveZoom ? target->visibleRange(Qt::Vertical) : std::nullopt;
-			const std::optional<RouteDiagramData> stops = routeDiagramData(*run, true, referenceIndex);
-			const RouteDiagramData emptyCalls;
-			const RouteDiagramData& callSource = stops ? *stops : emptyCalls;
-			if (modeId == QStringLiteral("load")) {
-				const std::optional<TrainLoadDiagramData> loadData = trainLoadDiagramData(*run, referenceIndex);
-				if (!loadData) return;
-				const bool dark = isDarkBackground(target->palette());
-				RouteChart route = buildTrainLoadChart(*loadData, callSource, run->settings.horizonSeconds(), dark);
-				target->setPresentation(QStringLiteral("Passenger load"),
-					completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + route.referenceRoute);
-				target->setChart(route.chart);
-				if (route.stationAxis) target->setStationAxis(route.stationAxis, std::move(route.stationTicks));
-				target->setTrainColors(serviceColours);
-				target->setTrainServices(trainServices);
-				target->setLoadScale(DiagramLoadScale{loadData->crowdingThreshold, dark});
-				const auto loadCsv = [run, referenceIndex](const QStringList& visible) {
-					const std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(*run, referenceIndex);
-					if (!data) return std::string();
-					std::vector<std::string> ids;
-					for (const QString& id : visible) ids.push_back(id.toStdString());
-					return buildTrainLoadCsv(*data, ids);
-				};
-				target->setCsvProvider(loadCsv, "train_load.csv");
-				target->setFigureFileName(QStringLiteral("train_load.png"));
-				target->setTimeAxisY(true, run->settings.startOffsetSeconds);
-			} else {
-				const std::optional<RouteDiagramData> paths = routeDiagramData(*run, false, referenceIndex);
-				if (!paths) return;
-				RouteChart route = buildRouteDiagramChart(*paths, callSource, run->settings.horizonSeconds());
-				target->setPresentation(ResultViewName::kTrainPaths,
-					completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + route.referenceRoute);
-				target->setChart(route.chart);
-				if (route.stationAxis) target->setStationAxis(route.stationAxis, std::move(route.stationTicks));
-				target->setTrainColors(serviceColours);
-				target->setTrainServices(trainServices);
-				target->setCsvProvider(graphCsv, "train_path_graph.csv");
-				target->setFigureFileName(QString());
-				target->setTimeAxisY(true, run->settings.startOffsetSeconds);
-			}
-			if (prevX) target->setVisibleRange(Qt::Horizontal, prevX->first, prevX->second);
-			if (prevY) target->setVisibleRange(Qt::Vertical, prevY->first, prevY->second);
-		};
-		const bool hasPassengers = run->settings.hasPassengers;
-		win->setDisplayModes(
-			{
-				{QStringLiteral("paths"), QStringLiteral("Train paths"), true,
-					QStringLiteral("Colour each line by train or service")},
-				{QStringLiteral("load"), QStringLiteral("Passenger load"), hasPassengers,
-					hasPassengers ? QStringLiteral("Colour each section by on-board passenger occupancy against capacity")
-								  : QStringLiteral("No passengers were simulated in this run")},
-			},
-			QStringLiteral("paths"),
-			[applyMode](const QString& modeId) { applyMode(modeId, true); });
-		applyMode(QStringLiteral("paths"), false);
+		// The train paths, with Passenger load as the other display mode.
+		showTrainPaths(*win, {run, referenceIndex, heading, completedRunContext(run->provenance), serviceColours}, std::move(*diagram));
 	}
 
 	if (const auto routeDiagramBuilt = mainWindowTestHooks().routeDiagramBuilt)

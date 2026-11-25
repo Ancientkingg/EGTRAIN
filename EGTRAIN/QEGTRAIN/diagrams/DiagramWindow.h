@@ -37,17 +37,8 @@ class QKeyEvent;
 class QLabel;
 class QPainter;
 class QPushButton;
-class QRadioButton;
 class ResultFrame;
 class TrainKeyList;
-
-/// One display mode of a diagram window, shown as radio buttons in the Display section of its panel.
-struct DiagramDisplayMode {
-	QString id;			 ///< Stable identifier of the mode, such as "paths" or "load"
-	QString label;		 ///< Plain-text label shown in the panel
-	bool enabled = true; ///< False disables the option in the panel
-	QString toolTip;	 ///< Tooltip explaining the mode, or why it is disabled
-};
 
 /// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
 struct FigureColumn {
@@ -128,10 +119,11 @@ public:
 	void setEmptyText(const QString& text);
 	/// The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.
 	void setFigureFileName(const QString& fileName);
-	/// Offers mutually exclusive display modes at the top of the panel, such as "Train paths" and "Passenger load".
-	/// Hides the section when fewer than two modes are given. Choosing another mode calls `onChanged` with its id.
-	void setDisplayModes(const QVector<DiagramDisplayMode>& modes, const QString& activeId,
-		const std::function<void(const QString& modeId)>& onChanged);
+	/// Offers Train paths and Passenger load as the display modes of a train paths chart, in a Display section at the top
+	/// of the panel, with Train paths chosen. `loadAvailable` false disables Passenger load, as for a run without
+	/// passengers. Choosing a mode calls `onChanged` with true for Passenger load. Call it once; a window without it has
+	/// no Display section.
+	void offerPassengerLoadMode(bool loadAvailable, const std::function<void(bool passengerLoad)>& onChanged);
 	/// Shows or clears a sequential passenger load colour scale in the Key and in exported figures. When set, the Trains
 	/// list hides its train-colour samples so they do not conflict with the load colours. Cleared by setChart.
 	void setLoadScale(std::optional<DiagramLoadScale> scale);

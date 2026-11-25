@@ -6,14 +6,17 @@
 #include "diagrams/RouteDiagramData.h"
 #include "diagrams/TrainLoadData.h"
 
+#include <QColor>
+#include <QHash>
 #include <QString>
 #include <QStringList>
 
+#include <memory>
 #include <vector>
 
 // The charts of a finished run: each function turns run data into a QChart with its series, their descriptions and its
 // axes. A chart that a function returns belongs to the caller until DiagramWindow::setChart takes it. The functions read
-// nothing but their arguments and open no window.
+// nothing but their arguments and open no window; showTrainPaths fills a window that the caller made.
 
 /// The charts of the trajectories of the trains.
 enum class TrajectoryChart {
@@ -58,6 +61,22 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 /// labelling, as in buildRouteDiagramChart. `darkBackground` picks the light or dark variant of the colour scale.
 RouteChart buildTrainLoadChart(const TrainLoadDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds,
 	bool darkBackground = false);
+
+/// The train paths of a completed run along one of its routes, for showTrainPaths.
+struct TrainPathsSource {
+	std::shared_ptr<const CompletedRunData> run; ///< The completed run
+	int referenceIndex = -1;					 ///< Runtime index of the reference route, which the distance axis follows
+	QString title;								 ///< Title of the window in the Train paths mode
+	QString context;							 ///< Context of the header before the reference route, such as the case and scenario
+	QHash<QString, QColor> serviceColours;		 ///< Colour of each train by its service (trainColorsForRun)
+};
+
+/// Shows in `window` the train paths of `source`, coloured by train or service, and offers Passenger load as the other
+/// display mode (DiagramWindow::offerPassengerLoadMode), which colours each section by its on-board load against the
+/// capacity of the train. Each mode sets the chart, the header, the Key, the CSV export and the figure name. A switch
+/// keeps the zoom and the hidden trains. `paths` is the train paths diagram of the run along the reference route
+/// (routeDiagramData without the timetable), which the window keeps for the switches back.
+void showTrainPaths(DiagramWindow& window, const TrainPathsSource& source, RouteDiagramData paths);
 
 /// The blocking-time chart: the blocks, the planned lines and the simulated lines of `diagram`, over the route distance
 /// exactly over the sections of the scope and the time range of the diagram. `compressed` is for the compressed diagram of

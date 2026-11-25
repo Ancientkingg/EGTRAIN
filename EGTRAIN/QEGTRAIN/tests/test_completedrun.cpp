@@ -373,7 +373,6 @@ void compareCapture(const CapturedRun& run) {
 			QVERIFY2(stop.scheduledDeparture == train.ScheduledDepartures[s], fields.c_str());
 			QVERIFY2(stop.stopped == (train.Stations[s].StepStopped > 0), fields.c_str());
 			QVERIFY2(stop.standStartSeconds == train.StationStandStarts[s], fields.c_str());
-			QVERIFY2(stop.departureSeconds == train.StationDepartures[s], fields.c_str());
 			const StopCallCounts* counts = simulation.run().stopCalls.find(i, s);
 			QVERIFY2(stop.hasStopCall == (counts != nullptr), fields.c_str());
 			QVERIFY2(stop.loadAfter == (counts != nullptr ? counts->loadAfter : 0), fields.c_str());

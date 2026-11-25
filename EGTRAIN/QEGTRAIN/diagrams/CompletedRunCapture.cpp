@@ -202,7 +202,6 @@ std::vector<CompletedStop> captureStops(const Train& train, int trainIndex, cons
 		stop.scheduledDeparture = train.ScheduledDepartures[index];
 		stop.stopped = node.StepStopped > 0;
 		stop.standStartSeconds = train.StationStandStarts[index];
-		stop.departureSeconds = train.StationDepartures[index];
 		if (const StopCallCounts* counts = stopCalls.find(trainIndex, index)) {
 			stop.hasStopCall = true;
 			stop.boarded = counts->boarded;

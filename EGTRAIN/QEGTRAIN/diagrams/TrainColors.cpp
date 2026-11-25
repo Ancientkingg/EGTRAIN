@@ -4,6 +4,7 @@
 
 #include "diagrams/TrainColors.h"
 #include "diagrams/SeriesMeta.h"
+#include "scene/PassengerDwellModel.h"
 
 #include <QBrush>
 #include <QImage>
@@ -182,20 +183,25 @@ QColor threeStopRamp(const QColor& low, const QColor& mid, const QColor& high, d
 	return blendRgb(mid, high, (u - 0.5) * 2.0);
 }
 
+// The neutral colour of a train segment whose passenger capacity is zero or unknown.
+QColor passengerLoadNoCapacityColour(bool darkBackground) {
+	return darkBackground ? QColor(0x9a, 0xa6, 0xb0) : QColor(0x8a, 0x97, 0xa1);
+}
+
 } // namespace
 
 bool isDarkBackground(const QPalette& palette) {
 	return palette.color(QPalette::Base).lightness() < 128;
 }
 
-QColor passengerLoadNoCapacityColour(bool darkBackground) {
-	return darkBackground ? QColor(0x9a, 0xa6, 0xb0) : QColor(0x8a, 0x97, 0xa1);
+double clampedCrowdingThreshold(double threshold) {
+	return std::isfinite(threshold) ? std::clamp(threshold, 0.0, 1.0) : kDefaultPassengerOnboardCrowdingThreshold;
 }
 
 QColor passengerLoadColour(double occupancyRate, double crowdingThreshold, bool darkBackground) {
 	if (!std::isfinite(occupancyRate) || occupancyRate < 0.0)
 		return passengerLoadNoCapacityColour(darkBackground);
-	const double threshold = std::isfinite(crowdingThreshold) ? std::clamp(crowdingThreshold, 0.0, 1.0) : 0.7;
+	const double threshold = clampedCrowdingThreshold(crowdingThreshold);
 	const double rate = std::clamp(occupancyRate, 0.0, 1.0);
 	if (rate <= threshold) {
 		const double u = threshold > 0.0 ? std::clamp(rate / threshold, 0.0, 1.0) : 0.0;
@@ -213,7 +219,7 @@ QColor passengerLoadColour(double occupancyRate, double crowdingThreshold, bool 
 double passengerLoadLineWidth(double occupancyRate, double crowdingThreshold) {
 	if (!std::isfinite(occupancyRate) || occupancyRate < 0.0)
 		return 2.0;
-	const double threshold = std::isfinite(crowdingThreshold) ? std::clamp(crowdingThreshold, 0.0, 1.0) : 0.7;
+	const double threshold = clampedCrowdingThreshold(crowdingThreshold);
 	if (occupancyRate >= 1.0)
 		return 4.5;
 	if (occupancyRate > threshold)

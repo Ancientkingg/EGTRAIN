@@ -8,19 +8,20 @@
 #include <string>
 #include <vector>
 
-/// One contiguous segment of a train path along a reference route, coloured by the passenger load carried after a call.
+/// One contiguous segment of a train path along a reference route, coloured by the passenger load carried after a call. A
+/// stop where the train stood without a call that the passenger step recorded starts no segment: the load of the call
+/// before carries on to the next recorded call.
 struct TrainLoadSegment {
 	std::string trainId;				   ///< Name of the train in the run
-	int trainIndex = 0;					   ///< Position of the train in the run
 	std::string routeId;				   ///< Route of the train
-	std::string fromStation;			   ///< Station of the call that set this load; empty before the first call
-	std::string toStation;				   ///< Station of the next call the train reached; empty after the last call
+	std::string fromStation;			   ///< Station of the recorded call that set this load; empty before the first call
+	std::string toStation;				   ///< Station of the next recorded call; empty after the last call
 	int load = 0;						   ///< Passengers on board along this segment
 	int capacity = 0;					   ///< Maximum passengers on board (Train::MAX_OnBoard_Passengers); 0 when unknown
 	int boarded = 0;					   ///< Passengers who boarded at the call that started this segment
 	int alighted = 0;					   ///< Passengers who alighted at the call that started this segment
 	int leftBehind = 0;					   ///< Passengers refused at the call that started this segment because the train was full
-	bool hasCall = false;				   ///< True when this segment follows an actual stop call
+	bool hasCall = false;				   ///< True when this segment follows a recorded call
 	std::vector<RouteDiagramPoint> points; ///< Projected trajectory points along this segment, in sample order
 
 	/// Occupancy rate (load / capacity), or negative when capacity is not positive.
@@ -36,10 +37,9 @@ struct TrainLoadSegment {
 
 /// On-board passenger load of every train along a reference route, split into per-call segments.
 struct TrainLoadDiagramData {
-	RouteDiagramPath referencePath;													 ///< The reference route
-	double crowdingThreshold = kDefaultPassengerOnboardCrowdingThreshold;			 ///< Occupancy rate above which a train counts as crowded
-	bool hasPassengers = false;														 ///< True when the run simulated passengers
-	std::vector<TrainLoadSegment> segments;											 ///< Segments of every train, in run and sample order
+	RouteDiagramPath referencePath;										  ///< The reference route
+	double crowdingThreshold = kDefaultPassengerOnboardCrowdingThreshold; ///< Occupancy rate above which a train counts as crowded
+	std::vector<TrainLoadSegment> segments;								  ///< Segments of every train, in run and sample order
 };
 
 /// The train paths split into per-call passenger load segments on the reference route with the given index.

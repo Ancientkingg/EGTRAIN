@@ -404,7 +404,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_warningArea->hide();
 	m_frame->addAboveMain(m_warningArea);
 
-	// The panel: optional display mode, the trains, the key, the selected item, the exports and the readout.
+	// The panel: the display modes of a train paths chart, the trains, the key, the selected item, the exports and the readout.
 	ResultPanel* panel = m_frame->panel();
 	m_displayModesBox = new QWidget(this);
 	m_displayModesBox->setObjectName("diagramDisplayModes");
@@ -518,45 +518,24 @@ void DiagramWindow::setFigureFileName(const QString& fileName) {
 	m_figureFileName = fileName;
 }
 
-void DiagramWindow::setDisplayModes(const QVector<DiagramDisplayMode>& modes, const QString& activeId,
-	const std::function<void(const QString& modeId)>& onChanged) {
-	if (!m_displayModesBox || !m_displaySection) return;
-	auto* layout = qobject_cast<QVBoxLayout*>(m_displayModesBox->layout());
-	if (!layout) return;
-	while (QLayoutItem* item = layout->takeAt(0)) {
-		if (QWidget* widget = item->widget()) {
-			widget->hide();
-			widget->deleteLater();
-		}
-		delete item;
-	}
-	if (modes.size() <= 1) {
-		m_frame->panel()->setSectionVisible(m_displaySection, false);
-		return;
-	}
-	QList<QWidget*> buttons;
-	for (const DiagramDisplayMode& mode : modes) {
-		auto* button = new QRadioButton(mode.label, m_displayModesBox);
-		button->setObjectName(QStringLiteral("diagramMode_") + mode.id);
-		button->setEnabled(mode.enabled);
-		button->setToolTip(plainToolTip(mode.toolTip));
-		button->setChecked(mode.id == activeId);
-		if (onChanged) {
-			const QString modeId = mode.id;
-			connect(button, &QRadioButton::toggled, this, [onChanged, modeId](bool checked) {
-				if (checked) onChanged(modeId);
-			});
-		}
-		layout->addWidget(button);
-		buttons << button;
-	}
-	QWidget* previous = m_view;
-	for (QWidget* button : buttons) {
-		QWidget::setTabOrder(previous, button);
-		previous = button;
-	}
-	if (m_trainList && !m_trainList->focusChain().isEmpty())
-		QWidget::setTabOrder(previous, m_trainList->focusChain().first());
+void DiagramWindow::offerPassengerLoadMode(bool loadAvailable, const std::function<void(bool passengerLoad)>& onChanged) {
+	auto* paths = new QRadioButton(QStringLiteral("Train paths"), m_displayModesBox);
+	paths->setObjectName(QStringLiteral("diagramMode_paths"));
+	paths->setToolTip(plainToolTip(QStringLiteral("Colour each line by train or service")));
+	paths->setChecked(true);
+	auto* load = new QRadioButton(QStringLiteral("Passenger load"), m_displayModesBox);
+	load->setObjectName(QStringLiteral("diagramMode_load"));
+	load->setEnabled(loadAvailable);
+	load->setToolTip(plainToolTip(loadAvailable ? QStringLiteral("Colour each section by on-board passenger occupancy against capacity")
+												: QStringLiteral("No passengers were simulated in this run")));
+	// The two buttons exclude each other, so the state of Passenger load names the mode.
+	if (onChanged) connect(load, &QRadioButton::toggled, this, onChanged);
+	m_displayModesBox->layout()->addWidget(paths);
+	m_displayModesBox->layout()->addWidget(load);
+	// Tab goes from the chart through the modes to the trains.
+	QWidget::setTabOrder(m_view, paths);
+	QWidget::setTabOrder(paths, load);
+	if (!m_trainList->focusChain().isEmpty()) QWidget::setTabOrder(load, m_trainList->focusChain().first());
 	m_frame->panel()->setSectionVisible(m_displaySection, true);
 }
 
@@ -1477,8 +1456,7 @@ FigureColumn DiagramWindow::panelColumn() const {
 			trains.push_back({row.first, DiagramKeyEntry::Shape::Line,
 				row.second.isValid() ? QPen(row.second, 2.5, Qt::SolidLine, Qt::RoundCap) : QPen(Qt::NoPen), QBrush()});
 	const QVector<DiagramKeyEntry> key = m_key ? m_key->entries() : QVector<DiagramKeyEntry>();
-	std::optional<DiagramLoadScale> loadScale = m_loadScale;
-	if (loadScale) loadScale->darkBackground = isDarkBackground(palette());
+	const std::optional<DiagramLoadScale> loadScale = m_loadScale;
 	if (trains.isEmpty() && key.isEmpty() && !loadScale) return {};
 	QFont headingFont = font();
 	headingFont.setBold(true);

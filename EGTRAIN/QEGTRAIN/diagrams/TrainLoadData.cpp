@@ -1,5 +1,6 @@
 #include "diagrams/TrainLoadData.h"
 
+#include "diagrams/TrainColors.h"
 #include "util/CsvWriter.h"
 
 #include <algorithm>
@@ -8,7 +9,7 @@
 
 namespace {
 
-// A stop at which the train actually stood during the run, with its arrival time and counts.
+// A stop at which the train stood during the run and the passenger step recorded its counts, with its arrival time.
 struct ActualStopCall {
 	double standStartSeconds = 0.0;
 	std::string station;
@@ -18,10 +19,12 @@ struct ActualStopCall {
 	int leftBehind = 0;
 };
 
+// The recorded calls of the train in order of arrival. A stop where the train stood without a recorded call is left out,
+// so the load of the call before it carries on past that stop.
 std::vector<ActualStopCall> actualCallsOf(const CompletedTrain& train) {
 	std::vector<ActualStopCall> calls;
 	for (const CompletedStop& stop : train.stops) {
-		if (!stop.stopped || !std::isfinite(stop.standStartSeconds) || stop.standStartSeconds < 0.0)
+		if (!stop.stopped || !stop.hasStopCall || !std::isfinite(stop.standStartSeconds) || stop.standStartSeconds < 0.0)
 			continue;
 		ActualStopCall call;
 		call.standStartSeconds = stop.standStartSeconds;
@@ -38,23 +41,10 @@ std::vector<ActualStopCall> actualCallsOf(const CompletedTrain& train) {
 	return calls;
 }
 
-// Index of the latest call whose stand began at or before timeSeconds, or -1 before the first call.
-int activeCallIndexAt(const std::vector<ActualStopCall>& calls, double timeSeconds) {
-	int active = -1;
-	for (std::size_t i = 0; i < calls.size(); ++i) {
-		if (calls[i].standStartSeconds <= timeSeconds)
-			active = static_cast<int>(i);
-		else
-			break;
-	}
-	return active;
-}
-
-TrainLoadSegment makeSegment(const CompletedTrain& train, int trainIndex, const std::string& routeId,
-	const std::vector<ActualStopCall>& calls, int callIndex) {
+TrainLoadSegment makeSegment(const CompletedTrain& train, const std::string& routeId, const std::vector<ActualStopCall>& calls,
+	int callIndex) {
 	TrainLoadSegment segment;
 	segment.trainId = train.trainId;
-	segment.trainIndex = trainIndex;
 	segment.routeId = routeId;
 	segment.capacity = train.passengerCapacity;
 	if (callIndex >= 0 && callIndex < static_cast<int>(calls.size())) {
@@ -73,12 +63,6 @@ TrainLoadSegment makeSegment(const CompletedTrain& train, int trainIndex, const 
 	return segment;
 }
 
-double clampedThreshold(double threshold) {
-	if (!std::isfinite(threshold))
-		return kDefaultPassengerOnboardCrowdingThreshold;
-	return std::clamp(threshold, 0.0, 1.0);
-}
-
 } // namespace
 
 std::optional<TrainLoadDiagramData> trainLoadDiagramData(const CompletedRunData& data, int referenceIndex) {
@@ -88,34 +72,36 @@ std::optional<TrainLoadDiagramData> trainLoadDiagramData(const CompletedRunData&
 	result.referencePath = data.routes[static_cast<std::size_t>(referenceIndex)].path;
 	if (result.referencePath.nodes.empty())
 		return std::nullopt;
-	result.crowdingThreshold = clampedThreshold(data.settings.passengerOnboardCrowdingThreshold);
-	result.hasPassengers = data.settings.hasPassengers;
+	result.crowdingThreshold = clampedCrowdingThreshold(data.settings.passengerOnboardCrowdingThreshold);
 
 	const RouteProjections maps = projectRoutes(data, result.referencePath);
-	for (std::size_t trainIndex = 0; trainIndex < data.trains.size(); ++trainIndex) {
-		const CompletedTrain& train = data.trains[trainIndex];
+	for (const CompletedTrain& train : data.trains) {
 		const auto projection = maps.projections.find(train.routeIndex);
 		if (projection == maps.projections.end())
 			continue;
 		const std::string& routeId = data.routes[static_cast<std::size_t>(train.routeIndex)].id;
 		const std::vector<ActualStopCall> calls = actualCallsOf(train);
 		const CompletedTrajectory& trajectory = train.trajectory;
+		// The samples come in order of time, so the latest call that began moves forward only.
+		std::size_t nextCall = 0;
+		int callIndex = -1;
 
 		for (const TrajectorySegment& valid : trajectory.segments) {
 			bool open = false;
 			int openCall = -2;
 			for (int sample = valid.first; sample <= valid.last; ++sample) {
+				const double seconds = sample * data.settings.timestepSeconds;
+				while (nextCall < calls.size() && calls[nextCall].standStartSeconds <= seconds)
+					callIndex = static_cast<int>(nextCall++);
 				const double sourceKm = routeDiagramTrajectoryKm(trajectory.at(trajectory.position, sample).value_or(0.0));
 				const auto x = projection->second.map(sourceKm);
 				if (!x) {
 					open = false;
 					continue;
 				}
-				const double seconds = sample * data.settings.timestepSeconds;
-				const int callIndex = activeCallIndexAt(calls, seconds);
 				const RouteDiagramPoint point{*x, seconds, std::string(), 0, 0};
 				if (!open) {
-					TrainLoadSegment segment = makeSegment(train, static_cast<int>(trainIndex), routeId, calls, callIndex);
+					TrainLoadSegment segment = makeSegment(train, routeId, calls, callIndex);
 					segment.points.push_back(point);
 					result.segments.push_back(std::move(segment));
 					open = true;
@@ -124,7 +110,7 @@ std::optional<TrainLoadDiagramData> trainLoadDiagramData(const CompletedRunData&
 					// Share the boundary point so adjacent coloured segments connect without a gap.
 					result.segments.back().points.push_back(point);
 					if (sample < valid.last) {
-						TrainLoadSegment segment = makeSegment(train, static_cast<int>(trainIndex), routeId, calls, callIndex);
+						TrainLoadSegment segment = makeSegment(train, routeId, calls, callIndex);
 						segment.points.push_back(point);
 						result.segments.push_back(std::move(segment));
 						openCall = callIndex;

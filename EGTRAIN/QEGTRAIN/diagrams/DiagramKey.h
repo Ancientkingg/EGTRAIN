@@ -54,7 +54,7 @@ double diagramKeyWidth(const QVector<DiagramKeyEntry>& entries, const QFont& fon
 /// Sequential colour scale for on-board passenger occupancy from 0 to 100 percent, with the crowding threshold marked.
 struct DiagramLoadScale {
 	double crowdingThreshold = 0.7; ///< On-board occupancy rate above which a train counts as crowded, in [0, 1]
-	bool darkBackground = false;	///< True when the chart background is dark
+	bool darkBackground = false;	///< True for the dark variant of the colours, the one the lines of the chart have
 };
 
 /// The height of the passenger load colour scale block in `font`.

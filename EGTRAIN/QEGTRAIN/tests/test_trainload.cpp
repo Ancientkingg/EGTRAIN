@@ -26,11 +26,13 @@
 #include <QRadioButton>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QToolButton>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <set>
@@ -150,6 +152,18 @@ int distinctColours(const QImage& image) {
 	return static_cast<int>(seen.size());
 }
 
+// Whether a pixel of `image` is within `tolerance` of `colour` in each of red, green and blue.
+bool hasColourNear(const QImage& image, const QColor& colour, int tolerance = 10) {
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x) {
+			const QRgb pixel = image.pixel(x, y);
+			if (std::abs(qRed(pixel) - colour.red()) <= tolerance && std::abs(qGreen(pixel) - colour.green()) <= tolerance
+				&& std::abs(qBlue(pixel) - colour.blue()) <= tolerance)
+				return true;
+		}
+	return false;
+}
+
 } // namespace
 
 class TestTrainLoad : public QObject {
@@ -157,9 +171,11 @@ class TestTrainLoad : public QObject {
 
 private slots:
 	void buildsSegmentsFromStopCallLog();
+	void carriesLoadPastStopWithoutRecordedCall();
 	void handlesZeroCapacityAndMissingRoute();
 	void coloursAdaptToThresholdAndBackground();
 	void rendersOffscreenWindowHoversAndExportsPng();
+	void switchingModesKeepsZoomAndHiddenTrains();
 	void rendersPaimpolPassengerLoad();
 };
 
@@ -181,7 +197,6 @@ void TestTrainLoad::buildsSegmentsFromStopCallLog() {
 	const std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(captured, 0);
 	if (!data) QFAIL("expected train load diagram data for route 0");
 	QCOMPARE(data->crowdingThreshold, 0.7);
-	QVERIFY(data->hasPassengers);
 	// Four contiguous segments: before Delft (0..10), Delft->Schiedam (10..40), Schiedam->Rotterdam (40..70), after Rotterdam (70..80).
 	QCOMPARE(data->segments.size(), std::size_t(4));
 
@@ -237,6 +252,39 @@ void TestTrainLoad::buildsSegmentsFromStopCallLog() {
 		"Schiedam,Rotterdam,40,70,85,100," + csv::formatDouble(85.0 / 100.0) + ",yes,55,10,5";
 	QVERIFY2(csvAll.find(expectedRow) != std::string::npos, csvAll.c_str());
 	QVERIFY(buildTrainLoadCsv(*data, {"Other"}).empty());
+}
+
+// A stop where the train stood without a call that the passenger step recorded starts no section: the load of the call
+// before carries on to the next recorded call.
+void TestTrainLoad::carriesLoadPastStopWithoutRecordedCall() {
+	const std::unique_ptr<SimulationRun> run = buildSmallPassengerRun();
+	CompletedRunData captured = captureCompletedRun(*run, nullptr, 28800, RunProvenance());
+	// The train stood at Schiedam, but StopCallLog has no counts for that stop.
+	CompletedStop& schiedam = captured.trains[0].stops[1];
+	QVERIFY(schiedam.stopped);
+	schiedam.hasStopCall = false;
+	schiedam.boarded = 0;
+	schiedam.alighted = 0;
+	schiedam.leftBehind = 0;
+	schiedam.loadAfter = 0;
+
+	const std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(captured, 0);
+	if (!data) QFAIL("expected train load diagram data for route 0");
+	// Before Delft, Delft to Rotterdam past Schiedam, and after Rotterdam.
+	QCOMPARE(data->segments.size(), std::size_t(3));
+	const TrainLoadSegment& leg = data->segments[1];
+	QVERIFY(leg.hasCall);
+	QCOMPARE(leg.fromStation, std::string("Delft"));
+	QCOMPARE(leg.toStation, std::string("Rotterdam"));
+	QCOMPARE(leg.load, 40);
+	QCOMPARE(leg.boarded, 40);
+	QCOMPARE(leg.points.front().seconds, 10.0);
+	QCOMPARE(leg.points.back().seconds, 70.0);
+	QCOMPARE(data->segments[2].fromStation, std::string("Rotterdam"));
+
+	const std::string csv = buildTrainLoadCsv(*data, {"IC 100"});
+	QVERIFY2(csv.find("Delft,Rotterdam,10,70,40,100,") != std::string::npos, csv.c_str());
+	QVERIFY2(csv.find("Schiedam") == std::string::npos, csv.c_str());
 }
 
 void TestTrainLoad::handlesZeroCapacityAndMissingRoute() {
@@ -315,15 +363,6 @@ void TestTrainLoad::rendersOffscreenWindowHoversAndExportsPng() {
 	window.setLoadScale(DiagramLoadScale{data->crowdingThreshold, false});
 	window.setTimeAxisY(true, captured.settings.startOffsetSeconds);
 
-	QString switchedTo;
-	window.setDisplayModes(
-		{
-			{QStringLiteral("paths"), QStringLiteral("Train paths"), true, QString()},
-			{QStringLiteral("load"), QStringLiteral("Passenger load"), true, QString()},
-		},
-		QStringLiteral("load"),
-		[&switchedTo](const QString& modeId) { switchedTo = modeId; });
-
 	window.setMaximumSize(1200, 720);
 	window.resize(1200, 720);
 	window.show();
@@ -334,12 +373,6 @@ void TestTrainLoad::rendersOffscreenWindowHoversAndExportsPng() {
 	QVERIFY(key->isVisible());
 	QVERIFY(key->loadScale().has_value());
 	QVERIFY(key->property("kinds").toStringList().contains(QStringLiteral("Crowded above 70% (thicker line)")));
-
-	auto* loadRadio = window.findChild<QRadioButton*>("diagramMode_load");
-	auto* pathsRadio = window.findChild<QRadioButton*>("diagramMode_paths");
-	if (loadRadio == nullptr || pathsRadio == nullptr) QFAIL("expected display mode radio buttons");
-	QVERIFY(loadRadio->isChecked());
-	QVERIFY(!pathsRadio->isChecked());
 
 	// Hover the crowded Schiedam -> Rotterdam segment (series index 2, midpoint around 7.5 km, 60 s).
 	auto* view = window.findChild<QChartView*>();
@@ -365,26 +398,90 @@ void TestTrainLoad::rendersOffscreenWindowHoversAndExportsPng() {
 	const std::optional<std::string> encoded = pngBytes(figure);
 	QVERIFY(encoded.has_value() && encoded->size() > 1000);
 
-	// Dark palette also renders cleanly with distinct colours.
+	// After a change to a dark palette the key and the figure keep the light variant that the lines were drawn in.
 	QPalette dark = window.palette();
 	dark.setColor(QPalette::Base, QColor(0x1e, 0x1e, 0x1e));
 	dark.setColor(QPalette::Window, QColor(0x25, 0x25, 0x26));
 	dark.setColor(QPalette::WindowText, QColor(0xeb, 0xeb, 0xeb));
 	window.setPalette(dark);
 	QApplication::processEvents();
+	auto* crowdedLine = qobject_cast<QLineSeries*>(crowdedSeries);
+	if (crowdedLine == nullptr) QFAIL("expected QLineSeries");
+	QCOMPARE(crowdedLine->pen().color(), passengerLoadColour(0.85, data->crowdingThreshold, false));
+	const QColor lightFull = passengerLoadColour(1.0, data->crowdingThreshold, false);
+	const QColor darkFull = passengerLoadColour(1.0, data->crowdingThreshold, true);
+	const QImage keyImage = key->grab().toImage();
+	QVERIFY2(hasColourNear(keyImage, lightFull), "the key keeps the variant of the lines");
+	QVERIFY2(!hasColourNear(keyImage, darkFull), "the key does not take the dark variant");
 	const QImage darkFigure = window.exportedFigure();
 	QVERIFY(!darkFigure.isNull());
-	QVERIFY(distinctColours(darkFigure) > 20);
+	QVERIFY2(hasColourNear(darkFigure, lightFull), "the figure keeps the variant of the lines");
+	QVERIFY2(!hasColourNear(darkFigure, darkFull), "the figure does not take the dark variant");
+}
 
-	// Switching display mode emits the callback and preserves visible axis ranges via visibleRange/setVisibleRange.
-	window.setVisibleRange(Qt::Horizontal, 2.0, 8.0);
-	const auto xRange = window.visibleRange(Qt::Horizontal);
-	QVERIFY(xRange.has_value());
-	QCOMPARE(xRange->first, 2.0);
-	QCOMPARE(xRange->second, 8.0);
-	pathsRadio->click();
+// The window of ResultViews switches between Train paths and Passenger load through showTrainPaths. Each switch builds
+// the chart again and keeps the zoom and the hidden trains.
+void TestTrainLoad::switchingModesKeepsZoomAndHiddenTrains() {
+	const std::unique_ptr<SimulationRun> run = buildSmallPassengerRun();
+	// A second train, so that one is hidden while the other shows.
+	run->trains.push_back(run->trains[0]);
+	run->trains[1].trainDescription = "IC 200";
+	run->numTrains = 2;
+	RunProvenance provenance;
+	provenance.caseName = "SmallLine";
+	const auto captured = std::make_shared<const CompletedRunData>(captureCompletedRun(*run, nullptr, 28800, provenance));
+	std::optional<RouteDiagramData> paths = routeDiagramData(*captured, false, 0);
+	if (!paths) QFAIL("expected a train paths diagram for route 0");
+
+	DiagramWindow window(QStringLiteral("Train paths"));
+	showTrainPaths(window, {captured, 0, QStringLiteral("Train paths"), QStringLiteral("SmallLine"), {}}, std::move(*paths));
+	window.resize(1200, 720);
+	window.show();
 	QApplication::processEvents();
-	QCOMPARE(switchedTo, QStringLiteral("paths"));
+
+	auto* loadRadio = window.findChild<QRadioButton*>("diagramMode_load");
+	auto* pathsRadio = window.findChild<QRadioButton*>("diagramMode_paths");
+	auto* key = window.findChild<DiagramKey*>("diagramKey");
+	auto* list = window.findChild<TrainKeyList*>("trainKeyList");
+	auto* zoomIn = window.findChild<QToolButton*>("diagramZoomIn");
+	if (loadRadio == nullptr || pathsRadio == nullptr || key == nullptr || list == nullptr || zoomIn == nullptr)
+		QFAIL("expected the display modes, the key, the trains and Zoom In");
+	QVERIFY(pathsRadio->isChecked());
+	QVERIFY(loadRadio->isEnabled());
+	QVERIFY(!key->loadScale().has_value());
+
+	zoomIn->click();
+	QApplication::processEvents();
+	const auto zoomX = window.visibleRange(Qt::Horizontal);
+	const auto zoomY = window.visibleRange(Qt::Vertical);
+	if (!zoomX || !zoomY) QFAIL("expected both axes");
+	QVERIFY2(zoomX->second - zoomX->first < 10.0, "Zoom In narrows the 10 km of the route");
+	list->setTrainVisible(QStringLiteral("IC 200"), false);
+
+	for (QRadioButton* mode : {loadRadio, pathsRadio}) {
+		mode->click();
+		QApplication::processEvents();
+		const bool load = mode == loadRadio;
+		const QByteArray what = mode->text().toUtf8();
+		QCOMPARE(window.windowTitle(), mode->text());
+		QCOMPARE(key->loadScale().has_value(), load);
+		const auto x = window.visibleRange(Qt::Horizontal);
+		const auto y = window.visibleRange(Qt::Vertical);
+		QVERIFY2(x && y, what.constData());
+		QCOMPARE(x->first, zoomX->first);
+		QCOMPARE(x->second, zoomX->second);
+		QCOMPARE(y->first, zoomY->first);
+		QCOMPARE(y->second, zoomY->second);
+		QVERIFY2(!list->isTrainVisible(QStringLiteral("IC 200")), what.constData());
+		auto* view = window.findChild<QChartView*>();
+		if (view == nullptr) QFAIL("expected QChartView");
+		int shown = 0;
+		for (QAbstractSeries* series : view->chart()->series()) {
+			if (series->name() == QStringLiteral("IC 200")) QVERIFY2(!series->isVisible(), what.constData());
+			if (series->name() == QStringLiteral("IC 100") && series->isVisible()) ++shown;
+		}
+		QVERIFY2(shown > 0, what.constData());
+	}
 }
 
 void TestTrainLoad::rendersPaimpolPassengerLoad() {
@@ -414,14 +511,14 @@ void TestTrainLoad::rendersPaimpolPassengerLoad() {
 	RunProvenance provenance;
 	provenance.caseName = loaded.scene.name;
 	provenance.appliedScenario = "baseline";
-	const CompletedRunData captured =
-		captureCompletedRun(simulation.run(), &loaded.scene, initial_variables.startingSimulationTime, provenance);
-	QVERIFY(captured.settings.hasPassengers);
-	const auto used = usedRouteReferencesFrom(captured);
+	const auto captured = std::make_shared<const CompletedRunData>(
+		captureCompletedRun(simulation.run(), &loaded.scene, initial_variables.startingSimulationTime, provenance));
+	QVERIFY(captured->settings.hasPassengers);
+	const auto used = usedRouteReferencesFrom(*captured);
 	QVERIFY(!used.empty());
 	const int refIndex = used.front().first;
 
-	const std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(captured, refIndex);
+	const std::optional<TrainLoadDiagramData> data = trainLoadDiagramData(*captured, refIndex);
 	if (!data) QFAIL("expected load diagram data for Paimpol");
 	bool anyNonZeroLoad = false;
 	bool anyCrowded = false;
@@ -432,31 +529,25 @@ void TestTrainLoad::rendersPaimpolPassengerLoad() {
 	QVERIFY2(anyNonZeroLoad, "Paimpol must have segments with on-board passengers");
 	QVERIFY2(anyCrowded, "Paimpol must have crowded segments above the threshold");
 
-	const std::optional<RouteDiagramData> stops = routeDiagramData(captured, true, refIndex);
-	const RouteDiagramData emptyCalls;
-	RouteChart built = buildTrainLoadChart(*data, stops ? *stops : emptyCalls, captured.settings.horizonSeconds(), false);
-
-	DiagramWindow window("Passenger load");
-	window.setPresentation("Passenger load",
-		QStringLiteral("Paimpol / baseline \u00b7 ") + built.referenceRoute);
-	window.setChart(built.chart);
-	if (built.stationAxis) window.setStationAxis(built.stationAxis, std::move(built.stationTicks));
-	window.setTrainServices(trainServicesForRun(captured.results));
-	window.setLoadScale(DiagramLoadScale{data->crowdingThreshold, false});
-	window.setDisplayModes(
-		{
-			{QStringLiteral("paths"), QStringLiteral("Train paths"), true, QString()},
-			{QStringLiteral("load"), QStringLiteral("Passenger load"), true, QString()},
-		},
-		QStringLiteral("load"), {});
-	window.setTimeAxisY(true, captured.settings.startOffsetSeconds);
+	// The window as ResultViews opens it, switched to Passenger load.
+	std::optional<RouteDiagramData> paths = routeDiagramData(*captured, false, refIndex);
+	if (!paths) QFAIL("expected a train paths diagram for Paimpol");
+	DiagramWindow window(QStringLiteral("Train paths"));
+	showTrainPaths(window,
+		{captured, refIndex, QStringLiteral("Train paths"), QStringLiteral("Paimpol / baseline"),
+			trainColorsForRun(captured->results, loaded.scene)},
+		std::move(*paths));
 	window.setMaximumSize(1200, 720);
 	window.resize(1200, 720);
 	window.show();
+	auto* loadRadio = window.findChild<QRadioButton*>("diagramMode_load");
+	if (loadRadio == nullptr) QFAIL("expected the Passenger load mode");
+	loadRadio->click();
 	for (int round = 0; round < 4; ++round) {
 		QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
 		QApplication::processEvents();
 	}
+	QCOMPARE(window.windowTitle(), QStringLiteral("Passenger load"));
 
 	const QImage figure = window.exportedFigure();
 	QVERIFY(!figure.isNull());

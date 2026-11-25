@@ -467,7 +467,7 @@ egtrain_add_test(test_diagramwindow
 
 egtrain_add_test(test_routecharts
 	SOURCES ${SRC_DIR}/tests/test_routecharts.cpp
-	LIBS egtrain_diagrams
+	LIBS egtrain_diagrams egtrain_telemetry
 	LABELS unit gui)
 
 egtrain_add_test(test_trainload SIMULATION_HEADERS
