@@ -8,6 +8,8 @@
 #include "widgets/DiagnosticLines.h"
 
 #include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
 #include <QFontMetrics>
@@ -16,6 +18,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPalette>
@@ -426,6 +429,84 @@ long long totalOf(const ScenePassengerDemandSlice& slice) {
 	return total;
 }
 
+QString countLabel(long long count, const char* singular, const char* plural) {
+	return QStringLiteral("%1 %2").arg(count).arg(QString::fromLatin1(count == 1 ? singular : plural));
+}
+
+bool showDayImportPreviewDialog(QWidget* parent, const DemandDayPreview& preview) {
+	QDialog dialog(parent);
+	dialog.setObjectName("demandImportDayDialog");
+	dialog.setProperty("dialogPresentation", true);
+
+	auto* body = new QWidget;
+	auto* bodyLayout = new QVBoxLayout(body);
+	bodyLayout->setContentsMargins(0, 0, 0, 0);
+
+	auto* slicesTable = new QTableWidget(static_cast<int>(preview.slices.size()), 3, body);
+	slicesTable->setObjectName("demandPreviewSlicesTable");
+	slicesTable->setAccessibleName("Demand slices to import");
+	slicesTable->setHorizontalHeaderLabels({"Start", "End", "Passengers"});
+	slicesTable->verticalHeader()->hide();
+	slicesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	slicesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	slicesTable->setSelectionMode(QAbstractItemView::SingleSelection);
+	slicesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	slicesTable->horizontalHeader()->setStretchLastSection(true);
+	for (std::size_t idx = 0; idx < preview.slices.size(); ++idx) {
+		const DemandDayPreview::SliceRow& row = preview.slices[idx];
+		const int rowIndex = static_cast<int>(idx);
+		slicesTable->setItem(rowIndex, 0, new QTableWidgetItem(row.start));
+		slicesTable->setItem(rowIndex, 1, new QTableWidgetItem(row.end));
+		auto* countItem = new QTableWidgetItem(QString::number(row.passengers));
+		countItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		slicesTable->setItem(rowIndex, 2, countItem);
+	}
+	const int visibleRows = std::clamp(static_cast<int>(preview.slices.size()), 1, 8);
+	slicesTable->setMinimumHeight(slicesTable->horizontalHeader()->sizeHint().height()
+		+ slicesTable->fontMetrics().lineSpacing() * (visibleRows + 1) + 2 * slicesTable->frameWidth());
+	bodyLayout->addWidget(slicesTable, 1);
+
+	auto* totalLabel = new QLabel(preview.totalText, body);
+	totalLabel->setObjectName("demandPreviewTotalLabel");
+	totalLabel->setTextFormat(Qt::PlainText);
+	totalLabel->setWordWrap(true);
+	bodyLayout->addWidget(totalLabel);
+
+	if (!preview.unknownStations.isEmpty()) {
+		auto* unknownLabel = new QLabel(body);
+		unknownLabel->setObjectName("demandPreviewUnknownLabel");
+		DialogLayout::setStatus(unknownLabel, DialogLayout::Severity::Warning,
+			QStringLiteral("Unknown stations in the file were skipped (%1):")
+				.arg(countLabel(preview.unknownStations.size(), "name", "names")));
+		bodyLayout->addWidget(unknownLabel);
+
+		auto* unknownList = new QListWidget(body);
+		unknownList->setObjectName("demandPreviewUnknownList");
+		unknownList->setAccessibleName("Skipped unknown station names");
+		unknownList->addItems(preview.unknownStations);
+		const int unknownRows = std::clamp(static_cast<int>(preview.unknownStations.size()), 1, 6);
+		unknownList->setMinimumHeight(unknownList->fontMetrics().lineSpacing() * (unknownRows + 1)
+			+ 2 * unknownList->frameWidth());
+		bodyLayout->addWidget(unknownList);
+	}
+
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+	if (QPushButton* okButton = buttons->button(QDialogButtonBox::Ok)) {
+		okButton->setObjectName("demandPreviewOkButton");
+		okButton->setDefault(true);
+	}
+	if (QPushButton* cancelButton = buttons->button(QDialogButtonBox::Cancel))
+		cancelButton->setObjectName("demandPreviewCancelButton");
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+	DialogLayout::install(dialog, QStringLiteral("Import Demand Day"),
+		QStringLiteral("Importing this table replaces all demand slices of the case. Undo restores the previous slices."),
+		body, buttons);
+	DialogLayout::fitWidthToContent(dialog);
+	return dialog.exec() == QDialog::Accepted;
+}
+
 // The editor of a count: a whole number of 0 or more, or nothing.
 class CountDelegate : public QStyledItemDelegate {
 public:
@@ -450,6 +531,25 @@ public:
 };
 
 } // namespace
+
+DemandDayPreview buildDemandDayPreview(const PassengerDemandTable& table) {
+	DemandDayPreview preview;
+	preview.slices.reserve(table.slices.size());
+	for (const ScenePassengerDemandSlice& slice : table.slices) {
+		preview.slices.push_back({DemandRanges::clockText(slice.startSeconds),
+			DemandRanges::clockText(slice.endSeconds), totalOf(slice)});
+	}
+	for (const PassengerDemandUnknownStation& unknown : table.unknownStations) {
+		preview.unknownStations << QStringLiteral("%1: %2, %3 skipped")
+									   .arg(QString::fromStdString(unknown.name),
+										   countLabel(unknown.rows, "row", "rows"),
+										   countLabel(unknown.passengers, "passenger", "passengers"));
+	}
+	preview.totalText = QStringLiteral("Total: %1 across %2.")
+							.arg(countLabel(table.totalPassengers, "passenger", "passengers"),
+								countLabel(static_cast<long long>(table.slices.size()), "slice", "slices"));
+	return preview;
+}
 
 PassengerDemandPanel::PassengerDemandPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("demandPanel");
@@ -535,6 +635,16 @@ PassengerDemandPanel::PassengerDemandPanel(QWidget* parent) : SceneEditorPanel(p
 	m_exportButton->setAccessibleName("Export demand CSV");
 	m_exportButton->setToolTip("Write the matrix of the selected slice to a CSV file.");
 	csvRow->addWidget(m_exportButton);
+	m_importDayButton = new QPushButton("Import day...", m_body);
+	m_importDayButton->setObjectName("demandImportDayButton");
+	m_importDayButton->setAccessibleName("Import demand day");
+	m_importDayButton->setToolTip("Replace all demand slices of the case from a long-format CSV table.");
+	csvRow->addWidget(m_importDayButton);
+	m_exportDayButton = new QPushButton("Export day...", m_body);
+	m_exportDayButton->setObjectName("demandExportDayButton");
+	m_exportDayButton->setAccessibleName("Export demand day");
+	m_exportDayButton->setToolTip("Write all demand slices of the case to a long-format CSV table.");
+	csvRow->addWidget(m_exportDayButton);
 	csvRow->addStretch();
 	layout->addLayout(csvRow);
 
@@ -556,6 +666,8 @@ PassengerDemandPanel::PassengerDemandPanel(QWidget* parent) : SceneEditorPanel(p
 	});
 	connect(m_importButton, &QPushButton::clicked, this, [this] { importCsv(); });
 	connect(m_exportButton, &QPushButton::clicked, this, [this] { exportCsv(); });
+	connect(m_importDayButton, &QPushButton::clicked, this, [this] { importDay(); });
+	connect(m_exportDayButton, &QPushButton::clicked, this, [this] { exportDay(); });
 	PassengerDemandPanel::refresh();
 }
 
@@ -659,6 +771,8 @@ void PassengerDemandPanel::refresh() {
 	m_deleteButton->setEnabled(enabled && slice);
 	m_importButton->setEnabled(enabled && slice);
 	m_exportButton->setEnabled(enabled && slice);
+	m_importDayButton->setEnabled(enabled);
+	m_exportDayButton->setEnabled(enabled && !bars.empty());
 
 	fillMatrix(slice);
 	updateDiagnostics(slice);
@@ -807,7 +921,8 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 
 void PassengerDemandPanel::updateDiagnostics(const ScenePassengerDemandSlice* slice) {
 	if (!m_notice.isEmpty()) {
-		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, m_notice);
+		DialogLayout::setStatus(m_diagnosticLabel,
+			m_noticeWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Error, m_notice);
 		m_diagnosticLabel->setToolTip(QString());
 		m_notice.clear();
 		return;
@@ -845,8 +960,9 @@ void PassengerDemandPanel::updateDiagnostics(const ScenePassengerDemandSlice* sl
 	}
 }
 
-void PassengerDemandPanel::showNotice(const QString& text) {
+void PassengerDemandPanel::showNotice(const QString& text, bool warning) {
 	m_notice = text;
+	m_noticeWarning = warning;
 	refresh();
 }
 
@@ -1110,10 +1226,11 @@ bool PassengerDemandPanel::exportCsvFile(const QString& path) {
 	return true;
 }
 
-QString PassengerDemandPanel::chooseCsvFile(bool save) {
+QString PassengerDemandPanel::chooseCsvFile(bool save, const QString& suggestedName) {
 	if (!m_csvFileChooser)
 		return {};
-	return m_csvFileChooser(save, save ? m_selectedId + QStringLiteral(".csv") : QString());
+	const QString proposed = save ? (suggestedName.isEmpty() ? m_selectedId + QStringLiteral(".csv") : suggestedName) : QString();
+	return m_csvFileChooser(save, proposed);
 }
 
 void PassengerDemandPanel::importCsv() {
@@ -1124,4 +1241,95 @@ void PassengerDemandPanel::importCsv() {
 void PassengerDemandPanel::exportCsv() {
 	if (const QString path = chooseCsvFile(true); !path.isEmpty())
 		exportCsvFile(path);
+}
+
+bool PassengerDemandPanel::importDayText(const QString& text) {
+	if (!canEditDemand())
+		return false;
+	const PassengerDemandTable table = readPassengerDemandTable(text.toStdString(), m_document->model().stations);
+	if (!table.ok()) {
+		QStringList lines;
+		for (const std::string& error : table.errors)
+			lines << QString::fromStdString(error);
+		showNotice(QStringLiteral("The demand table was not imported.\n") + DiagnosticLines::capped(lines));
+		return false;
+	}
+	const DemandDayPreview preview = buildDemandDayPreview(table);
+	if (!showDayImportPreviewDialog(this, preview))
+		return false;
+	if (!canEditDemand())
+		return false;
+	const QString previousId = m_selectedId;
+	m_selectedId = table.slices.empty() ? QString() : QString::fromStdString(table.slices.front().id);
+	if (!m_document->edit(SceneDocument::Passengers, "Import demand day",
+			[&table](SceneModel& model) { model.passengerDemand = table.slices; })) {
+		m_selectedId = previousId;
+		refresh();
+		return false;
+	}
+	Q_EMIT changed();
+	QString message = QStringLiteral("Imported %1 across %2.")
+						  .arg(countLabel(table.totalPassengers, "passenger", "passengers"),
+							  countLabel(static_cast<long long>(table.slices.size()), "demand slice", "demand slices"));
+	if (!table.unknownStations.empty()) {
+		message += QStringLiteral(" Skipped %1.")
+					   .arg(countLabel(static_cast<long long>(table.unknownStations.size()), "unknown station", "unknown stations"));
+	}
+	Q_EMIT statusMessage(message, 6000);
+	return true;
+}
+
+bool PassengerDemandPanel::importDayFile(const QString& path) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly)) {
+		showNotice(QStringLiteral("Cannot read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString()));
+		return false;
+	}
+	return importDayText(QString::fromUtf8(file.readAll()));
+}
+
+QString PassengerDemandPanel::dayTableText() const {
+	if (!hasScene())
+		return {};
+	return QString::fromStdString(
+		writePassengerDemandTable(m_document->model().passengerDemand, m_document->model().stations).text);
+}
+
+bool PassengerDemandPanel::exportDayFile(const QString& path) {
+	if (!hasScene() || m_document->model().passengerDemand.empty()) {
+		showNotice(QStringLiteral("There are no demand slices to export."));
+		return false;
+	}
+	const std::vector<ScenePassengerDemandSlice>& slices = m_document->model().passengerDemand;
+	const PassengerDemandTableText table = writePassengerDemandTable(slices, m_document->model().stations);
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly) || file.write(QString::fromStdString(table.text).toUtf8()) < 0 || !file.commit()) {
+		showNotice(QStringLiteral("Cannot write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString()));
+		return false;
+	}
+	Q_EMIT statusMessage(QStringLiteral("Wrote %1 to %2")
+							 .arg(countLabel(static_cast<long long>(slices.size()) - table.emptySlices, "demand slice", "demand slices"),
+								 QDir::toNativeSeparators(path)),
+		6000);
+	QStringList changes;
+	if (table.emptySlices > 0)
+		changes << QStringLiteral("Left out %1 with no passengers to write.").arg(countLabel(table.emptySlices, "slice", "slices"));
+	if (table.droppedCells > 0)
+		changes << QStringLiteral("Left out %1 with a station that is not in the case.")
+					   .arg(countLabel(table.droppedCells, "cell", "cells"));
+	if (table.roundedTimes > 0)
+		changes << QStringLiteral("Rounded %1 to whole seconds.").arg(countLabel(table.roundedTimes, "slice time", "slice times"));
+	if (!changes.isEmpty())
+		showNotice(QStringLiteral("The file differs from the demand of the case.\n") + changes.join(QLatin1Char('\n')), true);
+	return true;
+}
+
+void PassengerDemandPanel::importDay() {
+	if (const QString path = chooseCsvFile(false); !path.isEmpty())
+		importDayFile(path);
+}
+
+void PassengerDemandPanel::exportDay() {
+	if (const QString path = chooseCsvFile(true, QStringLiteral("demand.csv")); !path.isEmpty())
+		exportDayFile(path);
 }

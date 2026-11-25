@@ -1,21 +1,25 @@
 #include "editors/PassengerDemandPanel.h"
 
+#include "scene/PassengerDemandCsv.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 #include "support/FakePrompts.h"
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDialog>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QTimer>
 #include <QScopeGuard>
 #include <QTest>
 
@@ -143,6 +147,9 @@ private slots:
 	void namesCsvPeriodMismatch();
 	void showsCsvErrors();
 	void exportsCsvRoundTrip();
+	void buildsDayImportPreview();
+	void importsAndExportsDayTable();
+	void warnsAboutWhatTheDayExportLeavesOut();
 	void deletesSlices();
 	void showsSlicesOutsideHorizon();
 	void showsValidationMessages();
@@ -646,6 +653,212 @@ void TestDemandPanel::exportsCsvRoundTrip() {
 	}
 	QVERIFY(!fixture.panel.exportCsvFile(directory.filePath("no/such/folder/out.csv")));
 	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+}
+
+void TestDemandPanel::buildsDayImportPreview() {
+	const SceneModel scene = demandScene();
+	const PassengerDemandTable table = readPassengerDemandTable(
+		"origin,destination,start,end,count\n"
+		"A,B,07:00:00,08:00:00,12\n"
+		"B,C,08:00:00,09:00:00,8\n"
+		"Atlantis,A,07:00:00,08:00:00,5\n",
+		scene.stations);
+	QVERIFY(table.ok());
+	const DemandDayPreview preview = buildDemandDayPreview(table);
+	QCOMPARE(preview.slices.size(), std::size_t{2});
+	QCOMPARE(preview.slices[0].start, QString("07:00:00"));
+	QCOMPARE(preview.slices[0].end, QString("08:00:00"));
+	QCOMPARE(preview.slices[0].passengers, 12LL);
+	QCOMPARE(preview.slices[1].passengers, 8LL);
+	QCOMPARE(preview.unknownStations.size(), 1);
+	QVERIFY(preview.unknownStations[0].contains("Atlantis"));
+	QVERIFY(preview.unknownStations[0].contains("1 row"));
+	QVERIFY(preview.unknownStations[0].contains("5 passengers"));
+	QVERIFY(preview.totalText.contains("20 passengers"));
+	QVERIFY(preview.totalText.contains("2 slices"));
+}
+
+void TestDemandPanel::importsAndExportsDayTable() {
+	DemandFixture fixture;
+	QCOMPARE(fixture.panel.importDayButton()->objectName(), QString("demandImportDayButton"));
+	QCOMPARE(fixture.panel.exportDayButton()->objectName(), QString("demandExportDayButton"));
+	QVERIFY(fixture.panel.importDayButton()->isEnabled());
+	QVERIFY(fixture.panel.exportDayButton()->isEnabled());
+
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString importPath = directory.filePath("day.csv");
+	QFile importFile(importPath);
+	QVERIFY(importFile.open(QIODevice::WriteOnly));
+	importFile.write(
+		"origin,destination,start,end,count\n"
+		"Station A,Station B,07:00:00,08:00:00,25\n"
+		"Station B,Station C,08:00:00,09:00:00,14\n"
+		"Nowhere,Station A,07:00:00,08:00:00,9\n");
+	importFile.close();
+
+	struct PreviewRun {
+		bool opened = false;
+		bool imported = false;
+	};
+	const auto runPreview = [&](const std::function<void(QDialog&)>& driver, const std::function<bool()>& action) {
+		PreviewRun run;
+		QTimer shown;
+		shown.setSingleShot(true);
+		QObject::connect(&shown, &QTimer::timeout, &fixture.panel, [&] {
+			auto* dialog = fixture.panel.findChild<QDialog*>("demandImportDayDialog");
+			if (!dialog)
+				return;
+			run.opened = true;
+			QApplication::processEvents();
+			driver(*dialog);
+			if (dialog->isVisible())
+				dialog->reject();
+		});
+		QTimer watchdog;
+		watchdog.setSingleShot(true);
+		QObject::connect(&watchdog, &QTimer::timeout, &fixture.panel, [&] {
+			if (auto* dialog = fixture.panel.findChild<QDialog*>("demandImportDayDialog"))
+				dialog->reject();
+		});
+		shown.start(0);
+		watchdog.start(5000);
+		run.imported = action();
+		return run;
+	};
+
+	// Cancel in the preview leaves the existing slice untouched.
+	const std::size_t editsBefore = fixture.labels.size();
+	const PreviewRun cancelled = runPreview(
+		[](QDialog& dialog) {
+			auto* slicesTable = dialog.findChild<QTableWidget*>("demandPreviewSlicesTable");
+			if (slicesTable == nullptr)
+				QFAIL("missing slices table");
+			QCOMPARE(slicesTable->rowCount(), 2);
+			QCOMPARE(slicesTable->item(0, 0)->text(), QString("07:00:00"));
+			QCOMPARE(slicesTable->item(0, 1)->text(), QString("08:00:00"));
+			QCOMPARE(slicesTable->item(0, 2)->text(), QString("25"));
+			auto* unknownList = dialog.findChild<QListWidget*>("demandPreviewUnknownList");
+			if (unknownList == nullptr)
+				QFAIL("missing unknown stations list");
+			QCOMPARE(unknownList->count(), 1);
+			QVERIFY(unknownList->item(0)->text().contains("Nowhere"));
+			auto* totalLabel = dialog.findChild<QLabel*>("demandPreviewTotalLabel");
+			if (totalLabel == nullptr)
+				QFAIL("missing total label");
+			QVERIFY(totalLabel->text().contains("39 passengers"));
+			auto* contextLabel = dialog.findChild<QLabel*>("dialogContext");
+			if (contextLabel == nullptr)
+				QFAIL("missing context label");
+			QVERIFY(contextLabel->text().contains("replaces all demand slices"));
+			auto* cancelButton = dialog.findChild<QPushButton*>("demandPreviewCancelButton");
+			if (cancelButton == nullptr)
+				QFAIL("missing cancel button");
+			cancelButton->click();
+		},
+		[&] { return fixture.panel.importDayFile(importPath); });
+	QVERIFY2(cancelled.opened, "preview dialog did not open");
+	QVERIFY(!cancelled.imported);
+	QCOMPARE(fixture.labels.size(), editsBefore);
+	QCOMPARE(fixture.slices().size(), std::size_t{1});
+	QCOMPARE(fixture.slices()[0].id, std::string("morning"));
+
+	// Accepting the preview replaces all slices in one Undo step.
+	const PreviewRun accepted = runPreview(
+		[](QDialog& dialog) {
+			auto* okButton = dialog.findChild<QPushButton*>("demandPreviewOkButton");
+			if (okButton == nullptr)
+				QFAIL("missing ok button");
+			okButton->click();
+		},
+		[&] { return fixture.panel.importDayFile(importPath); });
+	QVERIFY2(accepted.opened, "preview dialog did not open");
+	QVERIFY(accepted.imported);
+	QCOMPARE(fixture.labels.size(), editsBefore + 1);
+	QCOMPARE(fixture.labels.back(), std::string("Import demand day"));
+	QCOMPARE(fixture.slices().size(), std::size_t{2});
+	QCOMPARE(fixture.slices()[0].id, std::string("slice-1"));
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t{1});
+	QCOMPARE(fixture.slices()[0].cells[0].originStationId, std::string("A"));
+	QCOMPARE(fixture.slices()[0].cells[0].destinationStationId, std::string("B"));
+	QCOMPARE(fixture.slices()[0].cells[0].count, 25);
+	QCOMPARE(fixture.slices()[1].id, std::string("slice-2"));
+	QCOMPARE(fixture.slices()[1].cells[0].count, 14);
+	QCOMPARE(fixture.panel.selectedSlice()->id, std::string("slice-1"));
+
+	// Export all slices and compare text.
+	const QString exportPath = directory.filePath("exported_day.csv");
+	bool saveRequested = false;
+	QString proposedName;
+	fixture.panel.setCsvFileChooser([&](bool save, const QString& suggestedName) {
+		saveRequested = save;
+		proposedName = suggestedName;
+		return exportPath;
+	});
+	QTest::mouseClick(fixture.panel.exportDayButton(), Qt::LeftButton);
+	QVERIFY(saveRequested);
+	QCOMPARE(proposedName, QString("demand.csv"));
+	QFile exportedFile(exportPath);
+	QVERIFY(exportedFile.open(QIODevice::ReadOnly));
+	const QString expectedText = QStringLiteral("origin,destination,start,end,count\n"
+												"A,B,07:00:00,08:00:00,25\n"
+												"B,C,08:00:00,09:00:00,14\n");
+	QCOMPARE(QString::fromUtf8(exportedFile.readAll()), expectedText);
+	QCOMPARE(fixture.panel.dayTableText(), expectedText);
+	exportedFile.close();
+
+	// One Undo restores the previous slices.
+	const SceneModel afterImport = fixture.undo();
+	QCOMPARE(fixture.slices().size(), std::size_t{1});
+	QCOMPARE(fixture.slices()[0].id, std::string("morning"));
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t{2});
+	fixture.redo(afterImport);
+	QCOMPARE(fixture.slices().size(), std::size_t{2});
+
+	// Bad file or table shows an error notice and changes nothing.
+	QVERIFY(!fixture.panel.importDayFile(directory.filePath("missing.csv")));
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+	QVERIFY(!fixture.panel.importDayText("origin,destination,start,count\nA,B,07:00,5\n"));
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("not imported"));
+	QVERIFY(!fixture.panel.exportDayFile(directory.filePath("no/such/folder/day.csv")));
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+
+	// A table that would create no slice never offers to replace the slices, and the notice says why.
+	const std::size_t editsBeforeEmpty = fixture.labels.size();
+	const PreviewRun headerOnly = runPreview([](QDialog&) {},
+		[&] { return fixture.panel.importDayText("origin,destination,start,end,count\n"); });
+	QVERIFY(!headerOnly.opened);
+	QVERIFY(!headerOnly.imported);
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("no rows below the header"));
+	const PreviewRun allUnknown = runPreview([](QDialog&) {},
+		[&] { return fixture.panel.importDayText("origin,destination,start,end,count\nX,Y,07:00,08:00,5\n"); });
+	QVERIFY(!allUnknown.opened);
+	QVERIFY(!allUnknown.imported);
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("unknown station (X, Y)"));
+	QCOMPARE(fixture.labels.size(), editsBeforeEmpty);
+	QCOMPARE(fixture.slices().size(), std::size_t{2});
+}
+
+void TestDemandPanel::warnsAboutWhatTheDayExportLeavesOut() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand = {slice("early", 6 * hour, 7 * hour), slice("odd", 25200.4, 8 * hour, {{"A", "B", 4}})};
+	fixture.document.replace(scene, false);
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString path = directory.filePath("day.csv");
+	QVERIFY(fixture.panel.exportDayFile(path));
+	QFile written(path);
+	QVERIFY(written.open(QIODevice::ReadOnly));
+	QCOMPARE(QString::fromUtf8(written.readAll()), QString("origin,destination,start,end,count\nA,B,07:00:00,08:00:00,4\n"));
+	QCOMPARE(fixture.status.back().rfind("Wrote 1 demand slice to ", 0), std::size_t{0});
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("warning"));
+	const QString notice = fixture.panel.diagnosticLabel()->text();
+	QVERIFY(notice.contains("Left out 1 slice with no passengers to write."));
+	QVERIFY(notice.contains("Rounded 1 slice time to whole seconds."));
+	QVERIFY(!notice.contains("cell"));
 }
 
 void TestDemandPanel::deletesSlices() {

@@ -88,7 +88,7 @@ The application, `scene_tool` and the tests link them.
 
 | Library | Sources | Depends on |
 | --- | --- | --- |
-| `egtrain_scene` | `scene/` except `SceneTool.cpp` | nlohmann-json, `egtrain_miniz` |
+| `egtrain_scene` | `scene/` except `SceneTool.cpp` | nlohmann-json, `egtrain_miniz`, `egtrain_util` |
 | `egtrain_sim` | `simulation/` except `RunControl` and `SimulationWorker` | `egtrain_scene`, `egtrain_util` |
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
 | `egtrain_live` | `io/LiveCommand.cpp`, `io/LiveFrame.cpp`, `io/LiveServer.cpp` | nlohmann-json, `egtrain_util`, cppzmq |
