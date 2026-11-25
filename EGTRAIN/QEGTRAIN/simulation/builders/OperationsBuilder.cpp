@@ -928,6 +928,7 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
 	stagedParameters.passengerWalkingSecondsPerPlatform = std::clamp(scene.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds);
 	stagedParameters.passengerLateThresholdSeconds = std::clamp(scene.settings.passengerLateThresholdSeconds, 0, kMaxPassengerLateThresholdSeconds);
+	stagedParameters.passengerDemandArrivals = scene.settings.passengerDemandArrivals == "random" ? "random" : "even";
 	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
 		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,
@@ -998,9 +999,10 @@ constexpr int kUnsetTripTime = -9999;
 // Adds one passenger for each passenger of each demand slice of the scene, after the passengers of the scene. The slices come in
 // the order of their start (a tie by ID) and the cells of a slice by the place of the origin station in the scene, then of the
 // destination station, so that the order of the passengers does not depend on the order in the file. The passengers
-// of a cell appear evenly spread over the period of their slice and plan their route when they appear: their journey has no
-// legs. A passenger's ID is <slice>:<origin>><destination>#<number>, and its journey has the same ID with ".1".
-void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<SceneStation>& stationById, std::list<Passenger>& passengers) {
+// of a cell appear evenly spread over the period of their slice or at random arrival times when passenger_demand_arrivals
+// is "random", and plan their route when they appear: their journey has no legs. A passenger's ID is <slice>:<origin>><destination>#<number>, and its journey has the same ID with ".1".
+void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<SceneStation>& stationById,
+	std::list<Passenger>& passengers, unsigned long randomSeed) {
 	// The name that the run uses for the station, or an empty string for an unknown station (the validator reports it).
 	const auto stationName = [&stationById](const std::string& id) {
 		const auto found = stationById.find(id);
@@ -1026,6 +1028,8 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 	std::stable_sort(slices.begin(), slices.end(), [&start](const ScenePassengerDemandSlice* a, const ScenePassengerDemandSlice* b) {
 		return start(a) != start(b) ? start(a) < start(b) : a->id < b->id;
 	});
+	const bool isRandom = scene.settings.passengerDemandArrivals == "random";
+	NumberGenerator demandGenerator(deriveDemandRandomSeed(randomSeed));
 	for (const ScenePassengerDemandSlice* const slicePointer : slices) {
 		const ScenePassengerDemandSlice& slice = *slicePointer;
 		const double period = slice.endSeconds - slice.startSeconds;
@@ -1044,13 +1048,23 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 			const std::string destination = stationName(cell.destinationStationId);
 			if (origin.empty() || destination.empty())
 				continue;
+			std::vector<double> departureTimes;
+			if (isRandom) {
+				departureTimes.resize(static_cast<std::size_t>(cell.count));
+				for (int number = 0; number < cell.count; ++number)
+					departureTimes[static_cast<std::size_t>(number)] = demandGenerator.getUniformFloat(slice.startSeconds, slice.endSeconds);
+				std::sort(departureTimes.begin(), departureTimes.end());
+			}
 			for (int number = 0; number < cell.count; ++number) {
 				Journey journey;
 				journey.Mode = JourneyMode::Live;
 				journey.ID = prefix + std::to_string(number) + ".1";
 				journey.Dep_Station_ID = origin;
 				journey.Arr_Station_ID = destination;
-				journey.Planned_Departure_Time = journey.Actual_Planned_Departure_Time = slice.startSeconds + number * period / cell.count;
+				const double departureTime = isRandom
+					? departureTimes[static_cast<std::size_t>(number)]
+					: slice.startSeconds + number * period / cell.count;
+				journey.Planned_Departure_Time = journey.Actual_Planned_Departure_Time = departureTime;
 				Passenger passenger;
 				passenger.ID = prefix + std::to_string(number);
 				passenger.Journeys.push_back(std::move(journey));
@@ -1105,6 +1119,11 @@ void prepareNativeOperationsState(SimulationRun& run) {
 
 void resetNativeOperationsState(SimulationRun& run) {
 	prepareNativeOperationsState(run);
+}
+
+unsigned long deriveDemandRandomSeed(unsigned long runSeed) {
+	constexpr unsigned long kDemandSeedMixConstant = 0x5bf03635UL;
+	return std::clamp((runSeed ^ kDemandSeedMixConstant) & 0x7fffffffUL, 1UL, kMaxRandomSeed);
 }
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,
@@ -1397,7 +1416,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	// fit in the memory that is free leave the trains of the run and initial_variables as they were.
 	std::vector<Train> storage;
 	try {
-		nativeStageDemandPassengers(scene, stationById, stagedPassengers);
+		nativeStageDemandPassengers(scene, stationById, stagedPassengers, initial_variables.randomSeed);
 		storage = std::vector<Train>(trains.size());
 		for (std::size_t index = 0; index < trains.size(); ++index)
 			nativeCopyTrainPlan(run, trains[index], stagedParameters, storage[index], vectorSize);

@@ -7,6 +7,7 @@
 
 #include <optional>
 
+class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
@@ -73,6 +74,8 @@ public:
 	QListWidget* couplingServiceList() const { return m_couplingServiceList; }
 	/// The line under the list of services that says which trains may couple.
 	QLabel* couplingServicesNote() const { return m_couplingServicesNote; }
+	/// The field of the arrival pattern of demand passengers, Even or Random.
+	QComboBox* demandArrivalsCombo() const { return m_demandArrivalsCombo; }
 
 Q_SIGNALS:
 	/// The base time of the model has been set to this text. Emitted before the document is marked changed.
@@ -104,6 +107,7 @@ private:
 	QDoubleSpinBox* m_authorityMarginEdit = nullptr;
 	QListWidget* m_couplingServiceList = nullptr;
 	QLabel* m_couplingServicesNote = nullptr;
+	QComboBox* m_demandArrivalsCombo = nullptr;
 };
 
 #endif // CASESETTINGSPANEL_H

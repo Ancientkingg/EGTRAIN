@@ -343,6 +343,8 @@ void decodeSimulationSettings(const SceneFieldReader& reader, const json& root, 
 		settings.passengerWalkingSecondsPerPlatform, false);
 	reader.integerField(values, "passenger_late_threshold_seconds", "simulation_settings",
 		settings.passengerLateThresholdSeconds, false);
+	reader.stringField(values, "passenger_demand_arrivals", "simulation_settings",
+		settings.passengerDemandArrivals, false);
 	decodeDwellSettings(reader, values, settings);
 	decodeVirtualCouplingSettings(reader, values, settings);
 }

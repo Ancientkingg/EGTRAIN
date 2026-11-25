@@ -105,7 +105,8 @@ The scene-level simulation settings are deliberately small: `base_time`,
 `simulation_settings.recovery_time_percent`, the optional
 `simulation_settings.passenger_max_transfers`, the optional
 `simulation_settings.passenger_walking_seconds_per_platform`, the optional
-`simulation_settings.passenger_late_threshold_seconds`, the optional passenger dwell
+`simulation_settings.passenger_late_threshold_seconds`, the optional
+`simulation_settings.passenger_demand_arrivals`, the optional passenger dwell
 keys (`passenger_dwell_coefficients` and the three crowding thresholds), which
 the writer leaves out while they are absent, and the optional settings of levels 3
 and 4: `virtual_coupling_distance_m`, `virtual_coupling_speed_tolerance_ms`,

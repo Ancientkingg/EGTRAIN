@@ -49,6 +49,8 @@ inline constexpr double kDefaultEndOfAuthorityMarginM = 50.0;
 inline constexpr double kMinEndOfAuthorityMarginM = 1.0;
 /// The largest value of simulation_settings.end_of_authority_margin_m.
 inline constexpr double kMaxEndOfAuthorityMarginM = 500.0;
+/// The arrival pattern of demand passengers when the scene gives no value ("even").
+inline constexpr const char* kDefaultPassengerDemandArrivals = "even";
 
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
@@ -69,6 +71,9 @@ struct SceneSimulationSettings {
 	/// on predicted times (passenger_late_threshold_seconds, 0 to 3600). Always counts; the scene file holds it only when it
 	/// differs from the default.
 	int passengerLateThresholdSeconds = kDefaultPassengerLateThresholdSeconds;
+	/// The arrival pattern of demand passengers (passenger_demand_arrivals, "even" or "random"). Always counts; the
+	/// scene file holds it only when it differs from the default.
+	std::string passengerDemandArrivals = kDefaultPassengerDemandArrivals;
 	/// The coefficients beta0 to beta7 of the passenger dwell model (passenger_dwell_coefficients). Empty uses
 	/// kDefaultPassengerDwellCoefficients. The validator wants exactly kPassengerDwellCoefficientCount values.
 	std::optional<std::vector<double>> passengerDwellCoefficients;
