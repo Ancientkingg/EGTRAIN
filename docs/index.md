@@ -67,6 +67,7 @@ development/readable-ids-decision
 architecture/source-layout
 architecture/scene-model
 architecture/single-track-locking
+architecture/railml-import
 architecture/scene-editor-flow
 architecture/external-sharing
 development/live-sharing
