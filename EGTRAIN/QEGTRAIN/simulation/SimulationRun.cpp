@@ -25,6 +25,7 @@ void RunInfrastructure::reset() {
 	singleTrackZoneRoutes = 0;
 	singleTrackRouteZone.clear();
 	singleTrackZonesDerived = false;
+	singleTrackClosures.clear();
 	stationBoundaries.clear();
 	routes.clear();
 	numRoutes = 0;

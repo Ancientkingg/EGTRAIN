@@ -72,6 +72,12 @@ void Train::checkEntrance(int i, Section* BS) {
 		return;
 	if (waiting && isEntrySectionFailed(entry)) // enters when the failure has ended, at any signalling level
 		return;
+	// Nor does it start on the closed way out of a single-track zone (RunInfrastructure::singleTrackClosures).
+	const std::vector<int>& closures = run_->infra.singleTrackClosures;
+	const std::size_t routeCount = run_->infra.routes.size();
+	for (std::size_t slot = static_cast<std::size_t>(indexOfRoute); waiting && routeCount > 0 && slot < closures.size(); slot += routeCount)
+		if (closures[slot] >= 0 && closures[slot] <= entrySection && entrySection < singleTrackZone(*run_, slot / routeCount, indexOfRoute).first)
+			return;
 	if (waiting && separated && i >= departure_time && (entryConflictsWithCrossover(i, entry) || entryCutsOffTrain(i, BS)))
 		return;
 	if (isMovingBlockLevel(entry.SignallingLevel)) { // if the signalling system of the entry section is ETCS Level 3 or Level 4 (Virtual Coupling)
@@ -791,6 +797,18 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	instant_train_power_consumption[time_seconds] = 0;
 	instant_train_tractive_effort[time_seconds] = 0;
 	train_energy_consumption(time_seconds);
+}
+
+bool Train::dwellsAtServiceStop(int step) const {
+	if (!StoppedForServiceStop)
+		return false;
+	const int s = serviceStopOf(CurrentServiceStop);
+	if (s < 0)
+		return false;
+	// serviceStopStep counts the next step before it compares, and the dwell is over once the count passes StopTime.
+	const int next = step + 1;
+	const double stoptime = Stations[s].StepStopped + 1 > Stations[s].StopTime ? 0 : Stations[s].StopTime;
+	return (next - stop) <= stoptime || next <= ScheduledDepartures[s];
 }
 
 int Train::serviceStopOf(const std::string& name) const {

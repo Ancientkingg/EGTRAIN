@@ -580,7 +580,7 @@ public:
 
 	/// A signal failure makes an End of Authority for every route copy of the failed section, and a held single-track
 	/// section makes one of the same type for the routes against its holder. Its position is expressed for the
-	/// direction of its route, so only trains of that direction obey it.
+	/// direction of its route, so only trains of that direction obey it, and of its route only when it names one.
 	inline bool obeysAuthority(const MovementAuthority& authority) const;
 
 	/// True while a signal failure of section, where this train enters its route, holds it at its entry
@@ -714,6 +714,10 @@ public:
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
 	/// movement could pass the last point where it can still brake for the entry.
 	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count);
+
+	/// True while the train stands at a service stop that it will not leave in step step + 1, because its dwell or its planned
+	/// departure there has not passed. Signals and authorities that may hold it longer are not looked at.
+	bool dwellsAtServiceStop(int step) const;
 
 	/// True when the train at head (m) and speed (m/s) could pass in its next step the last point where it can still stop at entry
 	/// (m). With approachTargets it must also still meet the lower speed or the stop that fixed-block levels 0 and 5 ask at the
