@@ -29,7 +29,13 @@ public:
 	const StopCallCounts* find(int train, int stop) const;
 
 private:
-	std::vector<std::vector<StopCallCounts>> calls_;
+	/// The counts of one call and whether the passenger step met it. Meeting a later call of the train creates the
+	/// calls before it unmet.
+	struct Entry {
+		StopCallCounts counts; ///< The counts of the call.
+		bool met = false;	   ///< True once at() returned this call.
+	};
+	std::vector<std::vector<Entry>> calls_;
 };
 
 /// Every call that trains made at a station so far, ordered by arrival. The counts are those that the passenger step has made.
