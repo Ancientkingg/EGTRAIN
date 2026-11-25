@@ -12,7 +12,9 @@ Entry points:
 
 - `scene_tool import-railml <file> <sceneDir> [sceneName] [--operating-period id]`
 - File > Import railML... in the application. It asks for the file and a destination folder and handles the
-  destination as Import Legacy Case does.
+  destination as Import Legacy Case does. When the train parts of the file refer to more than one operating period,
+  it then asks for the period, with the number of train parts of each and the one with the most chosen at the start
+  (`listRailmlOperatingPeriods`). Cancel imports nothing.
 
 The scene name is the one given, else the file name without its extension. The description names the railML
 version, the file and the imported operating period.
@@ -24,6 +26,25 @@ namespace `http(s)://www.railml.org/schemas/20xx`. A railML 3 file (version 3.x 
 with `scene.import.railml.version`, any other XML file with `scene.import.railml.format`, and a file that cannot be read
 or parsed with `scene.import.railml.read`. Each refusal is one error and writes nothing. A file without an importable
 track is refused with `scene.import.railml.empty`.
+
+The import also refuses, before it reads the file:
+
+- a scene folder that is the folder of the railML file or holds it, since writing the scene replaces that folder
+  (`scene.import.railml.destination`).
+
+and, after reading it and before converting anything:
+
+- a file that uses one id for two elements of one kind (`scene.import.railml.duplicate_id`, one error per kind). railML
+  ids are unique in a file. The kinds checked are track, OCP, signal, platform edge, connection, vehicle, formation,
+  operating period, category, train part and train.
+- values far out of range (`scene.import.railml.out_of_range`, one error that lists them): an arrival or departure that
+  is not a time from 00:00:00 to 47:59:59, an `arrivalDay` or `departureDay` that is not a whole number from 0 to 7, a
+  `minimalTime` above a day, a `vehicleCount` that is not a whole number from 0 to 1000, a `places count` that is not one
+  from 0 to 100000, and a train sequence or position that is not one from 0 to 1000000. No such value reaches a
+  conversion to a whole number or the rolling over of times by days.
+
+Last, the converted scene goes through `validateScene` before it is written. A scene with an error is not written
+(`scene.import.railml.invalid`, followed by the errors of the validation), so `scene_tool import-railml` exits with 1.
 
 ## Mapping
 
@@ -38,11 +59,11 @@ track is refused with `scene.import.railml.empty`.
 | `ocp` | `stations.json` station | Id and `name`. An OCP on no track is skipped. |
 | `geoCoord` of an OCP | `views.json` station latitude and longitude | `coord` read as latitude then longitude in WGS 84 (EPSG:4326, also when `epsgCode` is missing). Other systems and 0 0 are skipped. |
 | `signal` type `main` or `combined` | `signalling.json` signal | Starts a block at its position. It protects the block on its side of travel (`dir`). Other types are skipped. |
-| `speedChange` | arc `speed_limit_ms` | `vMax` per direction, `vMax="end"` restores the previous limit. An arc takes the lower of its up and down limits. Changes of other speed profiles than the one a track uses are skipped (below). |
+| `speedChange` | arc `speed_limit_ms` | `vMax` per direction, `vMax="end"` restores the previous limit. An arc takes the lower of its up and down limits. Changes of other speed profiles than the one a track uses are skipped (below). A `vMax` of 0 or less limits nothing: the change is skipped and reported (`scene.import.railml.speed`), as are vehicle, formation and `formationTT` speeds of 0 or less, which count as missing. |
 | `gradientChange` | arc `gradient_percent` | `slope` in per mille, stored as rise per length (5 per mille is 0.005), signed for the chainage direction of the piece. |
 | `radiusChange` | arc `curvature_radius_m` | 0 is straight. |
 | `vehicle` | train unit data | Through the formations; a vehicle in no formation becomes a unit of its own. |
-| `formation` | `rolling_stock.json` train unit and composition | One unit and one composition per formation, both with the formation id. |
+| `formation` | `rolling_stock.json` train unit and composition | One unit per formation, with the formation id, and one composition per set of units that services use, with the unit ids joined by `+`. A vehicle on its own with the id of a formation gets the unit id `<id>.2` (`scene.import.railml.renamed`). |
 | `operatingPeriod` | which train parts are imported | One period per import (below). |
 | `category` | service `category` | The `code`, else the `name`. |
 | `trainPart` | `services.json` service | Through its train (below). Stops from `ocpTT`, route from `sectionTT/trackRef`. |
@@ -101,25 +122,32 @@ The reference unit is `SLT_Sprinter` of the rolling stock library (`resources/ro
 unit in the editor has no physical data or traction, so the import takes a library unit instead. Scaling the forces by
 mass gives every unit the acceleration of the reference unit. Each defaulted quantity is one
 `scene.import.railml.default` diagnostic that lists the units. A train part without a formation runs with the unit
-`railml_default`, which has the reference values.
+`railml_default`, which has the reference values; when a formation or a vehicle of the file has that id, the unit gets
+the first free suffix, `railml_default.2`.
 
 ## Timetable
 
 - Operating period: `--operating-period <id>` (`RailmlImportOptions::operatingPeriod`), else the period that the most
   train parts refer to. Train parts without a period are always imported. The diagnostic names the period and the
   number of train parts left out; an unknown id is an error.
-- Services: one per operational train sequence, with the id of the train, and one per train part in no sequence, with
-  the id of the train part. Coupled parts of one sequence run as the first part. Operating code from `trainNumber`,
-  maximum speed from `formationTT speed`.
+- Services: one per operational train sequence, with the id of the train (`<train>.<sequence>` when the train has
+  several sequences), and one per train part in no sequence, with the id of the train part. A service id that another
+  service already has, such as that of two sequences without a number, gets the first free suffix `.2`, `.3`, ...
+  (`scene.import.railml.renamed`). A train without an id is skipped, and its train parts become services of their own.
+  Coupled parts of one sequence run as the first part. Operating code from `trainNumber`, maximum speed from
+  `formationTT speed`.
 - Stops: `ocpTT` of type stop, begin or end, with the scheduled times (`times scope="scheduled"`, else the first
   `times`), `arrivalDay`/`departureDay`, and `stopTimes minimalTime` as the dwell (0 s when missing). A time that runs
-  back by more than 12 hours is on the next day (`scene.import.railml.midnight`). A first OCP that is passed gives the
-  entry time. The platform of a stop is the first platform of its OCP on the route after the previous stop.
+  back by more than 12 hours is moved on by as many days as it takes to run back by no more than 12 hours
+  (`scene.import.railml.midnight`). A first OCP that is passed gives the entry time. The platform of a stop is the
+  first platform of its OCP on the route after the previous stop.
 - Route: the tracks of `sectionTT/trackRef` with `dir` (else from the OCP positions), through the connections that join
   them, from the first to the last OCP. Services with the same route share it, with the id `route.<service>`. A route
   of one block that runs down the chainage is extended by one block, as the simulation reads a one-section route as
   forward.
 - A service with more than 40 stops runs as consecutive services `<id>_1`, `<id>_2`, ... that meet at a shared stop.
+  Each has the part of the route from its first to its last stop, `route.<id>_<n>`, shared with any other service on
+  the same blocks.
 - Base time: the earliest time, down to the minute. Duration: to the latest time plus 10 minutes.
 
 ## Report
@@ -130,7 +158,12 @@ have get no row.
 
 | Code | Severity | Meaning |
 | --- | --- | --- |
-| `scene.import.railml.format`, `.version`, `.read`, `.empty` | error | the file is refused |
+| `scene.import.railml.format`, `.version`, `.read`, `.empty`, `.destination` | error | the file is refused |
+| `scene.import.railml.duplicate_id` | error | ids that the file uses for two elements of one kind |
+| `scene.import.railml.out_of_range` | error | times, day offsets and counts out of range |
+| `scene.import.railml.invalid` | error | the converted scene fails validation; the errors follow |
+| `scene.import.railml.speed` | warning | speeds of 0 km/h or less, which count as missing |
+| `scene.import.railml.renamed` | warning | service, composition or train unit ids that got a suffix |
 | `scene.import.railml.operating_period` | info, error | the imported period and the parts left out; an unknown period |
 | `scene.import.railml.default` | info | a value the file lacks, with the default and the count |
 | `scene.import.railml.unsupported` | info | an element kind without a scene counterpart, with the count |
