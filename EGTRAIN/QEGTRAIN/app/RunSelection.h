@@ -1,9 +1,16 @@
 #ifndef RUNSELECTION_H
 #define RUNSELECTION_H
 
-// SceneModel has a member named signals, which the Qt keyword hides. Include the scene model before any Qt header,
-// or through editors/SceneDocument.h.
+// SceneModel has a member named signals, which the Qt keyword hides.
+#ifdef signals
+#define EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#undef signals
+#endif
 #include "scene/SceneModel.h"
+#ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#define signals Q_SIGNALS
+#undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
+#endif
 
 #include <set>
 #include <string>

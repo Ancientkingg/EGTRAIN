@@ -22,6 +22,7 @@
 #include "diagrams/RunCsv.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
@@ -282,6 +283,18 @@ void compareCapture(const CapturedRun& run) {
 	QVERIFY2(data.settings.passengerOnboardCrowdingThreshold == simulation.run().settings.passengerOnboardCrowdingThreshold,
 		(scene + ": onboard crowding threshold").c_str());
 	QVERIFY2(data.settings.hasPassengers == !simulation.run().passengers.empty(), (scene + ": has passengers").c_str());
+	if (data.settings.hasPassengers) {
+		const PassengerRunSummary expectedSummary = summarisePassengerRun(simulation.run());
+		QVERIFY2(data.passengerSummary.journeys == expectedSummary.journeys
+				&& data.passengerSummary.completedJourneys == expectedSummary.completedJourneys
+				&& data.passengerSummary.passengerHoursLost == expectedSummary.passengerHoursLost,
+			(scene + ": passenger summary").c_str());
+		QVERIFY2(data.originDestinations.size() == summariseOriginDestinations(simulation.run().passengers).size(),
+			(scene + ": origin-destination summaries").c_str());
+	} else {
+		QVERIFY2(data.passengerSummary.journeys == 0 && data.originDestinations.empty(),
+			(scene + ": empty passenger summary").c_str());
+	}
 	const std::string caseName = scene + ": case name";
 	QVERIFY2(data.settings.caseName == run.loaded.scene.name, caseName.c_str());
 	QVERIFY2(data.provenance.caseName == run.loaded.scene.name, caseName.c_str());

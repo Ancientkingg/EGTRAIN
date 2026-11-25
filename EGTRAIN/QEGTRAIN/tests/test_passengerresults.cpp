@@ -135,6 +135,7 @@ private slots:
 	void runWithoutPassengersWritesOnlyHeaders();
 	void stopOfTrainWithoutCapacityHasNoLoadFactor();
 	void unwritableFolderThrowsWithThePath();
+	void runSummaryMatchesWrittenFiles();
 };
 
 void TestPassengerResults::callCountsBoardedAlightedLeftBehindAndLoad() {
@@ -462,6 +463,211 @@ void TestPassengerResults::earlierCallNotMetHasNoCounts() {
 	QCOMPARE(met->boarded, 3);
 	log.at(0, 1);
 	QVERIFY(log.find(0, 1) != nullptr);
+}
+
+// summarisePassengerRun and summariseOriginDestinations must agree exactly with the figures computed from the written
+// PassengerJourneys.txt, StationStops.txt, ODSummary.txt and JourneyDelays.txt files.
+void TestPassengerResults::runSummaryMatchesWrittenFiles() {
+	SimulationRun run;
+	run.settings.startingSimulationTime = 0;
+
+	Train t1 = trainCalling("T1", {"A", "B", "C"});
+	t1.Stations[0].StepStopped = 10;
+	t1.Stations[1].StepStopped = 10;
+	t1.Stations[2].StepStopped = 0; // did not stand here, so StationStops.txt omits it
+	t1.StationStandStarts[0] = 100;
+	t1.StationDepartures[0] = 120;
+	t1.StationStandStarts[1] = 300;
+	t1.StationDepartures[1] = 330;
+	t1.MAX_OnBoard_Passengers = 50;
+	Train t2 = trainCalling("T2", {"B", "C"});
+	t2.Stations[0].StepStopped = 10;
+	t2.Stations[1].StepStopped = 10;
+	t2.StationStandStarts[0] = 400;
+	t2.StationDepartures[0] = 420;
+	t2.StationStandStarts[1] = 600;
+	t2.StationDepartures[1] = 620;
+	t2.MAX_OnBoard_Passengers = 50;
+
+	const auto riddenTrip = [](const std::string& train, int board, int arrive) {
+		Trip trip;
+		trip.TrainServiceDescription = train;
+		trip.IsTripCompleted = true;
+		trip.Actual_Boarding_Time = board;
+		trip.Actual_Arrival_Time = arrive;
+		return trip;
+	};
+
+	// p1: completed early (-30 s), direct on T1.
+	Journey j1 = completedJourney("A", "B", 10, 300, -30);
+	j1.ID = "j1";
+	j1.Trips.push_back(riddenTrip("T1", 110, 300));
+
+	// p2: completed late (+120 s), direct on T1.
+	Journey j2 = completedJourney("A", "B", 20, 420, 120);
+	j2.ID = "j2";
+	j2.Trips.push_back(riddenTrip("T1", 110, 420));
+
+	// p3: completed late (+240 s), replanned after missing a connection (rode T1+T2).
+	Journey j3 = completedJourney("A", "C", 40, 600, 240);
+	j3.ID = "j3";
+	j3.IsReplanned = true;
+	j3.Trips.push_back(riddenTrip("T1", 110, 300));
+	j3.Trips.push_back(riddenTrip("T2", 410, 600));
+
+	// p4: refused by full T1 at B, replanned onto T2, completed late (+60 s), single ridden leg.
+	Journey j4 = completedJourney("B", "C", 50, 600, 60);
+	j4.ID = "j4";
+	j4.IsReplanned = true;
+	j4.RefusedBy.emplace_back("T1", "B");
+	j4.Trips.push_back(riddenTrip("T2", 410, 600));
+	Passenger p4 = passengerWith("p4", j4);
+	p4.TrainThatRefusedBoarding = "T1";
+	p4.StopThatRefusedBoarding = 1;
+
+	// p5: rode T1, missed connection at B, replanned with no route.
+	Journey j5;
+	j5.ID = "j5";
+	j5.Dep_Station_ID = "A";
+	j5.Arr_Station_ID = "C";
+	j5.IsJourneyStarted = true;
+	j5.IsJourneyCompleted = false;
+	j5.IsReplanned = true;
+	j5.Outcome = JourneyOutcome::NoRoute;
+	j5.Trips.push_back(riddenTrip("T1", 110, 300));
+
+	// p6: still in progress at end of run, no legs ridden.
+	Journey j6;
+	j6.ID = "j6";
+	j6.Dep_Station_ID = "B";
+	j6.Arr_Station_ID = "C";
+	j6.IsJourneyStarted = true;
+	j6.IsJourneyCompleted = false;
+	j6.Outcome = JourneyOutcome::InProgress;
+
+	PassengerStepScope scope(run);
+	scope.set({t1, t2},
+		{passengerWith("p1", j1), passengerWith("p2", j2), passengerWith("p3", j3), p4, passengerWith("p5", j5), passengerWith("p6", j6)},
+		{});
+	run.stopCalls.at(0, 1).leftBehind = 2; // stood at B
+	run.stopCalls.at(0, 2).leftBehind = 9; // did not stand at C -> ignored in StationStops.txt and summary
+	run.stopCalls.at(1, 0).leftBehind = 1; // stood at B
+
+	QTemporaryDir folder;
+	QVERIFY(folder.isValid());
+	const std::string dir = folder.path().toStdString();
+	printPassengerResultFiles(run, dir);
+	printPassengerTotalJourneyDelay(run.passengers, dir);
+
+	const auto readLines = [&folder](const char* name) {
+		QFile file(QDir(folder.path()).filePath(QString::fromLatin1(name)));
+		return file.open(QIODevice::ReadOnly) ? linesOf(file.readAll().toStdString()) : std::vector<std::string>{};
+	};
+	const auto splitTabs = [](const std::string& line) {
+		std::vector<std::string> fields;
+		std::size_t start = 0;
+		while (start <= line.size()) {
+			const std::size_t tab = line.find('\t', start);
+			fields.push_back(line.substr(start, tab == std::string::npos ? std::string::npos : tab - start));
+			if (tab == std::string::npos)
+				break;
+			start = tab + 1;
+		}
+		return fields;
+	};
+
+	const std::vector<std::string> journeyLines = readLines("PassengerJourneys.txt");
+	const std::vector<std::string> stopLines = readLines("StationStops.txt");
+	const std::vector<std::string> odLines = readLines("ODSummary.txt");
+	const std::vector<std::string> delayLines = readLines("JourneyDelays.txt");
+	QCOMPARE(journeyLines.size(), std::size_t(7));
+	QCOMPARE(delayLines.size(), std::size_t(7));
+
+	int fileJourneys = 0, fileCompleted = 0, fileNoRoute = 0, fileInProgress = 0;
+	int fileReplanned = 0, fileMissed = 0;
+	double fileTotalDelay = 0.0, filePositiveDelay = 0.0;
+	for (std::size_t i = 1; i < journeyLines.size(); ++i) {
+		const std::vector<std::string> f = splitTabs(journeyLines[i]);
+		QCOMPARE(f.size(), std::size_t(14));
+		++fileJourneys;
+		const std::string& trains = f[6];
+		const std::string& delayText = f[11];
+		const bool replanned = f[12] == "1";
+		const std::string& outcome = f[13];
+		if (replanned) {
+			++fileReplanned;
+			const bool multipleLegs = trains.find('+') != std::string::npos;
+			const bool atLeastOneLeg = trains != "-";
+			if (multipleLegs || (atLeastOneLeg && outcome != "completed"))
+				++fileMissed;
+		}
+		if (outcome == "completed") {
+			++fileCompleted;
+			const double d = std::stod(delayText);
+			fileTotalDelay += d;
+			if (d > 0.0)
+				filePositiveDelay += d;
+		} else if (outcome == "no_route") {
+			++fileNoRoute;
+		} else {
+			++fileInProgress;
+		}
+	}
+
+	// Cross-check JourneyDelays.txt agrees with PassengerJourneys.txt.
+	int delayFileCompleted = 0;
+	double delayFileTotal = 0.0;
+	for (std::size_t i = 1; i < delayLines.size(); ++i) {
+		std::istringstream in(delayLines[i]);
+		std::string paxId, journeyId, delayCol;
+		in >> paxId >> journeyId >> delayCol;
+		if (delayCol != "Journey_not_yet_completed") {
+			++delayFileCompleted;
+			delayFileTotal += std::stod(delayCol);
+		}
+	}
+	QCOMPARE(delayFileCompleted, fileCompleted);
+	QCOMPARE(delayFileTotal, fileTotalDelay);
+
+	int fileLeftBehind = 0;
+	for (std::size_t i = 1; i < stopLines.size(); ++i) {
+		const std::vector<std::string> f = splitTabs(stopLines[i]);
+		QCOMPARE(f.size(), std::size_t(11));
+		fileLeftBehind += std::stoi(f[7]);
+	}
+
+	const PassengerRunSummary summary = summarisePassengerRun(run);
+	QCOMPARE(summary.journeys, fileJourneys);
+	QCOMPARE(summary.completedJourneys, fileCompleted);
+	QCOMPARE(summary.noRouteJourneys, fileNoRoute);
+	QCOMPARE(summary.inProgressJourneys, fileInProgress);
+	QCOMPARE(summary.notReachedJourneys(), fileNoRoute + fileInProgress);
+	QCOMPARE(summary.totalDelaySeconds, fileTotalDelay);
+	QCOMPARE(summary.meanDelaySeconds, fileTotalDelay / fileCompleted);
+	QCOMPARE(summary.passengerHoursLost, filePositiveDelay / 3600.0);
+	QCOMPARE(summary.replannedJourneys, fileReplanned);
+	QCOMPARE(summary.missedConnections, fileMissed);
+	QCOMPARE(summary.leftBehindEvents, fileLeftBehind);
+	QCOMPARE(summary.refusedPassengers, 1);
+
+	// Check exact expected values explicitly too.
+	QCOMPARE(summary.journeys, 6);
+	QCOMPARE(summary.completedJourneys, 4);
+	QCOMPARE(summary.noRouteJourneys, 1);
+	QCOMPARE(summary.inProgressJourneys, 1);
+	QCOMPARE(summary.totalDelaySeconds, 390.0);
+	QCOMPARE(summary.meanDelaySeconds, 97.5);
+	QCOMPARE(summary.passengerHoursLost, 420.0 / 3600.0);
+	QCOMPARE(summary.replannedJourneys, 3);
+	QCOMPARE(summary.missedConnections, 2);
+	QCOMPARE(summary.leftBehindEvents, 3);
+
+	const std::vector<OriginDestinationSummary> ods = summariseOriginDestinations(run.passengers);
+	QCOMPARE(ods.size() + 1, odLines.size());
+	double odLostSum = 0.0;
+	for (const OriginDestinationSummary& od : ods)
+		odLostSum += od.passengerHoursLost;
+	QCOMPARE(odLostSum, summary.passengerHoursLost);
 }
 
 QTEST_APPLESS_MAIN(TestPassengerResults)

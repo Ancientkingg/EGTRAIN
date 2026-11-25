@@ -3,6 +3,7 @@
 #include "app/RunResultsDock.h"
 #include "app/MainWindowSupport.h"
 #include "app/ResultViews.h"
+#include "diagrams/PassengerComparison.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunResults.h"
 #include "util/TimeFormat.h"
@@ -34,6 +35,38 @@ namespace {
 int tableHeight(const QTableWidget& table, int rows) {
 	return table.horizontalHeader()->sizeHint().height() + rows * table.verticalHeader()->defaultSectionSize()
 		+ table.horizontalScrollBar()->sizeHint().height() + 2 * table.frameWidth();
+}
+
+QString trimDecimal(double value, int decimals) {
+	QString text = QString::number(value, 'f', decimals);
+	while (text.endsWith('0'))
+		text.chop(1);
+	if (text.endsWith('.'))
+		text.chop(1);
+	return text == QStringLiteral("-0") ? QStringLiteral("0") : text;
+}
+
+QString signedSecondsText(double seconds) {
+	const QString text = trimDecimal(seconds, 2);
+	return (seconds > 0.0 && text != QStringLiteral("0") ? "+" + text : text) + QStringLiteral(" s");
+}
+
+QString passengerSummaryText(const PassengerRunSummary& summary) {
+	const QString totalDelay = summary.completedJourneys > 0 ? signedSecondsText(summary.totalDelaySeconds) : QStringLiteral("-");
+	const QString meanDelay = summary.completedJourneys > 0 ? signedSecondsText(summary.meanDelaySeconds) : QStringLiteral("-");
+	return QStringLiteral("Passengers: %1 journeys (%2 completed, %3 not reached: %4 no route, %5 in progress)\n"
+						  "Passenger delay: total %6, mean %7, %8 passenger-hours lost\n"
+						  "Disruption: %9 missed connections, %10 planned again, %11 left behind (%12 passengers)")
+		.arg(summary.journeys)
+		.arg(summary.completedJourneys)
+		.arg(summary.notReachedJourneys())
+		.arg(summary.noRouteJourneys)
+		.arg(summary.inProgressJourneys)
+		.arg(totalDelay, meanDelay, trimDecimal(summary.passengerHoursLost, 3))
+		.arg(summary.missedConnections)
+		.arg(summary.replannedJourneys)
+		.arg(summary.leftBehindEvents)
+		.arg(summary.refusedPassengers);
 }
 
 } // namespace
@@ -116,6 +149,22 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	});
 	resultViews->addWidget(exportCsvBtn);
 	resultViews->addWidget(exportPngBtn);
+	m_exportPassengerCsvButton = new QPushButton("Export passenger CSV...", container);
+	m_exportPassengerCsvButton->setObjectName("exportPassengerCsvButton");
+	m_exportPassengerCsvButton->setToolTip("Write the passenger summary to a CSV file");
+	m_exportPassengerCsvButton->hide();
+	QObject::connect(m_exportPassengerCsvButton, &QPushButton::clicked, m_dock, [this]() {
+		const auto operation = m_host.captureTelemetryOperation();
+		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+		saveCsvInteractive(
+			m_window, m_prompts, "passenger_summary.csv", operation,
+			[run] { return run && run->settings.hasPassengers ? passengerSummaryCsv(run->passengerSummary) : std::string(); },
+			[run](const QString& path, const std::string& bytes) {
+				return QString::fromStdString(
+					writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance()));
+			});
+	});
+	resultViews->addWidget(m_exportPassengerCsvButton);
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
 	// The table takes the height that the other lines and buttons leave, at least its header and one row. A lower dock scrolls
@@ -128,7 +177,13 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
 	// Tab reaches the buttons above the table before the table.
-	QWidget::setTabOrder(exportPngBtn, m_table);
+	QWidget::setTabOrder(exportPngBtn, m_exportPassengerCsvButton);
+	QWidget::setTabOrder(m_exportPassengerCsvButton, m_table);
+	m_passengerSummaryLabel = EditorLayout::wrappedLabel(QString(), container);
+	m_passengerSummaryLabel->setObjectName("runResultsPassengerSummary");
+	m_passengerSummaryLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	m_passengerSummaryLabel->hide();
+	containerLayout->addWidget(m_passengerSummaryLabel);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");
@@ -147,6 +202,12 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_compareDelayButton->setToolTip("Compare this run with the delay baseline");
 	QObject::connect(m_compareDelayButton, &QPushButton::clicked, views, &ResultViews::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
+	m_comparePassengersButton = new QPushButton("Compare passengers", container);
+	m_comparePassengersButton->setObjectName("comparePassengersButton");
+	m_comparePassengersButton->setToolTip("Compare the passengers of this run with the baseline");
+	m_comparePassengersButton->hide();
+	QObject::connect(m_comparePassengersButton, &QPushButton::clicked, views, &ResultViews::showPassengerComparison);
+	delayRow->addWidget(m_comparePassengersButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
 	auto* scroll = new EditorLayout::VerticalScrollArea(m_dock);
@@ -233,9 +294,12 @@ void RunResultsDock::refresh() {
 		m_window->layout()->activate();
 		const auto* scroll = static_cast<const QScrollArea*>(m_dock->widget());
 		const int besideTable = m_dock->height() - scroll->viewport()->height() + scroll->widget()->height() - m_table->height();
-		const auto* canvas = m_window->centralWidget()->findChild<QGraphicsView*>(QString(), Qt::FindDirectChildrenOnly);
-		const int half = (m_dock->height() + canvas->height()) / 2;
-		m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
+		const auto* central = m_window->centralWidget();
+		const auto* canvas = central ? central->findChild<QGraphicsView*>(QString(), Qt::FindDirectChildrenOnly) : nullptr;
+		if (canvas) {
+			const int half = (m_dock->height() + canvas->height()) / 2;
+			m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
+		}
 	}
 	emit refreshed();
 }
@@ -260,6 +324,14 @@ void RunResultsDock::refreshSummary() {
 	if (const auto& baseline = m_runController->delayBaseline())
 		summary += QString("\nDelay baseline: %1").arg(completedRunContext(baseline->provenance));
 	m_summaryLabel->setText(summary);
+	const CompletedRunData& completed = *m_runController->completedRun();
+	if (completed.settings.hasPassengers) {
+		m_passengerSummaryLabel->setText(passengerSummaryText(completed.passengerSummary));
+		m_passengerSummaryLabel->show();
+	} else {
+		m_passengerSummaryLabel->clear();
+		m_passengerSummaryLabel->hide();
+	}
 }
 
 QString RunResultsDock::durationText(long long seconds) {
@@ -269,6 +341,10 @@ QString RunResultsDock::durationText(long long seconds) {
 void RunResultsDock::clear(const QString& summary, const QString& title) {
 	m_table->setRowCount(0);
 	m_summaryLabel->setText(summary);
+	m_passengerSummaryLabel->clear();
+	m_passengerSummaryLabel->hide();
+	m_exportPassengerCsvButton->hide();
+	m_comparePassengersButton->hide();
 	m_dock->setWindowTitle(title);
 	m_dock->hide();
 }
@@ -292,5 +368,19 @@ void RunResultsDock::updateAvailability(bool resultsAvailable) {
 	m_compareDelayButton->setToolTip(delay.canCompare
 			? QStringLiteral("Compare this run with the delay baseline")
 			: QStringLiteral("Needs a baseline and a run with incidents or entrance delays"));
+	const bool currentHasPassengers = resultsAvailable && m_runController->completedRun()
+		&& m_runController->completedRun()->settings.hasPassengers;
+	const bool baselineSet = m_runController->delayBaseline().has_value();
+	const bool baselineHasPassengers = baselineSet && m_runController->delayBaseline()->hasPassengers;
+	m_exportPassengerCsvButton->setVisible(currentHasPassengers);
+	m_exportPassengerCsvButton->setEnabled(currentHasPassengers);
+	m_comparePassengersButton->setVisible(currentHasPassengers);
+	m_comparePassengersButton->setEnabled(delay.canComparePassengers);
+	m_comparePassengersButton->setToolTip(delay.canComparePassengers
+			? QStringLiteral("Compare the passengers of this run with the baseline")
+			: !currentHasPassengers	 ? QStringLiteral("Needs a completed run with passengers")
+			: !baselineSet			 ? QStringLiteral("Set a baseline first")
+			: !baselineHasPassengers ? QStringLiteral("The baseline run has no passengers")
+									 : QStringLiteral("Needs a baseline and a run that both have passengers"));
 	m_delayFeedbackLabel->setText(delay.feedback);
 }

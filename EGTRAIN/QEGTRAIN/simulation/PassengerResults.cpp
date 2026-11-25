@@ -37,6 +37,15 @@ string ridden(const Journey& journey, double& inVehicle) {
 	return trains.empty() ? "-" : trains;
 }
 
+// Number of legs that ridden() writes for the journey.
+int riddenLegCount(const Journey& journey) {
+	int count = 0;
+	for (const Trip& trip : journey.Trips)
+		if (trip.IsTripCompleted && trip.Actual_Boarding_Time != -9999 && trip.Actual_Arrival_Time != -9999)
+			++count;
+	return count;
+}
+
 const char* modeName(JourneyMode mode) {
 	return mode == JourneyMode::Live ? "live" : "assigned";
 }
@@ -207,10 +216,62 @@ vector<OriginDestinationSummary> summariseOriginDestinations(const list<Passenge
 			summary.p95Wait = nearestRankPercentile(pair.waits, 95);
 			summary.meanTravel = mean(pair.travels);
 			summary.meanDelay = mean(pair.delays);
+			double positiveDelay = 0.0;
+			for (const double delay : pair.delays)
+				if (delay > 0.0)
+					positiveDelay += delay;
+			summary.passengerHoursLost = positiveDelay / 3600.0;
 		}
 		summaries.push_back(summary);
 	}
 	return summaries;
+}
+
+PassengerRunSummary summarisePassengerRun(const SimulationRun& run) {
+	PassengerRunSummary summary;
+	double positiveDelaySeconds = 0.0;
+	for (const Passenger& passenger : run.passengers) {
+		bool refused = !isNoneId(passenger.TrainThatRefusedBoarding) || passenger.StopThatRefusedBoarding >= 0;
+		for (const Journey& journey : passenger.Journeys) {
+			++summary.journeys;
+			if (!journey.RefusedBy.empty())
+				refused = true;
+			if (journey.IsReplanned) {
+				++summary.replannedJourneys;
+				const int legs = riddenLegCount(journey);
+				if (legs >= 2 || (legs >= 1 && !journey.IsJourneyCompleted))
+					++summary.missedConnections;
+			}
+			if (journey.IsJourneyCompleted) {
+				++summary.completedJourneys;
+				summary.totalDelaySeconds += journey.totalJourneyArrivalDelay;
+				if (journey.totalJourneyArrivalDelay > 0)
+					positiveDelaySeconds += journey.totalJourneyArrivalDelay;
+			} else if (journey.Outcome == JourneyOutcome::NoRoute) {
+				++summary.noRouteJourneys;
+			} else {
+				++summary.inProgressJourneys;
+			}
+		}
+		if (refused)
+			++summary.refusedPassengers;
+	}
+	if (summary.completedJourneys > 0) {
+		summary.meanDelaySeconds = summary.totalDelaySeconds / static_cast<double>(summary.completedJourneys);
+		summary.passengerHoursLost = positiveDelaySeconds / 3600.0;
+	}
+	const int trains = min(run.numTrains, static_cast<int>(run.trains.size()));
+	for (int n = 0; n < trains; ++n) {
+		const Train& train = run.trains[static_cast<size_t>(n)];
+		const int stops = min({train.numStations, static_cast<int>(Train::kMaxTimetableStations), static_cast<int>(train.Stations.size())});
+		for (int stop = 0; stop < stops; ++stop) {
+			if (train.Stations[static_cast<size_t>(stop)].StepStopped <= 0)
+				continue;
+			if (const StopCallCounts* counts = run.stopCalls.find(n, stop))
+				summary.leftBehindEvents += counts->leftBehind;
+		}
+	}
+	return summary;
 }
 
 namespace {

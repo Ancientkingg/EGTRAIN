@@ -418,6 +418,8 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
     ${SRC_DIR}/diagrams/DiagramKey.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/PassengerComparison.cpp
+    ${SRC_DIR}/diagrams/PassengerComparisonWindow.cpp
     ${SRC_DIR}/diagrams/PositionScale.cpp
     ${SRC_DIR}/diagrams/ResultFrame.cpp
     ${SRC_DIR}/diagrams/RouteCharts.cpp
@@ -517,6 +519,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/util/Log.h
     ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/simulation/Passengers.h
+    ${SRC_DIR}/simulation/PassengerSummary.h
     ${SRC_DIR}/util/portability.h
     ${SRC_DIR}/simulation/RollingStock.h
     ${SRC_DIR}/simulation/Signalling.h
