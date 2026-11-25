@@ -30,7 +30,7 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | libselinux | | | yes | public domain | Ubuntu 24.04 source package `libselinux` |
 | xz (liblzma), LZ4, bzip2, libbsd, libmd | | | yes | public domain, BSD-2-Clause, bzip2 licence, BSD style | Ubuntu 24.04 source packages `xz-utils`, `lz4`, `bzip2`, `libbsd`, `libmd` |
 | miniz | yes | yes | yes | MIT | https://github.com/richgel999/miniz |
-| pugixml 1.11 | yes | yes | yes | MIT | https://pugixml.org |
+| pugixml 1.16 | yes | yes | yes | MIT | https://pugixml.org |
 | nlohmann/json | yes | yes | yes | MIT | https://github.com/nlohmann/json |
 | cppzmq | yes | yes | yes | MIT | https://github.com/zeromq/cppzmq |
 

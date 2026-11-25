@@ -105,7 +105,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_live`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
-`egtrain_miniz` holds the vendored zip code and `egtrain_pugixml` the vendored XML parser of the railML import. The first four libraries and
+`egtrain_miniz` holds the vendored zip code and `egtrain_pugixml` the vendored XML parser of the railML import, pugixml 1.16. The first four libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
 `egtrain_recovery` is linked by `QEGTRAIN`, `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt`.
 

@@ -186,7 +186,7 @@ verify_package() {
 	test -f "$APP/Contents/Resources/Scenes/Paimpol/scene.json"
 	test -f "$APP/Contents/Resources/Scenes/Paimpol/scenarios.json"
 	test -d "$APP/Contents/Resources/Scenes/Paimpol"
-	# scene_tool uses header-only JSON and vendored miniz, so it runs without Qt.
+	# scene_tool uses header-only JSON and the vendored miniz and pugixml, so it runs without Qt.
 	local validation_output validation_status
 	set +e
 	validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1)"
