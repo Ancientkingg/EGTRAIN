@@ -279,6 +279,9 @@ void compareCapture(const CapturedRun& run) {
 	QVERIFY2(data.settings.horizonSteps == initial_variables.times, (scene + ": horizon").c_str());
 	QVERIFY2(data.settings.horizonSeconds() == initial_variables.times * timestep, (scene + ": horizon in seconds").c_str());
 	QVERIFY2(data.settings.startOffsetSeconds == initial_variables.startingSimulationTime, (scene + ": start offset").c_str());
+	QVERIFY2(data.settings.passengerOnboardCrowdingThreshold == simulation.run().settings.passengerOnboardCrowdingThreshold,
+		(scene + ": onboard crowding threshold").c_str());
+	QVERIFY2(data.settings.hasPassengers == !simulation.run().passengers.empty(), (scene + ": has passengers").c_str());
 	const std::string caseName = scene + ": case name";
 	QVERIFY2(data.settings.caseName == run.loaded.scene.name, caseName.c_str());
 	QVERIFY2(data.provenance.caseName == run.loaded.scene.name, caseName.c_str());
@@ -324,6 +327,7 @@ void compareCapture(const CapturedRun& run) {
 		QVERIFY2(captured.routeId == train.TrainRouteID, identity.c_str());
 		QVERIFY2(captured.scheduledDepartureTime == train.scheduled_departure_time, identity.c_str());
 		QVERIFY2(captured.runStartTime == train.RunStartTime, identity.c_str());
+		QVERIFY2(captured.passengerCapacity == train.MAX_OnBoard_Passengers, identity.c_str());
 
 		QVERIFY2(captured.blockTimes.size() == static_cast<std::size_t>(train.N_BlockSections), (who + ": block time count").c_str());
 		for (int b = 0; b < train.N_BlockSections && b < static_cast<int>(captured.blockTimes.size()); ++b) {
@@ -367,6 +371,15 @@ void compareCapture(const CapturedRun& run) {
 			QVERIFY2(stop.routeX == train.Stations[s].X, fields.c_str());
 			QVERIFY2(stop.scheduledArrival == train.ScheduledArrivals[s], fields.c_str());
 			QVERIFY2(stop.scheduledDeparture == train.ScheduledDepartures[s], fields.c_str());
+			QVERIFY2(stop.stopped == (train.Stations[s].StepStopped > 0), fields.c_str());
+			QVERIFY2(stop.standStartSeconds == train.StationStandStarts[s], fields.c_str());
+			QVERIFY2(stop.departureSeconds == train.StationDepartures[s], fields.c_str());
+			const StopCallCounts* counts = simulation.run().stopCalls.find(i, s);
+			QVERIFY2(stop.hasStopCall == (counts != nullptr), fields.c_str());
+			QVERIFY2(stop.loadAfter == (counts != nullptr ? counts->loadAfter : 0), fields.c_str());
+			QVERIFY2(stop.boarded == (counts != nullptr ? counts->boarded : 0), fields.c_str());
+			QVERIFY2(stop.alighted == (counts != nullptr ? counts->alighted : 0), fields.c_str());
+			QVERIFY2(stop.leftBehind == (counts != nullptr ? counts->leftBehind : 0), fields.c_str());
 			QVERIFY2(stop.routePositionMeters == train.stationRoutePositionMeters(s), (at + ": route position").c_str());
 			for (const auto& allowed : allowedSets)
 				if (stop.onRoute(allowed) != train.stationIsOnRoute(s, allowed))

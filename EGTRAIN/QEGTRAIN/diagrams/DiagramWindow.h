@@ -28,6 +28,7 @@
 #include <QtCharts/QXYSeries>
 
 #include <functional>
+#include <optional>
 #include <vector>
 
 class BlockSectionOverlay;
@@ -36,8 +37,17 @@ class QKeyEvent;
 class QLabel;
 class QPainter;
 class QPushButton;
+class QRadioButton;
 class ResultFrame;
 class TrainKeyList;
+
+/// One display mode of a diagram window, shown as radio buttons in the Display section of its panel.
+struct DiagramDisplayMode {
+	QString id;			 ///< Stable identifier of the mode, such as "paths" or "load"
+	QString label;		 ///< Plain-text label shown in the panel
+	bool enabled = true; ///< False disables the option in the panel
+	QString toolTip;	 ///< Tooltip explaining the mode, or why it is disabled
+};
 
 /// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
 struct FigureColumn {
@@ -118,6 +128,17 @@ public:
 	void setEmptyText(const QString& text);
 	/// The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.
 	void setFigureFileName(const QString& fileName);
+	/// Offers mutually exclusive display modes at the top of the panel, such as "Train paths" and "Passenger load".
+	/// Hides the section when fewer than two modes are given. Choosing another mode calls `onChanged` with its id.
+	void setDisplayModes(const QVector<DiagramDisplayMode>& modes, const QString& activeId,
+		const std::function<void(const QString& modeId)>& onChanged);
+	/// Shows or clears a sequential passenger load colour scale in the Key and in exported figures. When set, the Trains
+	/// list hides its train-colour samples so they do not conflict with the load colours. Cleared by setChart.
+	void setLoadScale(std::optional<DiagramLoadScale> scale);
+	/// Visible range [min, max] of the bottom (Horizontal) or left (Vertical) axis, or empty when none is attached.
+	std::optional<QPair<double, double>> visibleRange(Qt::Orientation orientation) const;
+	/// Sets the visible range of the bottom (Horizontal) or left (Vertical) axis, clamped to its full bounds.
+	void setVisibleRange(Qt::Orientation orientation, double min, double max);
 	/// The id of the rolling stock unit whose input the chart shows, such as its traction curve; empty, as it is until
 	/// set, for a chart of trains. A chart of a unit has no trains: it hides the train filter and the selection, and the
 	/// curves of the next chart keep their colours.
@@ -275,6 +296,8 @@ private:
 
 	QPointer<QChartView> m_view;
 	QPointer<ResultFrame> m_frame;
+	QPointer<QWidget> m_displaySection;
+	QPointer<QWidget> m_displayModesBox;
 	QPointer<QWidget> m_trainsSection;
 	QPointer<QWidget> m_keySection;
 	QPointer<QWidget> m_selectedSection;
@@ -283,6 +306,7 @@ private:
 	QPointer<QLabel> m_pinLabel; // the other lines of the selected item
 	QPointer<TrainKeyList> m_trainList;
 	QPointer<DiagramKey> m_key;
+	std::optional<DiagramLoadScale> m_loadScale;
 	QPointer<QPushButton> m_csvButton;
 	QPointer<QPushButton> m_clearPinButton;
 	QPointer<QWidget> m_warningArea; // the margins around the warning label

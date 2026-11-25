@@ -5,6 +5,7 @@
 
 #include <QColor>
 #include <QHash>
+#include <QPalette>
 #include <QString>
 #include <QVector>
 
@@ -74,5 +75,20 @@ enum class BlockingTimeKind {
 /// at two pixels per pixel, so that a figure at twice the size of the window draws them sharp. `fill` is null for a
 /// blocking time of no width.
 void styleBlockingTime(QAreaSeries* fill, QLineSeries* outline, BlockingTimeKind kind);
+
+/// True when the base surface of palette is dark (lightness below 128).
+bool isDarkBackground(const QPalette& palette);
+
+/// Sequential colour for on-board passenger occupancy from 0 to 1, anchored at crowdingThreshold (clamped to [0, 1]).
+/// Uses cool blue at or below the threshold and warm amber to deep crimson or magenta above it, adapted for light and
+/// dark surfaces and checked for colour-blind readability.
+QColor passengerLoadColour(double occupancyRate, double crowdingThreshold, bool darkBackground = false);
+
+/// Line width in pixels for on-board passenger occupancy: 2.5 px at or below crowdingThreshold, 4.0 px above it, and
+/// 4.5 px at or above full capacity.
+double passengerLoadLineWidth(double occupancyRate, double crowdingThreshold);
+
+/// Neutral colour for a train segment whose passenger capacity is zero or unknown.
+QColor passengerLoadNoCapacityColour(bool darkBackground = false);
 
 #endif // TRAINCOLORS_H

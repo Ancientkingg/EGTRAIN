@@ -36,6 +36,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QTreeWidget>
 #include <QScreen>
 #include <QVariant>
@@ -403,8 +404,16 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_warningArea->hide();
 	m_frame->addAboveMain(m_warningArea);
 
-	// The panel: the trains, the key, the selected item, the exports and the readout.
+	// The panel: optional display mode, the trains, the key, the selected item, the exports and the readout.
 	ResultPanel* panel = m_frame->panel();
+	m_displayModesBox = new QWidget(this);
+	m_displayModesBox->setObjectName("diagramDisplayModes");
+	auto* modesLayout = new QVBoxLayout(m_displayModesBox);
+	modesLayout->setContentsMargins(0, 0, 0, 0);
+	modesLayout->setSpacing(4);
+	m_displaySection = panel->addSection("Display", m_displayModesBox);
+	panel->setSectionVisible(m_displaySection, false);
+
 	m_trainList = new TrainKeyList(this);
 	connect(m_trainList, &TrainKeyList::visibilityChanged, this, &DiagramWindow::applyTrainVisibility);
 	m_trainsSection = panel->addSection("Trains", m_trainList, m_trainList->countLabel());
@@ -509,6 +518,55 @@ void DiagramWindow::setFigureFileName(const QString& fileName) {
 	m_figureFileName = fileName;
 }
 
+void DiagramWindow::setDisplayModes(const QVector<DiagramDisplayMode>& modes, const QString& activeId,
+	const std::function<void(const QString& modeId)>& onChanged) {
+	if (!m_displayModesBox || !m_displaySection) return;
+	auto* layout = qobject_cast<QVBoxLayout*>(m_displayModesBox->layout());
+	if (!layout) return;
+	while (QLayoutItem* item = layout->takeAt(0)) {
+		if (QWidget* widget = item->widget()) {
+			widget->hide();
+			widget->deleteLater();
+		}
+		delete item;
+	}
+	if (modes.size() <= 1) {
+		m_frame->panel()->setSectionVisible(m_displaySection, false);
+		return;
+	}
+	QList<QWidget*> buttons;
+	for (const DiagramDisplayMode& mode : modes) {
+		auto* button = new QRadioButton(mode.label, m_displayModesBox);
+		button->setObjectName(QStringLiteral("diagramMode_") + mode.id);
+		button->setEnabled(mode.enabled);
+		button->setToolTip(plainToolTip(mode.toolTip));
+		button->setChecked(mode.id == activeId);
+		if (onChanged) {
+			const QString modeId = mode.id;
+			connect(button, &QRadioButton::toggled, this, [onChanged, modeId](bool checked) {
+				if (checked) onChanged(modeId);
+			});
+		}
+		layout->addWidget(button);
+		buttons << button;
+	}
+	QWidget* previous = m_view;
+	for (QWidget* button : buttons) {
+		QWidget::setTabOrder(previous, button);
+		previous = button;
+	}
+	if (m_trainList && !m_trainList->focusChain().isEmpty())
+		QWidget::setTabOrder(previous, m_trainList->focusChain().first());
+	m_frame->panel()->setSectionVisible(m_displaySection, true);
+}
+
+void DiagramWindow::setLoadScale(std::optional<DiagramLoadScale> scale) {
+	m_loadScale = scale;
+	if (m_key) m_key->setLoadScale(m_loadScale);
+	applyColourPlan();
+	refreshKey();
+}
+
 void DiagramWindow::setRollingStockSubject(const QString& unitId) {
 	m_rollingStockSubject = unitId;
 	refreshTrainsSection();
@@ -573,9 +631,9 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 			entry.pen = meta.keyPen.value_or(pen);
 			entry.brush = fills.value(name, QBrush(Qt::NoBrush));
 		} else {
-			// The colour of a line belongs to its train, so the sample takes the text colour.
+			// The colour of a line belongs to its train, so the sample takes the text colour unless the series keeps its own.
 			entry.shape = meta.keyUpright ? DiagramKeyEntry::Shape::Tick : DiagramKeyEntry::Shape::Line;
-			entry.pen = QPen(text, pen.widthF(), pen.style());
+			entry.pen = meta.keyPen.value_or(QPen(meta.ownColour ? pen.color() : text, pen.widthF(), pen.style()));
 			// A planned line shows its points as open circles, also those that the Key names as a kind of their own.
 			entry.marker = xy->pointsVisible() && (marker.isEmpty() || planned);
 			if (entry.marker && !planned) entry.brush = QBrush(text);
@@ -608,7 +666,7 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 void DiagramWindow::refreshKey() {
 	if (!m_key) return;
 	QVector<DiagramKeyEntry> entries = keyEntries();
-	const bool any = !entries.isEmpty();
+	const bool any = !entries.isEmpty() || m_loadScale.has_value();
 	m_key->setEntries(std::move(entries));
 	m_frame->panel()->setSectionVisible(m_keySection, any);
 }
@@ -658,7 +716,7 @@ void DiagramWindow::applyColourPlan() {
 				}
 			}
 		}
-		m_trainList->setColours(m_planColours);
+		m_trainList->setColours(m_loadScale ? QHash<QString, QColor>() : m_planColours);
 	}
 	refreshEmphasis();
 }
@@ -666,6 +724,8 @@ void DiagramWindow::applyColourPlan() {
 void DiagramWindow::setChart(QChart* chart) {
 	if (m_view && m_view->chart() == chart) return;
 	clearTooltip();
+	m_loadScale.reset();
+	if (m_key) m_key->setLoadScale(std::nullopt);
 	m_sectionOverlay = nullptr;	 // the old chart owns and deletes it
 	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
 	m_numericAxis = nullptr;
@@ -1319,6 +1379,32 @@ void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 	m_readout->setText(values.join(QStringLiteral(" at ")));
 }
 
+std::optional<QPair<double, double>> DiagramWindow::visibleRange(Qt::Orientation orientation) const {
+	const QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart) return std::nullopt;
+	const QValueAxis* axis = edgeAxis(*chart, orientation == Qt::Horizontal ? Qt::AlignBottom : Qt::AlignLeft);
+	if (!axis) return std::nullopt;
+	return QPair<double, double>{axis->min(), axis->max()};
+}
+
+void DiagramWindow::setVisibleRange(Qt::Orientation orientation, double min, double max) {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart || !(max > min)) return;
+	QValueAxis* axis = edgeAxis(*chart, orientation == Qt::Horizontal ? Qt::AlignBottom : Qt::AlignLeft);
+	if (!axis) return;
+	double low = min;
+	double high = max;
+	if (m_fullBounds.contains(axis)) {
+		const auto bounds = m_fullBounds.value(axis);
+		low = std::clamp(low, bounds.first, bounds.second);
+		high = std::clamp(high, bounds.first, bounds.second);
+	}
+	if (!(high > low)) return;
+	axis->setRange(low, high);
+	if (orientation == Qt::Horizontal && m_stationAxis)
+		m_stationAxis->setRange(low, high);
+}
+
 QImage DiagramWindow::figureImage(const FigureColumn& column) const {
 	constexpr qreal ratio = 2;
 	constexpr int margin = 16;
@@ -1391,19 +1477,33 @@ FigureColumn DiagramWindow::panelColumn() const {
 			trains.push_back({row.first, DiagramKeyEntry::Shape::Line,
 				row.second.isValid() ? QPen(row.second, 2.5, Qt::SolidLine, Qt::RoundCap) : QPen(Qt::NoPen), QBrush()});
 	const QVector<DiagramKeyEntry> key = m_key ? m_key->entries() : QVector<DiagramKeyEntry>();
-	if (trains.isEmpty() && key.isEmpty()) return {};
+	std::optional<DiagramLoadScale> loadScale = m_loadScale;
+	if (loadScale) loadScale->darkBackground = isDarkBackground(palette());
+	if (trains.isEmpty() && key.isEmpty() && !loadScale) return {};
 	QFont headingFont = font();
 	headingFont.setBold(true);
 	const QFontMetricsF headingMetrics(headingFont);
+	const QFontMetricsF rowMetrics(font());
 	const double rowHeight = diagramKeyRowHeight(font());
-	const double content = std::max({diagramKeyWidth(trains, font()), diagramKeyWidth(key, font()), headingMetrics.horizontalAdvance("Trains"),
-		headingMetrics.horizontalAdvance("Key")});
+	const bool anyTrainSample = std::any_of(trains.cbegin(), trains.cend(),
+		[](const DiagramKeyEntry& entry) { return entry.pen.style() != Qt::NoPen; });
+	double trainsWidth = diagramKeyWidth(trains, font());
+	if (!anyTrainSample) {
+		trainsWidth = 0.0;
+		for (const DiagramKeyEntry& entry : trains)
+			trainsWidth = std::max(trainsWidth, std::ceil(rowMetrics.horizontalAdvance(entry.name)));
+	}
+	const double loadWidth = loadScale ? diagramLoadScaleWidth(*loadScale, font()) : 0.0;
+	const double loadHeight = loadScale ? diagramLoadScaleHeight(font()) + (key.isEmpty() ? 0.0 : 6.0) : 0.0;
+	const double content = std::max({trainsWidth, diagramKeyWidth(key, font()), loadWidth,
+		headingMetrics.horizontalAdvance("Trains"), headingMetrics.horizontalAdvance("Key")});
 	FigureColumn column;
 	column.width = std::clamp(std::ceil(content + 2 * kColumnPadding), 140.0, 280.0);
 	const QColor text = palette().color(QPalette::WindowText);
 	const QFont rowFont = font();
-	column.paint = [trains, key, headingFont, rowFont, rowHeight, text](QPainter& painter, const QRectF& area) {
+	column.paint = [trains, anyTrainSample, key, loadScale, loadHeight, headingFont, rowFont, rowHeight, text](QPainter& painter, const QRectF& area) {
 		const QFontMetricsF metrics(headingFont);
+		const QFontMetricsF textMetrics(rowFont);
 		const QRectF inner = area.adjusted(kColumnPadding, kColumnPadding, -kColumnPadding, -kColumnPadding);
 		painter.save();
 		painter.setPen(QPen(kStripRule, 1));
@@ -1415,26 +1515,42 @@ FigureColumn DiagramWindow::panelColumn() const {
 			painter.drawText(QRectF(inner.left(), y, inner.width(), metrics.height()), Qt::AlignLeft | Qt::AlignVCenter, title);
 			y += metrics.height() + kColumnHeadingGap;
 		};
-		const double keyHeight =
-			key.isEmpty() ? 0.0 : kColumnSectionGap + metrics.height() + kColumnHeadingGap + rowHeight * static_cast<double>(key.size());
+		const bool hasKey = !key.isEmpty() || loadScale.has_value();
+		const double keyHeight = !hasKey ? 0.0
+										 : kColumnSectionGap + metrics.height() + kColumnHeadingGap + loadHeight
+				+ rowHeight * static_cast<double>(key.size());
 		if (!trains.isEmpty()) {
 			heading(QStringLiteral("Trains"));
 			const int room = std::max(1, static_cast<int>((inner.bottom() - keyHeight - y) / rowHeight));
 			const int count = static_cast<int>(trains.size());
 			const int drawn = count <= room ? count : std::max(0, room - 1);
-			for (int i = 0; i < drawn; ++i)
-				y += paintKeyRow(painter, QRectF(inner.left(), y, inner.width(), rowHeight), trains[i], rowFont, text);
+			for (int i = 0; i < drawn; ++i) {
+				if (anyTrainSample) {
+					y += paintKeyRow(painter, QRectF(inner.left(), y, inner.width(), rowHeight), trains[i], rowFont, text);
+				} else {
+					painter.setFont(rowFont);
+					painter.setPen(text);
+					painter.drawText(QRectF(inner.left(), y, inner.width(), rowHeight), Qt::AlignLeft | Qt::AlignVCenter,
+						textMetrics.elidedText(trains[i].name, Qt::ElideRight, inner.width()));
+					y += rowHeight;
+				}
+			}
 			if (drawn < count) {
+				const double indent = anyTrainSample ? kKeySampleWidth + kKeySampleGap : 0.0;
 				painter.setFont(rowFont);
 				painter.setPen(text);
-				painter.drawText(QRectF(inner.left() + kKeySampleWidth + kKeySampleGap, y, inner.width(), rowHeight), Qt::AlignLeft | Qt::AlignVCenter,
+				painter.drawText(QRectF(inner.left() + indent, y, inner.width() - indent, rowHeight), Qt::AlignLeft | Qt::AlignVCenter,
 					QStringLiteral("%1 more").arg(count - drawn));
 				y += rowHeight;
 			}
 			y += kColumnSectionGap;
 		}
-		if (!key.isEmpty()) {
+		if (hasKey) {
 			heading(QStringLiteral("Key"));
+			if (loadScale) {
+				y += paintLoadScale(painter, QRectF(inner.left(), y, inner.width(), inner.bottom() - y), *loadScale, rowFont, text);
+				if (!key.isEmpty()) y += 6.0;
+			}
 			for (const DiagramKeyEntry& entry : key)
 				y += paintKeyRow(painter, QRectF(inner.left(), y, inner.width(), rowHeight), entry, rowFont, text);
 		}

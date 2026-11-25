@@ -8,6 +8,8 @@
 #include <QVector>
 #include <QWidget>
 
+#include <optional>
+
 class QFont;
 class QPainter;
 class QPaintEvent;
@@ -49,8 +51,23 @@ double paintKeyRow(QPainter& painter, const QRectF& area, const DiagramKeyEntry&
 /// The width of the widest row of `entries` in `font`, sample and name.
 double diagramKeyWidth(const QVector<DiagramKeyEntry>& entries, const QFont& font);
 
-/// The Key section of a diagram window: a row for each kind of mark in view, its sample and its name. The names are in
-/// the dynamic property "kinds", for the tests, and in the accessible description.
+/// Sequential colour scale for on-board passenger occupancy from 0 to 100 percent, with the crowding threshold marked.
+struct DiagramLoadScale {
+	double crowdingThreshold = 0.7; ///< On-board occupancy rate above which a train counts as crowded, in [0, 1]
+	bool darkBackground = false;	///< True when the chart background is dark
+};
+
+/// The height of the passenger load colour scale block in `font`.
+double diagramLoadScaleHeight(const QFont& font);
+/// The minimum width needed to display the caption and labels of `scale` in `font`.
+double diagramLoadScaleWidth(const DiagramLoadScale& scale, const QFont& font);
+/// Draws the passenger load colour scale from the top left of `area`, with the crowding threshold marked, and returns
+/// the height drawn.
+double paintLoadScale(QPainter& painter, const QRectF& area, const DiagramLoadScale& scale, const QFont& font, const QColor& textColour);
+
+/// The Key section of a diagram window: a row for each kind of mark in view, its sample and its name, and optionally a
+/// sequential passenger load scale. The names are in the dynamic property "kinds", for the tests, and in the accessible
+/// description.
 class DiagramKey : public QWidget {
 	Q_OBJECT
 public:
@@ -58,6 +75,10 @@ public:
 	explicit DiagramKey(QWidget* parent = nullptr);
 	/// Shows `entries`, one per row, in the order given.
 	void setEntries(QVector<DiagramKeyEntry> entries);
+	/// Shows or clears a sequential passenger load scale above the key rows.
+	void setLoadScale(std::optional<DiagramLoadScale> scale);
+	/// The passenger load scale currently shown, or empty.
+	const std::optional<DiagramLoadScale>& loadScale() const { return m_loadScale; }
 	/// The rows of the key.
 	const QVector<DiagramKeyEntry>& entries() const { return m_entries; }
 	/// As high as the rows, as wide as the widest row.
@@ -71,7 +92,10 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
+	void updateProperties();
+
 	QVector<DiagramKeyEntry> m_entries;
+	std::optional<DiagramLoadScale> m_loadScale;
 };
 
 #endif // DIAGRAMKEY_H

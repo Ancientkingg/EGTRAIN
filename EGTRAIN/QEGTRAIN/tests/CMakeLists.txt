@@ -470,6 +470,12 @@ egtrain_add_test(test_routecharts
 	LIBS egtrain_diagrams
 	LABELS unit gui)
 
+egtrain_add_test(test_trainload SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_trainload.cpp
+	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
+	LABELS unit gui)
+
 egtrain_add_test(test_charticks
 	SOURCES ${SRC_DIR}/tests/test_charticks.cpp
 	LIBS egtrain_diagrams

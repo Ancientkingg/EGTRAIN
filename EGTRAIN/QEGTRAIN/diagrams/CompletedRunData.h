@@ -4,6 +4,7 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunResults.h"
+#include "scene/PassengerDwellModel.h"
 #include "scene/SectionLabels.h"
 #include "util/TrajectoryUtil.h"
 
@@ -22,10 +23,12 @@ struct SimulationRun;
 
 /// The time frame of the run.
 struct CompletedRunSettings {
-	double timestepSeconds = 1.0;	  ///< Length of one step in seconds
-	double horizonSteps = 0.0;		  ///< Number of timesteps of the run
-	long long startOffsetSeconds = 0; ///< Clock time of second 0, in seconds since midnight
-	std::string caseName;			  ///< Name of the scene that was run
+	double timestepSeconds = 1.0;														  ///< Length of one step in seconds
+	double horizonSteps = 0.0;															  ///< Number of timesteps of the run
+	long long startOffsetSeconds = 0;													  ///< Clock time of second 0, in seconds since midnight
+	std::string caseName;																  ///< Name of the scene that was run
+	double passengerOnboardCrowdingThreshold = kDefaultPassengerOnboardCrowdingThreshold; ///< On-board occupancy rate above which a train is crowded
+	bool hasPassengers = false;															  ///< True when the run simulated passengers
 
 	/// Length of the run in seconds.
 	double horizonSeconds() const { return horizonSteps * timestepSeconds; }
@@ -67,6 +70,14 @@ struct CompletedStop {
 	double routePositionMeters = -1.0;		///< Position on the route in m, -1 when the station is not on the route
 	double scheduledArrival = 0.0;			///< Planned arrival in seconds of the run, negative when the stop has none
 	double scheduledDeparture = 0.0;		///< Planned departure in seconds of the run, negative when the stop has none
+	bool stopped = false;					///< True when the train stood at this stop during the run
+	double standStartSeconds = -1.0;		///< First step the train stood at this stop, in seconds of the run, negative when it did not stop
+	double departureSeconds = -1.0;			///< Step the train left this stop, in seconds of the run, negative when it had not left
+	bool hasStopCall = false;				///< True when the passenger step recorded counts for this stop
+	int boarded = 0;						///< Passengers who boarded during the call
+	int alighted = 0;						///< Passengers who alighted during the call
+	int leftBehind = 0;						///< Passengers refused during the call because the train was full
+	int loadAfter = 0;						///< Passengers on board after the call, the load on the section after it
 	std::vector<std::string> routeBlockIds; ///< Ids of the route's block sections that hold the station
 
 	/// Whether the station lies on the route, within the allowed block sections when any are given.
@@ -91,6 +102,7 @@ struct CompletedTrain {
 	/// Step before the first step in which the train moves, in seconds of the run. 0 when the blocking-time
 	/// stage has not set it.
 	int runStartTime = 0;
+	int passengerCapacity = 0;						  ///< Maximum passengers on board (Train::MAX_OnBoard_Passengers)
 	std::vector<BlockingTimeDiagramInput> blockTimes; ///< Blocking times of the train, as Train::BlockTime holds them
 	std::vector<CompletedStop> stops;				  ///< In service order
 	CompletedTrajectory trajectory;					  ///< Recorded samples

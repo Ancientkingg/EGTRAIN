@@ -4,6 +4,7 @@
 #include "diagrams/BlockingTimeData.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramData.h"
+#include "diagrams/TrainLoadData.h"
 
 #include <QString>
 #include <QStringList>
@@ -50,6 +51,13 @@ RouteChart buildDelayChart(const DelayDiagramData& diagram);
 /// each station, so that the busiest stations are named first; a train path chart passes the timetable graph of its
 /// reference route, a timetable graph itself.
 RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds);
+
+/// The passenger load graph: each train's path along the reference route split into per-call segments, coloured and
+/// weighted by the occupancy rate against the train's capacity with `diagram.crowdingThreshold` marked. Hovering a
+/// segment names the train, section, load, capacity and occupancy rate. `calls` counts stops per station for axis
+/// labelling, as in buildRouteDiagramChart. `darkBackground` picks the light or dark variant of the colour scale.
+RouteChart buildTrainLoadChart(const TrainLoadDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds,
+	bool darkBackground = false);
 
 /// The blocking-time chart: the blocks, the planned lines and the simulated lines of `diagram`, over the route distance
 /// exactly over the sections of the scope and the time range of the diagram. `compressed` is for the compressed diagram of

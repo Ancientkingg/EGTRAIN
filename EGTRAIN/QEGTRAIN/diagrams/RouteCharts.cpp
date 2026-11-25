@@ -194,6 +194,81 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 	return {chart, stationAxis, std::move(stationTicks), referenceRouteText(referencePath.id, end < origin)};
 }
 
+RouteChart buildTrainLoadChart(const TrainLoadDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds,
+	bool darkBackground) {
+	const RouteDiagramPath& referencePath = diagram.referencePath;
+	const double origin = referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.back().positionKm;
+	auto* chart = new QChart();
+	std::vector<double> callPositions;
+	for (const RouteDiagramSeries& source : calls.series)
+		if (source.kind == RouteDiagramSeries::Kind::Event)
+			for (const RouteDiagramPoint& point : source.points) callPositions.push_back(point.positionKm);
+
+	for (const TrainLoadSegment& segment : diagram.segments) {
+		if (segment.points.empty()) continue;
+		const QString name = QString::fromStdString(segment.trainId);
+		auto* series = new QLineSeries();
+		series->setName(name);
+		SeriesMeta meta = metaOfTrain(name);
+		meta.ownColour = true;
+		const double rate = segment.occupancyRate();
+		const QColor colour = passengerLoadColour(rate, diagram.crowdingThreshold, darkBackground);
+		const double width = passengerLoadLineWidth(rate, diagram.crowdingThreshold);
+		const Qt::PenStyle style = segment.capacity > 0 ? Qt::SolidLine : Qt::DotLine;
+		series->setPen(QPen(colour, width, style, Qt::RoundCap, Qt::RoundJoin));
+		series->setPointsVisible(segment.points.size() == 1);
+		if (segment.capacity > 0) {
+			meta.keyKind = QString();
+		} else {
+			meta.keyKind = QStringLiteral("No capacity");
+			meta.keyPen = QPen(colour, 2.0, Qt::DotLine);
+		}
+
+		QStringList lines;
+		if (!segment.fromStation.empty() && !segment.toStation.empty()) {
+			lines << QStringLiteral("%1 to %2").arg(QString::fromStdString(segment.fromStation), QString::fromStdString(segment.toStation));
+		} else if (!segment.fromStation.empty()) {
+			lines << QStringLiteral("After %1").arg(QString::fromStdString(segment.fromStation));
+		} else if (!segment.toStation.empty()) {
+			lines << QStringLiteral("Before %1").arg(QString::fromStdString(segment.toStation));
+		}
+		if (segment.capacity > 0) {
+			const int percent = static_cast<int>(std::lround(rate * 100.0));
+			const QString status = segment.load >= segment.capacity ? QStringLiteral(", full")
+				: segment.isCrowded(diagram.crowdingThreshold)		? QStringLiteral(", crowded")
+																	: QString();
+			lines << QStringLiteral("Load: %1 / %2 (%3%%4)").arg(segment.load).arg(segment.capacity).arg(percent).arg(status);
+		} else {
+			lines << QStringLiteral("Load: %1 (no capacity)").arg(segment.load);
+		}
+		if (segment.leftBehind > 0)
+			lines << QStringLiteral("Left behind: %1").arg(segment.leftBehind);
+		if (segment.hasCall) {
+			const QString station = QString::fromStdString(segment.fromStation);
+			lines << QString() << QStringLiteral("Boarded at %1: %2").arg(station).arg(segment.boarded)
+				  << QStringLiteral("Alighted at %1: %2").arg(station).arg(segment.alighted);
+		}
+		meta.inspectionInterval = lines.join('\n');
+
+		for (const RouteDiagramPoint& point : segment.points)
+			series->append(point.positionKm, point.seconds);
+		describeSeries(series, meta);
+		chart->addSeries(series);
+	}
+	chart->createDefaultAxes();
+	std::vector<StationTick> stationTicks;
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks, callPositions);
+	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
+	axisY->setTitleText("Time (s)");
+	axisY->setReverse(true);
+	axisY->setRange(0, std::max(1.0, horizonSeconds));
+	for (auto* series : chart->series())
+		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
+	return {chart, stationAxis, std::move(stationTicks), referenceRouteText(referencePath.id, end < origin)};
+}
+
 QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, long long startOffsetSeconds) {
 	const RouteDiagramPath& referencePath = diagram.referencePath;
 	const auto& plottedPlanned = diagram.plannedLines;

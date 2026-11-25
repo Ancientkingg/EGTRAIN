@@ -14,7 +14,9 @@
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QLineSeries>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 
 QHash<QString, QColor> trainColorsForRun(const RunResults& run, const SceneModel& scene) {
 	QHash<QString, QColor> colors;
@@ -161,4 +163,60 @@ void styleBlockingTime(QAreaSeries* fill, QLineSeries* outline, BlockingTimeKind
 	outlineMeta.ownColour = ownColour;
 	outlineMeta.keyPen = keyPen;
 	describeSeries(outline, outlineMeta);
+}
+
+namespace {
+
+QColor blendRgb(const QColor& a, const QColor& b, double t) {
+	const double u = std::clamp(t, 0.0, 1.0);
+	const auto mix = [u](int from, int to) {
+		return static_cast<int>(std::lround(from + (to - from) * u));
+	};
+	return QColor(mix(a.red(), b.red()), mix(a.green(), b.green()), mix(a.blue(), b.blue()));
+}
+
+QColor threeStopRamp(const QColor& low, const QColor& mid, const QColor& high, double t) {
+	const double u = std::clamp(t, 0.0, 1.0);
+	if (u <= 0.5)
+		return blendRgb(low, mid, u * 2.0);
+	return blendRgb(mid, high, (u - 0.5) * 2.0);
+}
+
+} // namespace
+
+bool isDarkBackground(const QPalette& palette) {
+	return palette.color(QPalette::Base).lightness() < 128;
+}
+
+QColor passengerLoadNoCapacityColour(bool darkBackground) {
+	return darkBackground ? QColor(0x9a, 0xa6, 0xb0) : QColor(0x8a, 0x97, 0xa1);
+}
+
+QColor passengerLoadColour(double occupancyRate, double crowdingThreshold, bool darkBackground) {
+	if (!std::isfinite(occupancyRate) || occupancyRate < 0.0)
+		return passengerLoadNoCapacityColour(darkBackground);
+	const double threshold = std::isfinite(crowdingThreshold) ? std::clamp(crowdingThreshold, 0.0, 1.0) : 0.7;
+	const double rate = std::clamp(occupancyRate, 0.0, 1.0);
+	if (rate <= threshold) {
+		const double u = threshold > 0.0 ? std::clamp(rate / threshold, 0.0, 1.0) : 0.0;
+		if (darkBackground)
+			return threeStopRamp(QColor(0x58, 0x78, 0x98), QColor(0x5a, 0x9b, 0xd4), QColor(0x78, 0xbe, 0xff), u);
+		return threeStopRamp(QColor(0x7e, 0xa9, 0xce), QColor(0x42, 0x84, 0xbd), QColor(0x1e, 0x5a, 0x96), u);
+	}
+	const double span = 1.0 - threshold;
+	const double u = span > 0.0 ? std::clamp((rate - threshold) / span, 0.0, 1.0) : 1.0;
+	if (darkBackground)
+		return threeStopRamp(QColor(0xf2, 0xa6, 0x38), QColor(0xf2, 0x6b, 0x4e), QColor(0xf4, 0x4b, 0x82), u);
+	return threeStopRamp(QColor(0xe0, 0x8b, 0x1b), QColor(0xc9, 0x3b, 0x2b), QColor(0x7a, 0x0e, 0x3b), u);
+}
+
+double passengerLoadLineWidth(double occupancyRate, double crowdingThreshold) {
+	if (!std::isfinite(occupancyRate) || occupancyRate < 0.0)
+		return 2.0;
+	const double threshold = std::isfinite(crowdingThreshold) ? std::clamp(crowdingThreshold, 0.0, 1.0) : 0.7;
+	if (occupancyRate >= 1.0)
+		return 4.5;
+	if (occupancyRate > threshold)
+		return 4.0;
+	return 2.5;
 }
