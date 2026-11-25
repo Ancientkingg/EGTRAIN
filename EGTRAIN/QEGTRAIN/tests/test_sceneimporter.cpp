@@ -974,6 +974,23 @@ void TestSceneImporter::rejectsOverlappingPaths() {
 	QVERIFY(!result.wroteScene);
 	QVERIFY(hasDiag(result.diagnostics, "scene.import.path", SceneSeverity::Error));
 	QVERIFY2(!fs::exists(nestedScene), "Overlap rejection does not create destination");
+
+	// A source inside the destination, or equal to it, is refused too, and both folders stay as they were.
+	const fs::path caseDir = fs::path(root.dir) / "line";
+	const fs::path innerLegacy = caseDir / "legacy";
+	writeText(innerLegacy / "TrackLines/Stations.txt", "0\tSource\n");
+	writeText(caseDir / "scene.json", "existing scene bytes\n");
+	for (const fs::path& destination : {caseDir, innerLegacy}) {
+		const auto refused = importLegacyScene(innerLegacy.string(), destination.string(), "Overlap");
+		QVERIFY(!refused.wroteScene);
+		QVERIFY(hasDiag(refused.diagnostics, "scene.import.path", SceneSeverity::Error));
+		QVERIFY2(fs::exists(innerLegacy / "TrackLines/Stations.txt"), "the legacy case folder is kept");
+		QCOMPARE(readBytes(caseDir / "scene.json"), "existing scene bytes\n");
+	}
+
+	// A destination next to the source is allowed.
+	const auto sibling = importLegacyScene(innerLegacy.string(), (fs::path(root.dir) / "imported").string(), "Sibling");
+	QVERIFY(!hasDiag(sibling.diagnostics, "scene.import.path", SceneSeverity::Error));
 }
 
 void TestSceneImporter::keepsDestinationOfMalformedSource() {
