@@ -622,7 +622,7 @@ void TestSceneBundle::rejectsBeforePrivateStaging() {
 	TempDir temp;
 	const fs::path firstBundle = temp.path / "first.egscene";
 	SceneModel unsupported = m_source.scene;
-	++unsupported.schemaVersion;
+	unsupported.schemaVersion = kCurrentSceneSchemaVersion + 1;
 	QVERIFY2(!saveSceneBundle(unsupported, firstBundle.string()).writeAttempted,
 		"unsupported schema rejects before private staging");
 	QVERIFY2(!saveSceneBundle(m_source.scene, "").writeAttempted,

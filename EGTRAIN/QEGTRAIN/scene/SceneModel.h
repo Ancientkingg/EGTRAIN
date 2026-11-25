@@ -11,8 +11,17 @@
 #include <utility>
 #include <vector>
 
-/// The schema_version of scene.json that this application reads and writes.
-inline constexpr int kCurrentSceneSchemaVersion = 1;
+/// The newest schema_version of scene.json that this application reads and writes. Schema 2 is schema 1 with the measures of
+/// scenarios, which releases that read only schema 1 would drop without a message.
+inline constexpr int kCurrentSceneSchemaVersion = 2;
+/// The oldest schema_version that this application reads as current. It writes this version for a case without measures, so that
+/// older releases still open every case that they can keep whole.
+inline constexpr int kOldestCurrentSceneSchemaVersion = 1;
+
+/// True for a schema_version from kOldestCurrentSceneSchemaVersion to kCurrentSceneSchemaVersion.
+constexpr bool isCurrentSceneSchemaVersion(int version) {
+	return version >= kOldestCurrentSceneSchemaVersion && version <= kCurrentSceneSchemaVersion;
+}
 /// The bundle_version of an .egscene bundle that this application reads and writes.
 inline constexpr int kCurrentSceneBundleVersion = 1;
 
@@ -395,6 +404,30 @@ struct SceneIncident {
 	bool hasEndSeconds = false;			 ///< True when end_seconds is given. A nonzero endSeconds also counts as an end.
 };
 
+/// The kind of a dispatching measure: an answer to a disruption that helps the timetable recover, not a disruption itself.
+enum class MeasureType {
+	CancelService, ///< Cancels a service from a time, completely or from a station on; spelt "cancel_service".
+};
+
+/// The spelling of a measure type in scene files: "cancel_service".
+const char* measureTypeName(MeasureType type);
+
+/// Reads the spelling of a measure type into type. False, with type unchanged, for any other text.
+bool measureTypeFromName(const std::string& name, MeasureType& type);
+
+/// A dispatching measure of a scenario, which the run applies at its time. A cancellation ends the run of the train at its call
+/// at fromStationId, or, without a station, takes the train out of service: it does not enter, or ends its run at its next stop.
+struct SceneMeasure {
+	std::string id;								   ///< Unique id of the measure.
+	MeasureType type = MeasureType::CancelService; ///< The kind of measure.
+	std::string serviceId;						   ///< The service it applies to.
+	bool hasOccurrence = false;					   ///< True when occurrence is given; otherwise every occurrence of the service.
+	int occurrence = 1;							   ///< The occurrence of the service, counted from 1.
+	double timeSeconds = 0.0;					   ///< When the measure takes effect, in seconds after the base time.
+	/// The station from which the service is cancelled: the train ends its run at its call there. Empty cancels it completely.
+	std::string fromStationId;
+};
+
 /// A delay added to the planned departure of one occurrence at one of its stops.
 struct SceneEntranceDelay {
 	std::string serviceId;	   ///< The service.
@@ -403,13 +436,14 @@ struct SceneEntranceDelay {
 	double delaySeconds = 0.0; ///< Delay in seconds.
 };
 
-/// A named set of incidents and entrance delays.
+/// A named set of incidents, entrance delays and dispatching measures.
 struct SceneScenario {
 	std::string id;									///< Unique id of the scenario.
 	std::string name;								///< Display name.
 	std::string description;						///< Free text; empty when none.
 	std::vector<SceneIncident> incidents;			///< The incidents.
 	std::vector<SceneEntranceDelay> entranceDelays; ///< The entrance delays.
+	std::vector<SceneMeasure> measures;				///< The dispatching measures, which the writer leaves out while there are none.
 };
 
 /// One leg of a passenger journey: a ride on one occurrence of a service.
@@ -659,7 +693,10 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir);
 /// Reads a scene directory. The diagnostics cover files, JSON shape and field types; validateScene checks
 /// the rest.
 SceneLoadResult loadScene(const std::string& sceneDir);
-/// Sets sourceFiles to the files that a save writes.
+/// Sets sourceFiles to the files that a save writes, and schemaVersion to the version that it writes.
 void refreshSavedSceneMetadata(SceneModel& scene);
+/// The schema_version that a save of scene writes: kCurrentSceneSchemaVersion when a scenario has measures, otherwise
+/// kOldestCurrentSceneSchemaVersion.
+int sceneSchemaVersionToWrite(const SceneModel& scene);
 
 #endif // SCENEMODEL_H

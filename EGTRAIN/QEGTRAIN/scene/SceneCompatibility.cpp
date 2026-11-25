@@ -93,7 +93,7 @@ SceneCompatibilityClass classify(int schemaVersion, const std::optional<int>& bu
 		|| (sourceKind == SceneSourceKind::Bundle && bundleVersion
 			&& *bundleVersion > kCurrentSceneBundleVersion))
 		return SceneCompatibilityClass::Newer;
-	const bool oldSchema = schemaVersion < kCurrentSceneSchemaVersion;
+	const bool oldSchema = schemaVersion < kOldestCurrentSceneSchemaVersion;
 	const bool oldBundle = sourceKind == SceneSourceKind::Bundle && bundleVersion
 		&& *bundleVersion < kCurrentSceneBundleVersion;
 	if (!oldSchema && !oldBundle)
@@ -105,7 +105,7 @@ void classifyWithRegistry(SceneCompatibilityProbeResult& result,
 	const SceneMigrationRegistry& registry) {
 	if (result.classification == SceneCompatibilityClass::Malformed)
 		return;
-	const bool oldSchema = result.schemaVersion < kCurrentSceneSchemaVersion;
+	const bool oldSchema = result.schemaVersion < kOldestCurrentSceneSchemaVersion;
 	const bool oldBundle = result.sourceKind == SceneSourceKind::Bundle
 		&& result.bundleVersion && *result.bundleVersion < kCurrentSceneBundleVersion;
 	if ((oldSchema && !sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Schema, result.schemaVersion, kCurrentSceneSchemaVersion))
@@ -142,9 +142,10 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 		return;
 	const std::string found = versionNumbers(result.schemaVersion, result.bundleVersion);
 	const std::string saved = savedWithText(result.savedWithAppVersion);
-	const std::string reads = "This version of EGTRAIN reads "
-		+ versionNumbers(kCurrentSceneSchemaVersion,
-			result.sourceKind == SceneSourceKind::Bundle ? std::optional<int>(kCurrentSceneBundleVersion) : std::nullopt);
+	std::string reads = "This version of EGTRAIN reads schema " + std::to_string(kOldestCurrentSceneSchemaVersion) + " to "
+		+ std::to_string(kCurrentSceneSchemaVersion);
+	if (result.sourceKind == SceneSourceKind::Bundle)
+		reads += ", case file version " + std::to_string(kCurrentSceneBundleVersion);
 	if (draft) {
 		result.classification = SceneCompatibilityClass::OlderUnsupported;
 		addDiagnostic(result.diagnostics, "scene.compatibility.draft",

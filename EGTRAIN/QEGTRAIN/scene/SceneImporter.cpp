@@ -2487,7 +2487,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	context.report.row("scenarios", "scenarios.json").convertedCount = static_cast<int>(context.scene.scenarios.size());
 	importPassengers(context);
 
-	context.scene.schemaVersion = kCurrentSceneSchemaVersion;
+	context.scene.schemaVersion = kOldestCurrentSceneSchemaVersion;
 	context.scene.name = context.sceneName;
 	context.scene.baseTime = context.baseTime;
 	context.scene.settings = context.settings;

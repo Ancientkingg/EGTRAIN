@@ -729,6 +729,7 @@ private slots:
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
 	void writesScenarios();
+	void writesMeasuresWithSchemaTwo();
 	void savesStandaloneScenario();
 	void savesDuplicatedScenario();
 	void diagnosesInvalidScenario();
@@ -1188,6 +1189,44 @@ void TestSceneWriter::writesScenarios() {
 	QVERIFY(enhancedJson["reduced_speed_kmh"] == 40.0);
 	QVERIFY(enhancedJson["terminate_at_destination"] == true);
 	QVERIFY(!enhancedJson.contains("end_seconds"));
+}
+
+// A case with measures is written as schema 2, which releases that read only schema 1 refuse, and reads back. Without
+// measures the case is schema 1 again and its scenarios have no measures key.
+void TestSceneWriter::writesMeasuresWithSchemaTwo() {
+	TempDir temp;
+	SceneModel source = authoredScene();
+	source.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", true, 2, 300.0, "station-2"});
+	source.scenarios[0].measures.push_back({"measure-2", MeasureType::CancelService, "service-1", false, 1, 120.0, ""});
+	QVERIFY2(saveScene(source, temp.path.string()).success(), "a case with measures saves");
+	const json scene = readJsonFile(temp.path / "scene.json");
+	QVERIFY(scene["schema_version"] == 2);
+	const json scenarios = readJsonFile(temp.path / "scenarios.json");
+	const json& measures = scenarios["scenarios"][0]["measures"];
+	QCOMPARE(measures.size(), std::size_t(2));
+	QVERIFY2(measures[0] == json({{"id", "measure-1"}, {"type", "cancel_service"}, {"service", "service-1"}, {"time_seconds", 300.0}, {"occurrence", 2}, {"from_station", "station-2"}}),
+		measures[0].dump().c_str());
+	QVERIFY2(measures[1] == json({{"id", "measure-2"}, {"type", "cancel_service"}, {"service", "service-1"}, {"time_seconds", 120.0}}),
+		measures[1].dump().c_str());
+
+	SceneModel loaded;
+	QVERIFY(loadHasNoErrors(temp.path, loaded));
+	QCOMPARE(loaded.schemaVersion, 2);
+	const std::vector<SceneMeasure>& read = loaded.scenarios[0].measures;
+	QCOMPARE(read.size(), std::size_t(2));
+	QCOMPARE(read[0].id, std::string("measure-1"));
+	QVERIFY(read[0].hasOccurrence);
+	QCOMPARE(read[0].occurrence, 2);
+	QCOMPARE(read[0].timeSeconds, 300.0);
+	QCOMPARE(read[0].fromStationId, std::string("station-2"));
+	QVERIFY(!read[1].hasOccurrence);
+	QVERIFY(read[1].fromStationId.empty());
+
+	loaded.scenarios[0].measures.clear();
+	TempDir second;
+	QVERIFY2(saveScene(loaded, second.path.string()).success(), "the case saves without measures");
+	QVERIFY(readJsonFile(second.path / "scene.json")["schema_version"] == 1);
+	QVERIFY(!readJsonFile(second.path / "scenarios.json")["scenarios"][0].contains("measures"));
 }
 
 // A scenario saved on its own holds only scenario data, reads back, and is replaced by the next save.

@@ -262,8 +262,10 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 	if (!staged)
 		return result;
 
-	if (!applySceneMigrationChain(registry, SceneMigrationStepKind::Schema,
-			probe.schemaVersion, kCurrentSceneSchemaVersion, staging, result.diagnostics))
+	// Every current schema is read as it is; an older one is migrated to the newest.
+	if (probe.schemaVersion < kOldestCurrentSceneSchemaVersion
+		&& !applySceneMigrationChain(registry, SceneMigrationStepKind::Schema, probe.schemaVersion, kCurrentSceneSchemaVersion, staging,
+			result.diagnostics))
 		return result;
 	if (probe.sourceKind == SceneSourceKind::Bundle && probe.bundleVersion
 		&& *probe.bundleVersion < kCurrentSceneBundleVersion) {

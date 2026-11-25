@@ -465,6 +465,28 @@ static const FailureCase kFailureCases[] = {
 		 scene.scenarios[0].entranceDelays.push_back({"service-1", 1, "station-1", 20.0});
 	 },
 		"scene.entrance.conflict", "scenarios[0].entrance_delays[1].delay_seconds"},
+	{"measure unknown service", [](SceneModel& scene) {
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-x", false, 1, 300.0, ""});
+	 },
+		"scene.ref.unresolved", "scenarios[0].measures[0].service"},
+	{"measure occurrence beyond repeat range", [](SceneModel& scene) {
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", true, 2, 300.0, ""});
+	 },
+		"scene.occurrence.invalid", "scenarios[0].measures[0].occurrence"},
+	{"measure station outside service stops", [](SceneModel& scene) {
+		 scene.stations.push_back({"station-3", "Unused", false, 0.0, {}});
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", false, 1, 300.0, "station-3"});
+	 },
+		"scene.measure.station", "scenarios[0].measures[0].from_station"},
+	{"measure after the run", [](SceneModel& scene) {
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", false, 1, 3600.0, ""});
+	 },
+		"scene.measure.time", "scenarios[0].measures[0].time_seconds"},
+	{"duplicate measure id", [](SceneModel& scene) {
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", false, 1, 300.0, ""});
+		 scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", false, 1, 400.0, "station-2"});
+	 },
+		"scene.id.duplicate", "scenarios[0].measures[1].id"},
 	{"non-finite node coordinate", [](SceneModel& scene) {
 		 scene.nodes[0].xKm = std::numeric_limits<double>::quiet_NaN();
 	 },
@@ -551,6 +573,7 @@ class TestSceneValidator : public QObject {
 
 private slots:
 	void completeSceneValidates();
+	void measuresValidate();
 	void runnableValidationNeedsTrains();
 	void acceptsValidServiceColour_data();
 	void acceptsValidServiceColour();
@@ -742,6 +765,13 @@ void TestSceneValidator::completeSceneValidates() {
 		"semantic validation does not reject complete topology");
 	QVERIFY2(validateScene(clean).empty(), "complete scene passes semantic validation");
 	QVERIFY2(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+}
+
+void TestSceneValidator::measuresValidate() {
+	SceneModel scene = completeScene();
+	scene.scenarios[0].measures.push_back({"measure-1", MeasureType::CancelService, "service-1", true, 1, 0.0, ""});
+	scene.scenarios[0].measures.push_back({"measure-2", MeasureType::CancelService, "service-1", false, 1, 150.0, "station-2"});
+	QVERIFY2(validateRunnableScene(scene).empty(), "a complete cancellation and one from a stop of the service are valid");
 }
 
 void TestSceneValidator::runnableValidationNeedsTrains() {

@@ -1585,6 +1585,12 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 	}
 
+	// The legacy files have no dispatching measures, so the run of an export does without them.
+	if (const SceneScenario* scenario = defaultScenario(scene))
+		for (const SceneMeasure& measure : scenario->measures)
+			addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+				"Measure " + measure.id + " was skipped: the legacy files cannot cancel a service during a run", measure.id);
+
 	const auto& incidents = defaultScenarioIncidents(scene);
 	if (!incidents.empty()) {
 		std::unordered_set<std::string> routeBlockTokens;

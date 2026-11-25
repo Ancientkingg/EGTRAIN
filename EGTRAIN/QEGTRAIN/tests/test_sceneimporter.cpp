@@ -353,7 +353,7 @@ void TestSceneImporter::importsSyntheticCase() {
 	QVERIFY(scene["base_time"] == "08:15:00");
 	QVERIFY(scene["simulation_settings"]["duration_seconds"] == 1234.0);
 	// Legacy import records the creating application version.
-	QVERIFY(scene["schema_version"] == kCurrentSceneSchemaVersion);
+	QVERIFY(scene["schema_version"] == kOldestCurrentSceneSchemaVersion);
 	QVERIFY(scene["saved_with_app_version"] == EGTRAIN_APP_VERSION);
 	bool rootReport = false, coordinateReport = false, stationViewReport = false, areasReport = false;
 	int areasRows = 0;

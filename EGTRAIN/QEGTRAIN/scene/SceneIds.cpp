@@ -91,3 +91,10 @@ std::string sceneUniqueIncidentId(const SceneModel& model, const std::string& ba
 			[&id](const SceneScenario& scenario) { return hasItemWithId(scenario.incidents, id); });
 	});
 }
+
+std::string sceneUniqueMeasureId(const SceneModel& model, const std::string& baseId) {
+	return firstFreeId(baseId, [&model](const std::string& id) {
+		return std::any_of(model.scenarios.begin(), model.scenarios.end(),
+			[&id](const SceneScenario& scenario) { return hasItemWithId(scenario.measures, id); });
+	});
+}

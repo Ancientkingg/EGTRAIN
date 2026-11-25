@@ -648,7 +648,7 @@ void TestSceneExporter::exportsIncidents() {
 		<< R"({"services":[{"id":"svc1","operating_code":"legacy-svc","composition":"c1","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
 		<< "\n";
 	std::ofstream(scene / "scenarios.json")
-		<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc1","type":"signal_failure","target":"sig-x","start_seconds":100,"end_seconds":300},{"id":"inc2","type":"signal_failure","target":"canonical-block","start_seconds":301,"end_seconds":302},{"id":"inc-slash","type":"signal_failure","target":"sig-slash","start_seconds":303,"end_seconds":304},{"id":"inc3","type":"signal_failure","target":"sig-switch","start_seconds":400,"end_seconds":500},{"id":"inc4","type":"signal_failure","target":"sig-malformed","start_seconds":501,"end_seconds":600},{"id":"inc5","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2},{"id":"inc6","type":"train_breakdown","target":"svc1","start_seconds":25,"end_seconds":35}]},{"id":"alternate","name":"Alternate","incidents":[{"id":"inc7","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150}]}]})"
+		<< R"({"default_scenario_id":"baseline","scenarios":[{"id":"baseline","name":"Baseline","incidents":[{"id":"inc1","type":"signal_failure","target":"sig-x","start_seconds":100,"end_seconds":300},{"id":"inc2","type":"signal_failure","target":"canonical-block","start_seconds":301,"end_seconds":302},{"id":"inc-slash","type":"signal_failure","target":"sig-slash","start_seconds":303,"end_seconds":304},{"id":"inc3","type":"signal_failure","target":"sig-switch","start_seconds":400,"end_seconds":500},{"id":"inc4","type":"signal_failure","target":"sig-malformed","start_seconds":501,"end_seconds":600},{"id":"inc5","type":"signal_failure","target":"nope","start_seconds":1,"end_seconds":2},{"id":"inc6","type":"train_breakdown","target":"svc1","start_seconds":25,"end_seconds":35}],"measures":[{"id":"cancel-1","type":"cancel_service","service":"svc1","time_seconds":10}]},{"id":"alternate","name":"Alternate","incidents":[{"id":"inc7","type":"train_breakdown","target":"svc1","start_seconds":50,"end_seconds":150}]}]})"
 		<< "\n";
 
 	auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -678,6 +678,12 @@ void TestSceneExporter::exportsIncidents() {
 	QVERIFY2(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 	QVERIFY2(hasDiag(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
 		"Connection-derived signal target reports the legacy format limit");
+	QVERIFY2(std::any_of(res.diagnostics.begin(), res.diagnostics.end(),
+				 [](const SceneDiagnostic& d) {
+					 return d.code == "scene.export.compatibility" && d.severity == SceneSeverity::Warning
+						 && d.message.find("Measure cancel-1 was skipped") != std::string::npos;
+				 }),
+		"A measure, which the legacy files cannot hold, is skipped with a compatibility warning");
 
 	std::ofstream(scene / "signalling.json")
 		<< R"({"signals":[{"id":"canonical-block","protected_section":"canonical-other"}],"routes":[{"id":"route0","blocks":["canonical-block","canonical-other"]}]})"
