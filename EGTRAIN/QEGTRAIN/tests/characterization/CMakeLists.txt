@@ -121,6 +121,9 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	running-through-level-5
 	stub-zero-level-5
 	stop-before-zone-level-0
+	closure-lift-level-0
+	closure-lift-level-1
+	closure-lift-level-2
 	border-0-2-fwd
 	border-0-2-rev
 	border-2-0-fwd

@@ -237,6 +237,10 @@ struct CaseSpec {
 	bool runningThrough = false;
 	// F1 stands at B until 1050 s, in front of the restriction, and R1 runs on routeCB from C to B from 650 s.
 	bool stopBeforeZone = false;
+	// The line in blocks of 1 km, with the stations M at 9 km, N at 10 km and E at 12 km and a restriction from 2-B0 to 9-B0.
+	// Lead runs from A to N and stands at M; Oppose runs from C to A and brakes for E, just before the track on which Follow
+	// leaves the restriction; Follow runs from A to E behind Lead once Oppose dwells at E.
+	bool closureLift = false;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -383,6 +387,15 @@ std::vector<CaseSpec> buildCaseTable() {
 	stopBefore.restriction = {"5-B0", "6-B0", "4-B0", "7-B0"};
 	stopBefore.stopBeforeZone = true;
 	cases.push_back(stopBefore);
+	// Oppose, braking for E, closes the route of Follow in front of the restriction while Lead holds it. The closure lifts when
+	// Oppose dwells, and Follow, due later, runs into the restriction behind Lead: the closure leaves no aspect behind at its
+	// entry (#1499).
+	for (int level = 0; level <= 2; ++level) {
+		CaseSpec lift{"closure-lift-level-" + std::to_string(level), "baseline", {"Lead", "Follow", "Oppose"}, level, "", true};
+		lift.restriction = {"2-B0", "9-B0", "2-B0", "9-B0"};
+		lift.closureLift = true;
+		cases.push_back(lift);
+	}
 	// Two following services over a border between two levels, at station B (8 km) unless the entry gives another
 	// position. The names give the level on the A side and on the C side; fwd runs from A to C, rev from C to A.
 	const struct {
@@ -1024,8 +1037,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 		if (waived)
 			continue;
 		for (const Stop& stop : findStops(track)) {
-			const double offset = std::fmod(stop.position, kBlockLength);
-			const bool onBoundary = offset < kStopTolerance || kBlockLength - offset < kStopTolerance;
+			const double blockLength = spec.closureLift ? 1000.0 : kBlockLength;
+			const double offset = std::fmod(stop.position, blockLength);
+			const bool onBoundary = offset < kStopTolerance || blockLength - offset < kStopTolerance;
 			bool behindTrain = false;
 			for (const TrainTrack& other : tracks) {
 				if (&other == &track || stop.first < other.first || stop.first > other.last)
@@ -1075,7 +1089,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				}
 			}
 	}
-	if ((spec.stub || spec.stopBeforeZone || (spec.runningConflict && !spec.runningThrough)) && !waived)
+	if ((spec.stub || spec.stopBeforeZone || spec.closureLift || (spec.runningConflict && !spec.runningThrough)) && !waived)
 		for (const TrainTrack& track : tracks) {
 			const TimetableResultRow* last = nullptr;
 			for (const TimetableResultRow& row : rows)
@@ -1100,6 +1114,24 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 					}
 				}
 			}
+	}
+	if (spec.closureLift && !waived) {
+		// The routes of the case share one track, on which no two trains may overlap. A reversed route runs from 16 km.
+		auto span = [](const TrainTrack& track, int t) {
+			const double head = (*track.position)[t];
+			return simulation.run().infra.routes[track.routeIndex].reversed_direction
+				? std::make_pair(kFixtureLengthKm * 1000 - head, kFixtureLengthKm * 1000 - head + track.length)
+				: std::make_pair(head - track.length, head);
+		};
+		for (size_t i = 0; i < tracks.size(); ++i)
+			for (size_t j = i + 1; j < tracks.size(); ++j)
+				for (int t = std::max(tracks[i].first, tracks[j].first); t <= std::min(tracks[i].last, tracks[j].last); ++t) {
+					const auto a = span(tracks[i], t), b = span(tracks[j], t);
+					if (std::min(a.second, b.second) - std::max(a.first, b.first) > kStopTolerance) {
+						fail(tracks[i].name + " and " + tracks[j].name + " overlap at t=" + std::to_string(t));
+						break;
+					}
+				}
 	}
 	if (spec.stopBeforeZone && !waived) {
 		double crossed = -1.0, left = -1.0;
@@ -1577,6 +1609,83 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 				stop.plannedDepartureSeconds = stop.stationId == "B" ? 1000.0 : 660.0;
 			}
 		}
+	}
+	if (spec.closureLift) {
+		SceneModel& scene = loaded.scene;
+		const SceneArc arc = scene.arcs.front();
+		// The routes and services of the fixture do not fit the shorter blocks, so the case replaces them and keeps only the
+		// baseline scenario, which names none of them.
+		scene.nodes.clear();
+		scene.arcs.clear();
+		scene.blocks.clear();
+		scene.routes.clear();
+		scene.services.clear();
+		scene.scenarios.erase(std::remove_if(scene.scenarios.begin(), scene.scenarios.end(), [](const SceneScenario& scenario) {
+			return scenario.id != "baseline";
+		}),
+			scene.scenarios.end());
+		const auto node = [](int km) { return "B0.km." + std::to_string(km); };
+		for (int km = 0; km <= static_cast<int>(kFixtureLengthKm); ++km) {
+			scene.nodes.push_back({node(km), "B0", static_cast<double>(km), 0.0});
+			if (km == 0)
+				continue;
+			SceneArc piece = arc;
+			piece.id = "B0.arc." + std::to_string(km);
+			piece.fromNodeId = node(km - 1);
+			piece.toNodeId = node(km);
+			scene.arcs.push_back(piece);
+			scene.blocks.push_back({std::to_string(km - 1) + "-B0", "B0", 1.0});
+		}
+		for (SceneStation& station : scene.stations)
+			station.platforms.front().nodeIds = {node(static_cast<int>(station.positionKm))};
+		for (const auto& [id, km] : {std::pair<std::string, int>{"M", 9}, {"N", 10}, {"E", 12}}) {
+			SceneStation station;
+			station.id = station.name = id;
+			station.hasPosition = true;
+			station.positionKm = km;
+			ScenePlatform platform;
+			platform.id = id + ".platform.1";
+			platform.nodeIds = {node(km)};
+			station.platforms = {platform};
+			scene.stations.push_back(station);
+		}
+		auto addRoute = [&scene](const std::string& id, int from, int to) {
+			SceneRoute made;
+			made.id = id;
+			for (int b = from; b != to; b += from < to ? 1 : -1)
+				made.blocks.push_back(std::to_string(from < to ? b : b - 1) + "-B0");
+			scene.routes.push_back(made);
+		};
+		addRoute("routeLead", 0, 10);
+		addRoute("routeFollow", 0, 12);
+		addRoute("routeOppose", 16, 0);
+		// A stop is {station, planned arrival, planned departure}; a negative time is not given.
+		auto addService = [&scene](const std::string& id, const std::string& route, double entry,
+							  const std::vector<std::tuple<std::string, double, double>>& stops) {
+			SceneService made;
+			made.id = made.operatingCode = id;
+			made.composition = "SLT_Sprinter";
+			made.route = route;
+			made.hasEntryTime = true;
+			made.entryTimeSeconds = entry;
+			for (const auto& [station, arrival, departure] : stops) {
+				SceneStop stop;
+				stop.stationId = station;
+				stop.platformId = station + ".platform.1";
+				stop.hasPlannedArrival = arrival >= 0.0;
+				stop.plannedArrivalSeconds = std::max(arrival, 0.0);
+				stop.hasPlannedDeparture = departure >= 0.0;
+				stop.plannedDepartureSeconds = std::max(departure, 0.0);
+				made.stops.push_back(stop);
+			}
+			scene.services.push_back(made);
+		};
+		// When Oppose dwells, Lead stands at M with its rear six sections into the restriction, so the sections that its own
+		// signalling releases do not reach the entry.
+		addService("Lead", "routeLead", 60.0, {{"A", -1.0, 120.0}, {"M", 360.0, 700.0}, {"N", 760.0, -1.0}});
+		addService("Follow", "routeFollow", 500.0, {{"A", -1.0, 510.0}, {"E", 1000.0, -1.0}});
+		addService("Oppose", "routeOppose", 260.0, {{"C", -1.0, 270.0}, {"E", 460.0, 900.0}, {"A", 1300.0, -1.0}});
+		scene.settings.durationSeconds = 2000.0;
 	}
 	if (spec.passengers == "live-missed")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 738.0});

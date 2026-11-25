@@ -80,12 +80,14 @@ A train gets a new reservation of a zone only when no train of the other
 direction blocks its way out. A train of route q blocks the way out of route r
 when:
 
-- it stands on the way out, while it moves, waits at a stop or waits to enter
-  the network;
+- it stands on the way out, while it moves or waits at a stop;
 - it runs toward the way out and can no longer stop in front of it; or
 - it holds a reservation of a further zone that overlaps the way out.
 
-A train that dwells at a service stop does not count as running toward the way
+The first two apply only to a train in the network. A train that waits to enter
+the network does not block by its position: `Train::checkEntrance` keeps it out
+while the way of its route is closed in front of its entry (see below). A train
+that dwells at a service stop does not count as running toward the way
 out. Neither does a train that will be stopped in front of the way out anyway,
 because the way is closed in front of it (see below). Trains that stand on a way
 out are taken first, then forward trains that run toward one, then reversed
@@ -113,7 +115,10 @@ The way of a route is closed at the first section of a way out
 the first section of the zone as occupied for that route only, and
 `Apply_Single_Track_Authorities_Mixed_Signalling` gives that route an end of
 authority in front of both (`MovementAuthority::routeIndex`). Trains of other
-routes of the same direction, such as the holder's own route, ignore it. A train
+routes of the same direction, such as the holder's own route, ignore it. When a
+closure moves or lifts, `updateSingleTrackLocks` releases both sections, because
+levels 0 to 2 rewrite only the aspects of released sections; otherwise the zone
+entry would keep a stop aspect after the way is open. A train
 that waits to enter the network does not start on a closed stretch
 (`Train::checkEntrance`). At a fixed-block level the section in front of a closed
 stretch shows a stop aspect, so a train due to enter there waits until the way
