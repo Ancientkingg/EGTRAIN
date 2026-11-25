@@ -1132,14 +1132,17 @@ void TestNetworkPresenter::otherKindsHaveMarks() {
 	const qreal near = f.presenter.previewFit().bounds.width() * 1e-6;
 	QCOMPARE_LT(distanceTo(mark->stretches(), f.at("B0.node.41")), near);
 
-	// The first restriction runs from 2-B0 to 31-B0, between two switch sections.
+	// The first restriction runs from 1-B0 to 32-B0, the main-track sections of the switches at both ends included, and
+	// protects the two switch sections.
 	mark = f.show("single_track_restrictions", "0");
 	if (mark == nullptr)
 		QFAIL("a single-track restriction has a mark");
-	QCOMPARE(mark->stretches().size(), qsizetype(32));
-	QCOMPARE(f.marked(*mark, {"@2-B0@", "@20-B0@", "@31-B0@", "@1-B3@-0.250000/@1-B0@-0.300000", "@32-B0@-9.539000/@0-B4@-9.549000"})
+	QCOMPARE(mark->stretches().size(), qsizetype(34));
+	QCOMPARE(f.marked(*mark,
+				  {"@1-B0@", "@2-B0@", "@20-B0@", "@31-B0@", "@32-B0@", "@1-B3@-0.250000/@1-B0@-0.300000",
+					  "@32-B0@-9.539000/@0-B4@-9.549000"})
 				 .size(),
-		qsizetype(5));
+		qsizetype(7));
 	QCOMPARE(f.touched(*mark, {"@33-B0@", "@50-B0@"}), QStringList());
 
 	mark = f.show("station_boundaries", "0");

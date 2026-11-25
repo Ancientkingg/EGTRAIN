@@ -307,11 +307,14 @@ def check_export(label, scene, output):
         assert 1 <= order <= count, f"{label}: envelope names section {order} of {count}"
         section = sections[order - 1]
         if row["Block"] == section["Block"]:
-            assert abs(float(row["Start X[km]"]) - float(section["Start X[km]"])) < 1e-6 \
-                and abs(float(row["End X[km]"]) - float(section["End X[km]"])) < 1e-6, \
+            # A train of the other direction runs from the end of the section to its start, and so does its envelope.
+            def extent(record, start, end):
+                return sorted((float(record[start]), float(record[end])))
+            assert all(abs(a - b) < 1e-6 for a, b in zip(extent(row, "Start X[km]", "End X[km]"),
+                                                          extent(section, "Start X[km]", "End X[km]"))), \
                 f"{label}: envelope of {row['Block']} differs from its section"
-            assert abs(float(row["Start geo X[km]"]) - float(section["Start geo X[km]"])) < 1e-6 \
-                and abs(float(row["End geo X[km]"]) - float(section["End geo X[km]"])) < 1e-6, \
+            assert all(abs(a - b) < 1e-6 for a, b in zip(extent(row, "Start geo X[km]", "End geo X[km]"),
+                                                          extent(section, "Start geo X[km]", "End geo X[km]"))), \
                 f"{label}: envelope of {row['Block']} has other geo X than its section"
     assert all(row["Geo position[km]"] and row["Start geo X[km]"] and row["End geo X[km]"] for row in envelopes), \
         f"{label}: an envelope lacks its geo X"
@@ -343,20 +346,21 @@ order_of = {row["Block"]: row["Reference section"] for row in sections}
 assert all(row["Reference section"] == order_of.get(row["Block"]) for row in envelopes), \
     "an Assignment envelope does not name the section of its block"
 
-# Paimpol: the all-stops service sets the reference route. The express service runs a route with other blocks.
+# Paimpol: the first all-stops service sets the reference route. The first express service runs a route with other
+# blocks, and so do the trains towards Guingamp.
 assert os.path.exists(os.path.join(paimpol_output, "blocking_time.csv")), "the Paimpol run did not write blocking_time.csv"
 sections, envelopes, rows = check_export("Paimpol export", paimpol_scene, paimpol_output)
 assert any(row["Reference section"] for row in envelopes), "no Paimpol envelope names a section"
 express_id, express = service_route(paimpol_scene, 1)
 unmapped = [row for row in rows if row["Layer"] == UNMAPPED]
-assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"] and not row["Start X[km]"]
-           and not row["End X[km]"] and not row["Reference section"] and not row["Geo position[km]"]
-           and not row["Start geo X[km]"] and not row["End geo X[km]"] for row in unmapped), \
-    "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
-# The projection uses the nodes and the stations that both routes share and does not extrapolate: these express blocks
-# lie before the first or after the last of them.
-assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@123-B0@", "@124-B0@"], \
-    "unexpected unmapped Paimpol envelopes"
+assert all(not row["Position[km]"] and not row["Start X[km]"] and not row["End X[km]"] and not row["Reference section"]
+           and not row["Geo position[km]"] and not row["Start geo X[km]"] and not row["End geo X[km]"] for row in unmapped), \
+    "an unmapped Paimpol envelope carries a coordinate"
+# The projection uses the nodes and the stations that a route shares with the reference route and does not extrapolate:
+# these blocks of the main track lie before the first or after the last of them. The first express runs on all three.
+assert {row["Block"] for row in unmapped} == {"@0-B0@", "@123-B0@", "@124-B0@"}, "unexpected unmapped Paimpol envelopes"
+assert sorted(row["Block"] for row in unmapped if row["Train"].startswith(express_id + "-")) \
+    == ["@0-B0@", "@123-B0@", "@124-B0@"], "unexpected unmapped envelopes of the express"
 shown = [row["Block"] for row in rows if row["Train"].startswith(express_id + "-") and row["Layer"] in (ENVELOPE, UNMAPPED)]
 assert sorted(shown) == sorted(f"@{block}@" for block in express), "an express envelope is neither shown nor unmapped"
 PY

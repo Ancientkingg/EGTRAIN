@@ -852,7 +852,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		showTab(serviceDock(w), QStringLiteral("Run occurrences"));
 		showOnly({serviceDock(w)});
 		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
-		return repeated && servicePanel(w)->occurrenceTable()->rowCount() == 3
+		// The seven other services run once and the express twice.
+		return repeated && servicePanel(w)->occurrenceTable()->rowCount() == 9
 			? saveCapture(windowShot(), QStringLiteral("how-to-add-a-train.png"), QStringLiteral("Paimpol"),
 				  QStringLiteral("the express repeated after 3600 s for 2 runs, Services on Run occurrences"))
 			: failCaptures(QStringLiteral("the express could not be given a second run"));

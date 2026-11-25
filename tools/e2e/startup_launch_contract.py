@@ -371,7 +371,8 @@ def assert_invalid_numbers_stop_the_start(app: Path) -> None:
         # The first value of an option is the one that counts, so the value that is not valid comes first. -pax is read
         # only with the window, and the start stops before the window opens. A value outside the range that a case allows
         # for it stops the start as well. A duration whose trains would need more than 4 GiB is refused when the run is
-        # prepared, and the error names -h, not the duration of the case.
+        # prepared, and the error names -h, not the duration of the case. Paimpol runs 8 times 51 trains in 500000 s,
+        # fewer than the 700 trains that a run may have.
         cases = [
             (["-n", "2x"], "ERROR: Unknown bundled case id"),
             (["-h", "abc"], "ERROR: -h requires a whole number of 1 or more seconds."),
@@ -386,7 +387,7 @@ def assert_invalid_numbers_stop_the_start(app: Path) -> None:
             (["-g", "2"], "ERROR: -g requires 0 or 1."),
             (["-pax", "on", "-g", "1"], "ERROR: -pax requires 0 or 1."),
             (["-pax", "7", "-g", "1"], "ERROR: -pax requires 0 or 1."),
-            (["-n", "2", "-h", "3000000"], "error [scene.native.memory.limit]: The run needs about "),
+            (["-n", "2", "-h", "500000"], "error [scene.native.memory.limit]: The run needs about "),
         ]
         for index, (args, message) in enumerate(cases):
             label = f"{' '.join(args)} launch"

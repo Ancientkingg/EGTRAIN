@@ -47,6 +47,8 @@ BACKWARD_TOLERANCE_M = 0.1
 # train that stands at Rovato to the end of the run and does not reach its last stop.
 # The Netherlands services end at their last stop: the end of the representative is the
 # instant its head passes the end of its route, not the end of the run.
+# Case 2 runs the eight trains of the legacy Paimpol timetable, where the baseline ran only
+# the first two towards Paimpol; its representative still ends as in the baseline.
 ORIGINAL_CASE_PARITY = {
     1: {
         "structure": (1984, 708, 41, 156, 74),
@@ -60,7 +62,7 @@ ORIGINAL_CASE_PARITY = {
         "structure": (140, 8, 10, 15, 15),
         "station_ids": "76ee593e12c0ed1fc4ead4d497d16dc3f658e8a13e4fd60d233f2d8b4d7c05b5",
         "route_ids": "b05b7d25ec4a281c582032a3b86c6cfef9c4cdd344be4da1340856531086b7ca",
-        "trains": 2,
+        "trains": 8,
         "representative": ("Guin-Paim-EXPRESS-1-1", 10, 0.595063, 2760, 37076.9, 250, 10),
         "stops": ("9d358eb8bb2575c8111f98791e0f1bca7b84381fafba1197173f684e7a998331", 43, 2676, 10, 150),
     },

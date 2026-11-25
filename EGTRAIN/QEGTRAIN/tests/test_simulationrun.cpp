@@ -29,6 +29,7 @@
 #include <QTest>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -377,11 +378,20 @@ SceneModel lineWithStartAtB(const SceneModel& line, int level, double plannedDep
 // The selected occurrences of scene in a run of its own, stepped for the given seconds. Empty when the run cannot be built.
 std::unique_ptr<SimulationRun> steppedRun(const SceneModel& scene, const SceneRunSelection& selection, int seconds) {
 	CoutSilencer silencer;
+	// The run takes the duration of the scene, not a -h duration that an earlier test left in initial_variables: the
+	// trains keep one sample per second of that duration, and stepping past it writes past their vectors.
+	const bool durationOverride = initial_variables.durationOverride;
+	initial_variables.durationOverride = false;
+	const auto restoreOverride = qScopeGuard([durationOverride] { initial_variables.durationOverride = durationOverride; });
 	auto run = std::make_unique<SimulationRun>();
 	if (hasErrors(buildInfrastructureAndSignallingFromScene(*run, scene))
 		|| hasErrors(buildOperationsFromScene(*run, scene, "baseline", selection)))
 		return nullptr;
+	if (seconds > scene.settings.durationSeconds)
+		return nullptr;
 	run->settings = initial_variables;
+	run->settings.durationOverride = false;
+	run->settings.times = scene.settings.durationSeconds;
 	TrainMovementOrder order(*run);
 	for (int t = 0; t < seconds; ++t)
 		runSimulationStep(*run, t, order);
@@ -452,6 +462,7 @@ private slots:
 	void trainStartingAtStopWaitsForItsSections_data();
 	void trainStartingAtStopWaitsForItsSections();
 	void trainStartingAtStopWaitsForSingleTrack();
+	void paimpolTrainsCrossOnSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
 	void trainStartingAtStopBlocksSectionsUnderIt_data();
@@ -909,6 +920,31 @@ void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	QVERIFY(train.OutOfSimulation);
 }
 
+// The eight trains of the Paimpol timetable cross on the single track at the loops of Tregonneau_Squiffiec, Pontrieaux and
+// Lancerf. The first two express trains stand at Pontrieaux together, which the timetable plans from 1570 s to 1627 s. The
+// passengers lengthen the dwells of the all-stops trains, so Paim-Guin-EXPRESS-2 reaches Tregonneau_Squiffiec while
+// Guin-Paim-ALL-STOPS-1 still runs towards the loop there. The express waits on the main track clear of the points of the
+// loop, and every train reaches the end of its route, the last ones after the 9000 s of the case.
+void TestSimulationRun::paimpolTrainsCrossOnSingleTrack() {
+	SceneModel scene = m_passengers;
+	scene.settings.durationSeconds = 11000.0;
+	SceneRunSelection firstRuns;
+	for (const SceneService& service : scene.services)
+		firstRuns.insert({service.id, 1});
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, firstRuns, 11000);
+	if (run == nullptr || run->numTrains != 8)
+		QFAIL("the run is not built");
+	int expressAtPontrieaux = 0;
+	for (Regional& train : run->trains) {
+		QVERIFY2(train.OutOfSimulation, train.trainDescription.c_str());
+		const bool firstExpress = train.trainDescription == "Guin-Paim-EXPRESS-1-1" || train.trainDescription == "Paim-Guin-EXPRESS-2-1";
+		// Pontrieaux lies at km 21.584.
+		if (firstExpress && std::abs(train.trainXPosition(1600) - 21.584) < 0.3)
+			++expressAtPontrieaux;
+	}
+	QCOMPARE(expressAtPontrieaux, 2);
+}
+
 void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt_data() {
 	QTest::addColumn<int>("level");
 	QTest::newRow("level 3") << 3;
@@ -970,6 +1006,7 @@ void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt() {
 	SceneModel scene = lineWithStartAtB(m_line, level, 400.0);
 	for (SceneTrainUnit& unit : scene.trainUnits)
 		unit.physical.length_m = trainLength;
+	scene.settings.durationSeconds = 2500.0;
 	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"X", 1}}, 2500);
 	if (run == nullptr || run->numTrains != 1)
 		QFAIL("the run is not built");

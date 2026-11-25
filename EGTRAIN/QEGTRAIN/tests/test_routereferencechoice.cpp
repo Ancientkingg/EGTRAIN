@@ -180,11 +180,11 @@ void TestRouteReferenceChoice::paimpolRoutes() {
 	const SceneModel paimpol = loadCommitted("Paimpol");
 	const auto choices = buildRouteReferenceChoices(paimpol, Used{{2, "route2"}, {6, "route6"}});
 	QCOMPARE(choices.size(), qsizetype(2));
-	// Both routes pass the same stations, so each label names the service that runs on it.
+	// Both routes pass the same stations, so each label names the two services that run on it.
 	const QString stations = QStringLiteral("Guingamp - Gourland - Tregonneau_Squiffiec - Brelidy-Plouec"
 											" - Pontrieaux_Halte - Pontrieaux - Frynaudour - Traou_Nez - Lancerf - Paimpol");
-	QCOMPARE(choices[0].label, "route2 --> " + stations + " (service Guin-Paim-ALL-STOPS-1)");
-	QCOMPARE(choices[1].label, "route6 --> " + stations + " (service Guin-Paim-EXPRESS-1)");
+	QCOMPARE(choices[0].label, "route2 --> " + stations + " (services Guin-Paim-ALL-STOPS-1, Guin-Paim-ALL-STOPS-3)");
+	QCOMPARE(choices[1].label, "route6 --> " + stations + " (services Guin-Paim-EXPRESS-1, Guin-Paim-EXPRESS-3)");
 }
 
 void TestRouteReferenceChoice::routesWithoutStations() {
