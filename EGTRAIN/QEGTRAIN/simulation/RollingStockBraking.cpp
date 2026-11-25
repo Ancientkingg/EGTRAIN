@@ -28,6 +28,16 @@ bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::Brak
 		&& sameBits(a.target, b.target) && sameBits(a.cutoff, b.cutoff);
 }
 
+// True when the train of service serviceId may couple virtually to the train leader, whose description is its service ID and
+// occurrence joined by "-": always when services (sorted) is empty, otherwise only when both services are listed.
+bool mayCouple(const std::vector<std::string>& services, const std::string& serviceId, const std::string& leader) {
+	if (services.empty())
+		return true;
+	const std::size_t separator = leader.rfind('-');
+	return separator != std::string::npos && std::binary_search(services.begin(), services.end(), serviceId)
+		&& std::binary_search(services.begin(), services.end(), leader.substr(0, separator));
+}
+
 struct GradientAndCurvature {
 	double gradient = 0.0;
 	double curvature = 0.0;
@@ -633,8 +643,13 @@ int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double ta
 Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V) {
 	AuthorityTarget target;
 	target.position = authorityRoutePosition(authority, BS[section]);
+	// Two trains that may not couple are separated as at level 3.
+	const int level = BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)
+			&& !mayCouple(run_->settings.virtualCouplingServices, serviceId, authority.TrainInfo.trainDescription)
+		? levelValue(SignallingLevel::EtcsLevel3)
+		: BS[section].SignallingLevel;
 	// A behind or front end cannot become a forward leader through virtual projection.
-	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == AuthorityKind::TrainEnd
+	if (level == levelValue(SignallingLevel::VirtualCoupling) && authority.type == AuthorityKind::TrainEnd
 		&& authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
 		&& (authority.typePart != AuthorityTrainEnd::Tale || !(target.position > S))) {
 		// The tail authority lags behind the leader by the report delay and the safety margin. A train that catches up with the
@@ -649,7 +664,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 					|| front.TrainInfo.trainDescription != authority.TrainInfo.trainDescription)
 					continue;
 				for (int index = 0; index < Blocks; ++index)
-					if (BS[index].ID == front.BSID && authorityRoutePosition(front, BS[index]) - kEndOfAuthorityMarginMetres > S)
+					if (BS[index].ID == front.BSID && authorityRoutePosition(front, BS[index]) - run_->settings.endOfAuthorityMarginM > S)
 						leaderAhead = true;
 			}
 		}
@@ -661,10 +676,10 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 	if (authority.type == AuthorityKind::SignalFailure) { // NOLINT(bugprone-branch-clone): one case per kind of stop target
 		// a failed signal or a held single-track section is a stop target at every signalling level
 		target.speed = 0;
-	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
+	} else if (level == levelValue(SignallingLevel::EtcsLevel3)) {
 		target.speed = 0;
 
-	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
+	} else if (level == levelValue(SignallingLevel::VirtualCoupling)) {
 		string NextBlockID;
 		if (section == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
 			NextBlockID = kNoneId;

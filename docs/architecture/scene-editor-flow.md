@@ -141,7 +141,7 @@ surface.
 
 | Pane | Editable in V1 | Derived or read-only |
 |---|---|---|
-| Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
+| Case settings | Name, description, base time, duration, buffer, recovery, passenger transfers, walking time and late threshold; the group Virtual coupling with the coupling distance, the speed tolerance, the margin of the ends of authority at levels 3 and 4, and the services that couple | Schema version, units, scene path, validation summary |
 | Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
 | Rolling Stock Units | ID; copies of the units of the bundled cases with Add from Library, from the resource `rolling_stock_library.json`; Traction tab with the engine section (traction source, rows and plot); Physical tab with the characteristics section (nine native physical fields and parameter source); session-only Link/Unlink/Retry controls for physical and traction files | Static traction plot; composition usage; live link status |
 | Compositions | ID and ordered rolling-stock-unit membership | Selected-unit source references and traction plot |

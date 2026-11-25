@@ -448,6 +448,9 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 }
 
 void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement) {
+	// A follower whose speed differs from that of the train ahead by no more than the coupling speed tolerance of the run runs at
+	// the speed of that train, as a coupled train does: it needs no relative braking distance and no time to react.
+	const double couplingSpeedTolerance = run_->settings.virtualCouplingSpeedToleranceMs;
 
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
 	int N_LocationList = 0;								 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
@@ -624,7 +627,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 						}
 
 						else { // if the train has instead other trains in front of it, it is a follower and will need to coordinate its speed with the one of the train leader
-							if (V_At_SafetyMargin_From_Location < (BlockTime[N_BlockSections].SpeedPreviousTrain - 0.278)) {
+							if (V_At_SafetyMargin_From_Location < (BlockTime[N_BlockSections].SpeedPreviousTrain - couplingSpeedTolerance)) {
 								// The train will accelerate to coordinate its speed with the train ahead only if also the next location is on the route shared by the two trains
 								if (BlockTime[N_BlockSections].NextBlockID == BlockTime[N_BlockSections].NextBlockIDPreviousTrain) {
 									double SpeedCoordinationTime = 0;
@@ -644,9 +647,9 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 								} else { // In case this train is going slower than the train ahead and the train ahead will take another route at the next location, it does not make sense for this train to catch up with the train ahead and the train can stay at its current speed (cruising mode). In this case the approaching distance is simply the safety margin
 									ApproachingDistance = SafetyMargin;
 								}
-							} else if (V_At_SafetyMargin_From_Location > (BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
+							} else if (V_At_SafetyMargin_From_Location > (BlockTime[N_BlockSections].SpeedPreviousTrain + couplingSpeedTolerance)) {
 								ApproachingDistance = this->BrakingDistanceFastComputation(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections) + SafetyMargin;
-							} else if ((V_At_SafetyMargin_From_Location >= BlockTime[N_BlockSections].SpeedPreviousTrain - 0.278) && (V_At_SafetyMargin_From_Location <= BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
+							} else if ((V_At_SafetyMargin_From_Location >= BlockTime[N_BlockSections].SpeedPreviousTrain - couplingSpeedTolerance) && (V_At_SafetyMargin_From_Location <= BlockTime[N_BlockSections].SpeedPreviousTrain + couplingSpeedTolerance)) {
 								ApproachingDistance = SafetyMargin;
 								// In this case Sight and Reaction time must be 0 since the train does not need ot react (i.e. braking or accelerrating) to the preceding train since they are at the same speed
 								SightReacTime = 0;

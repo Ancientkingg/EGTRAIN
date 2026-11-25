@@ -119,6 +119,25 @@ void decodeDwellSettings(const SceneFieldReader& reader, const json& settings, S
 		output.passengerCarBoardingThreshold = carThreshold;
 }
 
+// Reads the optional virtual coupling keys and the margin of the ends of authority of simulation_settings. A key that is absent
+// keeps its default, and a service that is not a string is reported and left out. The validator checks the values.
+void decodeVirtualCouplingSettings(const SceneFieldReader& reader, const json& settings, SceneSimulationSettings& output) {
+	reader.numberField(settings, "virtual_coupling_distance_m", "simulation_settings", output.virtualCouplingDistanceM, false);
+	reader.numberField(settings, "virtual_coupling_speed_tolerance_ms", "simulation_settings", output.virtualCouplingSpeedToleranceMs, false);
+	reader.numberField(settings, "end_of_authority_margin_m", "simulation_settings", output.endOfAuthorityMarginM, false);
+	if (!reader.arraySection(settings, "virtual_coupling_services", "simulation_settings", false))
+		return;
+	const json& services = settings["virtual_coupling_services"];
+	for (std::size_t index = 0; index < services.size(); ++index) {
+		if (!services[index].is_string()) {
+			reader.report("scene.field.missing", "Virtual coupling service reference must be a string",
+				"simulation_settings.virtual_coupling_services[" + std::to_string(index) + "]");
+			continue;
+		}
+		output.virtualCouplingServices.push_back(services[index].get<std::string>());
+	}
+}
+
 } // namespace
 
 void SceneFieldReader::report(const char* code, const std::string& message, const std::string& path,
@@ -325,6 +344,7 @@ void decodeSimulationSettings(const SceneFieldReader& reader, const json& root, 
 	reader.integerField(values, "passenger_late_threshold_seconds", "simulation_settings",
 		settings.passengerLateThresholdSeconds, false);
 	decodeDwellSettings(reader, values, settings);
+	decodeVirtualCouplingSettings(reader, values, settings);
 }
 
 void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, SceneModel& scene) {

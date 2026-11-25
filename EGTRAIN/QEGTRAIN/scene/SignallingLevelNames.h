@@ -30,7 +30,7 @@ inline std::string signallingLevelDescription(int level) {
 		case levelValue(SignallingLevel::Atb): return "Fixed block. The block before an occupied one is limited to 40 km/h.";
 		case levelValue(SignallingLevel::EtcsLevel1): return "Fixed block, without blocking times.";
 		case levelValue(SignallingLevel::EtcsLevel2): return "Fixed block, with blocking times.";
-		case levelValue(SignallingLevel::EtcsLevel3): return "Movement authority ends 50 m behind the train ahead.";
+		case levelValue(SignallingLevel::EtcsLevel3): return "Movement authority ends the authority margin of the case (50 m by default) behind the train ahead.";
 		case levelValue(SignallingLevel::VirtualCoupling): return "Moving block. A train can follow the train ahead at its speed.";
 		case levelValue(SignallingLevel::Bacc): return "Fixed block, with one extra empty block (double red) before an occupied one.";
 		default: return "Valid levels are 0 to 5.";

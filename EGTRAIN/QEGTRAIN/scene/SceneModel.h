@@ -31,6 +31,25 @@ inline constexpr int kDefaultPassengerLateThresholdSeconds = 300;
 /// The largest value of simulation_settings.passenger_late_threshold_seconds.
 inline constexpr int kMaxPassengerLateThresholdSeconds = 3600;
 
+/// The coupling distance of virtual coupling in metres when the scene gives no value.
+inline constexpr double kDefaultVirtualCouplingDistanceM = 30.0;
+/// The smallest value of simulation_settings.virtual_coupling_distance_m.
+inline constexpr double kMinVirtualCouplingDistanceM = 1.0;
+/// The largest value of simulation_settings.virtual_coupling_distance_m.
+inline constexpr double kMaxVirtualCouplingDistanceM = 500.0;
+/// The speed tolerance of virtual coupling in m/s (1 km/h) when the scene gives no value.
+inline constexpr double kDefaultVirtualCouplingSpeedToleranceMs = 0.278;
+/// The smallest value of simulation_settings.virtual_coupling_speed_tolerance_ms.
+inline constexpr double kMinVirtualCouplingSpeedToleranceMs = 0.01;
+/// The largest value of simulation_settings.virtual_coupling_speed_tolerance_ms.
+inline constexpr double kMaxVirtualCouplingSpeedToleranceMs = 10.0;
+/// The margin in metres of the ends of authority that trains report at levels 3 and 4 when the scene gives no value.
+inline constexpr double kDefaultEndOfAuthorityMarginM = 50.0;
+/// The smallest value of simulation_settings.end_of_authority_margin_m.
+inline constexpr double kMinEndOfAuthorityMarginM = 1.0;
+/// The largest value of simulation_settings.end_of_authority_margin_m.
+inline constexpr double kMaxEndOfAuthorityMarginM = 500.0;
+
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
 	bool hasDuration = false;		  ///< True when duration_seconds is given.
@@ -62,6 +81,22 @@ struct SceneSimulationSettings {
 	/// The boarding passengers of a car above which the car is crowded (passenger_car_boarding_threshold, 0 or more). Empty uses
 	/// kDefaultPassengerCarBoardingThreshold.
 	std::optional<int> passengerCarBoardingThreshold;
+	/// The distance in metres to the end of authority of the train ahead within which a train couples virtually to it, and the
+	/// lead of that authority beyond which a coupled train leaves the following mode (virtual_coupling_distance_m, 1 to 500).
+	/// Always counts; the scene file holds it only when it differs from the default.
+	double virtualCouplingDistanceM = kDefaultVirtualCouplingDistanceM;
+	/// The difference in speed in m/s below which a train couples virtually to the train ahead
+	/// (virtual_coupling_speed_tolerance_ms, 0.01 to 10). Always counts; the scene file holds it only when it differs from the
+	/// default.
+	double virtualCouplingSpeedToleranceMs = kDefaultVirtualCouplingSpeedToleranceMs;
+	/// The margin in metres of the ends of authority that trains report at levels 3 and 4, behind the tail and ahead of the head
+	/// of every train (end_of_authority_margin_m, 1 to 500). Always counts; the scene file holds it only when it differs from the
+	/// default.
+	double endOfAuthorityMarginM = kDefaultEndOfAuthorityMarginM;
+	/// The services whose trains may couple virtually (virtual_coupling_services). A train couples to the train ahead only when
+	/// both of their services are listed. Empty lets every train in a level 4 area couple; the scene file holds the list only
+	/// when it is not empty.
+	std::vector<std::string> virtualCouplingServices;
 };
 
 /// A track: a chain of nodes joined by arcs, with its own kilometre chainage.

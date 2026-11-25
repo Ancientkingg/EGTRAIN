@@ -105,10 +105,16 @@ The scene-level simulation settings are deliberately small: `base_time`,
 `simulation_settings.recovery_time_percent`, the optional
 `simulation_settings.passenger_max_transfers`, the optional
 `simulation_settings.passenger_walking_seconds_per_platform`, the optional
-`simulation_settings.passenger_late_threshold_seconds`, and the optional passenger dwell
+`simulation_settings.passenger_late_threshold_seconds`, the optional passenger dwell
 keys (`passenger_dwell_coefficients` and the three crowding thresholds), which
-the writer leaves out while they are absent. Legacy case counts, GUI flags,
-output paths, and network feature flags are not scene-model settings.
+the writer leaves out while they are absent, and the optional settings of levels 3
+and 4: `virtual_coupling_distance_m`, `virtual_coupling_speed_tolerance_ms`,
+`end_of_authority_margin_m` and the list `virtual_coupling_services`, which the
+writer leaves out while they have their defaults (30 m, 0.278 m/s, 50 m and an
+empty list). The operations builder copies them into `InitialParameters`, so a run
+reads them from `SimulationRun::settings` and not from the scene. Legacy case
+counts, GUI flags, output paths, and network feature flags are not scene-model
+settings.
 
 Services keep physical and traction provenance explicit. A train unit's
 `source.data_file` and `source.traction_file` are independent relationships;

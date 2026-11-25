@@ -1,13 +1,17 @@
 #include "editors/CaseSettingsPanel.h"
+#include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "support/EditHistory.h"
 #include "widgets/FocusWheel.h"
 
 #include <QAccessible>
 #include <QApplication>
 #include <QDoubleSpinBox>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QString>
 #include <QStringList>
 #include <QTest>
@@ -110,6 +114,10 @@ private slots:
 	void editsPassengerTransfers();
 	void editsPassengerWalkingTime();
 	void editsPassengerLateThreshold();
+	void editsVirtualCouplingNumbers();
+	void editsVirtualCouplingServices();
+	void keepsRenamedCouplingService_data();
+	void keepsRenamedCouplingService();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -235,6 +243,163 @@ void TestCaseSettingsPanel::editsPassengerLateThreshold() {
 	QCOMPARE(f.document.revision(), revision + 1);
 	typeAndLeave(f.panel.nameEdit(), "Renamed");
 	QCOMPARE(f.document.model().settings.passengerLateThresholdSeconds, 600);
+}
+
+// A case with the services F1, F2 and F3.
+static SceneModel couplingScene() {
+	SceneModel scene = caseScene("Case V", "08:00:00");
+	for (const char* id : {"F1", "F2", "F3"}) {
+		SceneService service;
+		service.id = id;
+		scene.services.push_back(service);
+	}
+	return scene;
+}
+
+// The ids of the checked services of the list.
+static QStringList checkedServices(const QListWidget* list) {
+	QStringList ids;
+	for (int row = 0; row < list->count(); ++row) {
+		if (list->item(row)->checkState() == Qt::Checked)
+			ids << list->item(row)->text();
+	}
+	return ids;
+}
+
+// The three numbers of the group "Virtual coupling" show their defaults and their ranges, and each edit is one Undo step.
+void TestCaseSettingsPanel::editsVirtualCouplingNumbers() {
+	CaseFixture f(couplingScene());
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	const QGroupBox* group = f.panel.findChild<QGroupBox*>("caseVirtualCouplingGroup");
+	if (group == nullptr)
+		QFAIL("the panel has no group Virtual coupling");
+	QCOMPARE(group->title(), "Virtual coupling");
+	QVERIFY(group->isAncestorOf(f.panel.couplingDistanceEdit()));
+	QVERIFY(group->isAncestorOf(f.panel.authorityMarginEdit()));
+	QCOMPARE_EQ(f.panel.couplingDistanceEdit()->value(), kDefaultVirtualCouplingDistanceM);
+	QCOMPARE_EQ(f.panel.couplingSpeedToleranceEdit()->value(), kDefaultVirtualCouplingSpeedToleranceMs);
+	QCOMPARE_EQ(f.panel.authorityMarginEdit()->value(), kDefaultEndOfAuthorityMarginM);
+	QCOMPARE_EQ(f.panel.couplingDistanceEdit()->minimum(), kMinVirtualCouplingDistanceM);
+	QCOMPARE_EQ(f.panel.couplingSpeedToleranceEdit()->maximum(), kMaxVirtualCouplingSpeedToleranceMs);
+	QCOMPARE_EQ(f.panel.authorityMarginEdit()->maximum(), kMaxEndOfAuthorityMarginM);
+
+	const quint64 revision = f.document.revision();
+	f.panel.couplingDistanceEdit()->setValue(60.0);
+	QCOMPARE_EQ(f.document.model().settings.virtualCouplingDistanceM, 60.0);
+	QCOMPARE(f.document.revision(), revision + 1);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit case settings");
+	f.panel.couplingSpeedToleranceEdit()->setValue(0.5);
+	f.panel.authorityMarginEdit()->setValue(40.0);
+	QCOMPARE(f.document.revision(), revision + 3);
+	// Another field keeps the numbers.
+	typeAndLeave(f.panel.nameEdit(), "Renamed");
+	QCOMPARE_EQ(f.document.model().settings.endOfAuthorityMarginM, 40.0);
+
+	QVERIFY(history.undo());
+	QVERIFY(history.undo());
+	// Undo takes back one number at a time and shows the restored value.
+	QCOMPARE_EQ(f.document.model().settings.endOfAuthorityMarginM, kDefaultEndOfAuthorityMarginM);
+	QCOMPARE_EQ(f.panel.authorityMarginEdit()->value(), kDefaultEndOfAuthorityMarginM);
+	QCOMPARE_EQ(f.document.model().settings.virtualCouplingSpeedToleranceMs, 0.5);
+	QVERIFY(history.undo());
+	QVERIFY(history.undo());
+	QCOMPARE_EQ(f.document.model().settings.virtualCouplingDistanceM, kDefaultVirtualCouplingDistanceM);
+	QCOMPARE_EQ(f.panel.couplingDistanceEdit()->value(), kDefaultVirtualCouplingDistanceM);
+}
+
+// The list shows the services of the case, a check is one Undo step, and with none checked every train may couple.
+void TestCaseSettingsPanel::editsVirtualCouplingServices() {
+	SceneModel scene = couplingScene();
+	// A listed id that names no service of the case is shown checked after the services, so that it can be unchecked.
+	scene.settings.virtualCouplingServices = {"F9"};
+	CaseFixture f(scene);
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	QListWidget* list = f.panel.couplingServiceList();
+	QCOMPARE(list->count(), 4);
+	QCOMPARE(list->item(3)->text(), "F9");
+	QCOMPARE(checkedServices(list), QStringList({"F9"}));
+	const QString only = f.panel.couplingServicesNote()->text();
+
+	const quint64 revision = f.document.revision();
+	list->item(3)->setCheckState(Qt::Unchecked);
+	QVERIFY(f.document.model().settings.virtualCouplingServices.empty());
+	QCOMPARE(f.document.revision(), revision + 1);
+	QVERIFY2(f.panel.couplingServicesNote()->text() != only, "the note says that every train may couple");
+	list->item(1)->setCheckState(Qt::Checked);
+	list->item(0)->setCheckState(Qt::Checked);
+	QCOMPARE(f.document.revision(), revision + 3);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit case settings");
+	QVERIFY(f.document.model().settings.virtualCouplingServices == std::vector<std::string>({"F1", "F2"}));
+	QCOMPARE(f.panel.couplingServicesNote()->text(), only);
+
+	// Leaving another field unchanged, or listing the same services in another order, edits nothing.
+	QVERIFY(f.document.edit(SceneDocument::CaseSettings, "Reorder", [](SceneModel& edited) { edited.settings.virtualCouplingServices = {"F2", "F1"}; }));
+	const quint64 reordered = f.document.revision();
+	f.panel.commitPendingEditors();
+	QCOMPARE(f.document.revision(), reordered);
+
+	QVERIFY(history.undo());
+	QVERIFY(history.undo());
+	// Undo takes back the last check and shows the list as it was.
+	QVERIFY(f.document.model().settings.virtualCouplingServices == std::vector<std::string>({"F2"}));
+	QCOMPARE(checkedServices(list), QStringList({"F2"}));
+	QCOMPARE(list->count(), 3);
+
+	// A service that another panel adds joins the list.
+	QVERIFY(f.document.edit(SceneDocument::Services, "Add service", [](SceneModel& edited) {
+		SceneService added;
+		added.id = "F4";
+		edited.services.push_back(added);
+	}));
+	QCOMPARE(list->count(), 4);
+	QCOMPARE(list->item(3)->text(), "F4");
+	QCOMPARE(list->item(3)->checkState(), Qt::Unchecked);
+}
+
+void TestCaseSettingsPanel::keepsRenamedCouplingService_data() {
+	QTest::addColumn<bool>("windowFirst");
+	QTest::newRow("panel refreshes first") << false;
+	QTest::newRow("window takes the pending text first") << true;
+}
+
+// Renaming a listed service in the Services panel keeps the new id in the list: the panel makes no edit of its own, also
+// when the window takes the pending text of every panel before the panel shows the renamed service.
+void TestCaseSettingsPanel::keepsRenamedCouplingService() {
+	QFETCH(bool, windowFirst);
+	SceneModel scene = couplingScene();
+	scene.settings.virtualCouplingServices = {"F1"};
+	SceneDocument document;
+	CaseSettingsPanel* window = nullptr;
+	// The window answers changed() by taking the pending text of every panel (MainWindow::commitPendingEditorValues).
+	const auto takeText = [&window](SceneDocument::ChangeKinds) {
+		if (window != nullptr)
+			window->commitPendingEditors();
+	};
+	if (windowFirst)
+		connect(&document, &SceneDocument::changed, this, takeText);
+	CaseSettingsPanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	window = &panel;
+	QCOMPARE(checkedServices(panel.couplingServiceList()), QStringList({"F1"}));
+	const quint64 revision = document.revision();
+	// The edit of ServicePanel::commitIdEdit.
+	QVERIFY(document.edit(SceneDocument::Services | SceneDocument::Scenarios | SceneDocument::Passengers, "Rename service",
+		[](SceneModel& edited) {
+			sceneRewriteServiceReferences(edited, "F1", "F1x");
+			edited.services[0].id = "F1x";
+		}));
+	if (!windowFirst)
+		panel.commitPendingEditors();
+	QCOMPARE(document.revision(), revision + 1);
+	QCOMPARE(document.lastChangeLabel(), "Rename service");
+	QVERIFY(document.model().settings.virtualCouplingServices == std::vector<std::string>({"F1x"}));
+	QCOMPARE(checkedServices(panel.couplingServiceList()), QStringList({"F1x"}));
+	QCOMPARE(panel.couplingServiceList()->count(), 3);
+	QVERIFY(!hasCode(validateScene(document.model()), "scene.virtual_coupling.service.unknown"));
+	window = nullptr;
 }
 
 void TestCaseSettingsPanel::namesFields() {

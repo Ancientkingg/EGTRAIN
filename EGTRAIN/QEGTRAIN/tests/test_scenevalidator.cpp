@@ -581,6 +581,9 @@ private slots:
 	void limitsPassengerWalkingTime();
 	void limitsPassengerLateThreshold();
 	void checksPassengerDwellSettings();
+	void limitsVirtualCouplingSettings_data();
+	void limitsVirtualCouplingSettings();
+	void rejectsUnknownVirtualCouplingService();
 	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
@@ -1153,6 +1156,55 @@ void TestSceneValidator::limitsPassengerLateThreshold() {
 		scene.settings.passengerLateThresholdSeconds = refused;
 		QVERIFY2(hasCodeAndPath(validateScene(scene), code, path), "other thresholds are rejected");
 	}
+}
+
+void TestSceneValidator::limitsVirtualCouplingSettings_data() {
+	QTest::addColumn<int>("setting");
+	QTest::addColumn<double>("value");
+	QTest::addColumn<bool>("allowed");
+	// The settings: 0 the coupling distance, 1 the speed tolerance, 2 the margin of the ends of authority.
+	QTest::newRow("distance 1") << 0 << 1.0 << true;
+	QTest::newRow("distance 500") << 0 << 500.0 << true;
+	QTest::newRow("distance 0.5") << 0 << 0.5 << false;
+	QTest::newRow("distance 501") << 0 << 501.0 << false;
+	QTest::newRow("distance nan") << 0 << std::numeric_limits<double>::quiet_NaN() << false;
+	QTest::newRow("tolerance 0.01") << 1 << 0.01 << true;
+	QTest::newRow("tolerance 10") << 1 << 10.0 << true;
+	QTest::newRow("tolerance 0") << 1 << 0.0 << false;
+	QTest::newRow("tolerance 10.5") << 1 << 10.5 << false;
+	QTest::newRow("margin 1") << 2 << 1.0 << true;
+	QTest::newRow("margin 500") << 2 << 500.0 << true;
+	QTest::newRow("margin 0") << 2 << 0.0 << false;
+	QTest::newRow("margin infinite") << 2 << std::numeric_limits<double>::infinity() << false;
+}
+
+// Each virtual coupling setting has a range and a code of its own.
+void TestSceneValidator::limitsVirtualCouplingSettings() {
+	QFETCH(int, setting);
+	QFETCH(double, value);
+	QFETCH(bool, allowed);
+	const char* const codes[] = {"scene.virtual_coupling.distance.invalid", "scene.virtual_coupling.speed_tolerance.invalid",
+		"scene.authority.margin.invalid"};
+	const char* const paths[] = {"simulation_settings.virtual_coupling_distance_m",
+		"simulation_settings.virtual_coupling_speed_tolerance_ms", "simulation_settings.end_of_authority_margin_m"};
+	SceneModel scene = completeScene();
+	double* const fields[] = {&scene.settings.virtualCouplingDistanceM, &scene.settings.virtualCouplingSpeedToleranceMs,
+		&scene.settings.endOfAuthorityMarginM};
+	*fields[setting] = value;
+	const std::vector<SceneDiagnostic> diagnostics = validateScene(scene);
+	QCOMPARE(hasCodeAndPath(diagnostics, codes[setting], paths[setting]), !allowed);
+	QCOMPARE(hasErrors(diagnostics), !allowed);
+}
+
+// A listed service must be a service of the case, because a misspelt one would stop the coupling of its trains.
+void TestSceneValidator::rejectsUnknownVirtualCouplingService() {
+	SceneModel scene = completeScene();
+	scene.settings.virtualCouplingServices = {"service-1"};
+	QVERIFY2(!hasErrors(validateScene(scene)), "a service of the case is allowed");
+	scene.settings.virtualCouplingServices = {"service-1", "service-x"};
+	QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.virtual_coupling.service.unknown", "simulation_settings.virtual_coupling_services[1]"),
+		"an unknown service is rejected");
+	QVERIFY2(hasErrors(validateScene(scene)), "an unknown service blocks the run");
 }
 
 void TestSceneValidator::checksPassengerDwellSettings() {

@@ -462,6 +462,11 @@ void TestSceneReferences::renamesService() {
 	QCOMPARE(signalTarget.scenarios[1].incidents[0].target, "service-1");
 	// A reference rewrite leaves the service itself to the caller.
 	QCOMPARE(signalTarget.services[0].id, "service-1");
+	SceneModel coupling = referenceScene();
+	coupling.settings.virtualCouplingServices = {"service-2", "service-1"};
+	sceneRewriteServiceReferences(coupling, "service-1", "service-x");
+	// A service rename reaches the services that couple and keeps the others.
+	QVERIFY(coupling.settings.virtualCouplingServices == std::vector<std::string>({"service-2", "service-x"}));
 }
 
 void TestSceneReferences::renamesScenario() {
@@ -514,6 +519,10 @@ void TestSceneReferences::listsDeleteConsumers() {
 		Names({"breakdown incident 'incident-2' in scenario 'scenario-1'", "entrance delay in scenario 'scenario-1'",
 			"passenger 'passenger-1' leg 'leg-1'"}));
 	QVERIFY2(consumers(scene, "service", "service-2").empty(), "a service that nothing refers to has no consumers");
+	SceneModel coupling = referenceScene();
+	coupling.settings.virtualCouplingServices = {"service-2"};
+	// A service is used by the list of the services that couple.
+	QCOMPARE(consumers(coupling, "service", "service-2"), Names({"the services that couple in Case Settings"}));
 	QVERIFY2(consumers(scene, "arcs", "arc-a1").empty(), "an arc has no consumers");
 	QVERIFY2(consumers(scene, "tracks", "track-unknown").empty(), "an unknown id has no consumers");
 }

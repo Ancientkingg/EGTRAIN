@@ -266,9 +266,6 @@ private:
 	bool m_inStep = false, m_hasStep = false;
 };
 
-/// The margin (m) of the ends of authority that the trains report at levels 3 and 4.
-constexpr double kEndOfAuthorityMarginMetres = 50;
-
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -590,9 +587,10 @@ public:
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
 	/// True when the tail of a train ahead is still ahead of head (m), given the route position of the "Tale" authority it reported.
-	/// This holds while head is less than kEndOfAuthorityMarginMetres past the authority: the reported tail lags the real tail by at
-	/// least the margin plus the reporting delay, so the real tail is still ahead of a train that has come inside the margin.
-	static bool leaderTailAhead(double authorityPosition, double head);
+	/// This holds while head is less than the margin of the run (InitialParameters::endOfAuthorityMarginM) past the authority: the
+	/// reported tail lags the real tail by at least the margin plus the reporting delay, so the real tail is still ahead of a train
+	/// that has come inside the margin.
+	bool leaderTailAhead(double authorityPosition, double head) const;
 
 	/// The "TrainEnd" "Tale" authority of this step of the train ahead (the leader in following mode, else the train to couple at), on a level 4 section from the one at head (m) to
 	/// eight sections further, and lies ahead of head by leaderTailAhead; nullptr when there is none. leaderHead receives its route position (m).
@@ -749,7 +747,7 @@ public:
 	/// (m/s). The speed is 0 for a signal failure and on ETCS Level 3. With virtual coupling it is 0 for an occupied diverging
 	/// switch the train does not share and for a train ahead that runs the other way or does not go on to the next section of this
 	/// route, and otherwise the speed of the train ahead; an end of a train in the same direction that is not its tail ahead of S
-	/// sets no target.
+	/// sets no target. Two trains whose services may not couple (InitialParameters::virtualCouplingServices) count as on ETCS Level 3.
 	AuthorityTarget authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V);
 
 	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S
@@ -820,9 +818,11 @@ public:
 	void leaveRouteAtEnd(int time_seconds);
 
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
-	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
-	/// of the leader; and in following mode the step is counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling)
-	/// when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in following mode
+	/// the leader that currentFollowingAuthority found, when it is within the coupling distance of the run
+	/// (InitialParameters::virtualCouplingDistanceM) of the predicted coupling point and its speed differs from that of the leader
+	/// by less than the speed tolerance (InitialParameters::virtualCouplingSpeedToleranceMs); and in following mode the step is
+	/// counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than
+	/// the coupling distance ahead of head (m). Returns true when the train was in following mode
 	/// with no unintentional decoupling under way, the case in which the step may follow the leader; that holds for the step in
 	/// which the unintentional decoupling starts too.
 	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
@@ -868,7 +868,8 @@ public:
 
 	/// Appends a level 4 (virtual coupling) blocking time for each infrastructure element of section IndexCurrentBS, with trains at the
 	/// minimum safety distance SafetyMargin (m) except at diverging or converging junctions; the other arguments are those of
-	/// ComputeBlockingTimeForSingleLocation.
+	/// ComputeBlockingTimeForSingleLocation. A follower whose speed differs from that of the train ahead by no more than
+	/// InitialParameters::virtualCouplingSpeedToleranceMs counts as running at its speed.
 	void ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 
 	/// Gives the two edges of each diverging switch at level 3 or 4 one blocking time, from the start of occupation of the first edge to

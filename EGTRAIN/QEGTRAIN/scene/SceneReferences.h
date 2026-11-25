@@ -46,7 +46,8 @@ void sceneRewriteRouteReferences(SceneModel& model, const std::string& oldId, co
 void sceneRewriteTrainUnitReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
 /// Rewrites the composition id in the composition of services.
 void sceneRewriteCompositionReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
-/// Rewrites the service id in entrance delays, train-breakdown incident targets and passenger legs.
+/// Rewrites the service id in entrance delays, train-breakdown incident targets, passenger legs and the services that couple
+/// virtually.
 void sceneRewriteServiceReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
 /// Rewrites the scenario id in defaultScenarioId.
 void sceneRewriteScenarioReferences(SceneModel& model, const std::string& oldId, const std::string& newId);

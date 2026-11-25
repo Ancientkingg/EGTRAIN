@@ -701,6 +701,14 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["passenger_onboard_crowding_threshold"] = *scene.settings.passengerOnboardCrowdingThreshold;
 	if (scene.settings.passengerCarBoardingThreshold)
 		settings["passenger_car_boarding_threshold"] = *scene.settings.passengerCarBoardingThreshold;
+	if (scene.settings.virtualCouplingDistanceM != kDefaultVirtualCouplingDistanceM)
+		settings["virtual_coupling_distance_m"] = scene.settings.virtualCouplingDistanceM;
+	if (scene.settings.virtualCouplingSpeedToleranceMs != kDefaultVirtualCouplingSpeedToleranceMs)
+		settings["virtual_coupling_speed_tolerance_ms"] = scene.settings.virtualCouplingSpeedToleranceMs;
+	if (scene.settings.endOfAuthorityMarginM != kDefaultEndOfAuthorityMarginM)
+		settings["end_of_authority_margin_m"] = scene.settings.endOfAuthorityMarginM;
+	if (!scene.settings.virtualCouplingServices.empty())
+		settings["virtual_coupling_services"] = scene.settings.virtualCouplingServices;
 	if (!settings.empty())
 		metadata["simulation_settings"] = settings;
 	if (!scene.importReport.empty()) {

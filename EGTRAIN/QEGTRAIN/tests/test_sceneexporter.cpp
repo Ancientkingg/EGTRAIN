@@ -183,8 +183,8 @@ void TestSceneExporter::warnsAboutUnitPassengerCapacity() {
 	}));
 }
 
-// The original program ignores the passenger settings that the export keeps in EGTRAINInitialParameters.json: the export
-// warns once on scene.json and still succeeds.
+// The original program ignores the passenger and virtual coupling settings that the export keeps in EGTRAINInitialParameters.json:
+// the export warns once on scene.json and still succeeds.
 void TestSceneExporter::warnsAboutPassengerDwellSettings() {
 	// Exports a scene with `settings` as its simulation_settings and counts the compatibility warnings on scene.json.
 	const auto warningCount = [](const std::string& settings) {
@@ -217,8 +217,13 @@ void TestSceneExporter::warnsAboutPassengerDwellSettings() {
 	QCOMPARE(warningCount(R"({"passenger_platform_crowding_threshold":0.5})"), 1);
 	QCOMPARE(warningCount(R"({"passenger_onboard_crowding_threshold":0.5})"), 1);
 	QCOMPARE(warningCount(R"({"passenger_car_boarding_threshold":10})"), 1);
+	QCOMPARE(warningCount(R"({"virtual_coupling_distance_m":30,"virtual_coupling_speed_tolerance_ms":0.278,"end_of_authority_margin_m":50})"), 0);
+	QCOMPARE(warningCount(R"({"virtual_coupling_distance_m":60})"), 1);
+	QCOMPARE(warningCount(R"({"virtual_coupling_speed_tolerance_ms":0.5})"), 1);
+	QCOMPARE(warningCount(R"({"end_of_authority_margin_m":40})"), 1);
+	QCOMPARE(warningCount(R"({"virtual_coupling_services":["svc"]})"), 1);
 	// Several settings still give one warning.
-	QCOMPARE(warningCount(R"({"passenger_max_transfers":3,"passenger_car_boarding_threshold":10})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_max_transfers":3,"passenger_car_boarding_threshold":10,"virtual_coupling_distance_m":60})"), 1);
 }
 
 // Legacy export preserves a slash-containing stored route token as one block reference.

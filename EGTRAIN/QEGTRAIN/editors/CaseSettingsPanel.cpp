@@ -4,14 +4,32 @@
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QStringList>
 
 #include <algorithm>
 #include <string>
+#include <vector>
+
+namespace {
+// The ids sorted and without repeats, so that two lists of the same services compare equal.
+std::vector<std::string> serviceSet(std::vector<std::string> ids) {
+	std::sort(ids.begin(), ids.end());
+	ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+	return ids;
+}
+
+// The line under the list of the services that couple, for a list with no service or with some.
+QString couplingNoteText(bool none) {
+	return none ? QStringLiteral("No service is checked, so every train in a level 4 area can couple.")
+				: QStringLiteral("Only trains of checked services couple, and only to each other.");
+}
+} // namespace
 
 CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("caseSettingsPanel");
@@ -59,14 +77,47 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 									"later, or that runs under a speed limit, is planned on predicted times");
 	layout->addRow("Passenger late threshold (s)", m_lateThresholdEdit);
 
+	QGroupBox* coupling = new QGroupBox("Virtual coupling", this);
+	coupling->setObjectName("caseVirtualCouplingGroup");
+	QFormLayout* couplingLayout = new QFormLayout(coupling);
+	const auto couplingNumber = [coupling](const char* objectName, double minimum, double maximum, double step, const char* toolTip) {
+		CompactDoubleSpinBox* edit = exactNumberEdit(objectName, coupling);
+		edit->setRange(minimum, maximum);
+		edit->setSingleStep(step);
+		edit->setToolTip(toolTip);
+		return edit;
+	};
+	m_couplingDistanceEdit = couplingNumber("caseCouplingDistanceEdit", kMinVirtualCouplingDistanceM, kMaxVirtualCouplingDistanceM, 1.0,
+		"A train couples to the train ahead within this distance of the end of authority that the train ahead reports, and a coupled "
+		"train leaves the following mode when it falls further behind it");
+	couplingLayout->addRow("Coupling distance (m)", m_couplingDistanceEdit);
+	m_couplingSpeedToleranceEdit = couplingNumber("caseCouplingSpeedToleranceEdit", kMinVirtualCouplingSpeedToleranceMs,
+		kMaxVirtualCouplingSpeedToleranceMs, 0.1, "A train couples to the train ahead when their speeds differ by less than this");
+	couplingLayout->addRow("Speed tolerance (m/s)", m_couplingSpeedToleranceEdit);
+	m_authorityMarginEdit = couplingNumber("caseAuthorityMarginEdit", kMinEndOfAuthorityMarginM, kMaxEndOfAuthorityMarginM, 1.0,
+		"At levels 3 and 4 every train reports an end of authority this far behind its tail and one this far ahead of its head");
+	couplingLayout->addRow("Authority margin, levels 3 and 4 (m)", m_authorityMarginEdit);
+	m_couplingServiceList = new QListWidget(coupling);
+	m_couplingServiceList->setObjectName("caseCouplingServiceList");
+	m_couplingServiceList->setToolTip("A train of a checked service couples only to a train of a checked service; the other trains "
+									  "keep their distance as at level 3. With none checked every train can couple");
+	couplingLayout->addRow("Services that couple", m_couplingServiceList);
+	m_couplingServicesNote = new QLabel(coupling);
+	m_couplingServicesNote->setObjectName("caseCouplingServicesNote");
+	m_couplingServicesNote->setWordWrap(true);
+	couplingLayout->addRow(m_couplingServicesNote);
+	layout->addRow(coupling);
+
 	connect(m_nameEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_descriptionEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_baseTimeEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
-	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit})
+	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit, m_couplingDistanceEdit,
+			 m_couplingSpeedToleranceEdit, m_authorityMarginEdit})
 		connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double) { commit(); });
 	connect(m_maxTransfersEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_walkingSecondsEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_lateThresholdEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
+	connect(m_couplingServiceList, &QListWidget::itemChanged, this, [this](QListWidgetItem*) { commitCouplingServices(); });
 	CaseSettingsPanel::refresh();
 }
 
@@ -74,7 +125,8 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 	// A panel that is a shown window closes in the QWidget destructor, after this one, and the field with the focus then
 	// reports that editing finished.
 	QObject* const fields[] = {m_nameEdit, m_descriptionEdit, m_baseTimeEdit, m_durationSecondsEdit, m_bufferSecondsEdit,
-		m_recoveryPercentEdit, m_maxTransfersEdit, m_walkingSecondsEdit, m_lateThresholdEdit};
+		m_recoveryPercentEdit, m_maxTransfersEdit, m_walkingSecondsEdit, m_lateThresholdEdit, m_couplingDistanceEdit,
+		m_couplingSpeedToleranceEdit, m_authorityMarginEdit, m_couplingServiceList};
 	for (QObject* field : fields)
 		field->disconnect(this);
 }
@@ -150,11 +202,55 @@ void CaseSettingsPanel::refresh() {
 		m_lateThresholdEdit->setValue(model.settings.passengerLateThresholdSeconds);
 		m_lateThresholdEdit->setEnabled(loaded);
 	}
+	{
+		const QSignalBlocker blocker(m_couplingDistanceEdit);
+		m_couplingDistanceEdit->setValue(model.settings.virtualCouplingDistanceM);
+		m_couplingDistanceEdit->setEnabled(loaded);
+	}
+	{
+		const QSignalBlocker blocker(m_couplingSpeedToleranceEdit);
+		m_couplingSpeedToleranceEdit->setValue(model.settings.virtualCouplingSpeedToleranceMs);
+		m_couplingSpeedToleranceEdit->setEnabled(loaded);
+	}
+	{
+		const QSignalBlocker blocker(m_authorityMarginEdit);
+		m_authorityMarginEdit->setValue(model.settings.endOfAuthorityMarginM);
+		m_authorityMarginEdit->setEnabled(loaded);
+	}
+	const std::vector<std::string>& listed = model.settings.virtualCouplingServices;
+	{
+		const QSignalBlocker blocker(m_couplingServiceList);
+		m_couplingServiceList->clear();
+		std::vector<std::string> ids;
+		for (const SceneService& service : model.services)
+			ids.push_back(service.id);
+		for (const std::string& id : listed) {
+			if (std::find(ids.begin(), ids.end(), id) == ids.end())
+				ids.push_back(id);
+		}
+		for (const std::string& id : ids) {
+			auto* item = new QListWidgetItem(QString::fromStdString(id), m_couplingServiceList);
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+			item->setCheckState(std::find(listed.begin(), listed.end(), id) != listed.end() ? Qt::Checked : Qt::Unchecked);
+		}
+		m_couplingServiceList->setEnabled(loaded);
+	}
+	m_couplingServicesNote->setText(couplingNoteText(listed.empty()));
+}
+
+void CaseSettingsPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The panel edits no service, so this is an edit of another panel. The text being typed in a field is taken first, so
+	// that refresh() does not drop it; the list of services that couple is not taken, and refresh() shows it from the model.
+	if (kinds.testFlag(SceneDocument::Services)) {
+		takePendingText();
+		refresh();
+	}
 }
 
 void CaseSettingsPanel::commitPendingEditors() {
 	// A number field commits only the text that is being typed in it, so that a value the user did not edit is kept.
-	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit}) {
+	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit, m_couplingDistanceEdit,
+			 m_couplingSpeedToleranceEdit, m_authorityMarginEdit}) {
 		if (hasEditorFocus(edit))
 			edit->interpretText();
 	}
@@ -188,8 +284,15 @@ void CaseSettingsPanel::commit() {
 	const bool walkingEdited = std::clamp(model.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds) != walkingSeconds;
 	const int lateThreshold = m_lateThresholdEdit->value();
 	const bool lateThresholdEdited = std::clamp(model.settings.passengerLateThresholdSeconds, 0, kMaxPassengerLateThresholdSeconds) != lateThreshold;
+	const double couplingDistance = m_couplingDistanceEdit->value();
+	const bool couplingDistanceEdited = shownValue(m_couplingDistanceEdit, model.settings.virtualCouplingDistanceM) != couplingDistance;
+	const double speedTolerance = m_couplingSpeedToleranceEdit->value();
+	const bool speedToleranceEdited = shownValue(m_couplingSpeedToleranceEdit, model.settings.virtualCouplingSpeedToleranceMs) != speedTolerance;
+	const double authorityMargin = m_authorityMarginEdit->value();
+	const bool authorityMarginEdited = shownValue(m_authorityMarginEdit, model.settings.endOfAuthorityMarginM) != authorityMargin;
+	const bool couplingEdited = couplingDistanceEdited || speedToleranceEdited || authorityMarginEdited;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
-		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited)
+		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited && !couplingEdited)
 		return;
 
 	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
@@ -214,9 +317,34 @@ void CaseSettingsPanel::commit() {
 				edited.settings.passengerWalkingSecondsPerPlatform = walkingSeconds;
 			if (lateThresholdEdited)
 				edited.settings.passengerLateThresholdSeconds = lateThreshold;
+			if (couplingDistanceEdited)
+				edited.settings.virtualCouplingDistanceM = couplingDistance;
+			if (speedToleranceEdited)
+				edited.settings.virtualCouplingSpeedToleranceMs = speedTolerance;
+			if (authorityMarginEdited)
+				edited.settings.endOfAuthorityMarginM = authorityMargin;
 			if (baseTimeEdited)
 				emit baseTimeChanged(m_baseTimeEdit->text());
 		}))
 		return;
+	emit changed();
+}
+
+void CaseSettingsPanel::commitCouplingServices() {
+	if (!hasScene())
+		return;
+	std::vector<std::string> services;
+	for (int row = 0; row < m_couplingServiceList->count(); ++row) {
+		const QListWidgetItem* item = m_couplingServiceList->item(row);
+		if (item->checkState() == Qt::Checked)
+			services.push_back(item->text().toStdString());
+	}
+	// The order of the list in the file is not an edit.
+	if (serviceSet(services) == serviceSet(m_document->model().settings.virtualCouplingServices))
+		return;
+	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings",
+			[&services](SceneModel& edited) { edited.settings.virtualCouplingServices = services; }))
+		return;
+	m_couplingServicesNote->setText(couplingNoteText(services.empty()));
 	emit changed();
 }
