@@ -157,7 +157,11 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-breakdown-terminate
 	pax-signal-failure-change
 	entrance-delay-f2-level-0
-	breakdown-f1-level-0)
+	breakdown-f1-level-0
+	breakdown-line-speed-level-0
+	breakdown-line-speed-level-3
+	breakdown-pass-station-level-0
+	breakdown-stop-approach-level-0)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}

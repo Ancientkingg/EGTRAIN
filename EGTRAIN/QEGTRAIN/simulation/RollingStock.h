@@ -204,6 +204,7 @@ enum class TrajectoryBranch : int {
 	ReplanBraking = 53,		///< Brakes on a plan made in this step on the braking curve that it already had.
 	FullBraking = 54,		///< Brakes with the full braking force.
 	NewBrakingCurve = 55,	///< Brakes on a plan made in this step on a new braking curve, for a new target or a first braking step.
+	BreakdownBraking = 56,	///< Brakes on its braking curve to a stand for a breakdown incident.
 	HoldAtAuthority = 323,	///< Stands at an end of authority.
 	LeaveTrainOrder = 532,	///< Leaves a node with a train order.
 	HoldAtTrainOrder = 534, ///< Stands at a node with a train order.

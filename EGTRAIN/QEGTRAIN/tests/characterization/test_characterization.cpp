@@ -488,6 +488,19 @@ std::vector<CaseSpec> buildCaseTable() {
 		spec.delayLines = true;
 		cases.push_back(spec);
 	}
+	// F1 breaks down at line speed from 240 s to 600 s, 475 m before the end of 2-B0: it brakes to a stand 273 m past the
+	// signal at 6 km, and F2 is held behind it.
+	for (int level : {0, 3})
+		cases.push_back({"breakdown-line-speed-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""});
+	// E1 breaks down at line speed from 300 s to 600 s, 308 m before B, where it does not stop: it brakes to a stand 440 m
+	// past B.
+	CaseSpec passStation{"breakdown-pass-station-level-0", "baseline", {"E1"}, 0, ""};
+	passStation.skipStop = true;
+	cases.push_back(passStation);
+	// F1 breaks down from 320 s to 700 s while it brakes for B, 46 m before it: the braking of the breakdown ends where the
+	// braking for the stop would, and its stop at B starts then. The breakdown outlasts the dwell and the planned departure,
+	// so F1 leaves when it ends.
+	cases.push_back({"breakdown-stop-approach-level-0", "baseline", {"F1"}, 0, ""});
 	return cases;
 }
 
@@ -1019,7 +1032,8 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 	// running resistance. A case with a known-wrong marker is exempt from
 	// the checks on stops, separation and the timetable. A case without a
 	// signalling area is exempt from the check for overlapping trains: a
-	// scene without a signalling level does not separate trains.
+	// scene without a signalling level does not separate trains. A train
+	// may stop anywhere when a breakdown holds it there.
 	constexpr double kTopSpeed = 36.111111111111 + 1e-6;
 	constexpr double kMaxAcceleration = 209000.0 / 151000.0 + 1e-3;
 	constexpr double kMaxDeceleration = 0.95;
@@ -1081,7 +1095,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				const double rear = (*other.position)[stop.first] - other.length;
 				behindTrain = behindTrain || (rear >= stop.position && rear - stop.position <= kFollowMargin);
 			}
-			if (!onBoundary && !behindTrain)
+			// A breakdown stops a train wherever its braking ends.
+			const bool brokenDown = Incident_Holds_Train(simulation.run(), track.name, stop.first);
+			if (!onBoundary && !behindTrain && !brokenDown)
 				fail(track.name + ": stops mid-block at x=" + formatReal(stop.position) + " from t="
 					+ std::to_string(stop.first));
 		}
@@ -1772,7 +1788,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		slow.reducedSpeedKmh = 40.0;
 		loaded.scene.scenarios[0].incidents.push_back(slow);
 	}
-	// A hold stops a running train at once, harder than it can brake, so these holds start while Q1 stands at a stop.
+	// These holds start while Q1 stands at a stop.
 	if (spec.passengers == "breakdown-wait")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 400.0, 800.0});
 	if (spec.passengers == "breakdown-terminate") {
@@ -1800,6 +1816,12 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					stop.hasPlannedArrival = false;
 		loaded.scene.scenarios[0].incidents.push_back({"inc.other", IncidentType::SignalFailure, "3-B0", 150.0, 500.0});
 	}
+	if (spec.name.find("breakdown-line-speed-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"stop-f1", IncidentType::TrainBreakdown, "F1", 240.0, 600.0});
+	if (spec.name == "breakdown-pass-station-level-0")
+		loaded.scene.scenarios[0].incidents.push_back({"stop-e1", IncidentType::TrainBreakdown, "E1", 300.0, 600.0});
+	if (spec.name == "breakdown-stop-approach-level-0")
+		loaded.scene.scenarios[0].incidents.push_back({"stop-f1", IncidentType::TrainBreakdown, "F1", 320.0, 700.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())

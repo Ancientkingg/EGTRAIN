@@ -302,19 +302,37 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 			instant_train_energy_consumption[0] = 0.0;
 			return;
 		}
-		// A broken-down train holds its last state for the whole incident
-		// window; entrance processing is also suspended, so a train whose
-		// window covers its entry time simply enters after the window.
-		if (time_seconds > 0 && Incident_Holds_Train(*run_, trainDescription, time_seconds)) {
+		// A breakdown stops the train for the whole incident window. A standing train holds its last state; entrance
+		// processing is also suspended, so a train whose window covers its entry time simply enters after the window. A
+		// running train first brakes to a stand from where the breakdown finds it, in the steps below, which occupy and
+		// release the sections that it runs through.
+		const bool brokenDown = time_seconds > 0 && Incident_Holds_Train(*run_, trainDescription, time_seconds);
+		if (brokenDown) {
 			if (const SimulationIncident* incident = Active_Train_Breakdown(*run_, trainDescription, time_seconds))
 				recordDirectIncident(*incident, time_seconds * timestep, instant_spatial_position[time_seconds - 1]);
-			instant_train_speed[time_seconds] = 0;
-			instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
-			instant_train_power_consumption[time_seconds] = 0;
-			instant_train_tractive_effort[time_seconds] = 0;
-			train_energy_consumption(time_seconds);
-			setStepBranch(TrajectoryBranch::BreakdownHold);
-			return;
+			if (instant_train_speed[time_seconds - 1] == 0) {
+				// A train that stands at a stop of its own that it has not begun, such as one that the breakdown brought to a
+				// stand there, begins the stop as standingTrainStep would: its arrival, dwell and passenger exchange start now.
+				// The first step of a stop never leaves it. The steps after it hold the train below until the breakdown ends,
+				// as for a train that was already at its stop when the breakdown began.
+				const double head = instant_spatial_position[time_seconds - 1];
+				for (int s = 0; CanEnter && s < numStations; s++) {
+					if (stationBlockSection[s] < 0 || Stations[s].StepStopped > 0)
+						continue;
+					const Arc& stopArc = run_->infra.routes[indexOfRoute].sequence_of_block_sections[stationBlockSection[s]].arcs_in_signalling_block_section[stationArc[s]];
+					if (head < stopArc.endNode.X * 1000 && stopArc.endNode.X * 1000 - head < kAtPointM) {
+						serviceStopStep(time_seconds, stopArc, head, IsTrainStoppedForEoA);
+						return;
+					}
+				}
+				instant_train_speed[time_seconds] = 0;
+				instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
+				instant_train_power_consumption[time_seconds] = 0;
+				instant_train_tractive_effort[time_seconds] = 0;
+				train_energy_consumption(time_seconds);
+				setStepBranch(TrajectoryBranch::BreakdownHold);
+				return;
+			}
 		}
 
 		// Determine if the Train can enter the route
@@ -339,7 +357,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 				if (Speeds[k] <= V_lim)
 					V_lim = Speeds[k];
 			}
-			V_lim = effectiveIncidentSpeedLimit(V_lim, time_seconds);
+			// A broken-down train may not run on: its speed limit is 0.
+			V_lim = brokenDown ? 0.0 : effectiveIncidentSpeedLimit(V_lim, time_seconds);
 
 			// Determination of the Movement Authority that has been previouly respected by the train (especially if it stopped at a given EoA)
 			// determining Last_MA_StoppedAt for the train
@@ -410,7 +429,16 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 				&& (instant_spatial_position[time_seconds - 1] < run_->infra.routes[indexOfRoute].x_of_end_node * 1000)
 				&& (speed > 0 || (speed == 0 && mustBrake))) {
 
-				if (speed == 0 || infeasibleCandidate || (speed > V_lim && isShortOfBrakingPoint(head, Braking_Distance))) {
+				if (brokenDown) {
+					// A broken-down train brakes to a stand on its braking curve from where it is, as for a stop target at the
+					// end of that curve. A braking plan for a stop ahead brakes no harder, so the train stands at that stop or
+					// before it.
+					instant_train_speed[time_seconds] = brakingCurveSpeed(speed, As);
+					instant_spatial_position[time_seconds] = head + instant_train_speed[time_seconds] * timestep;
+					GradientExceptionInBraking = false;
+					setStepBranch(TrajectoryBranch::BreakdownBraking);
+					counter = 0;
+				} else if (speed == 0 || infeasibleCandidate || (speed > V_lim && isShortOfBrakingPoint(head, Braking_Distance))) {
 					fullBrakingStep(time_seconds, As);
 					counter = 0;
 				} else
