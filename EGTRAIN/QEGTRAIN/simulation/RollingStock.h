@@ -818,9 +818,11 @@ public:
 	void leaveRouteAtEnd(int time_seconds);
 
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
-	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
-	/// of the leader; and in following mode the step is counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling)
-	/// when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in following mode
+	/// the leader that currentFollowingAuthority found, when it is within the coupling distance of the run
+	/// (InitialParameters::virtualCouplingDistanceM) of the predicted coupling point and its speed differs from that of the leader
+	/// by less than the speed tolerance (InitialParameters::virtualCouplingSpeedToleranceMs); and in following mode the step is
+	/// counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than
+	/// the coupling distance ahead of head (m). Returns true when the train was in following mode
 	/// with no unintentional decoupling under way, the case in which the step may follow the leader; that holds for the step in
 	/// which the unintentional decoupling starts too.
 	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
@@ -866,7 +868,8 @@ public:
 
 	/// Appends a level 4 (virtual coupling) blocking time for each infrastructure element of section IndexCurrentBS, with trains at the
 	/// minimum safety distance SafetyMargin (m) except at diverging or converging junctions; the other arguments are those of
-	/// ComputeBlockingTimeForSingleLocation.
+	/// ComputeBlockingTimeForSingleLocation. A follower whose speed differs from that of the train ahead by no more than
+	/// InitialParameters::virtualCouplingSpeedToleranceMs counts as running at its speed.
 	void ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 
 	/// Gives the two edges of each diverging switch at level 3 or 4 one blocking time, from the start of occupation of the first edge to
