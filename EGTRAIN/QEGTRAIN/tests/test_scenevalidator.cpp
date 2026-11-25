@@ -579,6 +579,7 @@ private slots:
 	void rejectsNonFinitePassengerWindow();
 	void limitsPassengerTransfers();
 	void limitsPassengerWalkingTime();
+	void limitsPassengerLateThreshold();
 	void checksPassengerDwellSettings();
 	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
@@ -1136,6 +1137,21 @@ void TestSceneValidator::limitsPassengerWalkingTime() {
 		scene.settings.passengerWalkingSecondsPerPlatform = refused;
 		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.walking.invalid", "simulation_settings.passenger_walking_seconds_per_platform"),
 			"other walking times are rejected");
+	}
+}
+
+void TestSceneValidator::limitsPassengerLateThreshold() {
+	const char* const code = "scene.passenger.late_threshold.invalid";
+	const char* const path = "simulation_settings.passenger_late_threshold_seconds";
+	for (const int allowed : {0, 300, 3600}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerLateThresholdSeconds = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), code, path), "0 to 3600 s are allowed");
+	}
+	for (const int refused : {-1, 3601}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerLateThresholdSeconds = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), code, path), "other thresholds are rejected");
 	}
 }
 

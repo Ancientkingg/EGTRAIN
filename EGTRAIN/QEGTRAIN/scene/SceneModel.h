@@ -26,6 +26,11 @@ inline constexpr int kDefaultPassengerWalkingSeconds = 30;
 /// The largest value of simulation_settings.passenger_walking_seconds_per_platform.
 inline constexpr int kMaxPassengerWalkingSeconds = 600;
 
+/// The delay in seconds up to which passengers plan on the planned times of a train when the scene gives no value.
+inline constexpr int kDefaultPassengerLateThresholdSeconds = 300;
+/// The largest value of simulation_settings.passenger_late_threshold_seconds.
+inline constexpr int kMaxPassengerLateThresholdSeconds = 3600;
+
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
 	bool hasDuration = false;		  ///< True when duration_seconds is given.
@@ -41,6 +46,10 @@ struct SceneSimulationSettings {
 	/// (passenger_walking_seconds_per_platform, 0 to 600). Always counts; the scene file holds it only when it differs from the
 	/// default.
 	int passengerWalkingSecondsPerPlatform = kDefaultPassengerWalkingSeconds;
+	/// The delay in seconds up to which passengers plan on the planned times of a train without a speed limit; above it they plan
+	/// on predicted times (passenger_late_threshold_seconds, 0 to 3600). Always counts; the scene file holds it only when it
+	/// differs from the default.
+	int passengerLateThresholdSeconds = kDefaultPassengerLateThresholdSeconds;
 	/// The coefficients beta0 to beta7 of the passenger dwell model (passenger_dwell_coefficients). Empty uses
 	/// kDefaultPassengerDwellCoefficients. The validator wants exactly kPassengerDwellCoefficientCount values.
 	std::optional<std::vector<double>> passengerDwellCoefficients;

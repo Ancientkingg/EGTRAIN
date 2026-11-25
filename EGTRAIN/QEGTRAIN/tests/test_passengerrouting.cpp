@@ -7,13 +7,17 @@
 #include <QTest>
 
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 using passenger_routing::kUnreached;
+using passenger_routing::limitedStretchSeconds;
 using passenger_routing::Plan;
+using passenger_routing::predictTrainState;
 using passenger_routing::Router;
 using passenger_routing::Search;
 using passenger_routing::Stop;
+using passenger_routing::TrainProgress;
 using passenger_routing::TrainState;
 using passenger_routing::TrainTimetable;
 
@@ -29,6 +33,35 @@ Stop stop(std::size_t station, double arrival, double departure, int platform = 
 
 std::vector<TrainState> fresh(std::size_t trains) {
 	return std::vector<TrainState>(trains);
+}
+
+// The progress of a train that is `delay` seconds late at `now`, with no speed limit.
+TrainProgress lateBy(double delay, double now = 0.0) {
+	TrainProgress progress;
+	progress.delay = delay;
+	progress.now = now;
+	return progress;
+}
+
+// The clock time hh:mm in seconds.
+constexpr double daySeconds(int hours, int minutes) {
+	return hours * 3600.0 + minutes * 60.0;
+}
+
+// A train from A to B to C: it leaves A at 9:42, is at B from 10:00 to 10:01 and reaches C at 10:16. A to B is 30 km, run at an
+// average of 100 km/h.
+TrainTimetable aToC() {
+	return {{stop(A, -1, daySeconds(9, 42)), stop(B, daySeconds(10, 0), daySeconds(10, 1)), stop(C, daySeconds(10, 16), -1)}};
+}
+
+// The progress of aToC under a limit of 40 km/h: running 30 km from A to B takes 2,700 s and 12 km from B to C 1,080 s.
+TrainProgress limitedAtA(double now) {
+	TrainProgress progress;
+	progress.now = now;
+	progress.standing = true;
+	progress.limited = true;
+	progress.limits = {{kUnreached, {30000.0 / (40.0 / 3.6), 12000.0 / (40.0 / 3.6), -1.0}}};
+	return progress;
 }
 
 } // namespace
@@ -49,6 +82,21 @@ private slots:
 	void trainStateLimitsBoardingAndShiftsTimes();
 	void missingTimesBlockBoardingAndAlighting();
 	void originAndUnknownStations();
+	void statesOfTheWrongSizeReachNothing();
+	void delayUpToTheThresholdKeepsPlannedTimes();
+	void delayAboveTheThresholdShiftsLaterStops();
+	void standingTrainCarriesItsHoldToLaterStops();
+	void heldTrainNeverArrivesBeforeItLeaves();
+	void negativePredictedTimesAreMissing();
+	void stopWithoutTimesIsLeftWhenTheTrainGetsThere();
+	void laterLimitTakesOverWhenTheFirstEnds();
+	void standingTrainLeavesAStopWithoutTimesNow();
+	void stopsAreNeverReachedBeforeTheStopBeforeIsLeft();
+	void limitedStretchRunsAtTheLowerSpeed();
+	void slowedTrainTakesTheLongerRunningTime();
+	void slowedTrainLosesTimeFromWhereItIs();
+	void limitThatEndsLeavesLaterRunsAlone();
+	void passengerStaysWithLateTrainThatArrivesFirst();
 };
 
 void TestPassengerRouting::walkingTimeGrowsWithPlatformDifference() {
@@ -139,9 +187,9 @@ void TestPassengerRouting::equalArrivalAndTrainsTakesEarlierDeparture() {
 	QCOMPARE(plan.arrival, 500.0);
 	QCOMPARE(plan.legs.size(), std::size_t{1});
 	QCOMPARE(plan.legs[0].train, std::size_t{1});
-	// The delay counts: with T1 delayed by 400 s it arrives later and T0 wins on arrival.
+	// The predicted times count: with T1 late by 400 s it arrives later and T0 wins on arrival.
 	std::vector<TrainState> late = fresh(2);
-	late[1].delay = 400.0;
+	late[1] = predictTrainState(router.trains()[1], lateBy(400.0));
 	QCOMPARE(router.search(A, 0, 2, late).plan(C).legs[0].train, std::size_t{0});
 	// Equal departure keeps the first train.
 	const Router tie({{{stop(A, -1, 100), stop(C, 500, -1)}}, {{stop(A, -1, 100), stop(C, 500, -1)}}}, kStations);
@@ -194,8 +242,9 @@ void TestPassengerRouting::trainStateLimitsBoardingAndShiftsTimes() {
 	QCOMPARE(router.search(A, 0, 2, states).arrival(D), kUnreached);
 	QCOMPARE(router.search(B, 0, 2, states).arrival(D), kUnreached);
 	QCOMPARE(router.search(C, 0, 2, states).arrival(D), 400.0);
-	// A delay of 60 s shifts departure and arrival; a passenger who comes after the planned departure still makes it.
-	states[0].delay = 60;
+	// Predicted times 60 s later move departure and arrival; a passenger who comes after the planned departure still makes it.
+	states[0].arrivals = {-1, 260, 360, 460};
+	states[0].departures = {160, 270, 370, -1};
 	const Plan plan = router.search(C, 350, 2, states).plan(D);
 	QCOMPARE(plan.legs[0].departure, 370.0);
 	QCOMPARE(plan.arrival, 460.0);
@@ -228,6 +277,220 @@ void TestPassengerRouting::originAndUnknownStations() {
 	// An origin outside the router, or states that do not match the trains, reach nothing.
 	QCOMPARE(router.search(99, 0, 2, states).arrival(E), kUnreached);
 	QCOMPARE(router.search(A, 0, 2, fresh(2)).arrival(E), kUnreached);
+}
+
+void TestPassengerRouting::statesOfTheWrongSizeReachNothing() {
+	const Router router({{{stop(A, -1, 100), stop(B, 200, -1)}}}, kStations);
+	std::vector<TrainState> states(1);
+	states[0].arrivals = {-1, 200, 300};
+	states[0].departures = {100, -1, -1};
+	QCOMPARE(router.search(A, 0, 2, states).arrival(B), kUnreached);
+}
+
+// Up to the threshold of 5 minutes the train keeps its planned times; above it the times are predicted. The case can set another
+// threshold.
+void TestPassengerRouting::delayUpToTheThresholdKeepsPlannedTimes() {
+	const TrainTimetable train = aToC();
+	const TrainState onPlan = predictTrainState(train, lateBy(300.0));
+	QVERIFY(onPlan.arrivals.empty());
+	QVERIFY(onPlan.departures.empty());
+	QVERIFY(!onPlan.late);
+	QVERIFY(!onPlan.slowed);
+	QCOMPARE(onPlan.delay, 300.0);
+	QCOMPARE(onPlan.arrival(train, 1), daySeconds(10, 0));
+	const TrainState late = predictTrainState(train, lateBy(301.0));
+	QVERIFY(late.late);
+	QCOMPARE(late.arrival(train, 1), daySeconds(10, 0) + 301.0);
+	QVERIFY(predictTrainState(train, lateBy(400.0), 600.0).arrivals.empty());
+	QVERIFY(!predictTrainState(train, lateBy(1.0), 0.0).arrivals.empty());
+}
+
+// A train 10 minutes late at A that was due at B at 10:00 is predicted at B at 10:10, and every later time moves as much. A stop
+// without a time keeps none.
+void TestPassengerRouting::delayAboveTheThresholdShiftsLaterStops() {
+	const TrainTimetable train = aToC();
+	const TrainState state = predictTrainState(train, lateBy(600.0));
+	QCOMPARE(state.departure(train, 0), daySeconds(9, 52));
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 10));
+	QCOMPARE(state.departure(train, 1), daySeconds(10, 11));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 26));
+	QCOMPARE(state.arrival(train, 0), -1.0);
+	QCOMPARE(state.departure(train, 2), -1.0);
+}
+
+// A train that stands at A 80 s after its planned departure is late by 80 s, within the threshold: it can be boarded at A now, and
+// its later stops move by the 80 s it is held, since it cannot reach them on time.
+void TestPassengerRouting::standingTrainCarriesItsHoldToLaterStops() {
+	const TrainTimetable train = aToC();
+	TrainProgress progress = lateBy(80.0, daySeconds(9, 42) + 80.0);
+	progress.standing = true;
+	const TrainState state = predictTrainState(train, progress);
+	QVERIFY(!state.late);
+	QCOMPARE(state.departure(train, 0), daySeconds(9, 42) + 80.0);
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 0) + 80.0);
+	QCOMPARE(state.departure(train, 1), daySeconds(10, 1) + 80.0);
+	// Before its planned departure it keeps its planned times, and so does a train late by 80 s that is not held.
+	progress.now = daySeconds(9, 40);
+	QVERIFY(predictTrainState(train, progress).departures.empty());
+	QVERIFY(predictTrainState(train, lateBy(80.0, daySeconds(9, 50))).departures.empty());
+}
+
+// A leaves at 100 and B is reached at 160; the train still stands at A at 200. It leaves A at 200 and reaches B at 260, also when
+// the delay it is known to have is smaller than the time it is held.
+void TestPassengerRouting::heldTrainNeverArrivesBeforeItLeaves() {
+	const TrainTimetable train{{stop(A, -1, 100), stop(B, 160, -1)}};
+	TrainProgress progress = lateBy(0.0, 200.0);
+	progress.standing = true;
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.departure(train, 0), 200.0);
+	QCOMPARE(state.arrival(train, 1), 260.0);
+	const Router router({train}, kStations);
+	const std::vector<TrainState> states{state};
+	const Plan plan = router.search(A, 150, 2, states).plan(B);
+	QCOMPARE(plan.legs.size(), std::size_t{1});
+	QVERIFY(plan.legs[0].departure <= plan.legs[0].arrival);
+}
+
+// A predicted time below 0 is missing, like a planned one: a train cannot be left at a stop without a predicted arrival.
+void TestPassengerRouting::negativePredictedTimesAreMissing() {
+	const Router router({{{stop(A, -1, 100), stop(B, 200, -1)}}}, kStations);
+	std::vector<TrainState> states(1);
+	states[0].arrivals = {-1, -1};
+	states[0].departures = {100, -1};
+	QCOMPARE(router.search(A, 0, 2, states).arrival(B), kUnreached);
+	states[0].arrivals = {-1, 200};
+	states[0].departures = {-1, -1};
+	QCOMPARE(router.search(A, -10, 2, states).arrival(B), kUnreached);
+}
+
+// The train enters at A, where it has no times, and is planned at B 2 km on 100 s after it sets off at 9:42. Under a limit of
+// 10 m/s it needs 200 s from A, so it is predicted at B 100 s late.
+void TestPassengerRouting::stopWithoutTimesIsLeftWhenTheTrainGetsThere() {
+	const TrainTimetable train{{stop(A, -1, -1), stop(B, daySeconds(9, 42) + 100.0, daySeconds(9, 44)), stop(C, daySeconds(9, 50), -1)}};
+	TrainProgress progress;
+	progress.now = daySeconds(9, 40);
+	progress.limited = true;
+	progress.nextArrival = daySeconds(9, 42);
+	progress.limits = {{kUnreached, {200.0, 300.0, -1.0}}};
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(9, 42) + 200.0);
+	QCOMPARE(state.departure(train, 1), daySeconds(9, 44) + 100.0);
+	QCOMPARE(state.arrival(train, 2), daySeconds(9, 50) + 100.0);
+}
+
+// Two limits: the first, under which A to B takes 2,700 s, ends at 10:10; the second, under which B to C takes 1,200 s, lasts.
+// The train leaves B at 10:28 under the second limit.
+void TestPassengerRouting::laterLimitTakesOverWhenTheFirstEnds() {
+	const TrainTimetable train = aToC();
+	TrainProgress progress = limitedAtA(daySeconds(9, 42));
+	progress.limits[0].ends = daySeconds(10, 10);
+	progress.limits.push_back({kUnreached, {1800.0, 1200.0, -1.0}});
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 27));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 28) + 1200.0);
+}
+
+// The plain rule: 30 km under a limit of 40 km/h take 30,000 m / 11.11 m/s = 2,700 s. A stretch whose line speed is below the
+// limit runs at its line speed, so it loses nothing to the limit.
+void TestPassengerRouting::limitedStretchRunsAtTheLowerSpeed() {
+	QCOMPARE(limitedStretchSeconds(30000.0, 0.0, 40.0 / 3.6), 2700.0);
+	QCOMPARE(limitedStretchSeconds(30000.0, 160.0 / 3.6, 40.0 / 3.6), 2700.0);
+	QCOMPARE(limitedStretchSeconds(1000.0, 10.0, 20.0), 100.0);
+	QCOMPARE(limitedStretchSeconds(1000.0, std::numeric_limits<double>::infinity(), 20.0), 50.0);
+}
+
+// The train stands at A on time under a limit of 40 km/h. A to B, run in 18 minutes, takes 2,700 s under the limit, so the train is
+// predicted at B at 10:27. The 27 minutes lost carry over to C, where the 12 km take 1,080 s under the limit, more than the 15
+// planned minutes.
+void TestPassengerRouting::slowedTrainTakesTheLongerRunningTime() {
+	const TrainTimetable train = aToC();
+	const TrainState state = predictTrainState(train, limitedAtA(daySeconds(9, 42)));
+	QVERIFY(state.slowed);
+	QVERIFY(!state.late);
+	QCOMPARE(state.departure(train, 0), daySeconds(9, 42));
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 27));
+	QCOMPARE(state.departure(train, 1), daySeconds(10, 28));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 46));
+	// A run that is faster under the limit than planned keeps its planned running time.
+	TrainProgress fast = limitedAtA(daySeconds(9, 42));
+	fast.limits[0].runs = {600.0, 600.0, -1.0};
+	const TrainState onPlan = predictTrainState(train, fast);
+	QCOMPARE(onPlan.arrival(train, 1), daySeconds(10, 0));
+	QCOMPARE(onPlan.arrival(train, 2), daySeconds(10, 16));
+	// A train that is also late adds the loss to its delay.
+	TrainProgress late = limitedAtA(daySeconds(9, 52));
+	late.delay = 600.0;
+	QCOMPARE(predictTrainState(train, late).arrival(train, 1), daySeconds(10, 37));
+}
+
+// The train runs from A to B: under the limit it reaches B at 10:05 from where it is now. That arrival counts when it is later
+// than the planned one plus the delay, and the run to C follows from it.
+void TestPassengerRouting::slowedTrainLosesTimeFromWhereItIs() {
+	const TrainTimetable train = aToC();
+	TrainProgress progress = limitedAtA(daySeconds(9, 55));
+	progress.standing = false;
+	progress.firstStop = 1;
+	progress.nextStop = 1;
+	progress.nextArrival = daySeconds(10, 5);
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 5));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 6) + 1080.0);
+	progress.nextArrival = daySeconds(9, 58);
+	QCOMPARE(predictTrainState(train, progress).arrival(train, 1), daySeconds(10, 0));
+	progress.delay = 240.0;
+	QCOMPARE(predictTrainState(train, progress).arrival(train, 1), daySeconds(10, 4));
+}
+
+// The limit ends at 10:10, before the train leaves B at 10:28: the run to C keeps its planned running time.
+void TestPassengerRouting::limitThatEndsLeavesLaterRunsAlone() {
+	const TrainTimetable train = aToC();
+	TrainProgress progress = limitedAtA(daySeconds(9, 42));
+	progress.limits[0].ends = daySeconds(10, 10);
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 27));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 43));
+}
+
+// T0 is planned from A at 9:00 to B at 10:00, T1 20 minutes later. A passenger stays with T0 while it is 10 minutes late, as it still
+// arrives first, and takes T1 when T0 is 30 minutes late.
+void TestPassengerRouting::passengerStaysWithLateTrainThatArrivesFirst() {
+	const Router router({{{stop(A, -1, daySeconds(9, 0)), stop(B, daySeconds(10, 0), -1)}}, {{stop(A, -1, daySeconds(9, 20)), stop(B, daySeconds(10, 20), -1)}}},
+		kStations);
+	std::vector<TrainState> states = fresh(2);
+	states[0] = predictTrainState(router.trains()[0], lateBy(600.0));
+	Plan plan = router.search(A, daySeconds(8, 50), 2, states).plan(B);
+	QCOMPARE(plan.legs[0].train, std::size_t{0});
+	QCOMPARE(plan.arrival, daySeconds(10, 10));
+	states[0] = predictTrainState(router.trains()[0], lateBy(1800.0));
+	plan = router.search(A, daySeconds(8, 50), 2, states).plan(B);
+	QCOMPARE(plan.legs[0].train, std::size_t{1});
+	QCOMPARE(plan.arrival, daySeconds(10, 20));
+}
+
+// At 100 the train stands at A, which has no times; B is 2 km on and planned at 200. Under 36 km/h it leaves A now and is at B at
+// 300.
+void TestPassengerRouting::standingTrainLeavesAStopWithoutTimesNow() {
+	const TrainTimetable train{{stop(A, -1, -1), stop(B, 200, -1)}};
+	TrainProgress progress;
+	progress.now = 100.0;
+	progress.standing = true;
+	progress.limited = true;
+	progress.limits = {{kUnreached, {200.0, -1.0}}};
+	QCOMPARE(predictTrainState(train, progress).arrival(train, 1), 300.0);
+}
+
+// The train leaves A at 100 under a limit that ends at 200 and reaches C, which has no times, at 300. The run on from C is not
+// limited, but the train cannot reach B, planned at 220, before it leaves C.
+void TestPassengerRouting::stopsAreNeverReachedBeforeTheStopBeforeIsLeft() {
+	const TrainTimetable train{{stop(A, -1, 100), stop(C, -1, -1), stop(B, 220, -1)}};
+	TrainProgress progress;
+	progress.now = 100.0;
+	progress.standing = true;
+	progress.limited = true;
+	progress.limits = {{200.0, {200.0, 50.0, -1.0}}};
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.departure(train, 0), 100.0);
+	QVERIFY(state.arrival(train, 2) >= 300.0);
 }
 
 QTEST_APPLESS_MAIN(TestPassengerRouting)

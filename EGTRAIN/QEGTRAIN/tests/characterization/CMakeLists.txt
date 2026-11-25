@@ -143,6 +143,7 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-live-missed
 	pax-live-full-gui1
 	pax-live-missed-gui1
+	pax-live-slowed
 	entrance-delay-f2-level-0
 	breakdown-f1-level-0)
 

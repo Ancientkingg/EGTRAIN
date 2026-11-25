@@ -674,12 +674,13 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 	if (settings.passengerDwellCoefficients || settings.passengerPlatformCrowdingThreshold
 		|| settings.passengerOnboardCrowdingThreshold || settings.passengerCarBoardingThreshold
 		|| settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers
-		|| settings.passengerWalkingSecondsPerPlatform != kDefaultPassengerWalkingSeconds) {
+		|| settings.passengerWalkingSecondsPerPlatform != kDefaultPassengerWalkingSeconds
+		|| settings.passengerLateThresholdSeconds != kDefaultPassengerLateThresholdSeconds) {
 		SceneDiagnostic d;
 		d.severity = SceneSeverity::Warning;
 		d.code = "scene.export.compatibility";
-		d.message = "The legacy input has no passenger transfer limit, walking time or dwell model settings, so they were not exported "
-					"and a legacy run uses the built-in values";
+		d.message = "The legacy input has no passenger transfer limit, walking time, late threshold or dwell model settings, so they "
+					"were not exported and a legacy run uses the built-in values";
 		d.file = "scene.json";
 		result.diagnostics.push_back(d);
 	}

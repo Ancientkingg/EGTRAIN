@@ -350,6 +350,8 @@ void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, Scene
 			reader.integerField(settings, "passenger_max_transfers", "simulation_settings", scene.settings.passengerMaxTransfers, false);
 			reader.integerField(settings, "passenger_walking_seconds_per_platform", "simulation_settings",
 				scene.settings.passengerWalkingSecondsPerPlatform, false);
+			reader.integerField(settings, "passenger_late_threshold_seconds", "simulation_settings",
+				scene.settings.passengerLateThresholdSeconds, false);
 			decodeDwellSettings(reader, settings, scene.settings);
 		}
 	}

@@ -43,6 +43,9 @@ public:
 	/// Walking time in seconds per platform number of difference between two platforms of a station
 	/// (simulation_settings.passenger_walking_seconds_per_platform, 0 to 600).
 	int passengerWalkingSecondsPerPlatform = 30;
+	/// The delay in seconds up to which passengers plan on the planned times of a train without a speed limit
+	/// (simulation_settings.passenger_late_threshold_seconds, 0 to 3600).
+	int passengerLateThresholdSeconds = 300;
 	/// The coefficients beta0 to beta7 of the passenger dwell model of every train (simulation_settings.passenger_dwell_coefficients).
 	std::array<double, kPassengerDwellCoefficientCount> passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	/// The platform occupancy rate above which the dwell model counts the platform as crowded
