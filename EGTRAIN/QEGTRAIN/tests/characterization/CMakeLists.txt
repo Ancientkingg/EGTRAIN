@@ -151,6 +151,8 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-live-full-gui1
 	pax-live-missed-gui1
 	pax-live-slowed
+	pax-live-breakdown
+	pax-live-late
 	pax-breakdown-wait
 	pax-breakdown-terminate
 	pax-signal-failure-change

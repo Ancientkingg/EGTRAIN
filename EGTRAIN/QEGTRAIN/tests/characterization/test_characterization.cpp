@@ -464,6 +464,8 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"live-noroute", {"Q1"}, 0},
 		{"live-missed", {"Q1", "Q3", "Q4"}, 0},
 		{"live-slowed", {"Q1", "Q2"}, 0},
+		{"live-breakdown", {"Q1", "Q2"}, 0},
+		{"live-late", {"Q1", "Q4"}, 0},
 		{"breakdown-wait", {"Q1", "Q2"}, 0},
 		{"breakdown-terminate", {"Q1", "Q2"}, 0},
 		{"signal-failure-change", {"Q1", "Q3", "Q4"}, 0},
@@ -1242,10 +1244,14 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		return train;
 	};
 	scene.services.push_back(service("Q1", 60, 820, 1250, true, platformB1, 760, transfer && !shortQ1));
-	// live-slowed and the breakdown sets have Q2 on the platform of Q1 at B, without Platform_4, so that Q1 keeps its planned
-	// arrival at B.
-	if (transfer || set == "live-slowed" || set == "breakdown-wait" || set == "breakdown-terminate")
+	// live-slowed, live-breakdown and the breakdown sets have Q2 on the platform of Q1 at B, without Platform_4, so that Q1 keeps
+	// its planned arrival at B.
+	if (transfer || set == "live-slowed" || set == "live-breakdown" || set == "breakdown-wait" || set == "breakdown-terminate")
 		scene.services.push_back(service("Q2", 20, 1000, 1400, false, platformB1, 760, true));
+	// live-late has Q4 on the platform of Q1 at B, where it arrives while Q1 is less than the late threshold late, so that the
+	// passengers who wait there for Q1 do not take it as a standing train that goes direct.
+	if (set == "live-late")
+		scene.services.push_back(service("Q4", 400, 1100, 1550, false, platformB1, 920, true));
 	if (transfer) {
 		scene.services.push_back(service("Q3", 500, 960, 1450, false, platformB2, 900, true));
 		// A train behind Q3 on the same platform: the passenger of live-missed plans it after missing Q3.
@@ -1304,6 +1310,14 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		scene.passengers.push_back({"s1", {journey("s1.1", 300, 1400, "P", "C", {})}});
 		scene.passengers.push_back({"s2", {journey("s2.1", 300, 760, "P", "B", {})}});
 		scene.passengers.push_back({"s3", {journey("s3.1", 840, 1400, "B", "C", {})}});
+	} else if (set == "live-breakdown") {
+		// Q1 is held at P (see the incident of the case). b1 plans Q1 from B to C, and once Q1 is predicted at C more than the margin
+		// after Q2, which stands at B, b1 takes Q2.
+		scene.passengers.push_back({"b1", {journey("b1.1", 600, 1400, "B", "C", {})}});
+	} else if (set == "live-late") {
+		// Q1 is held at P for a short time (see the incident of the case). l1 plans Q1 from B to C and keeps it, as Q4 does not reach C
+		// more than the margin before it.
+		scene.passengers.push_back({"l1", {journey("l1.1", 600, 1550, "B", "C", {})}});
 	} else if (set == "breakdown-wait") {
 		// Q1 stands at P from 220 s and is held there from 400 to 800 s (see the incident of the case), so it leaves P 339 s late.
 		// Q2 stands on the platform of Q1 at B until 1000 s and reaches C later than Q1 on the timetable. All three go from B to C.
@@ -1744,6 +1758,11 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	}
 	if (spec.passengers == "live-missed")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 738.0});
+	// Q1 stands at P from 220 s, so the hold starts while it stands there.
+	if (spec.passengers == "live-breakdown")
+		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 1300.0});
+	if (spec.passengers == "live-late")
+		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 790.0});
 	if (spec.passengers == "live-slowed") {
 		SceneIncident slow{"slow-q1", IncidentType::TrainBreakdown, "Q1", 130.0, 0.0};
 		slow.hasReducedSpeed = true;
