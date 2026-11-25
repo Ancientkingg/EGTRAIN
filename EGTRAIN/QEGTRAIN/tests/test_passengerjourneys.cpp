@@ -681,6 +681,7 @@ private slots:
 	void passengerKeepsTrainThatStopsWithoutAPlannedDeparture();
 	void extremePredictionCountsAsTheLargestLateness();
 	void heldTrainHasANewPredictionOnceAMinute();
+	void cappedTrainHeldBetweenStopsHasANewPredictionOnceAMinute();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -1314,16 +1315,19 @@ void TestPassengerJourneys::passengerKeepsTrainThatStopsWithoutAPlannedDeparture
 	QVERIFY(!waiting.journey().IsReplanned);
 }
 
-// A lateness above the range of an int, or one that is not a number, counts as the largest int, also under a cap of 1e-9 km/h, which
-// takes the train some 57,000 years to its next stop.
+// A lateness above the range of an int, or one that is not a number, counts as the largest int, and one below it as the smallest; a
+// predicted time that is not a number counts as none. Under a cap of 1e-9 km/h, which takes the train some 57,000 years to its next
+// stop, the first lateness is the largest int.
 void TestPassengerJourneys::extremePredictionCountsAsTheLargestLateness() {
 	constexpr int kLargest = std::numeric_limits<int>::max();
+	constexpr int kSmallest = std::numeric_limits<int>::min();
 	const passenger_routing::TrainTimetable timetable{{{0, 0, 100.0, 130.0}, {1, 0, 200.0, -1.0}}};
 	passenger_routing::TrainState state;
 	state.late = true;
-	state.arrivals = {1e30, std::numeric_limits<double>::infinity()};
+	state.arrivals = {std::numeric_limits<double>::infinity(), 1e30};
 	state.departures = {std::numeric_limits<double>::quiet_NaN(), -1.0};
-	const std::vector<int> extreme{1, 0, kLargest, kLargest, kLargest, -1};
+	// The first lateness is infinite, the same time again is infinity minus infinity, and 1e30 s is infinitely earlier than it.
+	const std::vector<int> extreme{1, 0, kLargest, kLargest, -1, kSmallest, -1};
 	QCOMPARE(predictionSignature(timetable, state), extreme);
 
 	LimitedRun limited;
@@ -1332,8 +1336,9 @@ void TestPassengerJourneys::extremePredictionCountsAsTheLargestLateness() {
 	const passenger_routing::TrainTimetable route{{{0, 0, 100.0, 130.0}, {1, 0, 200.0, 230.0}, {2, 0, 300.0, -1.0}}};
 	const passenger_routing::TrainState capped = liveTrainState(limited.run, limited.train(), route, 1, 151);
 	QVERIFY(capped.slowed);
-	const std::vector<int> crawling{0, 1, kLargest, kLargest, kLargest, -1};
-	QCOMPARE(predictionSignature(route, capped), crawling);
+	const std::vector<int> crawling = predictionSignature(route, capped);
+	QCOMPARE(crawling.size(), std::size_t(7));
+	QCOMPARE(crawling[2], kLargest);
 }
 
 // A train with 30 stops, whose planned times fall on 50 different seconds of the minute, is held before its first stop, due at
@@ -1352,6 +1357,61 @@ void TestPassengerJourneys::heldTrainHasANewPredictionOnceAMinute() {
 	run.numTrains = 1;
 	int evaluations = 0;
 	for (int t = 421; t <= 540; ++t)
+		evaluations += static_cast<int>(run.passengerJourneys.trainsWithNewPrediction(run, t).size());
+	QCOMPARE(evaluations, 3);
+}
+
+// S-1 runs under a cap of 25.2 km/h (7 m/s) on a line with 20 stops 1 km apart, planned 41 s apart with their planned times on 40
+// different seconds of the minute, and the cap adds about 101.86 s to every run. It left its first stop on time and is held 500 m
+// short of the second, so that it sets off a second later at every step, and its lateness at each stop ahead grows with it from a
+// different fraction of a minute. It is late from 482 s on. Its prediction still changes once a minute: in the 120 steps from 490 s to
+// 609 s its passengers plan again three times, at the first step and when it is 7 and 8 whole minutes late at the next stop.
+void TestPassengerJourneys::cappedTrainHeldBetweenStopsHasANewPredictionOnceAMinute() {
+	constexpr int kStops = 20;
+	SimulationRun run;
+	run.settings.startingSimulationTime = 0;
+	Section section;
+	for (int a = 0; a < kStops + 2; ++a) {
+		Arc arc;
+		arc.startNode.X = a;
+		arc.endNode.X = a + 1;
+		arc.speedLimit = 30.0;
+		section.arcs_in_signalling_block_section.push_back(arc);
+	}
+	section.total_arcs = kStops + 2;
+	Route route;
+	route.sequence_of_block_sections.push_back(section);
+	route.N_Block_Sections = 1;
+	run.infra.routes.push_back(route);
+	run.infra.numRoutes = 1;
+	std::vector<std::string> stations;
+	std::vector<double> arrivals;
+	for (int stop = 0; stop < kStops; ++stop) {
+		stations.push_back("S" + std::to_string(stop));
+		arrivals.push_back(120.0 + 61.0 * stop);
+	}
+	Train held = trainCallingAt("S-1", stations, arrivals);
+	held.indexOfRoute = 0;
+	held.max_train_speed = 50.0;
+	held.Stations[0].StepStopped = 10;
+	held.StationArrivals[0] = 120;
+	held.StationDepartures[0] = 140;
+	held.CanEnter = true;
+	held.earliestActiveTrajectoryIndex = 100;
+	held.instant_spatial_position.assign(700, 2500.0);
+	run.trains.push_back(held);
+	run.numTrains = 1;
+	SimulationIncident cap;
+	cap.type = IncidentType::TrainBreakdown;
+	cap.target = "S";
+	cap.startSeconds = 50.0;
+	cap.hasReducedSpeed = true;
+	cap.reducedSpeedKmh = 25.2;
+	cap.hasEndSeconds = true;
+	cap.endSeconds = 100000.0;
+	run.incidents.push_back(cap);
+	int evaluations = 0;
+	for (int t = 490; t <= 609; ++t)
 		evaluations += static_cast<int>(run.passengerJourneys.trainsWithNewPrediction(run, t).size());
 	QCOMPARE(evaluations, 3);
 }

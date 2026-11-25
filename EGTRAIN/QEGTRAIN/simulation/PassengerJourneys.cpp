@@ -101,9 +101,16 @@ int wholeMinutes(double seconds) {
 	return minutes <= kSmallest ? numeric_limits<int>::min() : static_cast<int>(minutes);
 }
 
-// How late a predicted time is against its planned time, in whole minutes; -1 where the stop has no planned time.
-int lateMinutes(double predicted, double planned) {
-	return planned < 0.0 || predicted < 0.0 ? -1 : wholeMinutes(predicted - planned);
+// Whether a time has both a planned and a predicted time.
+bool hasLateness(double predicted, double planned) {
+	return planned >= 0.0 && predicted >= 0.0;
+}
+
+// How much later than `reference` the lateness of a predicted time is, in whole minutes, with a millisecond of tolerance so that
+// two times shifted by the same lateness count as equal; -1 where the time has no planned or no predicted time.
+int extraLateMinutes(double predicted, double planned, double reference) {
+	constexpr double kToleranceSeconds = 0.001;
+	return hasLateness(predicted, planned) ? wholeMinutes(predicted - planned - reference + kToleranceSeconds) : -1;
 }
 } // namespace
 
@@ -112,12 +119,27 @@ vector<int> predictionSignature(const passenger_routing::TrainTimetable& timetab
 	if (!state.late && !state.slowed)
 		return seen;
 	const size_t count = timetable.stops.size();
-	seen.reserve(2 + 2 * (count - min(count, state.firstStop)));
+	// The lateness of the first time ahead that has a planned and a predicted time.
+	double reference = 0.0;
+	bool found = false;
+	for (size_t stop = state.firstStop; stop < count && !found; ++stop) {
+		const double arrival = state.arrival(timetable, stop);
+		const double departure = state.departure(timetable, stop);
+		if (hasLateness(arrival, timetable.stops[stop].arrival)) {
+			reference = arrival - timetable.stops[stop].arrival;
+			found = true;
+		} else if (hasLateness(departure, timetable.stops[stop].departure)) {
+			reference = departure - timetable.stops[stop].departure;
+			found = true;
+		}
+	}
+	seen.reserve(3 + 2 * (count - min(count, state.firstStop)));
 	seen.push_back(state.late ? 1 : 0);
 	seen.push_back(state.slowed ? 1 : 0);
+	seen.push_back(found ? wholeMinutes(reference) : -1);
 	for (size_t stop = state.firstStop; stop < count; ++stop) {
-		seen.push_back(lateMinutes(state.arrival(timetable, stop), timetable.stops[stop].arrival));
-		seen.push_back(lateMinutes(state.departure(timetable, stop), timetable.stops[stop].departure));
+		seen.push_back(extraLateMinutes(state.arrival(timetable, stop), timetable.stops[stop].arrival, reference));
+		seen.push_back(extraLateMinutes(state.departure(timetable, stop), timetable.stops[stop].departure, reference));
 	}
 	return seen;
 }

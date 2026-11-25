@@ -61,11 +61,15 @@ passenger_routing::TrainState liveTrainState(const SimulationRun& run, const Tra
 	int firstStop, int elapsed);
 
 /// What passengers see of the prediction of a train with this timetable (PassengerJourneys::trainsWithNewPrediction compares it from
-/// step to step): empty while the train is neither late nor slowed, so that passengers plan it on its planned times; otherwise
-/// whether it is late, whether it is slowed, and, for the stops from TrainState::firstStop on, how late it is predicted at each
-/// arrival and departure (predicted minus planned time) in whole minutes, rounded down, with -1 where the stop has no planned time.
-/// A delay that grows evenly changes it once a minute, whatever the seconds of the planned times. A lateness beyond the range of an
-/// int is held to that range, and one that is not a number counts as the largest int.
+/// step to step): empty while the train is neither late nor slowed, so that passengers plan it on its planned times. Otherwise it
+/// holds whether the train is late, whether it is slowed, the lateness (predicted minus planned time) at the first arrival or
+/// departure from TrainState::firstStop on that has both times, in whole minutes rounded down, and for each arrival and departure
+/// from TrainState::firstStop on how much later than that first one it is predicted, in whole minutes rounded down (a millisecond
+/// less counts as equal), with -1 where it has no planned or no predicted time. While a train is held, at a stop or between two,
+/// with or without a speed limit, all its times move by the same second at each step: the first lateness then changes once a
+/// minute and the others stay the same, whatever the seconds of the planned times and of the running times under the limit. A
+/// change in how the lateness grows along the stops changes it at once. A lateness beyond the range of an int is held to that range,
+/// and one that is not a number counts as the largest int.
 std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& timetable, const passenger_routing::TrainState& state);
 
 /// The journeys of the passengers that the timetable of the run plans: journeys without legs, and journeys whose legs can no
@@ -89,7 +93,7 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 ///
 /// A passenger who waits for a train that is late or slowed (passenger_routing::TrainState::late and slowed) plans again from where
 /// it is each time the prediction of that train changes (predictionSignature): when the train becomes late or slowed, and then
-/// whenever its predicted lateness at a stop still ahead moves to another whole minute, as a departure board shows a delay. A
+/// whenever its predicted lateness ahead moves to another whole minute, as a departure board shows a delay. A
 /// passenger who comes to wait for such a train (the start of a journey with legs, or a transfer) plans again then. The passenger
 /// takes the new plan only when it reaches the destination more than kSwitchMarginSeconds before the plan the passenger has, on the
 /// same times and boarding and leaving the trains as a search would (tripsArrival); a plan with a train that can no longer be
