@@ -473,6 +473,7 @@ struct Context {
 	std::vector<Formation> formations;
 	std::unordered_map<std::string, std::size_t> formationIndex;
 	std::map<std::string, std::string> periods;	   // id to name
+	std::vector<std::string> periodOrder;		   // operating period ids in the order of the file
 	std::map<std::string, std::string> categories; // id to code
 	std::vector<TrainPart> parts;
 	std::unordered_map<std::string, std::size_t> partIndex;
@@ -1036,8 +1037,10 @@ void readTimetable(Context& context, const xml_node& timetable) {
 			for (const xml_node& element : childrenNamed(child, "operatingPeriod")) {
 				++reportRow(context, "operatingPeriod").sourceCount;
 				const std::string id = attr(element, "id");
-				if (!id.empty() && claimId(context, "operatingPeriod", id))
+				if (!id.empty() && claimId(context, "operatingPeriod", id)) {
 					context.periods[id] = attr(element, "name");
+					context.periodOrder.push_back(id);
+				}
 			}
 		} else if (named(child, "categories")) {
 			for (const xml_node& element : childrenNamed(child, "category")) {
@@ -3415,6 +3418,36 @@ bool holdsFile(const std::string& folder, const std::string& file) {
 }
 
 } // namespace
+
+RailmlOperatingPeriods listRailmlOperatingPeriods(const std::string& railmlPath) {
+	RailmlOperatingPeriods result;
+	Context context;
+	context.sourceFile = railmlPath;
+	pugi::xml_document document;
+	if (!readDocument(context, document) || !checkVersion(context, document.document_element()))
+		return result;
+	for (const xml_node& child : elementChildren(document.document_element()))
+		if (named(child, "timetable"))
+			readTimetable(context, child);
+	const std::map<std::string, int> counts = periodCounts(context);
+	int withoutPeriod = 0;
+	std::vector<std::string> order = context.periodOrder;
+	for (const TrainPart& part : context.parts) {
+		if (part.period.empty())
+			++withoutPeriod;
+		else if (std::find(order.begin(), order.end(), part.period) == order.end())
+			order.push_back(part.period);
+	}
+	for (const std::string& id : order) {
+		const auto count = counts.find(id);
+		if (count == counts.end())
+			continue;
+		const auto name = context.periods.find(id);
+		result.periods.push_back({id, name == context.periods.end() ? std::string() : name->second, count->second + withoutPeriod});
+	}
+	result.defaultPeriod = mostUsedPeriod(counts);
+	return result;
+}
 
 SceneImportResult importRailmlScene(const std::string& railmlPath, const std::string& sceneDir,
 	const std::string& sceneName, const RailmlImportOptions& options) {

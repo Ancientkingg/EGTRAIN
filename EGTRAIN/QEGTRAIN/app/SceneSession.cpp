@@ -790,8 +790,31 @@ void SceneSession::importRailmlCase(const QString& railmlPath, const QString& de
 	const QString sceneName = baseName.isEmpty() ? QString("Imported railML") : baseName;
 	const ImportTexts texts{"Import railML", "Cannot Import railML", "railML Imported", "Importing railML...",
 		"railML import failed"};
-	const auto importInto = [&sourcePath, &sceneName](const std::string& sceneDir) {
-		return importRailmlScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString());
+	// A file with trains of several operating periods asks which one to import; the one with the most train parts is chosen
+	// at the start.
+	RailmlImportOptions options;
+	const RailmlOperatingPeriods periods = listRailmlOperatingPeriods(sourcePath.toStdString());
+	if (periods.periods.size() > 1) {
+		QStringList items;
+		int current = 0;
+		for (const RailmlOperatingPeriod& period : periods.periods) {
+			if (period.id == periods.defaultPeriod)
+				current = static_cast<int>(items.size());
+			const QString id = QString::fromStdString(period.id);
+			const QString name = QString::fromStdString(period.name);
+			items << QString("%1: %2 %3")
+						 .arg(name.isEmpty() || name == id ? id : QString("%1 (%2)").arg(name, id))
+						 .arg(period.trainParts)
+						 .arg(period.trainParts == 1 ? "train part" : "train parts");
+		}
+		const int chosen = static_cast<int>(items.indexOf(m_prompts->chooseItem(m_window, texts.question,
+			"The file has trains of several operating periods. Operating period to import:", items, current)));
+		if (chosen < 0)
+			return;
+		options.operatingPeriod = periods.periods[static_cast<std::size_t>(chosen)].id;
+	}
+	const auto importInto = [&sourcePath, &sceneName, &options](const std::string& sceneDir) {
+		return importRailmlScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString(), options);
 	};
 	importCase(destinationPath, sceneName, texts, importInto, operation);
 }

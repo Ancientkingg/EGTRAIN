@@ -26,7 +26,10 @@ public:
 	bool confirmAnswer = false;
 
 	int chooseCount = 0;
+	QString chooseTitle;
+	QString chooseLabel;
 	QStringList offeredItems;
+	int offeredCurrent = -1;
 	QString chosenItem;
 
 	int textCount = 0;
@@ -65,9 +68,12 @@ public:
 		confirmQuestion = question;
 		return confirmAnswer;
 	}
-	QString chooseItem(QWidget*, const QString&, const QString&, const QStringList& items) override {
+	QString chooseItem(QWidget*, const QString& title, const QString& label, const QStringList& items, int current = 0) override {
 		++chooseCount;
+		chooseTitle = title;
+		chooseLabel = label;
 		offeredItems = items;
+		offeredCurrent = current;
 		return chosenItem;
 	}
 	std::optional<QString> askText(QWidget*, const QString& title, const QString& label, const QString&) override {

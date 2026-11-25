@@ -4,6 +4,7 @@
 #include "scene/SceneImporter.h"
 
 #include <string>
+#include <vector>
 
 /// The choices of a railML import.
 struct RailmlImportOptions {
@@ -11,6 +12,28 @@ struct RailmlImportOptions {
 	/// refer to. Train parts without an operating period are always imported.
 	std::string operatingPeriod;
 };
+
+/// An operating period of a railML file.
+struct RailmlOperatingPeriod {
+	/// The id of the operatingPeriod element, which RailmlImportOptions::operatingPeriod takes.
+	std::string id;
+	/// Its name; empty when the file gives none.
+	std::string name;
+	/// The number of train parts that an import of the period takes: those that refer to it and those without a period.
+	int trainParts = 0;
+};
+
+/// The operating periods of a railML file, for a choice before the import.
+struct RailmlOperatingPeriods {
+	/// The periods that train parts refer to, in the order of the file.
+	std::vector<RailmlOperatingPeriod> periods;
+	/// The id of the period that importRailmlScene imports when none is chosen: the one with the most train parts.
+	std::string defaultPeriod;
+};
+
+/// Reads the operating periods of the railML 2.x file at railmlPath. Periods without train parts are left out. The
+/// result is empty when the file cannot be read or is not railML 2; the import then reports why.
+RailmlOperatingPeriods listRailmlOperatingPeriods(const std::string& railmlPath);
 
 /// Converts the railML 2.x file at railmlPath into a scene directory at sceneDir, written in a private directory and
 /// then renamed into place, as importLegacyScene does. sceneName becomes the scene name; empty uses the file name

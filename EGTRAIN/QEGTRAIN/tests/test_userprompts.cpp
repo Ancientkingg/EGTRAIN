@@ -209,6 +209,9 @@ void TestUserPrompts::returnsChosenItem() {
 	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->accept(); });
 	// The first item is chosen when the user changes nothing.
 	QCOMPARE(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}), "unit-a");
+	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->accept(); });
+	// The current item is chosen at the start.
+	QCOMPARE(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}, 1), "unit-b");
 	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->reject(); });
 	QVERIFY2(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}).isEmpty(), "cancelling the choice returns an empty text");
 }

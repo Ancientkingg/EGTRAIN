@@ -227,6 +227,7 @@ private slots:
 	void refusesSceneThatFailsValidation();
 	void endsSpeedRestrictions();
 	void splitsTrainsWithManyStops();
+	void listsOperatingPeriods();
 };
 
 void TestRailmlImporter::importsMicroscopicInfrastructure() {
@@ -709,6 +710,35 @@ void TestRailmlImporter::splitsTrainsWithManyStops() {
 	QCOMPARE(secondRoute->blocks.front(), firstRoute->blocks.back());
 	QCOMPARE(scene.routes.size(), std::size_t(2));
 	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.service_split", "tp") != nullptr);
+}
+
+// The periods with their train parts, for a choice before the import, and the one that an import without a choice takes.
+void TestRailmlImporter::listsOperatingPeriods() {
+	const RailmlOperatingPeriods periods = listRailmlOperatingPeriods(fixture("microscopic.railml"));
+	QCOMPARE(periods.periods.size(), std::size_t(2));
+	QCOMPARE(periods.periods[0].id, std::string("op_daily"));
+	QCOMPARE(periods.periods[0].name, std::string("Daily"));
+	QCOMPARE(periods.periods[0].trainParts, 2);
+	QCOMPARE(periods.periods[1].id, std::string("op_sunday"));
+	QCOMPARE(periods.periods[1].name, std::string("Sundays"));
+	QCOMPARE(periods.periods[1].trainParts, 1);
+	QCOMPARE(periods.defaultPeriod, std::string("op_daily"));
+
+	// A train part without a period runs in each of them; a period without train parts is left out.
+	TempDir temp;
+	std::string text = replaced(fixtureText("microscopic.railml"), R"(<operatingPeriod id="op_sunday" name="Sundays"/>)",
+		R"(<operatingPeriod id="op_sunday" name="Sundays"/><operatingPeriod id="op_never" name="Never"/>)");
+	text = replaced(text, R"(<operatingPeriodRef ref="op_sunday"/>)", "");
+	const fs::path file = temp.path / "periods.railml";
+	std::ofstream(file, std::ios::binary) << text;
+	const RailmlOperatingPeriods withoutPeriod = listRailmlOperatingPeriods(file.string());
+	QCOMPARE(withoutPeriod.periods.size(), std::size_t(1));
+	QCOMPARE(withoutPeriod.periods[0].trainParts, 3);
+	QCOMPARE(withoutPeriod.defaultPeriod, std::string("op_daily"));
+
+	QVERIFY(listRailmlOperatingPeriods(fixture("macroscopic.railml")).periods.size() == 1);
+	QVERIFY(listRailmlOperatingPeriods(fixture("railml3.railml")).periods.empty());
+	QVERIFY(listRailmlOperatingPeriods((temp.path / "missing.railml").string()).periods.empty());
 }
 
 QTEST_APPLESS_MAIN(TestRailmlImporter)

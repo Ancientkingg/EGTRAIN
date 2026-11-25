@@ -80,14 +80,16 @@ public:
 		return static_cast<int>(buttons.indexOf(box.clickedButton()));
 	}
 
-	/// One of `items`, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a
-	/// suppressed run. The dialog is wide enough for its window title, within the screen.
-	virtual QString chooseItem(QWidget* parent, const QString& title, const QString& label, const QStringList& items) {
+	/// One of `items`, for example the id of a rolling stock unit; empty when the user cancels. The item at index `current`
+	/// is chosen at the start. It asks also in a suppressed run. The dialog is wide enough for its window title, within the
+	/// screen.
+	virtual QString chooseItem(QWidget* parent, const QString& title, const QString& label, const QStringList& items,
+		int current = 0) {
 		QInputDialog dialog(parent);
 		dialog.setWindowTitle(title);
 		dialog.setLabelText(label);
 		dialog.setComboBoxItems(items);
-		dialog.setTextValue(items.value(0));
+		dialog.setTextValue(items.value(current));
 		fitTitle(dialog, title);
 		return dialog.exec() == QDialog::Accepted ? dialog.textValue() : QString();
 	}

@@ -154,8 +154,9 @@ public:
 	/// Imports a railML 2 file, which the user chooses, as a scene and opens it.
 	void actionImport_Railml();
 	/// Imports the railML file `railmlPath` as a scene folder in `destinationDir`, named after the file, and opens it.
-	/// Does nothing when either is empty. The destination is handled as importLegacyCase handles it, and the import
-	/// refuses a scene folder that holds the file.
+	/// Does nothing when either is empty. A file with trains of several operating periods first asks for the period, with
+	/// the one of the most train parts chosen at the start; Cancel imports nothing. The destination is handled as
+	/// importLegacyCase handles it, and the import refuses a scene folder that holds the file.
 	void importRailmlCase(const QString& railmlPath, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
 
