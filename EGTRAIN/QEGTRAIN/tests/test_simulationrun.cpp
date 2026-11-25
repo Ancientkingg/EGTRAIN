@@ -378,11 +378,20 @@ SceneModel lineWithStartAtB(const SceneModel& line, int level, double plannedDep
 // The selected occurrences of scene in a run of its own, stepped for the given seconds. Empty when the run cannot be built.
 std::unique_ptr<SimulationRun> steppedRun(const SceneModel& scene, const SceneRunSelection& selection, int seconds) {
 	CoutSilencer silencer;
+	// The run takes the duration of the scene, not a -h duration that an earlier test left in initial_variables: the
+	// trains keep one sample per second of that duration, and stepping past it writes past their vectors.
+	const bool durationOverride = initial_variables.durationOverride;
+	initial_variables.durationOverride = false;
+	const auto restoreOverride = qScopeGuard([durationOverride] { initial_variables.durationOverride = durationOverride; });
 	auto run = std::make_unique<SimulationRun>();
 	if (hasErrors(buildInfrastructureAndSignallingFromScene(*run, scene))
 		|| hasErrors(buildOperationsFromScene(*run, scene, "baseline", selection)))
 		return nullptr;
+	if (seconds > scene.settings.durationSeconds)
+		return nullptr;
 	run->settings = initial_variables;
+	run->settings.durationOverride = false;
+	run->settings.times = scene.settings.durationSeconds;
 	TrainMovementOrder order(*run);
 	for (int t = 0; t < seconds; ++t)
 		runSimulationStep(*run, t, order);
@@ -997,6 +1006,7 @@ void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt() {
 	SceneModel scene = lineWithStartAtB(m_line, level, 400.0);
 	for (SceneTrainUnit& unit : scene.trainUnits)
 		unit.physical.length_m = trainLength;
+	scene.settings.durationSeconds = 2500.0;
 	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"X", 1}}, 2500);
 	if (run == nullptr || run->numTrains != 1)
 		QFAIL("the run is not built");
