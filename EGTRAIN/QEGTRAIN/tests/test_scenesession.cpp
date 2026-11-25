@@ -235,6 +235,7 @@ private slots:
 	void importStopsAtFolderOfThatName();
 	void importAsksBeforeReplacingCase();
 	void importDialogsStartNextToCases();
+	void importsRailmlFile();
 	void saveAsFolderAsksBeforeReplacingCase();
 	void saveAsFolderKeepsViewsOfFailedSave();
 	void saveAsksWhenFolderChangedOnDisk();
@@ -367,6 +368,32 @@ void TestSceneSession::importDialogsStartNextToCases() {
 	QCOMPARE(starts->size(), 2);
 	QCOMPARE(QFileInfo(starts->at(0)).canonicalFilePath(), QFileInfo(dir.filePath("Cases")).canonicalFilePath());
 	QCOMPARE(QFileInfo(starts->at(1)).canonicalFilePath(), QFileInfo(dir.filePath("Old")).canonicalFilePath());
+}
+
+// A railML file is imported like a legacy case, except into a case folder that holds the file.
+void TestSceneSession::importsRailmlFile() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	const QByteArray railml = readFile(QStringLiteral(EGTRAIN_RAILML_FIXTURES "/macroscopic.railml"));
+	QVERIFY(!railml.isEmpty());
+	QVERIFY(writeFolderCase(dir.filePath("Case"), "Old case"));
+	QVERIFY(writeFile(dir.filePath("Case/line.railml"), railml));
+	Fixture f;
+	f.prompts.confirmAnswer = true;
+	f.session->importRailmlCase(dir.filePath("Case/line.railml"), dir.filePath("Case"), {});
+	// Replacing the case folder would delete the file, so nothing is written.
+	QCOMPARE(f.prompts.errorTitle, "Cannot Import railML");
+	QVERIFY2(f.prompts.errorMessage.contains("which the import would replace"), qPrintable(f.prompts.errorMessage));
+	QCOMPARE(caseName(dir.filePath("Case")), "Old case");
+	QCOMPARE(readFile(dir.filePath("Case/line.railml")), railml);
+	QVERIFY(!f.document.isLoaded());
+
+	QVERIFY(dir.mkdir("Empty"));
+	f.session->importRailmlCase(dir.filePath("Case/line.railml"), dir.filePath("Empty"), {});
+	// An empty folder takes the case, named after the file, and the case opens from it.
+	QCOMPARE(caseName(dir.filePath("Empty")), "line");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Empty")).canonicalFilePath());
 }
 
 void TestSceneSession::saveAsFolderAsksBeforeReplacingCase() {

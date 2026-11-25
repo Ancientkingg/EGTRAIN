@@ -841,6 +841,7 @@ egtrain_add_test(test_scenesession
 		${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
 		${SRC_DIR}/update/SelfUpdater.cpp
 	LIBS egtrain_editors egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network
+	DEFINITIONS EGTRAIN_RAILML_FIXTURES="${SRC_DIR}/tests/fixtures/railml"
 	LABELS scene-v1 unit gui)
 
 egtrain_add_test(test_dialogfolders

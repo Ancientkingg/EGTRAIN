@@ -775,6 +775,7 @@ void MainWindow::connectUiActions() {
 
 void MainWindow::setupFileMenu() {
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
+	connect(ui->actionImport_Railml, &QAction::triggered, m_session, &SceneSession::actionImport_Railml);
 
 	m_newSceneAction = new QAction("New Case...", this);
 	m_newSceneAction->setObjectName("actionNewCaseStudy");

@@ -21,6 +21,7 @@ class QDropEvent;
 class QMainWindow;
 class QMenu;
 class SceneDocument;
+struct SceneImportResult;
 struct SceneLoadResult;
 struct SceneSaveResult;
 
@@ -150,6 +151,13 @@ public:
 	/// inside it, named after the case, which must not exist or be empty.
 	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
+	/// Imports a railML 2 file, which the user chooses, as a scene and opens it.
+	void actionImport_Railml();
+	/// Imports the railML file `railmlPath` as a scene folder in `destinationDir`, named after the file, and opens it.
+	/// Does nothing when either is empty. The destination is handled as importLegacyCase handles it, and the scene folder
+	/// must not hold the file.
+	void importRailmlCase(const QString& railmlPath, const QString& destinationDir,
+		const telemetry::OperationObservation& operation);
 
 	/// Save: saveSceneToCurrentDir().
 	void saveScene();
@@ -199,6 +207,19 @@ private:
 	QString saveSceneAsStartPath() const;
 	bool prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void showError(const QString& title, const QString& message, bool warningIcon = false);
+	// The titles and status messages of an import.
+	struct ImportTexts {
+		QString question; // title of a question, such as "Import Legacy Case"
+		QString failure;  // title of an error, such as "Cannot Import Legacy Case"
+		QString report;	  // title of the report after the import, such as "Legacy Case Imported"
+		QString progress; // status bar text while importing
+		QString failed;	  // status bar text after a failed import
+	};
+	// Writes a scene with `import` into the scene folder `destinationPath`, or into a new folder `sceneName` inside it
+	// when the user agrees, then validates and opens it. Refuses a scene folder that holds `sourcePath`.
+	void importCase(const QString& sourcePath, const QString& destinationPath, const QString& sceneName,
+		const ImportTexts& texts, const std::function<SceneImportResult(const std::string& sceneDir)>& import,
+		const telemetry::OperationObservation& operation);
 
 	// A file of the scene on disk: absent, or present with its size and the time it was last modified.
 	struct DiskFile {
