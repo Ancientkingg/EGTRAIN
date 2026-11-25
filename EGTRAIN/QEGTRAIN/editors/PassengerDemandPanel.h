@@ -37,7 +37,6 @@ struct DemandDayPreview {
 	std::vector<SliceRow> slices; ///< Slices in time order.
 	QStringList unknownStations;  ///< One summary line per skipped unknown station name.
 	QString totalText;			  ///< Summary line with total passengers and slice count.
-	QString replaceWarning;		  ///< Notice that importing replaces all demand slices of the case.
 };
 
 /// Builds the preview model shown before importing a demand day table.
@@ -224,6 +223,7 @@ public:
 	/// All demand slices of the case as a long-format CSV table in the form that importDayText() reads.
 	QString dayTableText() const;
 	/// Writes dayTableText() to the file. False, with a message, when there are no slices or the file cannot be written.
+	/// After writing, a warning names the slices and cells that the table left out and the times it rounded.
 	bool exportDayFile(const QString& path);
 
 	/// The selected slice, or null when none is selected or no scene is loaded.
@@ -274,8 +274,8 @@ private:
 	std::pair<double, double> horizon() const;
 	void fillMatrix(const ScenePassengerDemandSlice* slice);
 	void updateDiagnostics(const ScenePassengerDemandSlice* slice);
-	// Shows `text` as an error in the diagnostic label until the next refresh.
-	void showNotice(const QString& text);
+	// Shows `text` as an error, or as a warning when `warning` is true, in the diagnostic label until the next refresh.
+	void showNotice(const QString& text, bool warning = false);
 	// Applies `mutate` to the selected slice in one edit with this undo label. False when none is selected or the document
 	// refuses.
 	bool editSelected(const QString& label, const std::function<void(ScenePassengerDemandSlice&)>& mutate);
@@ -293,6 +293,8 @@ private:
 	std::function<QString(bool, const QString&)> m_csvFileChooser;
 	QString m_selectedId;
 	QString m_notice;
+	/// True when m_notice is a warning rather than an error.
+	bool m_noticeWarning = false;
 	bool m_refreshing = false;
 	/// True once fillMatrix() has described the table below, so that the next fill can leave the structure alone.
 	bool m_filledLayoutValid = false;

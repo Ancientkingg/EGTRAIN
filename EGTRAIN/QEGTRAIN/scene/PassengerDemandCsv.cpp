@@ -1,10 +1,11 @@
 #include "scene/PassengerDemandCsv.h"
 
+#include "util/TimeFormat.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <map>
@@ -101,14 +102,6 @@ std::string escapeCsvField(const std::string& field) {
 	return quoted;
 }
 
-// Formats whole seconds as HH:MM:SS without wrapping at 24 h (86400 gives 24:00:00).
-std::string formatClock(long long seconds) {
-	seconds = std::max(seconds, 0LL);
-	char buf[32];
-	std::snprintf(buf, sizeof(buf), "%02lld:%02lld:%02lld", seconds / 3600, seconds / 60 % 60, seconds % 60);
-	return std::string(buf);
-}
-
 // The station id for a header or row label: an id first, then a name; empty when none matches.
 std::string stationIdFor(const std::string& label, const std::vector<SceneStation>& stations) {
 	for (const SceneStation& station : stations)
@@ -120,11 +113,9 @@ std::string stationIdFor(const std::string& label, const std::vector<SceneStatio
 	return {};
 }
 
-// A whole number of 0 or more; false for anything else.
-bool parseCount(const std::string& text, int& count, bool allowEmpty = true) {
+// A whole number of 0 or more, where empty text is 0; false for anything else.
+bool parseCount(const std::string& text, int& count) {
 	if (text.empty()) {
-		if (!allowEmpty)
-			return false;
 		count = 0;
 		return true;
 	}
@@ -377,6 +368,7 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 		std::map<std::pair<std::size_t, std::size_t>, long long> cells;
 	};
 	std::map<std::pair<int, int>, SliceAccumulator> slicesByPeriod;
+	bool zeroRows = false;
 	const auto fieldAt = [](const std::vector<std::string>& cells, std::size_t column) -> std::string {
 		return column < cells.size() ? cells[column] : std::string();
 	};
@@ -427,7 +419,7 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 
 		int count = 0;
 		bool rowOk = timeOk;
-		if (!parseCount(countText, count, false)) {
+		if (countText.empty() || !parseCount(countText, count)) {
 			error(number, "Count '" + countText + "' is not a whole number of 0 or more");
 			rowOk = false;
 		}
@@ -455,8 +447,10 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 			error(number, "Origin and destination station " + originText + " must differ");
 			continue;
 		}
-		if (count == 0)
+		if (count == 0) {
+			zeroRows = true;
 			continue;
+		}
 
 		auto& accumulator = slicesByPeriod[{startSec, endSec}];
 		if (accumulator.firstLine == 0)
@@ -472,8 +466,8 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 		const int endSec = entry.first.second;
 		if (maxEndSec > startSec) {
 			error(entry.second.firstLine,
-				"Period " + formatClock(startSec) + "-" + formatClock(endSec) + " overlaps "
-					+ formatClock(maxEndStartSec) + "-" + formatClock(maxEndSec));
+				"Period " + formatClockSeconds(startSec) + "-" + formatClockSeconds(endSec) + " overlaps "
+					+ formatClockSeconds(maxEndStartSec) + "-" + formatClockSeconds(maxEndSec));
 		}
 		if (endSec > maxEndSec) {
 			maxEndSec = endSec;
@@ -490,16 +484,32 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 		slice.endSeconds = static_cast<double>(entry.first.second);
 		for (const auto& cellEntry : entry.second.cells) {
 			grandTotal += cellEntry.second;
-			if (cellEntry.second <= kMaxScenePassengerDemand) {
-				slice.cells.push_back({stations[cellEntry.first.first].id, stations[cellEntry.first.second].id,
-					static_cast<int>(cellEntry.second)});
-			}
+			slice.cells.push_back({stations[cellEntry.first.first].id, stations[cellEntry.first.second].id,
+				static_cast<int>(cellEntry.second)});
 		}
 		result.slices.push_back(std::move(slice));
 	}
 	if (grandTotal > kMaxScenePassengerDemand) {
 		result.errors.push_back("Total demand is " + std::to_string(grandTotal)
 			+ " passengers, more than the limit of " + std::to_string(kMaxScenePassengerDemand));
+	}
+	// An import replaces all slices, so a table that gives none would delete all demand.
+	if (result.errors.empty() && result.slices.empty()) {
+		if (lines.size() == 1) {
+			result.errors.push_back("The table has no rows below the header");
+		} else if (result.unknownStations.empty()) {
+			result.errors.push_back("Every row has a count of 0");
+		} else {
+			constexpr std::size_t kMaxNames = 10;
+			const std::size_t shown = std::min(result.unknownStations.size(), kMaxNames);
+			std::string names;
+			for (std::size_t idx = 0; idx < shown; ++idx)
+				names += (idx == 0 ? "" : ", ") + result.unknownStations[idx].name;
+			if (result.unknownStations.size() > shown)
+				names += " and " + std::to_string(result.unknownStations.size() - shown) + " more";
+			result.errors.push_back(
+				"Every row names an unknown station (" + names + ")" + (zeroRows ? " or has a count of 0" : ""));
+		}
 	}
 	if (!result.errors.empty()) {
 		result.slices.clear();
@@ -510,7 +520,7 @@ PassengerDemandTable readPassengerDemandTable(const std::string& text, const std
 	return result;
 }
 
-std::string writePassengerDemandTable(
+PassengerDemandTableText writePassengerDemandTable(
 	const std::vector<ScenePassengerDemandSlice>& slices, const std::vector<SceneStation>& stations) {
 	std::vector<const ScenePassengerDemandSlice*> ordered;
 	ordered.reserve(slices.size());
@@ -529,6 +539,7 @@ std::string writePassengerDemandTable(
 	for (std::size_t idx = 0; idx < stations.size(); ++idx)
 		stationOrder.emplace(stations[idx].id, idx);
 
+	PassengerDemandTableText result;
 	std::ostringstream out;
 	out << "origin,destination,start,end,count\n";
 	for (const ScenePassengerDemandSlice* slice : ordered) {
@@ -538,17 +549,27 @@ std::string writePassengerDemandTable(
 				continue;
 			const auto originIt = stationOrder.find(cell.originStationId);
 			const auto destinationIt = stationOrder.find(cell.destinationStationId);
-			if (originIt == stationOrder.end() || destinationIt == stationOrder.end())
+			if (originIt == stationOrder.end() || destinationIt == stationOrder.end()) {
+				++result.droppedCells;
 				continue;
+			}
 			counts[{originIt->second, destinationIt->second}] += cell.count;
 		}
-		const std::string startText = formatClock(std::llround(slice->startSeconds));
-		const std::string endText = formatClock(std::llround(slice->endSeconds));
+		if (counts.empty()) {
+			++result.emptySlices;
+			continue;
+		}
+		for (const double seconds : {slice->startSeconds, slice->endSeconds})
+			if (std::round(seconds) != seconds)
+				++result.roundedTimes;
+		const std::string startText = formatClockSeconds(std::llround(slice->startSeconds));
+		const std::string endText = formatClockSeconds(std::llround(slice->endSeconds));
 		for (const auto& cellEntry : counts) {
 			out << escapeCsvField(stations[cellEntry.first.first].id) << ','
 				<< escapeCsvField(stations[cellEntry.first.second].id) << ','
 				<< startText << ',' << endText << ',' << cellEntry.second << '\n';
 		}
 	}
-	return out.str();
+	result.text = out.str();
+	return result;
 }

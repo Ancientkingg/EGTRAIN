@@ -23,8 +23,9 @@ struct PassengerDemandCsv {
 ///     Paimpol,52,0
 ///
 /// Each row is an origin, each column a destination. A station is matched on its id, then on its name. A byte order mark,
-/// Windows line ends, empty lines and empty trailing cells are allowed. Counts are whole numbers of 0 or more; a count on
-/// the diagonal must be 0.
+/// Windows line ends, empty lines and empty trailing cells are allowed. A field may be quoted as in RFC 4180, so that a
+/// name can hold a comma, with a quote inside it written twice; a line with an unclosed quote, or text after a closing
+/// quote, is an error. Counts are whole numbers of 0 or more; a count on the diagonal must be 0.
 PassengerDemandCsv readPassengerDemandCsv(const std::string& text, const std::vector<SceneStation>& stations);
 
 /// Writes slice in the form that readPassengerDemandCsv reads: the length of its period, then a row and a column for
@@ -60,12 +61,22 @@ struct PassengerDemandTable {
 /// HH:MM:SS or HH:MM) may replace end, with end = start + period; exactly one of end and period must be present.
 /// Stations are matched by id, then by name; rows naming unknown stations are skipped and listed in unknownStations.
 /// Rows with the same start and end form one slice, duplicate origin-destination pairs within a slice add up, and rows
-/// with count 0 are skipped. Overlapping distinct periods and a total above kMaxScenePassengerDemand are errors.
+/// with count 0 are skipped. Overlapping distinct periods and a total above kMaxScenePassengerDemand are errors, and so is
+/// a table that gives no slice at all: one without rows, or one where every row names an unknown station or has count 0.
 PassengerDemandTable readPassengerDemandTable(const std::string& text, const std::vector<SceneStation>& stations);
 
+/// A demand table written as CSV text, with what the table could not hold.
+struct PassengerDemandTableText {
+	std::string text;	  ///< The CSV text.
+	int emptySlices = 0;  ///< Slices left out because they have no passengers to write.
+	int droppedCells = 0; ///< Cells with passengers left out because a station is not in the case.
+	int roundedTimes = 0; ///< Start and end times of written slices that were rounded to whole seconds.
+};
+
 /// Writes slices in the table format that readPassengerDemandTable reads: header origin,destination,start,end,count,
-/// station ids, times as HH:MM:SS, slices in time order and cells in the order of stations.
-std::string writePassengerDemandTable(
+/// station ids, times as HH:MM:SS, slices in time order and cells in the order of stations. Reading the text back gives
+/// the same slices, apart from their ids and what the counts of the result report.
+PassengerDemandTableText writePassengerDemandTable(
 	const std::vector<ScenePassengerDemandSlice>& slices, const std::vector<SceneStation>& stations);
 
 #endif

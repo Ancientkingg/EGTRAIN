@@ -500,7 +500,9 @@ bool showDayImportPreviewDialog(QWidget* parent, const DemandDayPreview& preview
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
-	DialogLayout::install(dialog, QStringLiteral("Import Demand Day"), preview.replaceWarning, body, buttons);
+	DialogLayout::install(dialog, QStringLiteral("Import Demand Day"),
+		QStringLiteral("Importing this table replaces all demand slices of the case. Undo restores the previous slices."),
+		body, buttons);
 	DialogLayout::fitWidthToContent(dialog);
 	return dialog.exec() == QDialog::Accepted;
 }
@@ -546,8 +548,6 @@ DemandDayPreview buildDemandDayPreview(const PassengerDemandTable& table) {
 	preview.totalText = QStringLiteral("Total: %1 across %2.")
 							.arg(countLabel(table.totalPassengers, "passenger", "passengers"),
 								countLabel(static_cast<long long>(table.slices.size()), "slice", "slices"));
-	preview.replaceWarning = QStringLiteral(
-		"Importing this table replaces all demand slices of the case. Undo restores the previous slices.");
 	return preview;
 }
 
@@ -921,7 +921,8 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 
 void PassengerDemandPanel::updateDiagnostics(const ScenePassengerDemandSlice* slice) {
 	if (!m_notice.isEmpty()) {
-		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, m_notice);
+		DialogLayout::setStatus(m_diagnosticLabel,
+			m_noticeWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Error, m_notice);
 		m_diagnosticLabel->setToolTip(QString());
 		m_notice.clear();
 		return;
@@ -959,8 +960,9 @@ void PassengerDemandPanel::updateDiagnostics(const ScenePassengerDemandSlice* sl
 	}
 }
 
-void PassengerDemandPanel::showNotice(const QString& text) {
+void PassengerDemandPanel::showNotice(const QString& text, bool warning) {
 	m_notice = text;
+	m_noticeWarning = warning;
 	refresh();
 }
 
@@ -1259,9 +1261,8 @@ bool PassengerDemandPanel::importDayText(const QString& text) {
 		return false;
 	const QString previousId = m_selectedId;
 	m_selectedId = table.slices.empty() ? QString() : QString::fromStdString(table.slices.front().id);
-	const std::vector<ScenePassengerDemandSlice> imported = table.slices;
 	if (!m_document->edit(SceneDocument::Passengers, "Import demand day",
-			[&imported](SceneModel& model) { model.passengerDemand = imported; })) {
+			[&table](SceneModel& model) { model.passengerDemand = table.slices; })) {
 		m_selectedId = previousId;
 		refresh();
 		return false;
@@ -1291,7 +1292,7 @@ QString PassengerDemandPanel::dayTableText() const {
 	if (!hasScene())
 		return {};
 	return QString::fromStdString(
-		writePassengerDemandTable(m_document->model().passengerDemand, m_document->model().stations));
+		writePassengerDemandTable(m_document->model().passengerDemand, m_document->model().stations).text);
 }
 
 bool PassengerDemandPanel::exportDayFile(const QString& path) {
@@ -1299,16 +1300,27 @@ bool PassengerDemandPanel::exportDayFile(const QString& path) {
 		showNotice(QStringLiteral("There are no demand slices to export."));
 		return false;
 	}
+	const std::vector<ScenePassengerDemandSlice>& slices = m_document->model().passengerDemand;
+	const PassengerDemandTableText table = writePassengerDemandTable(slices, m_document->model().stations);
 	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly) || file.write(dayTableText().toUtf8()) < 0 || !file.commit()) {
+	if (!file.open(QIODevice::WriteOnly) || file.write(QString::fromStdString(table.text).toUtf8()) < 0 || !file.commit()) {
 		showNotice(QStringLiteral("Cannot write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString()));
 		return false;
 	}
-	Q_EMIT statusMessage(
-		QStringLiteral("Wrote %1 to %2")
-			.arg(countLabel(static_cast<long long>(m_document->model().passengerDemand.size()), "demand slice", "demand slices"),
-				QDir::toNativeSeparators(path)),
+	Q_EMIT statusMessage(QStringLiteral("Wrote %1 to %2")
+							 .arg(countLabel(static_cast<long long>(slices.size()) - table.emptySlices, "demand slice", "demand slices"),
+								 QDir::toNativeSeparators(path)),
 		6000);
+	QStringList changes;
+	if (table.emptySlices > 0)
+		changes << QStringLiteral("Left out %1 with no passengers to write.").arg(countLabel(table.emptySlices, "slice", "slices"));
+	if (table.droppedCells > 0)
+		changes << QStringLiteral("Left out %1 with a station that is not in the case.")
+					   .arg(countLabel(table.droppedCells, "cell", "cells"));
+	if (table.roundedTimes > 0)
+		changes << QStringLiteral("Rounded %1 to whole seconds.").arg(countLabel(table.roundedTimes, "slice time", "slice times"));
+	if (!changes.isEmpty())
+		showNotice(QStringLiteral("The file differs from the demand of the case.\n") + changes.join(QLatin1Char('\n')), true);
 	return true;
 }
 

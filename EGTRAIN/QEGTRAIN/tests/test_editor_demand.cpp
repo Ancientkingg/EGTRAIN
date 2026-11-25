@@ -149,6 +149,7 @@ private slots:
 	void exportsCsvRoundTrip();
 	void buildsDayImportPreview();
 	void importsAndExportsDayTable();
+	void warnsAboutWhatTheDayExportLeavesOut();
 	void deletesSlices();
 	void showsSlicesOutsideHorizon();
 	void showsValidationMessages();
@@ -675,7 +676,6 @@ void TestDemandPanel::buildsDayImportPreview() {
 	QVERIFY(preview.unknownStations[0].contains("5 passengers"));
 	QVERIFY(preview.totalText.contains("20 passengers"));
 	QVERIFY(preview.totalText.contains("2 slices"));
-	QVERIFY(preview.replaceWarning.contains("replaces all demand slices"));
 }
 
 void TestDemandPanel::importsAndExportsDayTable() {
@@ -823,6 +823,42 @@ void TestDemandPanel::importsAndExportsDayTable() {
 	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("not imported"));
 	QVERIFY(!fixture.panel.exportDayFile(directory.filePath("no/such/folder/day.csv")));
 	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+
+	// A table that would create no slice never offers to replace the slices, and the notice says why.
+	const std::size_t editsBeforeEmpty = fixture.labels.size();
+	const PreviewRun headerOnly = runPreview([](QDialog&) {},
+		[&] { return fixture.panel.importDayText("origin,destination,start,end,count\n"); });
+	QVERIFY(!headerOnly.opened);
+	QVERIFY(!headerOnly.imported);
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("no rows below the header"));
+	const PreviewRun allUnknown = runPreview([](QDialog&) {},
+		[&] { return fixture.panel.importDayText("origin,destination,start,end,count\nX,Y,07:00,08:00,5\n"); });
+	QVERIFY(!allUnknown.opened);
+	QVERIFY(!allUnknown.imported);
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("unknown station (X, Y)"));
+	QCOMPARE(fixture.labels.size(), editsBeforeEmpty);
+	QCOMPARE(fixture.slices().size(), std::size_t{2});
+}
+
+void TestDemandPanel::warnsAboutWhatTheDayExportLeavesOut() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand = {slice("early", 6 * hour, 7 * hour), slice("odd", 25200.4, 8 * hour, {{"A", "B", 4}})};
+	fixture.document.replace(scene, false);
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString path = directory.filePath("day.csv");
+	QVERIFY(fixture.panel.exportDayFile(path));
+	QFile written(path);
+	QVERIFY(written.open(QIODevice::ReadOnly));
+	QCOMPARE(QString::fromUtf8(written.readAll()), QString("origin,destination,start,end,count\nA,B,07:00:00,08:00:00,4\n"));
+	QCOMPARE(fixture.status.back().rfind("Wrote 1 demand slice to ", 0), std::size_t{0});
+	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("warning"));
+	const QString notice = fixture.panel.diagnosticLabel()->text();
+	QVERIFY(notice.contains("Left out 1 slice with no passengers to write."));
+	QVERIFY(notice.contains("Rounded 1 slice time to whole seconds."));
+	QVERIFY(!notice.contains("cell"));
 }
 
 void TestDemandPanel::deletesSlices() {

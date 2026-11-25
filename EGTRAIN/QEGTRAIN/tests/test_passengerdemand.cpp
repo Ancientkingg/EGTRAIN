@@ -83,6 +83,7 @@ private slots:
 	void readsDemandTableWithPeriodAndSkipsUnknowns();
 	void reportsDemandTableErrors();
 	void writesDemandTableThatReadsBack();
+	void reportsWhatTheDemandTableLeavesOut();
 	void followsStationRenamesAndBlocksDeletes();
 };
 
@@ -313,6 +314,20 @@ void TestPassengerDemand::reportsMatrixErrors() {
 	QVERIFY(mentions("Line 5: Unknown origin station Mars"));
 	QVERIFY(!readPassengerDemandCsv("", stations).ok());
 	QVERIFY(!readPassengerDemandCsv("Time Reference,60\n", stations).ok());
+
+	// A quote that is never closed spoils its line, as a stray quote did before quoted fields were read.
+	const PassengerDemandCsv unclosed = readPassengerDemandCsv("O/D,Guingamp,Paimpol\n\"Paimpol,1,0\n", stations);
+	QVERIFY(!unclosed.ok());
+	QVERIFY(unclosed.cells.empty());
+	QCOMPARE(unclosed.errors.size(), std::size_t{1});
+	QVERIFY(unclosed.errors[0].rfind("Line 2: ", 0) == 0);
+	// A closed quoted field is read as its text.
+	const PassengerDemandCsv quoted = readPassengerDemandCsv("O/D,\"Guingamp\",Paimpol\n\"Paimpol\",52,0\n", stations);
+	QVERIFY(quoted.ok());
+	QCOMPARE(quoted.cells.size(), std::size_t{1});
+	QCOMPARE(quoted.cells[0].originStationId, std::string("Paimpol"));
+	QCOMPARE(quoted.cells[0].destinationStationId, std::string("Guingamp"));
+	QCOMPARE(quoted.cells[0].count, 52);
 }
 
 void TestPassengerDemand::writesAMatrixThatReadsBack() {
@@ -445,6 +460,20 @@ void TestPassengerDemand::reportsDemandTableErrors() {
 	QVERIFY(!overLimit.ok());
 	QVERIFY(overLimit.slices.empty());
 	QVERIFY(mentions(overLimit, std::to_string(kMaxScenePassengerDemand)));
+
+	// A table that would create no slice is refused with the reason, so that an import never just deletes all demand.
+	const PassengerDemandTable headerOnly = readPassengerDemandTable("origin,destination,start,end,count\n", stations);
+	QVERIFY(!headerOnly.ok());
+	QVERIFY(mentions(headerOnly, "no rows below the header"));
+	const PassengerDemandTable allUnknown = readPassengerDemandTable(
+		"origin,destination,start,end,count\nX,Y,07:00,08:00,5\n", stations);
+	QVERIFY(!allUnknown.ok());
+	QVERIFY(allUnknown.slices.empty());
+	QVERIFY(mentions(allUnknown, "Every row names an unknown station (X, Y)"));
+	const PassengerDemandTable allZero = readPassengerDemandTable(
+		"origin,destination,start,end,count\nGuingamp,Paimpol,07:00,08:00,0\n", stations);
+	QVERIFY(!allZero.ok());
+	QVERIFY(mentions(allZero, "Every row has a count of 0"));
 }
 
 void TestPassengerDemand::writesDemandTableThatReadsBack() {
@@ -453,7 +482,11 @@ void TestPassengerDemand::writesDemandTableThatReadsBack() {
 	const ScenePassengerDemandSlice evening{"evening", 17 * 3600.0, 18 * 3600.0, {{"Paimpol", "Guingamp", 22}}};
 	const ScenePassengerDemandSlice early{"early", 8 * 3600.0, 9 * 3600.0,
 		{{"Paimpol", "Gourland", 37}, {"Guingamp", "Paimpol", 75}}};
-	const std::string text = writePassengerDemandTable({evening, early}, scene.stations);
+	const PassengerDemandTableText written = writePassengerDemandTable({evening, early}, scene.stations);
+	QCOMPARE(written.emptySlices, 0);
+	QCOMPARE(written.droppedCells, 0);
+	QCOMPARE(written.roundedTimes, 0);
+	const std::string& text = written.text;
 	QVERIFY(text.rfind("origin,destination,start,end,count\n", 0) == 0);
 	const PassengerDemandTable readBack = readPassengerDemandTable(text, scene.stations);
 	QVERIFY2(readBack.ok(), readBack.errors.empty() ? "" : readBack.errors[0].c_str());
@@ -471,7 +504,18 @@ void TestPassengerDemand::writesDemandTableThatReadsBack() {
 	QCOMPARE(readBack.slices[1].endSeconds, 18 * 3600.0);
 	QCOMPARE(readBack.slices[1].cells.size(), std::size_t{1});
 	QCOMPARE(readBack.slices[1].cells[0].count, 22);
-	QCOMPARE(writePassengerDemandTable(readBack.slices, scene.stations), text);
+	QCOMPARE(writePassengerDemandTable(readBack.slices, scene.stations).text, text);
+}
+
+void TestPassengerDemand::reportsWhatTheDemandTableLeavesOut() {
+	const std::vector<SceneStation> stations = paimpol().stations;
+	const ScenePassengerDemandSlice empty{"empty", 6 * 3600.0, 7 * 3600.0, {}};
+	const ScenePassengerDemandSlice odd{"odd", 25200.4, 8 * 3600.0, {{"Guingamp", "Paimpol", 5}, {"Atlantis", "Paimpol", 3}}};
+	const PassengerDemandTableText written = writePassengerDemandTable({empty, odd}, stations);
+	QCOMPARE(written.text, std::string("origin,destination,start,end,count\nGuingamp,Paimpol,07:00:00,08:00:00,5\n"));
+	QCOMPARE(written.emptySlices, 1);
+	QCOMPARE(written.droppedCells, 1);
+	QCOMPARE(written.roundedTimes, 1);
 }
 
 void TestPassengerDemand::followsStationRenamesAndBlocksDeletes() {
