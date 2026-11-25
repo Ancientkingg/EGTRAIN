@@ -5,7 +5,9 @@ Runs the assignment scene unchanged and with incident variants, then asserts
 that
 
   * the unchanged run has the target train moving during the window (control),
-  * the incident run has the target train's position frozen during the window,
+  * the incident run has the target train, which runs when the window starts,
+    brake to a stand within the braking limit of its rolling stock and stand
+    until the window ends,
   * the incident run has the target train moving before and after the window.
 
 This exercises the scenarios.json -> native operations builder -> runtime
@@ -35,6 +37,11 @@ TARGET_TRAIN = "IC1723-1"
 WINDOW_START = 800
 WINDOW_END = 1400
 _TOL = 1.0  # metres; positions within this are treated as unchanged
+# The train brakes with 0.75 m/s2 plus running resistance, so it stands well
+# within this many seconds. The deceleration limit leaves room for the rounding
+# of the positions in the file.
+MAX_BRAKING_S = 90
+MAX_DECELERATION = 1.2  # m/s2
 
 # signal_failure phase: blocks are 2 km each (TrackLines/B0/BlockCumPari.txt),
 # so 12-B0 starts at 24 km. At the window start the train is near 14.5 km,
@@ -120,11 +127,22 @@ def main() -> None:
         scenarios_path.write_text(json.dumps(scenarios, indent=2), encoding="utf-8")
 
         inc_positions = run_scene(incident_scene, tmp_dir, "incident")
-        held = span(inc_positions, WINDOW_START, WINDOW_END)
-        if held > _TOL:
-            sys.exit(f"incident failed: {TARGET_TRAIN} moved {held:.2f} m during the breakdown window "
-                     f"[{WINDOW_START},{WINDOW_END}] but should be held")
-        print(f"PASS incident: {TARGET_TRAIN} held (span {held:.2f} m) during the breakdown window")
+        stand = next((t for t in range(WINDOW_START, WINDOW_START + MAX_BRAKING_S + 1)
+                      if span(inc_positions, t, WINDOW_END) <= _TOL), None)
+        if stand is None:
+            sys.exit(f"incident failed: {TARGET_TRAIN} does not stand from at most {MAX_BRAKING_S} s after the "
+                     f"breakdown starts until it ends [{WINDOW_START},{WINDOW_END}]")
+        # From the last second before the breakdown: the distance of each second is its mean speed.
+        braking = inc_positions[WINDOW_START - 2:stand + 1]
+        if None in braking:
+            sys.exit(f"incident failed: {TARGET_TRAIN} has no position while it brakes")
+        steps = [b - a for a, b in zip(braking, braking[1:])]
+        hardest = max(a - b for a, b in zip(steps, steps[1:]))
+        if hardest > MAX_DECELERATION:
+            sys.exit(f"incident failed: {TARGET_TRAIN} slows by {hardest:.2f} m/s in one second after the "
+                     f"breakdown starts, more than its brakes allow")
+        print(f"PASS incident: {TARGET_TRAIN} brakes over {braking[-1] - braking[1]:.0f} m in "
+              f"{stand - WINDOW_START} s and stands until the breakdown ends")
 
         before = span(inc_positions, 300, WINDOW_START)
         after = span(inc_positions, WINDOW_END, 2200)

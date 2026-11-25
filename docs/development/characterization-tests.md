@@ -92,6 +92,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `pax-signal-failure-change` | a signal failure on `1-B0` from 560 s to 800 s holds `Q3` and `Q4` at 2 km; `c1` (P to C) changes at B from `Q1` to `Q3` and waits for it, and `c2` appears at B after the planned departure of `Q3`, plans `Q4` and takes `Q3` when it arrives |
 | `entrance-delay-f2-level-0` | trains `F1` and `F2` with an entrance delay of 120 s for `F2` at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals `follow-level-0` and only the planned departure of `F2` at A moves, from 180 s to 300 s |
 | `breakdown-f1-level-0` | the same trains with a breakdown of `F1` from 200 s that caps its speed at 40 km/h until the end of its route; `F1` reaches C late and `F2`, held behind it, has not reached C when the run ends at 1500 s |
+| `breakdown-line-speed-level-0`, `-3` | trains `F1` and `F2` with a breakdown of `F1` from 240 s to 600 s, which finds it at line speed 475 m before the end of `2-B0`; `F1` brakes on its braking curve and stands from 283 s at 6273 m, in `3-B0`, 273 m past the signal at 6 km, until 600 s, and `F2` waits behind it: at level 0 at the end of `2-B0`, at level 3 50 m behind its tail |
+| `breakdown-pass-station-level-0` | train `E1` alone with a breakdown from 300 s to 600 s, which finds it at line speed 308 m before B, where it does not stop; `E1` brakes through B, stands from 343 s at 8440 m until 600 s and then runs on to C |
+| `breakdown-stop-approach-level-0` | train `F1` alone with a breakdown from 320 s to 500 s, which finds it braking for its stop at B, 46 m before it; `F1` stands at 331 s where it stands without the breakdown, 2 mm before B, and its stop there starts when the breakdown ends: the arrival at B is 499 s, the dwell runs from 500 s and it leaves at its planned departure, 660 s |
 
 Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -341,7 +344,7 @@ re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
 no faster run to station B than the top speed allows (in a stub case only for a
 train that starts before B), planned dwell and departure times kept, stops only at a platform, a
-block boundary or behind another train, no overlap of two trains, and in every
+block boundary, behind another train or where a breakdown holds the train, no overlap of two trains, and in every
 station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
 that equal the sum and the number of the arrival delays of its `result` lines
 (only the late ones in the sum for `stats`). In a `single-track-*` case `S1` and
