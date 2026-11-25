@@ -62,6 +62,9 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-late-level-0
 	sf-late-level-3
 	sf-retarget-level-0
+	sf-passed-station-level-none
+	sf-passed-station-level-0
+	sf-other-platform-level-none
 	late-leader-level-3
 	late-leader-level-4
 	skip-stop-level-0

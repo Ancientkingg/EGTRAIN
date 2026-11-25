@@ -326,8 +326,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 			int BsIndex = -1, AsIndex = -1;
 
 			locateHead(time_seconds, As, BsIndex, AsIndex);
-			// A platform node, or a stop of this train
-			const bool stationAtEndOfAs = As.endNode.station || isStopArc(BsIndex, AsIndex);
+			// A stop of this train: the node that it brakes for to call there. A platform where it does not call is an ordinary node.
+			const bool stopAtEndOfAs = isStopArc(BsIndex, AsIndex);
 			// Determination of the right speed limit to observe. The service performance scales the maximum speed of the train
 			// (already in max_train_speed) and the track speed limit, not the signal speed limit.
 			double Speeds[3];
@@ -468,7 +468,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 
 			if (followingStep) {
 				// The first coupling step keeps the normal result. Later steps are proposals, not overrides.
-				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < kAtPointM && (stationAtEndOfAs || As.endNode.respectOrder || Bs.state == SignalState::Red)));
+				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < kAtPointM && (stopAtEndOfAs || As.endNode.respectOrder || Bs.state == SignalState::Red)));
 				if (CounterFollowingMode > 1 && liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
 					&& !mustBrake && !infeasibleCandidate && !IsTrainStoppedForEoA && !StoppedForServiceStop && !stationaryHold
 					&& std::isfinite(liveLeader->TrainInfo.TrainSpeed) && std::isfinite(liveLeader->TrainInfo.Acceleration)) {
@@ -509,7 +509,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 
 			// Standing Train Conditions
 			if (instant_train_speed[time_seconds - 1] == 0)
-				standingTrainStep(time_seconds, As, head, mustBrake, stationAtEndOfAs, V_lim);
+				standingTrainStep(time_seconds, As, head, mustBrake, stopAtEndOfAs, V_lim);
 
 			// Update the status of Infrastructure elements on the route of the train
 			if (time_seconds > 0) {
@@ -651,12 +651,12 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 	return false;
 }
 
-void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool mustBrake, bool stationAtEndOfAs, double V_lim) {
+void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool mustBrake, bool stopAtEndOfAs, double V_lim) {
 	// A replacement authority's approved stationary step also constrains node handling.
 	const bool authorityHold = IsTrainStoppedForEoA || (mustBrake && BrakingForEoA && instant_train_speed[time_seconds] == 0 && instant_spatial_position[time_seconds] == head);
 
 	// Stopping at a station for an estabilished dwell time
-	if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < kAtPointM) && stationAtEndOfAs) {
+	if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < kAtPointM) && stopAtEndOfAs) {
 		serviceStopStep(time_seconds, As, head, authorityHold);
 	}
 
