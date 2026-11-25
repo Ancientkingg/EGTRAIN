@@ -1322,9 +1322,11 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		// Q1 stands at P from 220 s and is held there from 400 to 800 s (see the incident of the case), so it leaves P 339 s late.
 		// Q2 stands on the platform of Q1 at B until 1000 s and reaches C later than Q1 on the timetable. All three go from B to C.
 		// w1 appears while Q1 is on time and plans it. w2 appears while Q1 stands at P 140 s after its planned departure: Q1 is
-		// predicted to leave now, which still reaches C before Q2. Both keep waiting for Q1, as nothing plans again for a train
-		// that runs late, and ride it. w3 appears after Q1 has left P late by more than the late threshold and before the planned
-		// departure of Q1 from B: it plans on the predicted times and takes Q2. Below the threshold it would have planned Q1.
+		// predicted to leave now, which still reaches C before Q2. Both wait for Q1 until 761 s, when it has stood at P 301 s past
+		// its planned departure, more than the late threshold: it is then predicted at C more than the margin after Q2, so both
+		// plan again and take Q2, which stands on their platform. w3 appears after Q1 has left P late by more than the late
+		// threshold and before the planned departure of Q1 from B: it plans on the predicted times and takes Q2. Below the
+		// threshold it would have planned Q1.
 		scene.passengers.push_back({"w1", {journey("w1.1", 300, 1400, "B", "C", {})}});
 		scene.passengers.push_back({"w2", {journey("w2.1", 600, 1400, "B", "C", {})}});
 		scene.passengers.push_back({"w3", {journey("w3.1", 810, 1400, "B", "C", {})}});
@@ -1340,8 +1342,9 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		// As t1 of live-transfer, but without Q2: c1 rides Q1 from P to B and changes there to Q3 on Platform_4. A signal failure
 		// on 1-B0 from 560 to 800 s (see the incident of the case), after Q1 has passed, stops Q3 and Q4 in front of it at 2 km,
 		// so Q3 reaches B after its planned departure; c1 keeps waiting for it and rides it. c2 appears at B after that planned
-		// departure, while Q3 is still on its way: Q3 has not reached a stop yet and so counts as on time and gone, and c2 plans
-		// Q4. When Q3 arrives, it reaches C before Q4 is planned to, and c2 takes it.
+		// departure, while Q3 is still on its way. The timetable of Q3 has B at the node of Platform_4, which its head passed
+		// before that departure, and Q3 is not due at C yet: it counts as on time and gone, and c2 plans Q4. When Q3 arrives, it
+		// reaches C before Q4 is planned to, and c2 takes it.
 		scene.passengers.push_back({"c1", {journey("c1.1", 150, 1450, "P", "C", {})}});
 		scene.passengers.push_back({"c2", {journey("c2.1", 980, 1450, "B", "C", {})}});
 	} else if (set == "live-transfer") {
