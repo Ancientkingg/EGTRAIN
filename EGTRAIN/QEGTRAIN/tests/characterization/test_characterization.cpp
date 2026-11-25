@@ -235,6 +235,8 @@ struct CaseSpec {
 	bool skipStop = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
+	// F1 stands at B until 1050 s, in front of the restriction, and R1 runs on routeCB from C to B from 650 s.
+	bool stopBeforeZone = false;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -375,6 +377,12 @@ std::vector<CaseSpec> buildCaseTable() {
 			cases.push_back(held);
 		}
 	}
+	// F1 stands at B, just before a restriction from B to C, while R1 runs from C to B: R1 crosses the restriction during
+	// the dwell, because a train at a service stop asks for the restriction only when it is ready to leave.
+	CaseSpec stopBefore{"stop-before-zone-level-0", "baseline", {"F1", "R1"}, 0, "", true};
+	stopBefore.restriction = {"5-B0", "6-B0", "4-B0", "7-B0"};
+	stopBefore.stopBeforeZone = true;
+	cases.push_back(stopBefore);
 	// Two following services over a border between two levels, at station B (8 km) unless the entry gives another
 	// position. The names give the level on the A side and on the C side; fwd runs from A to C, rev from C to A.
 	const struct {
@@ -1067,7 +1075,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				}
 			}
 	}
-	if ((spec.stub || (spec.runningConflict && !spec.runningThrough)) && !waived)
+	if ((spec.stub || spec.stopBeforeZone || (spec.runningConflict && !spec.runningThrough)) && !waived)
 		for (const TrainTrack& track : tracks) {
 			const TimetableResultRow* last = nullptr;
 			for (const TimetableResultRow& row : rows)
@@ -1092,6 +1100,17 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 					}
 				}
 			}
+	}
+	if (spec.stopBeforeZone && !waived) {
+		double crossed = -1.0, left = -1.0;
+		for (const TimetableResultRow& row : rows) {
+			if (row.trainId == "R1-1" && row.stationId == "B" && row.simulatedArrivalSeconds.available)
+				crossed = row.simulatedArrivalSeconds.value;
+			if (row.trainId == "F1-1" && row.stationId == "B" && row.simulatedDepartureSeconds.available)
+				left = row.simulatedDepartureSeconds.value;
+		}
+		if (crossed < 0.0 || left < 0.0 || crossed >= left)
+			fail("R1 does not cross the restriction while F1 stands at B");
 	}
 	if (spec.stub && !waived) {
 		// Each route lies completely inside the stub, so opposing trains are never active together.
@@ -1532,6 +1551,33 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					stop.plannedDepartureSeconds += offset;
 			}
 		}
+	if (spec.stopBeforeZone) {
+		SceneRoute reverse;
+		reverse.id = "routeCB";
+		reverse.blocks = {"7-B0", "6-B0", "5-B0", "4-B0"};
+		loaded.scene.routes.push_back(reverse);
+		for (SceneService& service : loaded.scene.services) {
+			if (service.id == "F1")
+				for (SceneStop& stop : service.stops) {
+					if (stop.stationId == "B")
+						stop.plannedDepartureSeconds = 1050.0;
+					if (stop.stationId == "C")
+						stop.plannedArrivalSeconds = 1350.0;
+				}
+			if (service.id != "R1")
+				continue;
+			service.route = reverse.id;
+			service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [](const SceneStop& stop) {
+				return stop.stationId == "A";
+			}),
+				service.stops.end());
+			service.entryTimeSeconds = 650.0;
+			for (SceneStop& stop : service.stops) {
+				stop.plannedArrivalSeconds = stop.stationId == "B" ? 950.0 : stop.plannedArrivalSeconds;
+				stop.plannedDepartureSeconds = stop.stationId == "B" ? 1000.0 : 660.0;
+			}
+		}
+	}
 	if (spec.passengers == "live-missed")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 738.0});
 	if (spec.passengers == "live-slowed") {

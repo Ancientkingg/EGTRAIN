@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <sstream>
 
@@ -345,25 +346,59 @@ bool Train::entryCutsOffTrain(int step, const Section* BS) const {
 	return false;
 }
 
+namespace {
+// A train that the single-track rules look at in a step, at its position on its route in metres. A waiting train is due at
+// its entry and not in the network yet; it stands at its entry with speed 0.
+struct LockTrain {
+	int index = -1;
+	int route = -1;
+	bool waiting = false;
+	bool dwelling = false;
+	double head = 0, tail = 0, speed = 0;
+};
+
+// A train that stands on the way out of a zone for the target route, or cannot stop before it any more, or holds a further
+// zone on it. start is the index on the route of the train of the first section of that way out.
+struct WayOutBlock {
+	std::size_t limit = 0;
+	const LockTrain* train = nullptr;
+	int target = -1;
+	bool on = false;
+	int start = -1;
+};
+} // namespace
+
 // Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
-// same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
+// same-direction followers. A train at a service stop asks only when its dwell is over and its planned departure has come,
+// so a reservation does not survive a service stop. Other temporary stops do not cancel a reservation; passage,
+// termination or retargeting does.
+// A new request is refused while a train of the other direction stands on the way out of the zone of the requesting route,
+// or cannot stop before it any more. The requesting route then waits in front of the way out of that train's route, which
+// stays closed as long as a train holds the zone or is on its way out of it.
 void updateSingleTrackLocks(SimulationRun& run, int step) {
-	if (run.infra.singleTrackLimits.empty() || timestep <= 0)
+	RunInfrastructure& infra = run.infra;
+	if (infra.singleTrackLimits.empty() || timestep <= 0)
 		return;
-	if (run.infra.singleTrackHeld.size() != run.infra.singleTrackLimits.size())
-		run.infra.singleTrackHeld.assign(run.infra.singleTrackLimits.size(), 0);
-	if (run.infra.singleTrackReservations.size() != run.infra.singleTrackLimits.size())
-		run.infra.singleTrackReservations.resize(run.infra.singleTrackLimits.size());
+	const std::size_t limits = infra.singleTrackLimits.size();
+	const int routeCount = static_cast<int>(infra.routes.size());
+	if (infra.singleTrackHeld.size() != limits)
+		infra.singleTrackHeld.assign(limits, 0);
+	if (infra.singleTrackReservations.size() != limits)
+		infra.singleTrackReservations.resize(limits);
 	const int index = step - static_cast<int>(run.signallingDelay / timestep);
-	std::vector<int> forward(run.infra.singleTrackLimits.size(), 0), backward(run.infra.singleTrackLimits.size(), 0);
-	std::vector<std::vector<SingleTrackReservation>> requests(run.infra.singleTrackLimits.size());
-	std::vector<int> retainedDirection(run.infra.singleTrackLimits.size(), 0);
+	std::vector<int> forward(limits, 0), backward(limits, 0);
+	std::vector<std::vector<SingleTrackReservation>> requests(limits);
+	std::vector<std::vector<char>> retainedRequest(limits);
+	std::vector<int> retainedDirection(limits, 0);
+	std::vector<std::vector<int>> occupantRoutes(limits);
+	std::vector<LockTrain> active;
+	active.reserve(run.trains.size());
 	for (int k = 0; k < run.numTrains && k < static_cast<int>(run.trains.size()); ++k) {
 		Train& train = run.trains[k];
-		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(run.infra.routes.size())
+		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= routeCount
 			|| !singleTrackRouteHasZone(run, train.indexOfRoute))
 			continue;
-		Route& route = run.infra.routes[train.indexOfRoute];
+		Route& route = infra.routes[train.indexOfRoute];
 		const bool waiting = !train.CanEnter;
 		if (!waiting && (step < train.departure_time || index < 0 || index >= static_cast<int>(train.instant_spatial_position.size())))
 			continue;
@@ -374,18 +409,21 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 		const double speed = !waiting && index < static_cast<int>(train.instant_train_speed.size())
 			? train.instant_train_speed[index]
 			: 0.0;
-		for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+		const bool dwelling = !waiting && train.dwellsAtServiceStop(step);
+		active.push_back({k, train.indexOfRoute, waiting, dwelling, head, tail, speed});
+		for (std::size_t l = 0; l < limits; ++l) {
 			const auto& intervals = singleTrackZone(run, l, train.indexOfRoute).intervals;
 			for (const auto& interval : intervals) {
 				if (!waiting && interval.first <= head && tail < interval.second) {
 					(route.reversed_direction ? backward : forward)[l]++;
+					occupantRoutes[l].push_back(train.indexOfRoute);
 					break;
 				}
 			}
 			for (const auto& interval : intervals) {
-				if (tail >= interval.second)
+				if (tail >= interval.second || dwelling)
 					continue;
-				const auto& pending = run.infra.singleTrackReservations[l];
+				const auto& pending = infra.singleTrackReservations[l];
 				const bool retained = std::any_of(pending.begin(), pending.end(), [&](const SingleTrackReservation& owner) {
 					return owner.trainIndex == k && owner.routeIndex == train.indexOfRoute && owner.trainDescription == train.trainDescription
 						&& owner.departureTime == train.departure_time && owner.origin == train.Start_Node_X
@@ -393,38 +431,178 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 				});
 				if (retained)
 					retainedDirection[l] = route.reversed_direction ? -1 : 1;
-				if (retained || ((!waiting || step + 1 >= train.departure_time) && train.needsSingleTrackReservation(head, speed, interval.first, route.sequence_of_block_sections.data(), route.N_Block_Sections)))
+				if (retained || ((!waiting || step + 1 >= train.departure_time) && train.needsSingleTrackReservation(head, speed, interval.first, route.sequence_of_block_sections.data(), route.N_Block_Sections))) {
 					requests[l].push_back({k, train.indexOfRoute, train.trainDescription, train.departure_time, train.Start_Node_X, route.x_of_end_node, interval});
+					retainedRequest[l].push_back(retained ? 1 : 0);
+				}
 			}
 		}
 	}
-	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+	std::vector<char> routeInUse(routeCount, 0);
+	for (const LockTrain& train : active)
+		routeInUse[train.route] = 1;
+	auto opposite = [&infra](int a, int b) { return infra.routes[a].reversed_direction != infra.routes[b].reversed_direction; };
+	auto sectionStart = [&infra](int route, int b) { return infra.routes[route].sequence_of_block_sections[b].start_node.X * 1000; };
+	auto sectionEnd = [&infra](int route, int b) { return infra.routes[route].sequence_of_block_sections[b].end_node.X * 1000; };
+	// Where a holder of zone l on route holder closes the way of each route of the other direction: in front of the way out
+	// of the holder toward that route.
+	auto closeForHolder = [&](std::size_t l, int holder, const std::function<void(int, int)>& close) {
+		for (int r = 0; r < routeCount; ++r) {
+			if (!routeInUse[r] || !opposite(r, holder))
+				continue;
+			const SingleTrackZone& zone = singleTrackZone(run, l, r);
+			if (zone.first >= 0 && holder < static_cast<int>(zone.waitBefore.size()) && zone.waitBefore[holder] >= 0)
+				close(r, zone.waitBefore[holder]);
+		}
+	};
+	// A train past the zone holds its way out until its tail has left it.
+	auto closeForLeavers = [&](std::size_t l, const std::function<void(int, int)>& close) {
+		for (const LockTrain& train : active) {
+			const SingleTrackZone& zone = singleTrackZone(run, l, train.route);
+			if (train.waiting || zone.last < 0 || train.head < sectionEnd(train.route, zone.last))
+				continue;
+			for (int r = 0; r < routeCount; ++r)
+				if (routeInUse[r] && r < static_cast<int>(zone.exitUntil.size()) && zone.exitUntil[r] > zone.last
+					&& train.tail < sectionEnd(train.route, zone.exitUntil[r]))
+					close(r, singleTrackZone(run, l, r).waitBefore[train.route]);
+		}
+	};
+
+	// The trains on, or committed to, the way out of a zone for a route of the other direction.
+	std::vector<WayOutBlock> blocks;
+	for (std::size_t l = 0; l < limits; ++l)
+		for (const LockTrain& train : active) {
+			const SingleTrackZone& zone = singleTrackZone(run, l, train.route);
+			if (zone.first < 0 || train.tail >= sectionStart(train.route, zone.first))
+				continue;
+			Route& route = infra.routes[train.route];
+			std::vector<std::pair<int, bool>> committedFrom; // the answer for each start of a way out
+			for (int r = 0; r < routeCount && r < static_cast<int>(zone.waitBefore.size()); ++r) {
+				const int start = zone.waitBefore[r];
+				if (!routeInUse[r] || start < 0 || start >= zone.first)
+					continue;
+				const double from = sectionStart(train.route, start), to = sectionStart(train.route, zone.first);
+				const bool on = !train.waiting && train.head > from;
+				bool committed = false;
+				if (!on) {
+					const auto known = std::find_if(committedFrom.begin(), committedFrom.end(), [start](const std::pair<int, bool>& entry) {
+						return entry.first == start;
+					});
+					if (known != committedFrom.end())
+						committed = known->second;
+					else {
+						committed = !train.waiting && !train.dwelling
+							&& run.trains[train.index].needsSingleTrackReservation(train.head, train.speed, from, route.sequence_of_block_sections.data(), route.N_Block_Sections);
+						for (std::size_t m = 0; m < limits && !committed; ++m)
+							for (const SingleTrackReservation& request : requests[m])
+								if (m != l && request.trainIndex == train.index && request.interval.first < to && request.interval.second > from)
+									committed = true;
+						committedFrom.emplace_back(start, committed);
+					}
+				}
+				if (on || committed)
+					blocks.push_back({l, &train, r, on, start});
+			}
+		}
+	// A train behind a closed section in front of its way out cannot reach it. A train on its way out blocks; of two trains that
+	// are only committed, the forward one blocks; then the reversed trains that are still not held in front of their way out.
+	std::vector<std::vector<int>> closedAt(routeCount);
+	auto addClosed = [&closedAt](int r, int b) { closedAt[r].push_back(b); };
+	for (std::size_t l = 0; l < limits; ++l) {
+		for (int holder : occupantRoutes[l])
+			closeForHolder(l, holder, addClosed);
+		for (std::size_t q = 0; q < requests[l].size(); ++q)
+			if (retainedRequest[l][q])
+				closeForHolder(l, requests[l][q].routeIndex, addClosed);
+		closeForLeavers(l, addClosed);
+	}
+	std::vector<char> effective(blocks.size(), 0);
+	for (int phase = 0; phase < 3; ++phase)
+		for (std::size_t b = 0; b < blocks.size(); ++b) {
+			const WayOutBlock& block = blocks[b];
+			const bool forwardTrain = !infra.routes[block.train->route].reversed_direction;
+			if ((phase == 0) != block.on || (phase == 1 && !forwardTrain) || (phase == 2 && forwardTrain))
+				continue;
+			const std::vector<int>& closed = closedAt[block.train->route];
+			effective[b] = block.on || std::none_of(closed.begin(), closed.end(), [&](int c) {
+				return c >= 0 && c <= block.start && block.train->head < sectionStart(block.train->route, c);
+			});
+			if (effective[b])
+				addClosed(block.target, singleTrackZone(run, block.limit, block.target).waitBefore[block.train->route]);
+		}
+
+	for (std::size_t l = 0; l < limits; ++l) {
 		int held = 0;
-		if (run.infra.singleTrackHeld[l] < 0 && backward[l] > 0)
+		if (infra.singleTrackHeld[l] < 0 && backward[l] > 0)
 			held = -1; // NOLINT(bugprone-branch-clone): the branch order decides which direction wins
 		else if (forward[l] > 0)
 			held = 1;
 		else if (backward[l] > 0)
 			held = -1;
-		auto direction = [&run](const SingleTrackReservation& owner) { return run.infra.routes[owner.routeIndex].reversed_direction ? -1 : 1; };
+		auto direction = [&infra](const SingleTrackReservation& owner) { return infra.routes[owner.routeIndex].reversed_direction ? -1 : 1; };
+		auto refused = [&](std::size_t q) {
+			if (retainedRequest[l][q])
+				return false;
+			for (std::size_t b = 0; b < blocks.size(); ++b)
+				if (effective[b] && blocks[b].limit == l && blocks[b].target == requests[l][q].routeIndex)
+					return true;
+			return false;
+		};
 		if (held == 0)
 			held = retainedDirection[l];
 		if (held == 0)
-			for (const auto& request : requests[l])
-				if (direction(request) > 0 || held == 0)
-					held = direction(request); // forward wins only simultaneous requests on a free zone
-		run.infra.singleTrackReservations[l].clear();
-		for (const auto& request : requests[l])
-			if (direction(request) == held)
-				run.infra.singleTrackReservations[l].push_back(request);
-		if (held != run.infra.singleTrackHeld[l]) {
-			for (int r = 0; r < static_cast<int>(run.infra.routes.size()); ++r)
+			for (std::size_t q = 0; q < requests[l].size(); ++q)
+				if (!refused(q) && (direction(requests[l][q]) > 0 || held == 0))
+					held = direction(requests[l][q]); // forward wins only simultaneous requests on a free zone
+		infra.singleTrackReservations[l].clear();
+		for (std::size_t q = 0; q < requests[l].size(); ++q)
+			if (direction(requests[l][q]) == held && !refused(q))
+				infra.singleTrackReservations[l].push_back(requests[l][q]);
+		if (held != infra.singleTrackHeld[l]) {
+			for (int r = 0; r < routeCount; ++r)
 				for (const std::string& id : singleTrackZone(run, l, r).sectionIDs)
 					if (std::find(run.blocksConnected.begin(), run.blocksConnected.end(), id) == run.blocksConnected.end())
 						run.blocksConnected.push_back(id);
-			run.infra.singleTrackHeld[l] = held;
+			infra.singleTrackHeld[l] = held;
 		}
 	}
+
+	// The closures of this step: in front of the way out of every holder and leaving train, and of every blocking train.
+	std::vector<int> closures(limits * routeCount, -1);
+	for (std::size_t l = 0; l < limits; ++l) {
+		auto close = [&](int r, int b) {
+			if (b < 0 || b >= singleTrackZone(run, l, r).first)
+				return; // a closure at the zone itself is the held direction
+			int& closure = closures[l * routeCount + r];
+			closure = closure < 0 ? b : std::min(closure, b);
+		};
+		for (int holder : occupantRoutes[l])
+			closeForHolder(l, holder, close);
+		for (const SingleTrackReservation& owner : infra.singleTrackReservations[l])
+			closeForHolder(l, owner.routeIndex, close);
+		closeForLeavers(l, close);
+		for (std::size_t b = 0; b < blocks.size(); ++b)
+			if (effective[b] && blocks[b].limit == l) {
+				const int at = singleTrackZone(run, l, blocks[b].target).waitBefore[blocks[b].train->route];
+				int& closure = closures[l * routeCount + blocks[b].target];
+				closure = closure < 0 ? at : std::min(closure, at);
+			}
+	}
+	std::vector<int>& previous = infra.singleTrackClosures;
+	if (previous.size() != closures.size())
+		previous.assign(closures.size(), -1);
+	for (std::size_t slot = 0; slot < closures.size(); ++slot) {
+		if (closures[slot] == previous[slot])
+			continue;
+		const Route& route = infra.routes[slot % routeCount];
+		for (int b : {previous[slot], closures[slot]})
+			if (b >= 0 && b < route.N_Block_Sections) {
+				const std::string& id = route.sequence_of_block_sections[b].ID;
+				if (std::find(run.blocksConnected.begin(), run.blocksConnected.end(), id) == run.blocksConnected.end())
+					run.blocksConnected.push_back(id);
+			}
+	}
+	previous = std::move(closures);
 }
 
 // Function to Print out the blocking times of all the Trains

@@ -221,6 +221,8 @@ private slots:
 	void unsetLevelTakesNoChainOfLevel0();
 	void trainStorageHoldsLastBuild();
 	void singleTrackLocks();
+	void singleTrackServiceStops();
+	void singleTrackWaysOut();
 	void signallingFindsSectionsById();
 	void signallingRejectsUnnumberedRoutes();
 	void rollingStockMessages();
@@ -5249,6 +5251,37 @@ void TestOperationsBuilder::trainStorageHoldsLastBuild() {
 // A single-track section is held by the direction of the trains in it. Trains of the other direction see
 // its sections as occupied, trains of the same direction do not, and the sections are released when it
 // changes holder or becomes free.
+// Puts train k of the default run on route with its head at head (m), at line speed, with the SLT_Sprinter values of the
+// unchanged characterization fixture; active false takes it out of the simulation.
+static void placeLockTrain(int k, int route, double head, bool active) {
+	Regional& train = defaultRun().trains[k];
+	train.run_ = &defaultRun();
+	train.indexOfRoute = route;
+	train.departure_time = 0.0;
+	train.CanEnter = true;
+	train.OutOfSimulation = !active;
+	train.train_length = 70.0;
+	train.instant_spatial_position = {head - 100.0, head};
+	train.instant_train_speed = {36.111111111111, 36.111111111111};
+	// SLT_Sprinter values from the unchanged characterization fixture.
+	train.trainDescription = "lock-train-" + std::to_string(k);
+	train.Start_Node_X = 0.0;
+	train.total_train_mass = train.mass_of_traction_unit = 151000.0;
+	train.massFactor = 1.09;
+	train.max_train_speed = 36.111111111111;
+	train.max_train_decelaration = train.Jerk = 0.75;
+	train.frontal_wagon_area = 1.45;
+	train.resistanceCoefficient = 0.004;
+	train.velocityIntervals = 2;
+	train.Vlb[0] = 0.0;
+	train.Vub[0] = train.Vlb[1] = 8.611111111111;
+	train.Vub[1] = train.max_train_speed;
+	train.C0[0] = 209000.0;
+	train.C0[1] = 324607.2915;
+	train.C1[1] = -17671.4923;
+	train.C2[1] = 292.9005;
+}
+
 void TestOperationsBuilder::singleTrackLocks() {
 	std::vector<Route> savedRoutes;
 	savedRoutes.swap(defaultRun().infra.routes);
@@ -5314,34 +5347,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 	QVERIFY(singleTrackZone(defaultRun(), 1, 0).intervals.empty());
 	QVERIFY(singleTrackZone(defaultRun(), 0, 2).intervals.empty());
 
-	auto place = [](int k, int route, double head, bool active) {
-		Regional& train = defaultRun().trains[k];
-		train.run_ = &defaultRun();
-		train.indexOfRoute = route;
-		train.departure_time = 0.0;
-		train.CanEnter = true;
-		train.OutOfSimulation = !active;
-		train.train_length = 70.0;
-		train.instant_spatial_position = {head - 100.0, head};
-		train.instant_train_speed = {36.111111111111, 36.111111111111};
-		// SLT_Sprinter values from the unchanged characterization fixture.
-		train.trainDescription = "lock-train-" + std::to_string(k);
-		train.Start_Node_X = 0.0;
-		train.total_train_mass = train.mass_of_traction_unit = 151000.0;
-		train.massFactor = 1.09;
-		train.max_train_speed = 36.111111111111;
-		train.max_train_decelaration = train.Jerk = 0.75;
-		train.frontal_wagon_area = 1.45;
-		train.resistanceCoefficient = 0.004;
-		train.velocityIntervals = 2;
-		train.Vlb[0] = 0.0;
-		train.Vub[0] = train.Vlb[1] = 8.611111111111;
-		train.Vub[1] = train.max_train_speed;
-		train.C0[0] = 209000.0;
-		train.C0[1] = 324607.2915;
-		train.C1[1] = -17671.4923;
-		train.C2[1] = 292.9005;
-	};
+	const auto place = &placeLockTrain;
 	auto has = [](const std::list<std::string>& list, const std::string& id) {
 		return std::find(list.begin(), list.end(), id) != list.end();
 	};
@@ -5513,7 +5519,11 @@ void TestOperationsBuilder::singleTrackLocks() {
 	place(0, 0, 1950.0, true);
 	place(1, 1, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	// Opposing running trains reserve at an interior zone boundary.
+	// Two trains that stand on each other's way out of an interior zone could not both leave it: neither gets it.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 0);
+	place(1, 1, 1950.0, false);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// A running train reserves at an interior zone boundary.
 	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
 	for (double previous : {1950.0, 2000.0}) {
 		defaultRun().trains[0].instant_spatial_position[0] = previous;
@@ -5762,6 +5772,247 @@ void TestOperationsBuilder::singleTrackLocks() {
 static bool listHas(const std::list<std::string>& ids, const std::string& id) {
 	return std::find(ids.begin(), ids.end(), id) != ids.end();
 }
+
+// Saves the routes, trains, limits, lists and authorities of the default run that the single-track tests replace, and returns
+// a guard that puts them back.
+static auto keepSingleTrackState() {
+	struct Saved {
+		std::vector<Route> routes;
+		std::vector<std::tuple<std::string, std::string, std::string, std::string>> limits;
+		std::list<std::string> occupied, connected;
+		std::list<MovementAuthority> authorities;
+		std::vector<Regional> trains;
+		int numTrains = 0, numRoutes = 0;
+		double delay = 0.0;
+	};
+	auto saved = std::make_shared<Saved>();
+	saved->routes.swap(defaultRun().infra.routes);
+	saved->limits = defaultRun().infra.singleTrackLimits;
+	saved->occupied = defaultRun().blocksOccupied;
+	saved->connected = defaultRun().blocksConnected;
+	saved->authorities = defaultRun().etcsMa;
+	saved->trains.swap(defaultRun().trains);
+	saved->numTrains = defaultRun().numTrains;
+	saved->numRoutes = defaultRun().infra.numRoutes;
+	saved->delay = defaultRun().signallingDelay;
+	return qScopeGuard([saved] {
+		defaultRun().signallingDelay = saved->delay;
+		defaultRun().numTrains = saved->numTrains;
+		defaultRun().trains.swap(saved->trains);
+		defaultRun().infra.singleTrackLimits = saved->limits;
+		defaultRun().blocksOccupied = saved->occupied;
+		defaultRun().blocksConnected = saved->connected;
+		defaultRun().etcsMa = saved->authorities;
+		defaultRun().infra.numRoutes = saved->numRoutes;
+		resetSingleTrackLocks(defaultRun());
+		defaultRun().infra.routes.swap(saved->routes);
+		defaultRun().infra.numberRouteSections();
+	});
+}
+
+// Makes the routes of the default run from section IDs: 2 km sections from 0 km, at level 3, with the single-track limit
+// z.1 to z.3 and room for trainCount trains.
+static void setLockRoutes(const std::vector<std::pair<std::vector<std::string>, bool>>& routes, int trainCount) {
+	defaultRun().infra.routes.assign(routes.size(), Route());
+	for (std::size_t r = 0; r < routes.size(); ++r) {
+		Route& route = defaultRun().infra.routes[r];
+		const std::vector<std::string>& ids = routes[r].first;
+		route.N_Block_Sections = static_cast<int>(ids.size());
+		route.sequence_of_block_sections = boundarySections(route.N_Block_Sections);
+		route.reversed_direction = routes[r].second;
+		for (int b = 0; b < route.N_Block_Sections; ++b) {
+			Section& section = route.sequence_of_block_sections[b];
+			section.ID = ids[b];
+			section.SignallingLevel = 3;
+			Arc& arc = section.arcs_in_signalling_block_section[0];
+			arc.startNode.X = 2.0 * b;
+			arc.endNode.X = 2.0 * (b + 1);
+			arc.gradient = arc.curvature = 0.0;
+		}
+	}
+	defaultRun().infra.numRoutes = static_cast<int>(routes.size());
+	defaultRun().infra.numberRouteSections();
+	defaultRun().infra.singleTrackLimits.assign(1, {"z.1", "z.3", "z.1", "z.3"});
+	resetSingleTrackLocks(defaultRun());
+	defaultRun().signallingDelay = 0.0;
+	defaultRun().trains.assign(trainCount, Regional());
+	defaultRun().numTrains = trainCount;
+	for (int k = 0; k < trainCount; ++k)
+		placeLockTrain(k, 0, 0.0, false);
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
+	defaultRun().etcsMa.clear();
+}
+
+// True when train k has a reservation of the zone.
+static bool reservesZone(int k) {
+	const auto& reservations = defaultRun().infra.singleTrackReservations;
+	return !reservations.empty() && std::any_of(reservations[0].begin(), reservations[0].end(), [k](const SingleTrackReservation& owner) {
+		return owner.trainIndex == k;
+	});
+}
+
+// A train at a service stop just before a zone asks for it only when it is ready to leave, so an opposing train can cross
+// the zone during the dwell (#1498).
+void TestOperationsBuilder::singleTrackServiceStops() {
+	const auto restore = keepSingleTrackState();
+	// The zone z.1 to z.3 lies from 2000 to 8000 m on both routes, which share no other section.
+	setLockRoutes({{{"w.0", "z.1", "z.2", "z.3", "e.4"}, false}, {{"e.5", "z.3", "z.2", "z.1", "w.1"}, true}}, 2);
+	Regional& stopping = defaultRun().trains[0];
+	auto standAtStop = [&stopping](int stepsStood, bool serviceStop, double head = 2000.0 - kStopHoldbackM) {
+		placeLockTrain(0, 0, head, true);
+		stopping.instant_train_speed = {0.0, 0.0};
+		stopping.StoppedForServiceStop = serviceStop;
+		stopping.CurrentServiceStop = "W";
+		stopping.Stations.assign(1, Node());
+		stopping.Stations[0].stationName = "W";
+		stopping.Stations[0].StopTime = 60;
+		stopping.Stations[0].StepStopped = stepsStood;
+		stopping.numStations = 1;
+		stopping.StationDepartures[0] = -1;
+		stopping.stop = 1 - stepsStood; // the trajectory holds steps 0 and 1
+		stopping.ScheduledDepartures[0] = 1;
+	};
+	standAtStop(10, true);
+	placeLockTrain(1, 1, 1950.0, true); // running toward its entry at 2000 m
+	updateSingleTrackLocks(defaultRun(), 1);
+	// The opposing train gets the zone while the train at the stop dwells.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], -1);
+	QVERIFY(stopping.dwellsAtServiceStop(1));
+	QVERIFY(!reservesZone(0));
+	placeLockTrain(1, 1, 5000.0, true);
+	standAtStop(80, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// Once its dwell and its planned departure have passed it asks, and waits at the platform while the zone is held the other way.
+	QVERIFY(!stopping.dwellsAtServiceStop(1));
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], -1);
+	QVERIFY(!reservesZone(0));
+	standAtStop(80, true);
+	stopping.ScheduledDepartures[0] = 5;
+	// The planned departure alone keeps it at the stop.
+	QVERIFY(stopping.dwellsAtServiceStop(1));
+
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(1, 1, 1950.0, false);
+	placeLockTrain(0, 0, 1950.0, true);
+	stopping.StoppedForServiceStop = false;
+	updateSingleTrackLocks(defaultRun(), 1);
+	// A train that runs toward the zone reserves it as before.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
+	standAtStop(10, false, 1500.0);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// A stop that is not a service stop, at a red signal for example, keeps the reservation of a train that could still
+	// stop before the zone.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
+	QVERIFY(reservesZone(0));
+	standAtStop(10, true, 1500.0);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// A reservation does not survive a service stop.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 0);
+	QVERIFY(!reservesZone(0));
+}
+
+// A train enters a zone only when no train of the other direction stands on, or is committed to, the track where it leaves
+// the zone, and it then waits where it does not block that train (#1499).
+void TestOperationsBuilder::singleTrackWaysOut() {
+	const auto restore = keepSingleTrackState();
+	// The zone z.1 to z.3 lies from 2000 to 8000 m on routes 0 and 1 and from 6000 to 12000 m on route 2. Route 0 leaves it
+	// into the loop of station T and route 1 onto the main track main.4, where route 2 enters it after e.5 from far.r.
+	setLockRoutes({{{"w.0", "z.1", "z.2", "z.3", "loop.4", "e.5"}, false},
+					  {{"w.0", "z.1", "z.2", "z.3", "main.4", "e.5"}, false},
+					  {{"far.r", "e.5", "main.4", "z.3", "z.2", "z.1", "w.side"}, true}},
+		3);
+	// The way out of route 1 toward route 2 is e.5 and main.4, which route 2 passes before the zone. Route 0 has none toward
+	// route 2, nor route 2 toward routes 0 and 1.
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 2).waitBefore[1], 1);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 2).waitBefore[0], 3);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 1).waitBefore[2], 1);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 1).exitUntil[2], 5);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).exitUntil[2], 3);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).waitBefore[1], -1);
+	const std::vector<int>& closures = defaultRun().infra.singleTrackClosures;
+	auto closure = [&closures](int route) { return closures.size() > static_cast<std::size_t>(route) ? closures[route] : -2; };
+
+	// The three trains of #1499: the leader holds the zone toward the loop, the opposing train waits at the zone on main.4 and
+	// the follower runs toward the zone on route 1.
+	placeLockTrain(0, 0, 5000.0, true);
+	placeLockTrain(1, 2, 6000.0 - kStopHoldbackM, true);
+	defaultRun().trains[1].instant_train_speed = {0.0, 0.0};
+	placeLockTrain(2, 1, 1950.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// The follower does not get the zone, although the leader holds it in its direction.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
+	QVERIFY(reservesZone(0));
+	QVERIFY(!reservesZone(2));
+	// It waits in front of the zone, which is not on the way out of the opposing train; the leader's route is not closed.
+	QCOMPARE(closure(1), 1);
+	QCOMPARE(closure(0), -1);
+	QCOMPARE(occupySingleTrackForRoute(defaultRun(), 1), std::size_t(1));
+	QVERIFY(listHas(defaultRun().blocksOccupied, "z.1"));
+	defaultRun().blocksOccupied.clear();
+	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
+	const auto closed = std::find_if(defaultRun().etcsMa.begin(), defaultRun().etcsMa.end(), [](const MovementAuthority& authority) {
+		return authority.routeIndex == 1;
+	});
+	QVERIFY(closed != defaultRun().etcsMa.end());
+	QCOMPARE(closed->BSID, "w.0");
+	QCOMPARE(closed->TrainInfo.NextSectionID, "z.1");
+	// Only the trains of the closed route obey its authority, not those of the leader's route through the same section.
+	QVERIFY(defaultRun().trains[2].obeysAuthority(*closed));
+	QVERIFY(!defaultRun().trains[0].obeysAuthority(*closed));
+	defaultRun().etcsMa.clear();
+
+	placeLockTrain(0, 0, 9000.0, true); // in the loop
+	placeLockTrain(2, 1, 2000.0 - kStopHoldbackM, true);
+	defaultRun().trains[2].instant_train_speed = {0.0, 0.0};
+	updateSingleTrackLocks(defaultRun(), 1);
+	// When the leader has left, the opposing train gets the zone, although forward wins simultaneous requests on a free
+	// zone: it stands on the way out of the follower.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], -1);
+	QVERIFY(reservesZone(1));
+	QCOMPARE(closure(1), 1);
+
+	// An opposing train that is still approaching its waiting place, and can no longer stop before it, also keeps the
+	// follower out.
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(0, 0, 9000.0, false);
+	placeLockTrain(1, 2, 1950.0, true); // on far.r, running toward e.5
+	placeLockTrain(2, 1, 1950.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 0);
+	QVERIFY(!reservesZone(2));
+	QCOMPARE(closure(1), 1);
+	placeLockTrain(1, 2, 500.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	// One that can still stop before it does not.
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
+	QVERIFY(reservesZone(2));
+	// The holder closes the way of the opposing route in front of e.5, and a committed opposing train behind that closure
+	// does not keep a second follower out.
+	QCOMPARE(closure(2), 1);
+	placeLockTrain(1, 2, 1950.0, true);
+	placeLockTrain(0, 1, 1960.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
+	QVERIFY(reservesZone(0));
+	QVERIFY(reservesZone(2));
+
+	// A train that has left the zone keeps its way out closed until its tail has passed it.
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(0, 1, 9000.0, true); // on main.4
+	placeLockTrain(1, 2, 500.0, true);
+	placeLockTrain(2, 1, 0.0, false);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 0);
+	QCOMPARE(closure(2), 1);
+	placeLockTrain(0, 1, 12100.0, true);
+	defaultRun().blocksConnected.clear();
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(closure(2), -1);
+	// The section that opens again is released.
+	QVERIFY(listHas(defaultRun().blocksConnected, "e.5"));
+}
+
 
 // True when every route section has the number of its ID and different IDs have different numbers.
 static bool numbersFollowIds(const RunInfrastructure& infra) {

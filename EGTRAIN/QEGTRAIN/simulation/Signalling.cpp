@@ -2916,7 +2916,52 @@ void resetSingleTrackLocks(SimulationRun& run) {
 	infra.singleTrackZones.clear();
 	infra.singleTrackRouteZone.clear();
 	infra.singleTrackZonesDerived = false;
+	infra.singleTrackClosures.clear();
 }
+
+namespace {
+// Derives SingleTrackZone::waitBefore and exitUntil of every limit and route from the zones and their section IDs.
+void deriveSingleTrackWaysOut(RunInfrastructure& infra, const std::vector<std::unordered_set<std::string>>& zones) {
+	const std::size_t routeCount = infra.singleTrackZoneRoutes;
+	for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
+		auto zoneOf = [&](std::size_t limit, std::size_t r) -> SingleTrackZone& { return infra.singleTrackZones[limit * routeCount + r]; };
+		for (std::size_t r = 0; r < routeCount; ++r) {
+			zoneOf(k, r).waitBefore.assign(routeCount, -1);
+			zoneOf(k, r).exitUntil.assign(routeCount, -1);
+		}
+		for (std::size_t out = 0; out < routeCount; ++out) {
+			const SingleTrackZone& leaving = zoneOf(k, out);
+			if (leaving.last < 0)
+				continue;
+			// The sections that route out uses after the zone, with the further zones that it passes.
+			const Route& outRoute = infra.routes[out];
+			std::unordered_set<std::string> after;
+			for (int b = leaving.last + 1; b < outRoute.N_Block_Sections; ++b)
+				after.insert(outRoute.sequence_of_block_sections[b].ID);
+			for (std::size_t m = 0; m < infra.singleTrackZoneLimits; ++m)
+				if (m != k && zoneOf(m, out).last > leaving.last)
+					after.insert(zones[m].begin(), zones[m].end());
+			for (std::size_t in = 0; in < routeCount; ++in) {
+				SingleTrackZone& entering = zoneOf(k, in);
+				const Route& inRoute = infra.routes[in];
+				if (entering.first < 0 || inRoute.reversed_direction == outRoute.reversed_direction)
+					continue;
+				int start = entering.first;
+				while (start > 0 && after.count(inRoute.sequence_of_block_sections[start - 1].ID) != 0)
+					--start;
+				entering.waitBefore[out] = start;
+				std::unordered_set<std::string> stretch;
+				for (int b = start; b < entering.first; ++b)
+					stretch.insert(inRoute.sequence_of_block_sections[b].ID);
+				int until = leaving.last;
+				while (until + 1 < outRoute.N_Block_Sections && stretch.count(outRoute.sequence_of_block_sections[until + 1].ID) != 0)
+					++until;
+				zoneOf(k, out).exitUntil[in] = until;
+			}
+		}
+	}
+}
+} // namespace
 
 const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int routeIndex) {
 	static const SingleTrackZone none;
@@ -2926,9 +2971,11 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 		infra.singleTrackZoneRoutes = infra.routes.size();
 		infra.singleTrackZones.assign(infra.singleTrackZoneLimits * infra.singleTrackZoneRoutes, SingleTrackZone());
 		infra.singleTrackRouteZone.assign(infra.singleTrackZoneRoutes, 0);
+		std::vector<std::unordered_set<std::string>> zones(infra.singleTrackZoneLimits);
 		for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
 			const auto& limit = infra.singleTrackLimits[k];
-			std::unordered_set<std::string> zone{std::get<0>(limit), std::get<1>(limit), std::get<2>(limit), std::get<3>(limit)};
+			std::unordered_set<std::string>& zone = zones[k];
+			zone = {std::get<0>(limit), std::get<1>(limit), std::get<2>(limit), std::get<3>(limit)};
 			for (const Route& route : infra.routes) {
 				int first = -1, last = -1;
 				for (int b = 0; b < route.N_Block_Sections; ++b) {
@@ -2950,6 +2997,9 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 					const Section& section = route.sequence_of_block_sections[b];
 					if (zone.count(section.ID) == 0)
 						continue;
+					if (onRoute.first < 0)
+						onRoute.first = b;
+					onRoute.last = b;
 					onRoute.sectionIDs.push_back(section.ID);
 					infra.singleTrackRouteZone[r] = 1;
 					const double from = section.start_node.X * 1000, to = section.end_node.X * 1000;
@@ -2961,6 +3011,7 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 				}
 			}
 		}
+		deriveSingleTrackWaysOut(infra, zones);
 		infra.singleTrackZonesDerived = true;
 	}
 	if (l >= infra.singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= infra.singleTrackZoneRoutes)
@@ -2983,6 +3034,21 @@ std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex) {
 		if (run.infra.singleTrackHeld[l] == 0 || run.infra.singleTrackHeld[l] == direction)
 			continue;
 		for (const std::string& id : singleTrackZone(run, l, routeIndex).sectionIDs) {
+			if (std::find(run.blocksOccupied.begin(), run.blocksOccupied.end(), id) != run.blocksOccupied.end())
+				continue;
+			run.blocksOccupied.push_back(id);
+			++added;
+		}
+	}
+	// A closed way out closes the zone to the route as well, for a train that is already past the way out.
+	const std::vector<int>& closures = run.infra.singleTrackClosures;
+	const Route& route = run.infra.routes[routeIndex];
+	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+		const std::size_t slot = l * run.infra.routes.size() + routeIndex;
+		if (slot >= closures.size() || closures[slot] < 0 || closures[slot] >= route.N_Block_Sections)
+			continue;
+		for (int b : {closures[slot], singleTrackZone(run, l, routeIndex).first}) {
+			const std::string& id = route.sequence_of_block_sections[b].ID;
 			if (std::find(run.blocksOccupied.begin(), run.blocksOccupied.end(), id) != run.blocksOccupied.end())
 				continue;
 			run.blocksOccupied.push_back(id);
@@ -3110,9 +3176,9 @@ bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc
 // Gives the route an End of Authority in front of its section b, for the trains of the direction of the route.
 // The authority is anchored on the section before b, at its end node: a train braking for it stops inside that
 // section, and the stopped-at-EoA release check only fires when the train's current section matches the MA's BSID.
-// description names what the authority stands for. The authority lasts for the current step only: the list is
-// cleared at the start of every step.
-static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& route, int b, const std::string& description) {
+// description names what the authority stands for. With routeIndex only the trains of that route obey it. The authority
+// lasts for the current step only: the list is cleared at the start of every step.
+static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& route, int b, const std::string& description, int routeIndex = -1) {
 	const Section& section = route.sequence_of_block_sections[b];
 	const int anchorIndex = (b > 0) ? b - 1 : b;
 	const Section& anchor = route.sequence_of_block_sections[anchorIndex];
@@ -3136,9 +3202,10 @@ static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& rout
 	MA.TrainInfo.Acceleration = 0;
 	MA.TrainInfo.CurrentSectionID = anchor.ID;
 	MA.TrainInfo.NextSectionID = section.ID;
+	MA.routeIndex = routeIndex;
 	for (const auto& existing : run.etcsMa)
 		if (existing.BSID == MA.BSID && std::abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
-			&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription)
+			&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription && existing.routeIndex == MA.routeIndex)
 			return;
 	run.etcsMa.push_back(MA);
 }
@@ -3186,7 +3253,21 @@ void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepInde
 
 // Each signalled stretch on a route against the holder gets a direction-filtered entry stop authority. Fixed-block
 // aspects alone may become restrictive after a train has passed their braking point, so levels 0..5 all obey it.
+// A closed way out gets an authority in front of its first section and in front of the zone, for the trains of its route only.
 void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run) {
+	const std::vector<int>& closures = run.infra.singleTrackClosures;
+	for (std::size_t slot = 0; slot < closures.size() && !run.infra.routes.empty(); ++slot) {
+		const std::size_t l = slot / run.infra.routes.size();
+		const int r = static_cast<int>(slot % run.infra.routes.size());
+		const Route& route = run.infra.routes[r];
+		if (closures[slot] < 0 || closures[slot] >= route.N_Block_Sections || l >= run.infra.singleTrackLimits.size())
+			continue;
+		for (int b : {closures[slot], singleTrackZone(run, l, r).first}) {
+			const int level = route.sequence_of_block_sections[b].SignallingLevel;
+			if (level >= 0 && level <= 5)
+				addEndOfAuthorityBeforeSection(run, route, b, "single_track:" + std::get<0>(run.infra.singleTrackLimits[l]), r);
+		}
+	}
 	for (std::size_t l = 0; l < run.infra.singleTrackHeld.size() && l < run.infra.singleTrackLimits.size(); ++l) {
 		if (run.infra.singleTrackHeld[l] == 0)
 			continue;

@@ -387,6 +387,8 @@ public:
 	/// If reversed: measured from BSID end node. If forward: from BSID start node. -1 by default.
 	double EoA_Dist_From_BSID_Beg;
 	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
+	/// For a signal failure type: the index of the only route whose trains obey it, or -1 for every route of its direction.
+	int routeIndex = -1;
 
 	/// Sets BSID to "None" and the positions to -1.
 	MovementAuthority();
@@ -511,9 +513,22 @@ struct SingleTrackReservation {
 /// Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
 /// neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
 /// between its first and last plain section on a route that has both, plus the two protected sections.
+///
+/// The way out of the zone for a route toward a route of the other direction is the stretch just before the zone on the
+/// other route whose sections the first route uses after the zone, or which belong to a further zone that it passes after
+/// this one. A train of the other route waits in front of that stretch, and not on it, so that a train leaving the zone
+/// onto it is not blocked.
 struct SingleTrackZone {
 	std::vector<std::pair<double, double>> intervals; ///< Intervals [from, to) of route position in metres.
 	std::vector<std::string> sectionIDs;			  ///< IDs of the zone sections in route order.
+	int first = -1;									  ///< Index on the route of the first zone section; -1 when the route has none.
+	int last = -1;									  ///< Index on the route of the last zone section; -1 when the route has none.
+	/// By route index, for each route of the other direction that passes the zone: the index on this route of the first
+	/// section of the way out of that route toward this one, or first when it has none. -1 for the other routes.
+	std::vector<int> waitBefore;
+	/// By route index, for each route of the other direction that passes the zone: the index on this route of the last
+	/// section after the zone on its way out toward that route, or last when it has none. -1 for the other routes.
+	std::vector<int> exitUntil;
 };
 /// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
 void resetSingleTrackLocks(SimulationRun& run);
@@ -522,9 +537,11 @@ void resetSingleTrackLocks(SimulationRun& run);
 const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int routeIndex);
 /// True when the zone of any limit has a section on the route.
 bool singleTrackRouteHasZone(SimulationRun& run, int routeIndex);
-/// Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
+/// Appends the zone sections that the route has to treat as occupied, and the first sections of the ways out and of the zones
+/// that it must not enter (RunInfrastructure::singleTrackClosures), to BlocksOccupied and returns how many were added.
 std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex);
-/// Updates occupancy and pending entry reservations from the positions of step `step`. Every changed zone is released (RollingStock.cpp).
+/// Updates occupancy, pending entry reservations and the closed ways out from the positions of step `step`. Every changed zone and
+/// closure is released (RollingStock.cpp).
 void updateSingleTrackLocks(SimulationRun& run, int step);
 
 /// The entrance of a station area, which is held while a section of the area ahead is occupied. The pointers point into

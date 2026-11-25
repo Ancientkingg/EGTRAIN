@@ -65,7 +65,7 @@ std::string arrayText(const std::vector<Element>& elements, Used used) {
 
 Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 	const auto& [tracks, links, stationArray, trackCount, linkCount, stationCount, sections, blockCount, detectionSections, infraEvents,
-		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount,
+		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, closures, boundaries, routes, routeCount,
 		sectionIdNumbers, routeSectionNumbers] = infrastructure;
 	return {{"infra.blockSets", arrayText(tracks, [](const BlockSet& track) { return !track.sceneTrackId.empty() || !track.N.empty(); })},
 		{"infra.connections", arrayText(links, [](const Connections& link) { return !link.ID.empty(); })},
@@ -86,6 +86,7 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 		{"infra.singleTrackZoneRoutes", std::to_string(zoneRoutes)},
 		{"infra.singleTrackRouteZone", std::to_string(routeZone.size())},
 		{"infra.singleTrackZonesDerived", std::to_string(zonesDerived)},
+		{"infra.singleTrackClosures", std::to_string(closures.size())},
 		{"infra.stationBoundaries", std::to_string(boundaries.size())},
 		{"infra.routes", std::to_string(routes.size())},
 		{"infra.numRoutes", std::to_string(routeCount)},
@@ -234,6 +235,7 @@ void fill(SimulationRun& run) {
 	infrastructure.singleTrackZoneLimits = infrastructure.singleTrackZoneRoutes = 1;
 	infrastructure.singleTrackRouteZone.push_back(1);
 	infrastructure.singleTrackZonesDerived = true;
+	infrastructure.singleTrackClosures.push_back(0);
 	infrastructure.stationBoundaries.emplace_back(&infrastructure.sections[0], false, nullptr);
 	infrastructure.routes.resize(1);
 	infrastructure.numRoutes = 1;

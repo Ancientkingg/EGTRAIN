@@ -65,6 +65,11 @@ struct RunInfrastructure {
 	std::vector<char> singleTrackRouteZone;
 	/// True once singleTrackZones has been derived.
 	bool singleTrackZonesDerived = false;
+	/// For each limit and route (index limit * route count + route): the index on the route of the first section that its trains
+	/// must not enter at this step, because a train of the other direction holds the zone or uses the way out of the zone toward
+	/// this route (SingleTrackZone::waitBefore); -1 for none. The zone itself is then closed to the route too.
+	/// updateSingleTrackLocks sets it.
+	std::vector<int> singleTrackClosures;
 	/// The station entrance sections.
 	std::vector<StationBoundarySection> stationBoundaries;
 
@@ -199,7 +204,9 @@ double trainXPositionOf(const Train& train, int t, int wagon = 0);
 
 // These two read the route of the train, so they are defined here and not in RollingStock.h.
 inline bool Train::obeysAuthority(const MovementAuthority& authority) const {
-	return authority.type != AuthorityKind::SignalFailure || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
+	return authority.type != AuthorityKind::SignalFailure
+		|| (authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
+			&& (authority.routeIndex < 0 || authority.routeIndex == indexOfRoute));
 }
 
 inline double Train::authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
