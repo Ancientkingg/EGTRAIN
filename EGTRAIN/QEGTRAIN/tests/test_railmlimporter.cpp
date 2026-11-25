@@ -106,10 +106,12 @@ SceneModel importFixture(const char* name, const TempDir& temp, std::vector<Scen
 	return loaded.scene;
 }
 
-// The text of a fixture.
+// The text of a fixture with LF line ends, as the edits below expect; a Windows checkout can have CRLF.
 std::string fixtureText(const char* name) {
 	std::ifstream input(fixture(name), std::ios::binary);
-	return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+	std::string text(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>{});
+	text.erase(std::remove(text.begin(), text.end(), '\r'), text.end());
+	return text;
 }
 
 // `text` with the first `from` replaced by `to`; fails the test when the text has no `from`.
