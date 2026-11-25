@@ -45,6 +45,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.arc.curvature.invalid",
 		"scene.arc.gradient.invalid",
 		"scene.arc.speed.invalid",
+		"scene.authority.margin.invalid",
 		"scene.basetime.invalid",
 		"scene.basetime.missing",
 		"scene.block.length.invalid",
@@ -154,6 +155,9 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.train.traction.overlap",
 		"scene.trains.none",
 		"scene.version.missing",
+		"scene.virtual_coupling.distance.invalid",
+		"scene.virtual_coupling.service.unknown",
+		"scene.virtual_coupling.speed_tolerance.invalid",
 	};
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.severity != SceneSeverity::Error) continue;

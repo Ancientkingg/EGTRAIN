@@ -175,6 +175,9 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 				for (const auto& leg : journey.legs)
 					if (leg.serviceId == id)
 						add("passenger " + quoted(passenger.id) + " leg " + quoted(leg.id));
+		const std::vector<std::string>& coupling = model.settings.virtualCouplingServices;
+		if (std::find(coupling.begin(), coupling.end(), id) != coupling.end())
+			add("the services that couple in Case Settings");
 	}
 	return consumers;
 }
@@ -312,6 +315,8 @@ void sceneRewriteServiceReferences(SceneModel& model, const std::string& oldId, 
 		for (auto& journey : passenger.journeys)
 			for (auto& leg : journey.legs)
 				replaceId(leg.serviceId, oldId, newId);
+	for (auto& service : model.settings.virtualCouplingServices)
+		replaceId(service, oldId, newId);
 }
 
 void sceneRewriteScenarioReferences(SceneModel& model, const std::string& oldId, const std::string& newId) {

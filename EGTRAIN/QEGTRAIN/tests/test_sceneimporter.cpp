@@ -1167,8 +1167,8 @@ void TestSceneImporter::marksCopenhagenDoubleSwitches() {
 	QVERIFY(reimportedViews["tracks"] == views["tracks"]);
 }
 
-// A case whose passenger settings differ from the defaults keeps every simulation setting through an export and an
-// import, and the import report names the settings file of the export.
+// A case whose passenger and virtual coupling settings differ from the defaults keeps every simulation setting through an
+// export and an import, and the import report names the settings file of the export.
 void TestSceneImporter::keepsSettingsThroughExport() {
 	TempDir legacyDir, output, exported, reimported;
 	writeSmallLegacyCase(legacyDir.dir);
@@ -1177,7 +1177,8 @@ void TestSceneImporter::keepsSettingsThroughExport() {
 		R"({"duration_seconds":1234,"buffer_time_seconds":30,"recovery_time_percent":5,"passenger_max_transfers":4,)"
 		R"("passenger_walking_seconds_per_platform":45,"passenger_late_threshold_seconds":600,)"
 		R"("passenger_dwell_coefficients":[6,0.5,2,0.6,5,3,0.1,0.7],"passenger_platform_crowding_threshold":0.5,)"
-		R"("passenger_onboard_crowding_threshold":0.6,"passenger_car_boarding_threshold":12})");
+		R"("passenger_onboard_crowding_threshold":0.6,"passenger_car_boarding_threshold":12,"virtual_coupling_distance_m":60,)"
+		R"("virtual_coupling_speed_tolerance_ms":0.5,"end_of_authority_margin_m":40,"virtual_coupling_services":["Service"]})");
 	json scene;
 	QVERIFY(readJson(fs::path(output.dir) / "scene.json", scene));
 	scene["base_time"] = "08:15:00";

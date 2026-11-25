@@ -5,6 +5,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 /// The default seed of the run generator.
 constexpr unsigned long kDefaultRandomSeed = 789350715;
@@ -57,6 +58,17 @@ public:
 	/// The boarding passengers of a car above which the dwell model counts the car as crowded
 	/// (simulation_settings.passenger_car_boarding_threshold).
 	int passengerCarBoardingThreshold = kDefaultPassengerCarBoardingThreshold;
+	/// The distance in metres to the end of authority of the train ahead within which a train couples virtually, and the lead
+	/// beyond which a coupled train leaves the following mode (simulation_settings.virtual_coupling_distance_m).
+	double virtualCouplingDistanceM = 30;
+	/// The difference in speed in m/s below which a train couples virtually (simulation_settings.virtual_coupling_speed_tolerance_ms).
+	double virtualCouplingSpeedToleranceMs = 0.278;
+	/// The margin in metres of the ends of authority that the trains report at levels 3 and 4
+	/// (simulation_settings.end_of_authority_margin_m).
+	double endOfAuthorityMarginM = 50;
+	/// The services whose trains may couple virtually, sorted and without repeats (simulation_settings.virtual_coupling_services).
+	/// Empty lets every train couple.
+	std::vector<std::string> virtualCouplingServices;
 	/// A folder of legacy input files. main clears it before a run, and nothing in the program reads it.
 	std::string InputMainFolder;
 	/// Folder that a run writes its output files to. prepareScene sets it to the folder chosen in the window, if any, and to

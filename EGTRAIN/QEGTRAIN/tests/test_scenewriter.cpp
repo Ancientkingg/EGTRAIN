@@ -724,6 +724,7 @@ private slots:
 	void writesPassengerWalkingTimeOnlyWhenNotDefault();
 	void writesPassengerLateThresholdOnlyWhenNotDefault();
 	void writesPassengerDwellSettingsOnlyWhenSet();
+	void writesVirtualCouplingSettingsOnlyWhenNotDefault();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
 	void writesScenarios();
@@ -1036,6 +1037,60 @@ void TestSceneWriter::writesPassengerDwellSettingsOnlyWhenSet() {
 	QCOMPARE(reloaded.settings.passengerPlatformCrowdingThreshold, std::optional<double>(0.5));
 	QCOMPARE(reloaded.settings.passengerOnboardCrowdingThreshold, std::optional<double>(0.75));
 	QCOMPARE(reloaded.settings.passengerCarBoardingThreshold, std::optional<int>(12));
+}
+
+// The virtual coupling settings and the margin of the ends of authority are written only when they differ from the defaults,
+// and a scene without them loads with the defaults.
+void TestSceneWriter::writesVirtualCouplingSettingsOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	const fs::path defaultPath = temp.path / "coupling-default";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with the default coupling settings saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	for (const char* key : {"virtual_coupling_distance_m", "virtual_coupling_speed_tolerance_ms", "end_of_authority_margin_m",
+			 "virtual_coupling_services"}) {
+		const bool hasKey = written.contains("simulation_settings") && written["simulation_settings"].contains(key);
+		QVERIFY2(!hasKey, key);
+	}
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE_EQ(reloaded.settings.virtualCouplingDistanceM, kDefaultVirtualCouplingDistanceM);
+	QCOMPARE_EQ(reloaded.settings.virtualCouplingSpeedToleranceMs, kDefaultVirtualCouplingSpeedToleranceMs);
+	QCOMPARE_EQ(reloaded.settings.endOfAuthorityMarginM, kDefaultEndOfAuthorityMarginM);
+	QVERIFY(reloaded.settings.virtualCouplingServices.empty());
+
+	scene.settings.virtualCouplingDistanceM = 60.0;
+	scene.settings.virtualCouplingSpeedToleranceMs = 0.5;
+	scene.settings.endOfAuthorityMarginM = 25.5;
+	scene.settings.virtualCouplingServices = {"service-1"};
+	const fs::path setPath = temp.path / "coupling-set";
+	QVERIFY2(saveScene(scene, setPath.string()).success(), "scene with coupling settings saves");
+	{
+		std::ifstream input(setPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY(written["simulation_settings"]["virtual_coupling_services"] == json::array({"service-1"}));
+	QVERIFY(loadHasNoErrors(setPath, reloaded));
+	QCOMPARE_EQ(reloaded.settings.virtualCouplingDistanceM, 60.0);
+	QCOMPARE_EQ(reloaded.settings.virtualCouplingSpeedToleranceMs, 0.5);
+	QCOMPARE_EQ(reloaded.settings.endOfAuthorityMarginM, 25.5);
+	QVERIFY(reloaded.settings.virtualCouplingServices == std::vector<std::string>({"service-1"}));
+
+	// A service that is not a string is reported and left out of the list.
+	written["simulation_settings"]["virtual_coupling_services"] = json::array({"service-1", 7});
+	{
+		std::ofstream output(setPath / "scene.json");
+		output << written.dump(4) << "\n";
+	}
+	const SceneLoadResult mistyped = loadScene(setPath.string());
+	QVERIFY(std::any_of(mistyped.diagnostics.begin(), mistyped.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
+		return diagnostic.code == "scene.field.missing" && diagnostic.path == "simulation_settings.virtual_coupling_services[1]";
+	}));
+	QVERIFY(mistyped.scene.settings.virtualCouplingServices == std::vector<std::string>({"service-1"}));
 }
 
 // An area whose signalling system is not chosen keeps that level through save and load.

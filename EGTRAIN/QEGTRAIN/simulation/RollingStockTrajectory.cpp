@@ -17,11 +17,6 @@ namespace {
 // A standing train is at a point, such as a stop, a signal, a node with a train order or an end of authority, when its head is
 // less than this many metres before it.
 constexpr double kAtPointM = 4;
-// A train couples to its leader when it is within this many metres of the end of authority where it was predicted to couple,
-// and the following mode ends when the leader is more than this many metres ahead of it.
-constexpr double kCouplingDistanceM = 30;
-// A train couples to its leader when their speeds differ by less than this, in m/s (1 km/h).
-constexpr double kCouplingSpeedToleranceMs = 0.278;
 // A train that leaves the point where it stood starts this many metres past it, at kRestartSpeedMs. A train held at the point
 // stands kStopHoldbackM before it.
 constexpr double kRestartOffsetM = 0.0001;
@@ -256,8 +251,8 @@ double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 	return candidate;
 }
 
-bool Train::leaderTailAhead(double authorityPosition, double head) {
-	return head < authorityPosition + kEndOfAuthorityMarginMetres;
+bool Train::leaderTailAhead(double authorityPosition, double head) const {
+	return head < authorityPosition + run_->settings.endOfAuthorityMarginM;
 }
 
 const MovementAuthority* Train::currentFollowingAuthority(double head, double& leaderHead) const {
@@ -614,8 +609,8 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 	if ((IsTrainCoupling == 1) && liveLeader
 		&& liveLeader->TrainInfo.trainDescription == Predicted_MA_To_CoupleAt.TrainInfo.trainDescription
 		&& ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1))
-		&& (std::abs(instant_train_speed[time_seconds] - liveLeader->TrainInfo.TrainSpeed) < kCouplingSpeedToleranceMs)
-		&& (std::abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= kCouplingDistanceM)) {
+		&& (std::abs(instant_train_speed[time_seconds] - liveLeader->TrainInfo.TrainSpeed) < run_->settings.virtualCouplingSpeedToleranceMs)
+		&& (std::abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= run_->settings.virtualCouplingDistanceM)) {
 		// When the condition above occurs then the train is transitioning towards the following mode
 		IsInUnintentionalDecoupling = false;
 		IsTrainCoupling = false;														   // So we set the ending of the Coupling transition period
@@ -636,9 +631,9 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 
 	if ((IsTrainInFollowingMode == 1) && (IsInUnintentionalDecoupling == 0)) {
 		CounterFollowingMode++; // This sets the number of time steps that the train is in following mode
-		// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
+		// if the train has fallen more than the coupling distance behind the EoA of the train ahead, then interrupt the following mode and let the train to go free
 		if (liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
-			&& leaderHead - head > kCouplingDistanceM) {
+			&& leaderHead - head > run_->settings.virtualCouplingDistanceM) {
 			IsInUnintentionalDecoupling = true;
 			CounterFollowingMode = 0; // set also the CounterFollowingMode to 0 again
 

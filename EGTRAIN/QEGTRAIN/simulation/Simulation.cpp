@@ -361,7 +361,7 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 		Apply_Single_Track_Authorities_Mixed_Signalling(run);
 
 		// Only levels 3 and 4
-		ReportAllTrainPositionsToRBC(run, t, kEndOfAuthorityMarginMetres);
+		ReportAllTrainPositionsToRBC(run, t, run.settings.endOfAuthorityMarginM);
 
 		// function to protect all station areas
 		protectStationAreas(run, t);

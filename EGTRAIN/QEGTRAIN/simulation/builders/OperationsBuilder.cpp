@@ -938,6 +938,16 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 		scene.settings.passengerOnboardCrowdingThreshold.value_or(kDefaultPassengerOnboardCrowdingThreshold);
 	stagedParameters.passengerCarBoardingThreshold =
 		scene.settings.passengerCarBoardingThreshold.value_or(kDefaultPassengerCarBoardingThreshold);
+	stagedParameters.virtualCouplingDistanceM =
+		std::clamp(scene.settings.virtualCouplingDistanceM, kMinVirtualCouplingDistanceM, kMaxVirtualCouplingDistanceM);
+	stagedParameters.virtualCouplingSpeedToleranceMs = std::clamp(scene.settings.virtualCouplingSpeedToleranceMs,
+		kMinVirtualCouplingSpeedToleranceMs, kMaxVirtualCouplingSpeedToleranceMs);
+	stagedParameters.endOfAuthorityMarginM =
+		std::clamp(scene.settings.endOfAuthorityMarginM, kMinEndOfAuthorityMarginM, kMaxEndOfAuthorityMarginM);
+	std::vector<std::string> couplingServices = scene.settings.virtualCouplingServices;
+	std::sort(couplingServices.begin(), couplingServices.end());
+	couplingServices.erase(std::unique(couplingServices.begin(), couplingServices.end()), couplingServices.end());
+	stagedParameters.virtualCouplingServices = std::move(couplingServices);
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;

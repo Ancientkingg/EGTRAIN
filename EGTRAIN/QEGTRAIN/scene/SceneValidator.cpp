@@ -837,6 +837,23 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene.json", "scene", "", "simulation_settings.passenger_car_boarding_threshold", "",
 			"Use a whole number of 0 or more");
 	}
+	// Not a number is outside every range.
+	const auto outside = [](double value, double low, double high) { return !(value >= low && value <= high); };
+	if (outside(scene.settings.virtualCouplingDistanceM, kMinVirtualCouplingDistanceM, kMaxVirtualCouplingDistanceM)) {
+		diagnostics.error("scene.virtual_coupling.distance.invalid", "The virtual coupling distance must be from 1 to 500 m",
+			"scene.json", "scene", "", "simulation_settings.virtual_coupling_distance_m", "",
+			"Use a distance from 1 to 500 m");
+	}
+	if (outside(scene.settings.virtualCouplingSpeedToleranceMs, kMinVirtualCouplingSpeedToleranceMs, kMaxVirtualCouplingSpeedToleranceMs)) {
+		diagnostics.error("scene.virtual_coupling.speed_tolerance.invalid",
+			"The virtual coupling speed tolerance must be from 0.01 to 10 m/s", "scene.json", "scene", "",
+			"simulation_settings.virtual_coupling_speed_tolerance_ms", "", "Use a speed difference from 0.01 to 10 m/s");
+	}
+	if (outside(scene.settings.endOfAuthorityMarginM, kMinEndOfAuthorityMarginM, kMaxEndOfAuthorityMarginM)) {
+		diagnostics.error("scene.authority.margin.invalid", "The margin of the ends of authority must be from 1 to 500 m",
+			"scene.json", "scene", "", "simulation_settings.end_of_authority_margin_m", "",
+			"Use a margin from 1 to 500 m");
+	}
 
 	const auto errorCount = [&result]() {
 		return std::count_if(result.begin(), result.end(), [](const SceneDiagnostic& diagnostic) {
@@ -1485,6 +1502,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	std::unordered_map<std::string, const SceneService*> services;
 	std::unordered_map<std::string, int> serviceOccurrences;
 	collectIds(scene.services, "services.json", "service", "services", diagnostics, serviceIds);
+	// A misspelt service would leave its trains, and every train that follows them, uncoupled without a word.
+	for (std::size_t index = 0; index < scene.settings.virtualCouplingServices.size(); ++index) {
+		const std::string& id = scene.settings.virtualCouplingServices[index];
+		if (!hasId(serviceIds, id))
+			diagnostics.error("scene.virtual_coupling.service.unknown", "Virtual coupling lists unknown service " + id, "scene.json",
+				"scene", "", "simulation_settings.virtual_coupling_services[" + std::to_string(index) + "]", id,
+				"Add service " + id + " or remove it from the services that couple");
+	}
 	for (std::size_t index = 0; index < scene.services.size(); ++index) {
 		const SceneService& service = scene.services[index];
 		services.emplace(service.id, &service);

@@ -266,9 +266,6 @@ private:
 	bool m_inStep = false, m_hasStep = false;
 };
 
-/// The margin (m) of the ends of authority that the trains report at levels 3 and 4.
-constexpr double kEndOfAuthorityMarginMetres = 50;
-
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -590,9 +587,10 @@ public:
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
 	/// True when the tail of a train ahead is still ahead of head (m), given the route position of the "Tale" authority it reported.
-	/// This holds while head is less than kEndOfAuthorityMarginMetres past the authority: the reported tail lags the real tail by at
-	/// least the margin plus the reporting delay, so the real tail is still ahead of a train that has come inside the margin.
-	static bool leaderTailAhead(double authorityPosition, double head);
+	/// This holds while head is less than the margin of the run (InitialParameters::endOfAuthorityMarginM) past the authority: the
+	/// reported tail lags the real tail by at least the margin plus the reporting delay, so the real tail is still ahead of a train
+	/// that has come inside the margin.
+	bool leaderTailAhead(double authorityPosition, double head) const;
 
 	/// The "TrainEnd" "Tale" authority of this step of the train ahead (the leader in following mode, else the train to couple at), on a level 4 section from the one at head (m) to
 	/// eight sections further, and lies ahead of head by leaderTailAhead; nullptr when there is none. leaderHead receives its route position (m).
@@ -749,7 +747,7 @@ public:
 	/// (m/s). The speed is 0 for a signal failure and on ETCS Level 3. With virtual coupling it is 0 for an occupied diverging
 	/// switch the train does not share and for a train ahead that runs the other way or does not go on to the next section of this
 	/// route, and otherwise the speed of the train ahead; an end of a train in the same direction that is not its tail ahead of S
-	/// sets no target.
+	/// sets no target. Two trains whose services may not couple (InitialParameters::virtualCouplingServices) count as on ETCS Level 3.
 	AuthorityTarget authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V);
 
 	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S
