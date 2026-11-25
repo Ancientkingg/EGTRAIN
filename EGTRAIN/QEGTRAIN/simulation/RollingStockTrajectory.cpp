@@ -311,6 +311,20 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 			if (const SimulationIncident* incident = Active_Train_Breakdown(*run_, trainDescription, time_seconds))
 				recordDirectIncident(*incident, time_seconds * timestep, instant_spatial_position[time_seconds - 1]);
 			if (instant_train_speed[time_seconds - 1] == 0) {
+				// A train that stands at a stop of its own that it has not begun, such as one that the breakdown brought to a
+				// stand there, begins the stop as standingTrainStep would: its arrival, dwell and passenger exchange start now.
+				// The first step of a stop never leaves it. The steps after it hold the train below until the breakdown ends,
+				// as for a train that was already at its stop when the breakdown began.
+				const double head = instant_spatial_position[time_seconds - 1];
+				for (int s = 0; CanEnter && s < numStations; s++) {
+					if (stationBlockSection[s] < 0 || Stations[s].StepStopped > 0)
+						continue;
+					const Arc& stopArc = run_->infra.routes[indexOfRoute].sequence_of_block_sections[stationBlockSection[s]].arcs_in_signalling_block_section[stationArc[s]];
+					if (head < stopArc.endNode.X * 1000 && stopArc.endNode.X * 1000 - head < kAtPointM) {
+						serviceStopStep(time_seconds, stopArc, head, IsTrainStoppedForEoA);
+						return;
+					}
+				}
 				instant_train_speed[time_seconds] = 0;
 				instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 				instant_train_power_consumption[time_seconds] = 0;

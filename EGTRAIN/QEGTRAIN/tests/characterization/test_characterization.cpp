@@ -495,8 +495,9 @@ std::vector<CaseSpec> buildCaseTable() {
 	CaseSpec passStation{"breakdown-pass-station-level-0", "baseline", {"E1"}, 0, ""};
 	passStation.skipStop = true;
 	cases.push_back(passStation);
-	// F1 breaks down from 320 s to 500 s while it brakes for B, 46 m before it: the braking of the breakdown ends where the
-	// braking for the stop would.
+	// F1 breaks down from 320 s to 700 s while it brakes for B, 46 m before it: the braking of the breakdown ends where the
+	// braking for the stop would, and its stop at B starts then. The breakdown outlasts the dwell and the planned departure,
+	// so F1 leaves when it ends.
 	cases.push_back({"breakdown-stop-approach-level-0", "baseline", {"F1"}, 0, ""});
 	return cases;
 }
@@ -1765,7 +1766,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		slow.reducedSpeedKmh = 40.0;
 		loaded.scene.scenarios[0].incidents.push_back(slow);
 	}
-	// A hold stops a running train at once, harder than it can brake, so these holds start while Q1 stands at a stop.
+	// These holds start while Q1 stands at a stop.
 	if (spec.passengers == "breakdown-wait")
 		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 400.0, 800.0});
 	if (spec.passengers == "breakdown-terminate") {
@@ -1798,7 +1799,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	if (spec.name == "breakdown-pass-station-level-0")
 		loaded.scene.scenarios[0].incidents.push_back({"stop-e1", IncidentType::TrainBreakdown, "E1", 300.0, 600.0});
 	if (spec.name == "breakdown-stop-approach-level-0")
-		loaded.scene.scenarios[0].incidents.push_back({"stop-f1", IncidentType::TrainBreakdown, "F1", 320.0, 500.0});
+		loaded.scene.scenarios[0].incidents.push_back({"stop-f1", IncidentType::TrainBreakdown, "F1", 320.0, 700.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
