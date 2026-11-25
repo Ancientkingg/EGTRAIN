@@ -105,6 +105,13 @@ set_target_properties(egtrain_miniz PROPERTIES
     C_STANDARD 99 C_STANDARD_REQUIRED ON
     AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 
+# The railML import reads XML with the vendored pugixml.
+add_library(egtrain_pugixml STATIC
+    ${SRC_DIR}/io/third_party/pugixml.cpp)
+target_include_directories(egtrain_pugixml PUBLIC ${SRC_DIR})
+set_target_properties(egtrain_pugixml PROPERTIES
+    AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
+
 # Path-qualified includes (e.g. graphics/items/NodeItem.h) resolve against SRC_DIR
 include_directories(${SRC_DIR})
 
@@ -162,6 +169,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/LoadedDataSummary.cpp
     ${SRC_DIR}/scene/PassengerDemandCsv.cpp
+    ${SRC_DIR}/scene/RailmlImporter.cpp
     ${SRC_DIR}/scene/RollingStockLibrary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
@@ -182,7 +190,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
     PUBLIC nlohmann_json::nlohmann_json egtrain_miniz
-    PRIVATE egtrain_util)
+    PRIVATE egtrain_util egtrain_pugixml)
 
 # RollingStockTrajectory.cpp follows RollingStock.cpp instead of its alphabetical place. In that place the
 # unchanged braking functions were linked at other alignments and Copenhagen ran about 3.6 percent slower.
@@ -447,7 +455,7 @@ endforeach()
 egtrain_target_warnings(egtrain_dispatch STRICT)
 egtrain_target_warnings(egtrain_sim STRICT)
 # No flags:
-#   egtrain_miniz                   vendored code
+#   egtrain_miniz, egtrain_pugixml  vendored code
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, app/GuardedApplication.cpp, app/SceneSession.cpp,

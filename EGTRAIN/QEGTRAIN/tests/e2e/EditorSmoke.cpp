@@ -539,7 +539,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			return texts;
 		};
 		const QStringList fileMenu = entries(w.ui->menuFile);
-		if (fileMenu != QStringList{"New Case...", "Open Case...", "Recent Cases", "-", "Save", "Save As...", "Export Network Image...", "-", "Import Legacy Case...", "-", "Quit"})
+		if (fileMenu != QStringList{"New Case...", "Open Case...", "Recent Cases", "-", "Save", "Save As...", "Export Network Image...", "-", "Import Legacy Case...", "Import railML...", "-", "Quit"})
 			facetFailure(facetOk, "menus", "the File menu reads " + fileMenu.join(" | "));
 		if (w.m_openCaseAction->shortcut() != QKeySequence(QKeySequence::Open)
 			|| !w.m_toolBar->actions().contains(w.m_openCaseAction))

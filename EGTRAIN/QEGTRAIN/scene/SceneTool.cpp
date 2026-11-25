@@ -1,4 +1,5 @@
 #include "scene/SceneImporter.h"
+#include "scene/RailmlImporter.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneExporter.h"
@@ -50,6 +51,7 @@ static int runTool(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage:\n"
 				  << "  scene_tool import <legacyDir> <sceneDir> [sceneName]\n"
+				  << "  scene_tool import-railml <file> <sceneDir> [sceneName] [--operating-period id]\n"
 				  << "  scene_tool pack <scene-directory> <output.egscene>\n"
 				  << "  scene_tool unpack <input.egscene> <output-directory>\n"
 				  << "  scene_tool export <scene-path> <outDir>\n"
@@ -79,6 +81,28 @@ static int runTool(int argc, char** argv) {
 				sceneName = "scene";
 		}
 		auto res = importLegacyScene(legacyDir, sceneDir, sceneName);
+		printDiags(res.diagnostics);
+		return res.success() ? 0 : 1;
+	} else if (cmd == "import-railml") {
+		const char* usage = "Usage: scene_tool import-railml <file> <sceneDir> [sceneName] [--operating-period id]\n";
+		std::vector<std::string> positional;
+		RailmlImportOptions options;
+		for (int index = 2; index < argc; ++index) {
+			const std::string argument = argv[index];
+			if (argument == "--operating-period" && index + 1 < argc) {
+				options.operatingPeriod = argv[++index];
+			} else if (argument.rfind("--", 0) == 0) {
+				std::cerr << usage;
+				return 1;
+			} else {
+				positional.push_back(argument);
+			}
+		}
+		if (positional.size() < 2 || positional.size() > 3) {
+			std::cerr << usage;
+			return 1;
+		}
+		auto res = importRailmlScene(positional[0], positional[1], positional.size() == 3 ? positional[2] : "", options);
 		printDiags(res.diagnostics);
 		return res.success() ? 0 : 1;
 	} else if (cmd == "pack") {

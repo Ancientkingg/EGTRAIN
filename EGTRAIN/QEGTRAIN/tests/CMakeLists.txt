@@ -820,6 +820,14 @@ egtrain_add_test(test_sceneimporter
 	LIBS egtrain_scene
 	LABELS legacy-compat unit)
 
+# The time limit catches an import that does not end, such as one that rolls a time far out of range over day by day.
+egtrain_add_test(test_railmlimporter
+	SOURCES ${SRC_DIR}/tests/test_railmlimporter.cpp
+	LIBS egtrain_scene
+	DEFINITIONS EGTRAIN_RAILML_FIXTURES="${SRC_DIR}/tests/fixtures/railml"
+	TIMEOUT 120
+	LABELS scene-v1 unit)
+
 egtrain_add_test(test_scenesavepolicy
 	SOURCES ${SRC_DIR}/tests/test_scenesavepolicy.cpp
 	LIBS Qt::Core
@@ -835,6 +843,7 @@ egtrain_add_test(test_scenesession
 		${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
 		${SRC_DIR}/update/SelfUpdater.cpp
 	LIBS egtrain_editors egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network
+	DEFINITIONS EGTRAIN_RAILML_FIXTURES="${SRC_DIR}/tests/fixtures/railml"
 	LABELS scene-v1 unit gui)
 
 egtrain_add_test(test_dialogfolders
@@ -1282,6 +1291,15 @@ egtrain_add_test(test_headless_scene_smoke
 		$<TARGET_FILE:QEGTRAIN> ${EGTRAIN_SMOKE_APP_SCENE}
 	LABELS integration
 	TIMEOUT 150)
+
+# The railML import of the sample Ostsachsen_V220.railml, validated and run headless until 08:04. The sample is not
+# in the repository; the script exits with 77 when it is not in Input.
+egtrain_add_test(test_railml_import_smoke
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/railml_import_smoke.py
+		$<TARGET_FILE:scene_tool> $<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/Input/Ostsachsen_V220.railml 28800
+	LABELS integration
+	SKIP_RETURN_CODE 77
+	TIMEOUT 300)
 
 # Paimpol headless and in the window with LANG set to a locale that writes a decimal comma. Qt sets the locale of the C
 # library from LANG on macOS and Linux only. The script exits with 77 when no such locale is installed.

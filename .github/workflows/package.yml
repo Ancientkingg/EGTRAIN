@@ -406,7 +406,7 @@ jobs:
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           Copy-Item build/manual/EGTRAIN.qch "$dist/EGTRAIN.qch"
           # Presentation package: the command-line tool and the canonical scenes. scene_tool uses
-          # header-only JSON and vendored miniz, so it needs no Qt.
+          # header-only JSON and the vendored miniz and pugixml, so it needs no Qt.
           $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
           if (-not $tool) { throw "scene_tool.exe not found under build/" }
           Copy-Item $tool.FullName "$dist/scene_tool.exe"
@@ -859,7 +859,7 @@ jobs:
           cp build/manual/EGTRAIN.qch "$APPDIR/usr/bin/EGTRAIN.qch"
 
           # Presentation package: the command-line tool, bundled beside the executable.
-          # scene_tool uses header-only JSON and vendored miniz, so it carries no Qt dependency.
+          # scene_tool uses header-only JSON and the vendored miniz and pugixml, so it carries no Qt dependency.
           TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
           test -n "$TOOL"
           cp "$TOOL" "$APPDIR/usr/bin/scene_tool"

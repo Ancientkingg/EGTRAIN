@@ -8,6 +8,7 @@
 #include "app/SceneSavePolicy.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/RunResults.h"
+#include "scene/RailmlImporter.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneImporter.h"
@@ -757,42 +758,104 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
 		? QString("Imported Legacy Case")
 		: QFileInfo(sourcePath).fileName();
+	const ImportTexts texts{"Import Legacy Case", "Cannot Import Legacy Case", "Legacy Case Imported",
+		"Importing legacy case...", "Legacy import failed"};
+	const auto importInto = [&sourcePath, &sceneName](const std::string& sceneDir) {
+		return importLegacyScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString());
+	};
+	importCase(destinationPath, sceneName, texts, importInto, operation);
+}
+
+void SceneSession::actionImport_Railml() {
+	const auto operation = m_host.captureTelemetryOperation();
+	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
+	const QString railmlPath = QFileDialog::getOpenFileName(m_window, "Select railML File", startDir,
+		"railML files (*.railml *.xml);;All files (*)");
+	if (railmlPath.isEmpty())
+		return;
+	const QString destinationDir =
+		QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QFileInfo(railmlPath).absolutePath());
+	importRailmlCase(railmlPath, destinationDir, operation);
+}
+
+void SceneSession::importRailmlCase(const QString& railmlPath, const QString& destinationDir,
+	const telemetry::OperationObservation& operation) {
+	if (railmlPath.isEmpty() || destinationDir.isEmpty())
+		return;
+	const QString sourceCanonical = QFileInfo(railmlPath).canonicalFilePath();
+	const QString destinationCanonical = QFileInfo(destinationDir).canonicalFilePath();
+	const QString sourcePath = sourceCanonical.isEmpty() ? QFileInfo(railmlPath).absoluteFilePath() : sourceCanonical;
+	const QString destinationPath = destinationCanonical.isEmpty() ? QDir(destinationDir).absolutePath() : destinationCanonical;
+	const QString baseName = QFileInfo(sourcePath).completeBaseName();
+	const QString sceneName = baseName.isEmpty() ? QString("Imported railML") : baseName;
+	const ImportTexts texts{"Import railML", "Cannot Import railML", "railML Imported", "Importing railML...",
+		"railML import failed"};
+	// A file with trains of several operating periods asks which one to import; the one with the most train parts is chosen
+	// at the start.
+	RailmlImportOptions options;
+	const RailmlOperatingPeriods periods = listRailmlOperatingPeriods(sourcePath.toStdString());
+	if (periods.periods.size() > 1) {
+		QStringList items;
+		int current = 0;
+		for (const RailmlOperatingPeriod& period : periods.periods) {
+			if (period.id == periods.defaultPeriod)
+				current = static_cast<int>(items.size());
+			const QString id = QString::fromStdString(period.id);
+			const QString name = QString::fromStdString(period.name);
+			items << QString("%1: %2 %3")
+						 .arg(name.isEmpty() || name == id ? id : QString("%1 (%2)").arg(name, id))
+						 .arg(period.trainParts)
+						 .arg(period.trainParts == 1 ? "train part" : "train parts");
+		}
+		const int chosen = static_cast<int>(items.indexOf(m_prompts->chooseItem(m_window, texts.question,
+			"The file has trains of several operating periods. Operating period to import:", items, current)));
+		if (chosen < 0)
+			return;
+		options.operatingPeriod = periods.periods[static_cast<std::size_t>(chosen)].id;
+	}
+	const auto importInto = [&sourcePath, &sceneName, &options](const std::string& sceneDir) {
+		return importRailmlScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString(), options);
+	};
+	importCase(destinationPath, sceneName, texts, importInto, operation);
+}
+
+void SceneSession::importCase(const QString& destinationPath, const QString& sceneName,
+	const ImportTexts& texts, const std::function<SceneImportResult(const std::string& sceneDir)>& import,
+	const telemetry::OperationObservation& operation) {
 	// The import replaces the folder that it writes with everything in it.
 	QString sceneDir = destinationPath;
 	if (QFileInfo(QDir(destinationPath).filePath("scene.json")).exists()) {
-		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+		if (!m_prompts->confirm(m_window, texts.question,
 				QString("%1 holds another case. Replace that case and everything else in the folder with the imported one?")
 					.arg(display_path::format(destinationPath))))
 			return;
 	} else if (holdsFiles(destinationPath)) {
-		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+		if (!m_prompts->confirm(m_window, texts.question,
 				QString("%1 is not empty. Import the case into a new folder %2 inside it?")
 					.arg(display_path::format(destinationPath), sceneName)))
 			return;
 		sceneDir = QDir(destinationPath).filePath(sceneName);
 		const QFileInfo caseFolder(sceneDir);
 		if (caseFolder.exists() && (!caseFolder.isDir() || holdsFiles(sceneDir))) {
-			showError("Cannot Import Legacy Case",
+			showError(texts.failure,
 				QString("%1 already exists and is not empty. Choose another destination.").arg(display_path::format(sceneDir)));
 			return;
 		}
 	}
-
 	if (!maybeSaveScene())
 		return;
 
-	m_window->statusBar()->showMessage("Importing legacy case...");
+	m_window->statusBar()->showMessage(texts.progress);
 	QApplication::processEvents();
 	// Replaces the progress message, which would otherwise stay in the status bar.
-	const auto importFailed = [this] {
-		m_window->statusBar()->showMessage("Legacy import failed", 8000);
+	const auto importFailed = [this, &texts] {
+		m_window->statusBar()->showMessage(texts.failed, 8000);
 	};
 
-	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), sceneDir.toStdString(),
-		sceneName.toStdString());
+	SceneImportResult importResult = import(sceneDir.toStdString());
 	if (!importResult.success()) {
 		importFailed();
-		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics, false));
+		showError(texts.failure, legacyImportSummary(importResult.diagnostics, false));
 		return;
 	}
 
@@ -810,7 +873,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	// An import that found nothing to report opens the case without a box.
 	const QString summary = legacyImportSummary(diagnostics, true);
 	if (!summary.isEmpty())
-		showError("Legacy Case Imported", summary, true);
+		showError(texts.report, summary, true);
 	if (m_host.afterRunStopped([this, sceneDir, operation] { openSceneDirectory(sceneDir, operation); }))
 		return;
 	openSceneDirectory(sceneDir, operation);

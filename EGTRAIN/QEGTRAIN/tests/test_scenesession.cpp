@@ -235,6 +235,8 @@ private slots:
 	void importStopsAtFolderOfThatName();
 	void importAsksBeforeReplacingCase();
 	void importDialogsStartNextToCases();
+	void importsRailmlFile();
+	void importsChosenRailmlOperatingPeriod();
 	void saveAsFolderAsksBeforeReplacingCase();
 	void saveAsFolderKeepsViewsOfFailedSave();
 	void saveAsksWhenFolderChangedOnDisk();
@@ -367,6 +369,66 @@ void TestSceneSession::importDialogsStartNextToCases() {
 	QCOMPARE(starts->size(), 2);
 	QCOMPARE(QFileInfo(starts->at(0)).canonicalFilePath(), QFileInfo(dir.filePath("Cases")).canonicalFilePath());
 	QCOMPARE(QFileInfo(starts->at(1)).canonicalFilePath(), QFileInfo(dir.filePath("Old")).canonicalFilePath());
+}
+
+// A railML file is imported like a legacy case, except into a case folder that holds the file.
+void TestSceneSession::importsRailmlFile() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	const QByteArray railml = readFile(QStringLiteral(EGTRAIN_RAILML_FIXTURES "/macroscopic.railml"));
+	QVERIFY(!railml.isEmpty());
+	QVERIFY(writeFolderCase(dir.filePath("Case"), "Old case"));
+	QVERIFY(writeFile(dir.filePath("Case/line.railml"), railml));
+	Fixture f;
+	f.prompts.confirmAnswer = true;
+	f.session->importRailmlCase(dir.filePath("Case/line.railml"), dir.filePath("Case"), {});
+	// Replacing the case folder would delete the file, so nothing is written.
+	QCOMPARE(f.prompts.errorTitle, "Cannot Import railML");
+	QVERIFY2(f.prompts.errorMessage.contains("which the import would replace"), qPrintable(f.prompts.errorMessage));
+	QCOMPARE(caseName(dir.filePath("Case")), "Old case");
+	QCOMPARE(readFile(dir.filePath("Case/line.railml")), railml);
+	QVERIFY(!f.document.isLoaded());
+
+	QVERIFY(dir.mkdir("Empty"));
+	f.session->importRailmlCase(dir.filePath("Case/line.railml"), dir.filePath("Empty"), {});
+	// An empty folder takes the case, named after the file, and the case opens from it. The file has one operating
+	// period, so no period is asked for.
+	QCOMPARE(caseName(dir.filePath("Empty")), "line");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Empty")).canonicalFilePath());
+	QCOMPARE(f.prompts.chooseCount, 0);
+}
+
+// A file with trains of several operating periods asks which one to import.
+void TestSceneSession::importsChosenRailmlOperatingPeriod() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QByteArray railml = readFile(QStringLiteral(EGTRAIN_RAILML_FIXTURES "/microscopic.railml"));
+	const QByteArray daily = R"(<operatingPeriod id="op_daily" name="Daily"/>)";
+	const QByteArray sunday = R"(<operatingPeriod id="op_sunday" name="Sundays"/>)";
+	QVERIFY(railml.contains(daily) && railml.contains(sunday));
+	// Sundays first, so that the period with the most train parts is not the first one.
+	railml.replace(daily, "PERIOD").replace(sunday, daily).replace("PERIOD", sunday);
+	QVERIFY(writeFile(dir.filePath("lines.railml"), railml));
+	QVERIFY(dir.mkdir("Cancelled"));
+	QVERIFY(dir.mkdir("Sunday"));
+	Fixture f;
+	f.session->importRailmlCase(dir.filePath("lines.railml"), dir.filePath("Cancelled"), {});
+	QCOMPARE(f.prompts.chooseCount, 1);
+	QCOMPARE(f.prompts.chooseTitle, "Import railML");
+	QCOMPARE(f.prompts.offeredItems, QStringList({"Sundays (op_sunday): 1 train part", "Daily (op_daily): 2 train parts"}));
+	QCOMPARE(f.prompts.offeredCurrent, 1);
+	// Cancel imports nothing.
+	QVERIFY(!QFileInfo::exists(dir.filePath("Cancelled/scene.json")));
+	QVERIFY(!f.document.isLoaded());
+
+	f.prompts.chosenItem = f.prompts.offeredItems.value(0);
+	f.session->importRailmlCase(dir.filePath("lines.railml"), dir.filePath("Sunday"), {});
+	QCOMPARE(f.prompts.chooseCount, 2);
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Sunday")).canonicalFilePath());
+	QCOMPARE(f.document.model().services.size(), std::size_t(1));
+	QCOMPARE(f.document.model().services.front().id, std::string("tp_3"));
 }
 
 void TestSceneSession::saveAsFolderAsksBeforeReplacingCase() {

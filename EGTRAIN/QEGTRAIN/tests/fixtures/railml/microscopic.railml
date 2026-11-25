@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A made-up line for the railML import tests: station Aberg, the halt Hollum and station Bedal with a passing
+     loop. Two train parts run in the daily operating period and one on Sundays. -->
+<railml xmlns="https://www.railml.org/schemas/2018" version="2.4">
+  <infrastructure id="inf">
+    <tracks>
+      <track id="t1" name="Main line">
+        <trackTopology>
+          <trackBegin id="t1_begin" pos="0">
+            <bufferStop id="t1_stop_a"/>
+          </trackBegin>
+          <trackEnd id="t1_end" pos="4000">
+            <bufferStop id="t1_stop_b"/>
+          </trackEnd>
+          <connections>
+            <switch id="sw1" pos="3000">
+              <connection id="sw1_c" ref="t2_c_begin" orientation="outgoing" course="left"/>
+            </switch>
+            <switch id="sw2" pos="3600">
+              <connection id="sw2_c" ref="t2_c_end" orientation="incoming" course="left"/>
+            </switch>
+          </connections>
+          <crossSections>
+            <crossSection id="cs_a" pos="300" ocpRef="ocp_a"/>
+            <crossSection id="cs_h" pos="1500" ocpRef="ocp_h"/>
+            <crossSection id="cs_b1" pos="3300" ocpRef="ocp_b"/>
+          </crossSections>
+        </trackTopology>
+        <trackElements>
+          <speedChanges>
+            <speedChange id="sc1u" pos="0" dir="up" vMax="100"/>
+            <speedChange id="sc2u" pos="2500" dir="up" vMax="60"/>
+            <speedChange id="sc2d" pos="4000" dir="down" vMax="60"/>
+            <speedChange id="sc1d" pos="2500" dir="down" vMax="100"/>
+          </speedChanges>
+          <gradientChanges>
+            <gradientChange id="gc1" pos="1000" slope="5"/>
+            <gradientChange id="gc2" pos="2000" slope="0"/>
+          </gradientChanges>
+          <radiusChanges>
+            <radiusChange id="rc1" pos="2200" radius="800"/>
+            <radiusChange id="rc2" pos="2400" radius="0"/>
+          </radiusChanges>
+          <platformEdges>
+            <platformEdge id="pe_a" pos="200" length="200" ocpRef="ocp_a"/>
+            <platformEdge id="pe_h" pos="1450" length="100" ocpRef="ocp_h"/>
+            <platformEdge id="pe_b1" pos="3200" length="200" ocpRef="ocp_b"/>
+          </platformEdges>
+        </trackElements>
+        <ocsElements>
+          <signals>
+            <signal id="sig_a_up" pos="450" dir="up" type="main"/>
+            <signal id="sig_a_down" pos="150" dir="down" type="main"/>
+            <signal id="sig_h_up" pos="1600" dir="up" type="main"/>
+            <signal id="sig_h_down" pos="1400" dir="down" type="main"/>
+            <signal id="sig_dist" pos="2000" dir="up" type="distant"/>
+            <signal id="sig_b_in" pos="2900" dir="up" type="main"/>
+            <signal id="sig_b1_up" pos="3550" dir="up" type="main"/>
+            <signal id="sig_b1_down" pos="3050" dir="down" type="main"/>
+            <signal id="sig_b_in_down" pos="3700" dir="down" type="main"/>
+          </signals>
+          <trainDetectionElements>
+            <trainDetector id="td1" pos="1000" dir="up"/>
+          </trainDetectionElements>
+        </ocsElements>
+      </track>
+      <track id="t2" name="Loop">
+        <trackTopology>
+          <trackBegin id="t2_begin" pos="0">
+            <connection id="t2_c_begin" ref="sw1_c"/>
+          </trackBegin>
+          <trackEnd id="t2_end" pos="600">
+            <connection id="t2_c_end" ref="sw2_c"/>
+          </trackEnd>
+          <crossSections>
+            <crossSection id="cs_b2" pos="300" ocpRef="ocp_b"/>
+          </crossSections>
+        </trackTopology>
+        <trackElements>
+          <speedChanges>
+            <speedChange id="sc3" pos="0" vMax="40"/>
+          </speedChanges>
+          <platformEdges>
+            <platformEdge id="pe_b2" pos="200" length="150" ocpRef="ocp_b"/>
+          </platformEdges>
+        </trackElements>
+        <ocsElements>
+          <signals>
+            <signal id="sig_b2_up" pos="550" dir="up" type="main"/>
+            <signal id="sig_b2_down" pos="50" dir="down" type="main"/>
+          </signals>
+        </ocsElements>
+      </track>
+    </tracks>
+    <operationControlPoints>
+      <ocp id="ocp_a" name="Aberg"/>
+      <ocp id="ocp_h" name="Hollum"/>
+      <ocp id="ocp_b" name="Bedal"/>
+    </operationControlPoints>
+  </infrastructure>
+  <rollingstock id="rs">
+    <vehicles>
+      <vehicle id="v_loco" name="Locomotive" length="19" speed="140" bruttoWeight="84" numberDrivenAxles="4"/>
+      <vehicle id="v_coach" name="Coach" length="26.4" speed="160" bruttoWeight="45">
+        <passenger>
+          <places category="class2" count="80"/>
+          <places category="bicycle" count="6"/>
+        </passenger>
+      </vehicle>
+    </vehicles>
+    <formations>
+      <formation id="f_ic" name="Intercity" speed="140">
+        <trainOrder>
+          <vehicleRef orderNumber="1" vehicleRef="v_loco"/>
+          <vehicleRef orderNumber="2" vehicleRef="v_coach" vehicleCount="3"/>
+        </trainOrder>
+      </formation>
+    </formations>
+  </rollingstock>
+  <timetable id="tt">
+    <operatingPeriods>
+      <operatingPeriod id="op_daily" name="Daily"/>
+      <operatingPeriod id="op_sunday" name="Sundays"/>
+    </operatingPeriods>
+    <trainParts>
+      <trainPart id="tp_1" trainNumber="101">
+        <formationTT formationRef="f_ic"/>
+        <operatingPeriodRef ref="op_daily"/>
+        <ocpsTT>
+          <ocpTT ocpRef="ocp_a" sequence="1" ocpType="stop">
+            <times scope="scheduled" departure="23:50:00"/>
+            <sectionTT id="tp_1_s1">
+              <trackRef ref="t1" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_h" sequence="2" ocpType="stop">
+            <times scope="scheduled" arrival="23:52:00" departure="23:53:00"/>
+            <stopDescription>
+              <stopTimes minimalTime="PT30S"/>
+            </stopDescription>
+            <sectionTT id="tp_1_s2">
+              <trackRef ref="t1" dir="up"/>
+              <trackRef ref="t2" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_b" sequence="3" ocpType="stop">
+            <times scope="scheduled" arrival="23:56:00"/>
+          </ocpTT>
+        </ocpsTT>
+      </trainPart>
+      <trainPart id="tp_2" trainNumber="102">
+        <formationTT formationRef="f_ic"/>
+        <operatingPeriodRef ref="op_daily"/>
+        <ocpsTT>
+          <ocpTT ocpRef="ocp_b" sequence="1" ocpType="stop">
+            <times scope="scheduled" departure="23:58:00"/>
+            <sectionTT id="tp_2_s1">
+              <trackRef ref="t1" dir="down"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_h" sequence="2" ocpType="pass">
+            <times scope="scheduled" departure="00:01:30"/>
+            <sectionTT id="tp_2_s2">
+              <trackRef ref="t1" dir="down"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_a" sequence="3" ocpType="stop">
+            <times scope="scheduled" arrival="00:04:00"/>
+          </ocpTT>
+        </ocpsTT>
+      </trainPart>
+      <trainPart id="tp_3" trainNumber="201">
+        <operatingPeriodRef ref="op_sunday"/>
+        <ocpsTT>
+          <ocpTT ocpRef="ocp_a" sequence="1" ocpType="stop">
+            <times scope="scheduled" departure="10:00:00"/>
+            <sectionTT id="tp_3_s1">
+              <trackRef ref="t1" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_b" sequence="2" ocpType="stop">
+            <times scope="scheduled" arrival="10:07:00"/>
+          </ocpTT>
+        </ocpsTT>
+      </trainPart>
+    </trainParts>
+    <trains>
+      <train id="tr_101" type="operational" trainNumber="101">
+        <trainPartSequence sequence="1">
+          <trainPartRef ref="tp_1" position="1"/>
+        </trainPartSequence>
+      </train>
+      <train id="tr_102" type="operational" trainNumber="102">
+        <trainPartSequence sequence="1">
+          <trainPartRef ref="tp_2" position="1"/>
+        </trainPartSequence>
+      </train>
+      <train id="tr_101c" type="commercial" trainNumber="101">
+        <trainPartSequence sequence="1">
+          <trainPartRef ref="tp_1" position="1"/>
+        </trainPartSequence>
+      </train>
+    </trains>
+  </timetable>
+</railml>

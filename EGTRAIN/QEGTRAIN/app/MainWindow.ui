@@ -41,6 +41,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionLoad_Network"/>
+    <addaction name="actionImport_Railml"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -135,6 +136,11 @@
   <action name="actionLoad_Network">
    <property name="text">
     <string>Import Legacy Case...</string>
+   </property>
+  </action>
+  <action name="actionImport_Railml">
+   <property name="text">
+    <string>Import railML...</string>
    </property>
   </action>
   <action name="actionZoomIn">
