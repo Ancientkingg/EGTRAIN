@@ -117,7 +117,7 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	connect(m_maxTransfersEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_walkingSecondsEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_lateThresholdEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
-	connect(m_couplingServiceList, &QListWidget::itemChanged, this, [this](QListWidgetItem*) { commit(); });
+	connect(m_couplingServiceList, &QListWidget::itemChanged, this, [this](QListWidgetItem*) { commitCouplingServices(); });
 	CaseSettingsPanel::refresh();
 }
 
@@ -239,7 +239,8 @@ void CaseSettingsPanel::refresh() {
 }
 
 void CaseSettingsPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
-	// The panel edits no service, so this is an edit of another panel.
+	// The panel edits no service, so this is an edit of another panel. The text being typed in a field is taken first, so
+	// that refresh() does not drop it; the list of services that couple is not taken, and refresh() shows it from the model.
 	if (kinds.testFlag(SceneDocument::Services)) {
 		takePendingText();
 		refresh();
@@ -289,15 +290,7 @@ void CaseSettingsPanel::commit() {
 	const bool speedToleranceEdited = shownValue(m_couplingSpeedToleranceEdit, model.settings.virtualCouplingSpeedToleranceMs) != speedTolerance;
 	const double authorityMargin = m_authorityMarginEdit->value();
 	const bool authorityMarginEdited = shownValue(m_authorityMarginEdit, model.settings.endOfAuthorityMarginM) != authorityMargin;
-	std::vector<std::string> couplingServices;
-	for (int row = 0; row < m_couplingServiceList->count(); ++row) {
-		const QListWidgetItem* item = m_couplingServiceList->item(row);
-		if (item->checkState() == Qt::Checked)
-			couplingServices.push_back(item->text().toStdString());
-	}
-	// The order of the list in the file is not an edit.
-	const bool couplingServicesEdited = serviceSet(couplingServices) != serviceSet(model.settings.virtualCouplingServices);
-	const bool couplingEdited = couplingDistanceEdited || speedToleranceEdited || authorityMarginEdited || couplingServicesEdited;
+	const bool couplingEdited = couplingDistanceEdited || speedToleranceEdited || authorityMarginEdited;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
 		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited && !couplingEdited)
 		return;
@@ -330,13 +323,28 @@ void CaseSettingsPanel::commit() {
 				edited.settings.virtualCouplingSpeedToleranceMs = speedTolerance;
 			if (authorityMarginEdited)
 				edited.settings.endOfAuthorityMarginM = authorityMargin;
-			if (couplingServicesEdited) {
-				edited.settings.virtualCouplingServices = couplingServices;
-				m_couplingServicesNote->setText(couplingNoteText(couplingServices.empty()));
-			}
 			if (baseTimeEdited)
 				emit baseTimeChanged(m_baseTimeEdit->text());
 		}))
 		return;
+	emit changed();
+}
+
+void CaseSettingsPanel::commitCouplingServices() {
+	if (!hasScene())
+		return;
+	std::vector<std::string> services;
+	for (int row = 0; row < m_couplingServiceList->count(); ++row) {
+		const QListWidgetItem* item = m_couplingServiceList->item(row);
+		if (item->checkState() == Qt::Checked)
+			services.push_back(item->text().toStdString());
+	}
+	// The order of the list in the file is not an edit.
+	if (serviceSet(services) == serviceSet(m_document->model().settings.virtualCouplingServices))
+		return;
+	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings",
+			[&services](SceneModel& edited) { edited.settings.virtualCouplingServices = services; }))
+		return;
+	m_couplingServicesNote->setText(couplingNoteText(services.empty()));
 	emit changed();
 }

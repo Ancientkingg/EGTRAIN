@@ -1,4 +1,5 @@
 #include "editors/CaseSettingsPanel.h"
+#include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 #include "support/EditHistory.h"
@@ -115,6 +116,8 @@ private slots:
 	void editsPassengerLateThreshold();
 	void editsVirtualCouplingNumbers();
 	void editsVirtualCouplingServices();
+	void keepsRenamedCouplingService_data();
+	void keepsRenamedCouplingService();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -353,6 +356,50 @@ void TestCaseSettingsPanel::editsVirtualCouplingServices() {
 	QCOMPARE(list->count(), 4);
 	QCOMPARE(list->item(3)->text(), "F4");
 	QCOMPARE(list->item(3)->checkState(), Qt::Unchecked);
+}
+
+void TestCaseSettingsPanel::keepsRenamedCouplingService_data() {
+	QTest::addColumn<bool>("windowFirst");
+	QTest::newRow("panel refreshes first") << false;
+	QTest::newRow("window takes the pending text first") << true;
+}
+
+// Renaming a listed service in the Services panel keeps the new id in the list: the panel makes no edit of its own, also
+// when the window takes the pending text of every panel before the panel shows the renamed service.
+void TestCaseSettingsPanel::keepsRenamedCouplingService() {
+	QFETCH(bool, windowFirst);
+	SceneModel scene = couplingScene();
+	scene.settings.virtualCouplingServices = {"F1"};
+	SceneDocument document;
+	CaseSettingsPanel* window = nullptr;
+	// The window answers changed() by taking the pending text of every panel (MainWindow::commitPendingEditorValues).
+	const auto takeText = [&window](SceneDocument::ChangeKinds) {
+		if (window != nullptr)
+			window->commitPendingEditors();
+	};
+	if (windowFirst)
+		connect(&document, &SceneDocument::changed, this, takeText);
+	CaseSettingsPanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	window = &panel;
+	QCOMPARE(checkedServices(panel.couplingServiceList()), QStringList({"F1"}));
+	const quint64 revision = document.revision();
+	// The edit of ServicePanel::commitIdEdit.
+	QVERIFY(document.edit(SceneDocument::Services | SceneDocument::Scenarios | SceneDocument::Passengers, "Rename service",
+		[](SceneModel& edited) {
+			sceneRewriteServiceReferences(edited, "F1", "F1x");
+			edited.services[0].id = "F1x";
+		}));
+	if (!windowFirst)
+		panel.commitPendingEditors();
+	QCOMPARE(document.revision(), revision + 1);
+	QCOMPARE(document.lastChangeLabel(), "Rename service");
+	QVERIFY(document.model().settings.virtualCouplingServices == std::vector<std::string>({"F1x"}));
+	QCOMPARE(checkedServices(panel.couplingServiceList()), QStringList({"F1x"}));
+	QCOMPARE(panel.couplingServiceList()->count(), 3);
+	QVERIFY(!hasCode(validateScene(document.model()), "scene.virtual_coupling.service.unknown"));
+	window = nullptr;
 }
 
 void TestCaseSettingsPanel::namesFields() {
