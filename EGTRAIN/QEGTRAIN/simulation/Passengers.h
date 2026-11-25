@@ -96,7 +96,8 @@ enum class JourneyMode {
 /// and station IDs as in Trip; durations are seconds. Strings are "None" and times -9999 until set.
 ///
 /// A journey without legs in the scene is live: when the passenger appears on the platform, the passenger step plans the
-/// legs on the timetable of the moment (PassengerJourneys.h), and again whenever the passenger misses a train. A journey with
+/// legs on the timetable of the moment (PassengerJourneys.h), and again whenever the passenger misses a train or another plan
+/// arrives well before that of a late train. A journey with
 /// legs follows them until one cannot be taken and is then planned like a live journey from the station where the passenger is.
 class Journey {
 public:
@@ -128,8 +129,8 @@ public:
 	/// True once the passenger has entered the network for this journey.
 	bool IsJourneyStarted, IsJourneyCompleted; ///< True once the passenger has reached the destination.
 	/// True once the legs after the first plan of the journey were replaced: the passenger missed a train, was refused by a
-	/// full one, was set down early by a train that ended its service, or took a standing train that reaches the destination
-	/// directly in time.
+	/// full one, was set down early by a train that ended its service, took a standing train that reaches the destination
+	/// directly in time, or left a late or slowed train for a plan that arrives earlier.
 	bool IsReplanned = false;
 	JourneyOutcome Outcome = JourneyOutcome::InProgress; ///< Set when the journey completes or finds no route.
 	int LiveTripCount = 0;								 ///< Number of legs the passenger step planned for this journey; the IDs of its legs count it.

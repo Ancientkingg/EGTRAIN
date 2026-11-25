@@ -8,6 +8,10 @@
 
 #include <QTest>
 
+#include <list>
+#include <string>
+#include <vector>
+
 namespace {
 
 // A train with three stops that has not moved. Planned arrivals are 100, 200 and 300 s and planned departures 130, 230 and none.
@@ -392,6 +396,65 @@ struct ArrivingTrainRun {
 	const Passenger& waiter() const { return run.passengers.front(); }
 };
 
+// A run at station B that starts at 00:00:00. Passenger `waiter` has stood on B.platform.1 since 300 for T1, which is planned at B at
+// 400 and at C at 1000 but has not come yet. T2 is planned at B at secondAtB, leaves 20 s later and is at C 140 s after that. Both
+// trains call at B.platform.1.
+struct LateTrainRun {
+	SimulationRun run;
+	PassengerFlow flow;
+
+	explicit LateTrainRun(double secondAtB) {
+		run.settings.startingSimulationTime = 0;
+		Train late = trainFromB("T1", 1, 400);
+		late.ScheduledArrivals[1] = 1000;
+		run.trains.push_back(late);
+		run.trains.push_back(trainFromB("T2", 1, secondAtB));
+		run.numTrains = static_cast<int>(run.trains.size());
+
+		Trip trip;
+		trip.TripID = "w.1";
+		trip.JourneyID = "w";
+		trip.Dep_Station_ID = "B";
+		trip.Arr_Station_ID = "C";
+		trip.Dep_Station_Platform_ID = "B.platform.1";
+		trip.Arr_Station_Platform_ID = "C.platform.1";
+		trip.depPlatformNumber = 1;
+		trip.TrainServiceDescription = "T1";
+		trip.Planned_Departure_Time = 420;
+		trip.Planned_Arrival_Time = 1000;
+		trip.IsTripStarted = true;
+		trip.Actual_Departure_Time = 300;
+		Journey journey;
+		journey.ID = "w";
+		journey.Mode = JourneyMode::Live;
+		journey.Dep_Station_ID = "B";
+		journey.Arr_Station_ID = "C";
+		journey.Trips = {trip};
+		journey.N_Trips = 1;
+		journey.IsJourneyStarted = true;
+		journey.Waitingtime = 0;
+		journey.Walkingtime = 0;
+		Passenger waiter;
+		waiter.ID = "waiter";
+		waiter.Journeys.push_back(journey);
+		waiter.IsIntheNetwork = true;
+		waiter.CurrentStatus = PassengerStatus::OnPlatform;
+		waiter.current_JourneyID = "w";
+		waiter.current_TripID = "w.1";
+		waiter.current_location_ID = waiter.Current_WaitingStationID = "B";
+		waiter.Current_WaitingStationPlatformID = "B.platform.1";
+		waiter.Current_Train_To_Wait = "T1";
+		waiter.Current_Arrival_Station = "C";
+		run.passengers.push_back(waiter);
+		run.numPassengers = 1;
+		flow.build(run.passengers);
+	}
+
+	void settle(int t) { run.passengerJourneys.settleTrains(run, flow, t); }
+	const Passenger& waiter() const { return run.passengers.front(); }
+	const Journey& journey() const { return waiter().Journeys.front(); }
+};
+
 // A run whose route 0 is one section of three arcs: 0 to 1,000 m with a track speed limit of 10 m/s, 1,000 to 3,000 m with 30 m/s
 // and 3,000 to 4,000 m with 40 m/s. Its train S-1 (threeStops) runs on it at up to 50 m/s and stops at 0, 1 and 3 km. With
 // `capped`, a breakdown caps S-1 at 72 km/h (20 m/s) from 50 s to 1,000 s.
@@ -494,6 +557,7 @@ private slots:
 	void capWithAVeryLateEndIsOnePeriod();
 	void capThatStartsLaterDoesNotHideOneThatAppliesNow();
 	void capsThatEndWithinOneSecondKeepTheirPeriods();
+	void trainBetweenStopsIsAsLateAsItIsOverdue();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
 	void trainThatEndsEarlyCountsThePassengersItSetsDown();
@@ -505,6 +569,11 @@ private slots:
 	void waitingPassengerSwitchesToTrainThatArrivesAndGoesDirect();
 	void waitingPassengerKeepsPlanWhenTheDirectTrainArrivesLater();
 	void waitingPassengerIgnoresFullStandingTrain();
+	void passengerLeavesLateTrainForAnEarlierOne();
+	void passengerKeepsLateTrainWithinTheMargin();
+	void passengerKeepsTrainLateUpToTheThreshold();
+	void passengerPlansAgainOnlyWhenThePredictionChanges();
+	void passengerWhoComesToWaitForALateTrainTakesAnEarlierOne();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -577,11 +646,13 @@ void TestPassengerJourneys::trainThatEnteredLateIsLateBeforeItsFirstArrival() {
 	train.CanEnter = true;
 	train.earliestActiveTrajectoryIndex = 350;
 	QCOMPARE(progressOf(train, 0, 400).delay, 300.0 * timestep);
+	// Before the first stop is due at 100 s.
 	train.earliestActiveTrajectoryIndex = 40;
-	QCOMPARE(progressOf(train, 0, 400).delay, 0.0);
+	QCOMPARE(progressOf(train, 0, 90).delay, 0.0);
+	// Before the second stop is due at 200 s.
 	train.earliestActiveTrajectoryIndex = 350;
 	train.StationArrivals[0] = 160.0;
-	QCOMPARE(progressOf(train, 1, 400).delay, 60.0);
+	QCOMPARE(progressOf(train, 1, 190).delay, 60.0);
 }
 
 void TestPassengerJourneys::trainThatStandsPastItsDepartureIsAsLateAsItStands() {
@@ -736,6 +807,9 @@ void TestPassengerJourneys::departureDelayCountsOnceTheTrainLeft() {
 void TestPassengerJourneys::timeMadeUpAtAStopCounts() {
 	Train train = threeStops();
 	train.ScheduledDepartures[0] = 700.0;
+	train.ScheduledArrivals[1] = 800.0;
+	train.ScheduledDepartures[1] = 830.0;
+	train.ScheduledArrivals[2] = 900.0;
 	train.Stations[0].StepStopped = 10;
 	train.StationArrivals[0] = 500;
 	train.StationDepartures[0] = 701;
@@ -793,6 +867,31 @@ void TestPassengerJourneys::capsThatEndWithinOneSecondKeepTheirPeriods() {
 	QCOMPARE(progress.limits[0].ends, 100.2);
 	QCOMPARE(progress.limits[1].ends, 100.8);
 	QCOMPARE(progress.limits[1].runs[1], 160.0);
+}
+
+// The train left its first stop on time and runs to its second stop, due at 200 s, with its head at 1,500 m. It is on time until then,
+// 60 s late at 260 s, and at 600 s 400 s late, above the late threshold, so that its later stops are predicted 400 s late. Once it
+// stands at the second stop, its arrival there gives the delay.
+void TestPassengerJourneys::trainBetweenStopsIsAsLateAsItIsOverdue() {
+	Train train = threeStops();
+	for (int stop = 0; stop < 3; ++stop)
+		train.Stations[static_cast<std::size_t>(stop)].X = 1.0 + stop;
+	train.Stations[0].StepStopped = 10;
+	train.StationArrivals[0] = 100;
+	train.StationDepartures[0] = 130;
+	train.CanEnter = true;
+	train.earliestActiveTrajectoryIndex = 90;
+	train.instant_spatial_position.assign(700, 1500.0);
+	QCOMPARE(progressOf(train, 1, 190).delay, 0.0);
+	QCOMPARE(progressOf(train, 1, 260).delay, 60.0);
+	const SimulationRun run;
+	const passenger_routing::TrainTimetable timetable{{{0, 0, 100.0, 130.0}, {1, 0, 200.0, 230.0}, {2, 0, 300.0, -1.0}}};
+	const passenger_routing::TrainState state = liveTrainState(run, train, timetable, 1, 600);
+	QVERIFY(state.late);
+	QCOMPARE(state.arrival(timetable, 1), 600.0);
+	QCOMPARE(state.arrival(timetable, 2), 700.0);
+	standAt(train, 1, 270.0);
+	QCOMPARE(progressOf(train, 1, 280).delay, 70.0);
 }
 
 void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute() {
@@ -946,6 +1045,75 @@ void TestPassengerJourneys::waitingPassengerKeepsPlanWhenTheDirectTrainArrivesLa
 void TestPassengerJourneys::waitingPassengerIgnoresFullStandingTrain() {
 	const ArrivingTrainRun arrived(650, true);
 	QCOMPARE(arrived.waiter().Current_Train_To_Wait, std::string("T4"));
+}
+
+// At 800 s T1 has not come to B, where it was due at 400 s: it is 400 s late and predicted at C at 1,400 s. T2 leaves B at 810 s and
+// reaches C at 950 s, so the passenger takes it. The journey counts as planned again, keeps the arrival of its first plan and the
+// wait for T1, and the wait for T2 starts now.
+void TestPassengerJourneys::passengerLeavesLateTrainForAnEarlierOne() {
+	LateTrainRun late(790);
+	late.settle(800);
+	const Journey& journey = late.journey();
+	QCOMPARE(journey.Trips.size(), std::size_t(1));
+	QCOMPARE(journey.Trips.front().TrainServiceDescription, std::string("T2"));
+	QCOMPARE(journey.Trips.front().Planned_Arrival_Time, 950);
+	QCOMPARE(journey.Trips.front().Actual_Departure_Time, 800);
+	QVERIFY(journey.IsReplanned);
+	QCOMPARE(journey.FirstPlanArrival, 1000);
+	QCOMPARE(journey.Waitingtime, 500.0);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T2"));
+	const std::vector<int> waiting{0};
+	QCOMPARE(late.flow.waitingFor(late.flow.platformNumber("B", "B.platform.1"), late.flow.trainNumber("T2")), waiting);
+}
+
+// T2 reaches C at 1,360 s, 40 s before T1 is predicted there, which is within the margin: the passenger keeps waiting for T1. At
+// 1,330 s, 70 s before T1, the passenger takes T2.
+void TestPassengerJourneys::passengerKeepsLateTrainWithinTheMargin() {
+	QCOMPARE(PassengerJourneys::kSwitchMarginSeconds, 60.0);
+	LateTrainRun within(1200);
+	within.settle(800);
+	QCOMPARE(within.journey().Trips.front().TripID, std::string("w.1"));
+	QVERIFY(!within.journey().IsReplanned);
+	QCOMPARE(within.waiter().Current_Train_To_Wait, std::string("T1"));
+	LateTrainRun beyond(1170);
+	beyond.settle(800);
+	QCOMPARE(beyond.waiter().Current_Train_To_Wait, std::string("T2"));
+}
+
+// At 650 s T1 is 250 s late, within the late threshold. The plans use its planned times, so the passenger is not planned again,
+// although T2 reaches C earlier.
+void TestPassengerJourneys::passengerKeepsTrainLateUpToTheThreshold() {
+	LateTrainRun late(790);
+	late.settle(650);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T1"));
+	QVERIFY(!late.journey().IsReplanned);
+}
+
+// Only the passengers of a train whose prediction changed plan again, and the prediction counts in whole minutes. The prediction
+// of T1 at 800 s (B at 800 s, C at 1,400 s) is first seen while nobody waits. At 801 s its times are in the same minutes, so the
+// passenger who now waits for T1 is not planned again, although T2 reaches C at 1,060 s. At 840 s T1 is predicted at B at 840 s,
+// a new minute, and the passenger takes T2.
+void TestPassengerJourneys::passengerPlansAgainOnlyWhenThePredictionChanges() {
+	LateTrainRun late(900);
+	std::list<Passenger> nobody;
+	late.flow.build(nobody);
+	late.settle(800);
+	late.flow.build(late.run.passengers);
+	late.settle(800);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T1"));
+	late.settle(801);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T1"));
+	late.settle(840);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(late.journey().Trips.front().Planned_Arrival_Time, 1060);
+}
+
+// A passenger who comes to wait for T1 when it is already late, such as after a change, takes T2 as well.
+void TestPassengerJourneys::passengerWhoComesToWaitForALateTrainTakesAnEarlierOne() {
+	LateTrainRun late(790);
+	late.run.passengerJourneys.checkWaiting(late.run, late.run.passengers.front(), 800);
+	QCOMPARE(late.waiter().Current_Train_To_Wait, std::string("T2"));
+	QVERIFY(late.journey().IsReplanned);
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {

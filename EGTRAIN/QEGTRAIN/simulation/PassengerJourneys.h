@@ -39,7 +39,11 @@ std::vector<double> limitedRunningSeconds(const SimulationRun& run, const Train&
 /// the arrival delay there, and never negative: a train that arrived late can make up the time while it stands. Before the train arrived anywhere
 /// it is the lateness of its entry (the step of entering minus Train::departure_time) when it has entered, and 0 when it has not.
 /// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
-/// there, so that a passenger who comes to the platform now can still board it.
+/// there, so that a passenger who comes to the platform now can still board it. A train that does not stand at a stop is at least as
+/// late as the time since it was due at its next stop (TrainProgress::nextStop, the first stop on its route at or ahead of where its
+/// head was at the step before): due at the planned arrival there, or at the planned departure of a stop without a planned arrival,
+/// and at the next stop that has one of them when that stop has neither. So a train that is held between two stops, or that cannot
+/// enter its route, gets later while it waits.
 ///
 /// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. The
 /// caps that apply now (Active_Train_Breakdowns) give the limit over time: between two of their ends the lowest of those that still
@@ -65,8 +69,8 @@ passenger_routing::TrainState liveTrainState(const SimulationRun& run, const Tra
 /// times of any other. Its rides become the trips of the journey, named <journey>.live<n>, with the
 /// stations and platforms exactly as the stops of the train name them, so that boarding and alighting treat them like trips from
 /// the scene. A passenger plans again from the station where it is when it misses its train (the train left, or cannot call
-/// there any more), when the train is full, and when the train ends its service before the stop where the passenger leaves it.
-/// A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
+/// there any more), when the train is full, when the train ends its service before the stop where the passenger leaves it, and
+/// when the train it waits for runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 ///
 /// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
 /// destination without a change no later than the plan does (on the times that liveTrainState gives for both trains, and
@@ -74,10 +78,23 @@ passenger_routing::TrainState liveTrainState(const SimulationRun& run, const Tra
 /// with legs, or a transfer) for the trains that stand then, and when a train arrives for the passengers who wait there. The
 /// train that the passenger has just left is not another train.
 ///
+/// A passenger who waits for a train that is late or slowed (passenger_routing::TrainState::late and slowed) plans again from where
+/// it is each time the prediction of that train changes: when the train becomes late or slowed, and then whenever one of its
+/// predicted times moves to another minute (whole minutes, as a departure board shows them). A passenger who comes to wait for such a train (the start of a journey with legs, or a
+/// transfer) plans again then. The passenger takes the new plan only when it reaches the destination more than kSwitchMarginSeconds
+/// before the plan the passenger has, on the same times; a plan with a train that can no longer be boarded in time does not reach
+/// it. Otherwise the passenger keeps waiting. A passenger who waits for a train that is at most the late threshold late and not slowed
+/// is not planned again, because the plans use the planned times of that train. The passengers whose train changed in a step plan in
+/// the order of the passenger list.
+///
 /// The searches of one phase of a step are shared: passengers who plan from one station at one time use one search. The
 /// planning and the settling of the trains each start a phase, because the trains move between them.
 class PassengerJourneys {
 public:
+	/// Seconds by which a new plan has to reach the destination before the plan of a passenger who waits for a late or slowed train
+	/// for the passenger to take it, so that passengers do not switch back and forth on small changes of a prediction.
+	static constexpr double kSwitchMarginSeconds = 60.0;
+
 	/// Empties everything, including the router.
 	void clear();
 
@@ -90,7 +107,7 @@ public:
 	void startJourney(SimulationRun& run, Passenger& passenger, int t);
 
 	/// After a passenger came to wait for a trip, such as after a transfer: plans again when the train of the trip cannot be
-	/// boarded any more. For a passenger who has just alighted, alightedAtPlatform is the number of the platform of the
+	/// boarded any more, and takes an earlier plan when the train is late or slowed (see the rule above). For a passenger who has just alighted, alightedAtPlatform is the number of the platform of the
 	/// train that the passenger left (0 for a platform without a number), and the new plan starts there. The caller registers
 	/// the passenger with the flow afterwards.
 	void checkWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt);
@@ -106,7 +123,8 @@ public:
 
 	/// Settles the trains at the start of the passenger step at `t`: the passengers who wait for a train that has left a stop,
 	/// or cannot call there any more, plan again, and the passengers on a train that ended its service are set down at its last
-	/// stop and plan again from there.
+	/// stop and plan again from there. Then the passengers who wait for a train whose prediction changed look for an earlier
+	/// plan (see the rule above).
 	void settleTrains(SimulationRun& run, PassengerFlow& flow, int t);
 
 private:
@@ -134,12 +152,31 @@ private:
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t);
+	/// The trains whose prediction changed since the last call (see predictions_) and that are late or slowed now, in the order of
+	/// the trains of the run. Brings states_ up to date for `t`.
+	std::vector<int> trainsWithNewPrediction(const SimulationRun& run, int t);
+	/// The passengers who wait for one of these trains at a stop that it still makes look for an earlier plan
+	/// (switchToEarlierPlan), in the order of the passenger list.
+	void offerEarlierPlans(SimulationRun& run, PassengerFlow& flow, const std::vector<int>& trains, int t);
+	/// Plans again for a passenger who waits and takes the new plan when it reaches the destination more than kSwitchMarginSeconds
+	/// before the plan the passenger has (see the rule above). True when it took the new plan; the caller then registers the
+	/// passenger with the flow. alightedAtPlatform as for checkWaiting.
+	bool switchToEarlierPlan(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform);
+	/// When the trips of the journey from index `from` on reach its destination on the times of states_, for a passenger who is
+	/// ready at readyAt (seconds of the day) on the platform with platformNumber, and who boards the first of them at platformId;
+	/// passenger_routing::kUnreached when one of their trains cannot be boarded in time or does not call where the trip says.
+	double tripsArrival(const SimulationRun& run, const Journey& journey, std::size_t from, double readyAt, int platformNumber,
+		const std::string& platformId) const;
 
 	std::unique_ptr<passenger_routing::Router> router_;
 	std::unordered_map<std::string, int> stationIndices_;
 	std::unordered_map<std::string, int> trainIndices_;
 	std::vector<Watch> watches_;
 	std::vector<passenger_routing::TrainState> states_;
+	/// What passengers have seen of the prediction of each train at the last call of trainsWithNewPrediction: empty while the train
+	/// is neither late nor slowed, otherwise whether it is late, whether it is slowed, and its predicted arrival and departure at
+	/// every stop in whole minutes.
+	std::vector<std::vector<int>> predictions_;
 	bool statesFresh_ = false;
 	int statesTime_ = 0;
 	std::map<std::tuple<int, int, int>, passenger_routing::Search> searches_;
