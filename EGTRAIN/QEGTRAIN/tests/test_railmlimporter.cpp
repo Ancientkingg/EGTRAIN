@@ -203,6 +203,47 @@ std::string longLine(int stops) {
 		+ "        </ocpsTT>\n      </trainPart>\n    </trainParts>\n  </timetable>\n</railml>\n";
 }
 
+// A line of `stops` OCPs that the train part runs down the chainage, from ocp_1 at the high end to the last OCP at the low
+// end. Main signals for that direction stand between the first `signalled` + 1 OCPs, so the OCPs after them share the
+// last block of the route.
+std::string downLine(int stops, int signalled) {
+	std::string sections;
+	std::string signalText;
+	std::string ocps;
+	std::string visits;
+	for (int index = 1; index <= stops; ++index) {
+		const std::string id = "ocp_" + std::to_string(index);
+		const int pos = (stops + 1 - index) * 1000;
+		sections += "            <crossSection id=\"cs_" + std::to_string(index) + "\" pos=\"" + std::to_string(pos) + "\" ocpRef=\"" + id + "\"/>\n";
+		if (index <= signalled)
+			signalText += "            <signal id=\"sig_" + std::to_string(index) + "\" pos=\"" + std::to_string(pos - 500)
+				+ "\" dir=\"down\" type=\"main\"/>\n";
+		ocps += "      <ocp id=\"" + id + "\" name=\"Stop " + std::to_string(index) + "\"/>\n";
+		char arrival[16];
+		char departure[16];
+		std::snprintf(arrival, sizeof arrival, "%02d:%02d:00", 6 + index / 60, index % 60);
+		std::snprintf(departure, sizeof departure, "%02d:%02d:30", 6 + index / 60, index % 60);
+		visits += "          <ocpTT ocpRef=\"" + id + "\" sequence=\"" + std::to_string(index) + "\" ocpType=\"stop\">\n";
+		visits += std::string("            <times scope=\"scheduled\"") + (index > 1 ? " arrival=\"" + std::string(arrival) + "\"" : "")
+			+ (index < stops ? " departure=\"" + std::string(departure) + "\"" : "") + "/>\n";
+		if (index < stops)
+			visits += "            <sectionTT><trackRef ref=\"t\" dir=\"down\"/></sectionTT>\n";
+		visits += "          </ocpTT>\n";
+	}
+	return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<railml xmlns=\"https://www.railml.org/schemas/2018\" version=\"2.4\">\n"
+		   "  <infrastructure id=\"inf\">\n    <tracks>\n      <track id=\"t\">\n        <trackTopology>\n"
+		   "          <trackBegin id=\"t_begin\" pos=\"0\"><openEnd id=\"t_open1\"/></trackBegin>\n"
+		   "          <trackEnd id=\"t_end\" pos=\""
+		+ std::to_string((stops + 1) * 1000)
+		+ "\"><openEnd id=\"t_open2\"/></trackEnd>\n"
+		  "          <crossSections>\n"
+		+ sections + "          </crossSections>\n        </trackTopology>\n        <ocsElements><signals>\n" + signalText
+		+ "        </signals></ocsElements>\n      </track>\n    </tracks>\n"
+		+ "    <operationControlPoints>\n" + ocps + "    </operationControlPoints>\n  </infrastructure>\n"
+		+ "  <timetable id=\"tt\">\n    <trainParts>\n      <trainPart id=\"tp\" trainNumber=\"1\">\n        <ocpsTT>\n" + visits
+		+ "        </ocpsTT>\n      </trainPart>\n    </trainParts>\n  </timetable>\n</railml>\n";
+}
+
 } // namespace
 
 class TestRailmlImporter : public QObject {
@@ -231,6 +272,7 @@ private slots:
 	void refusesSceneThatFailsValidation();
 	void endsSpeedRestrictions();
 	void splitsTrainsWithManyStops();
+	void extendsOneBlockPartRoutes();
 	void listsOperatingPeriods();
 };
 
@@ -795,6 +837,27 @@ void TestRailmlImporter::splitsTrainsWithManyStops() {
 	QCOMPARE(secondRoute->blocks.front(), firstRoute->blocks.back());
 	QCOMPARE(scene.routes.size(), std::size_t(2));
 	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.service_split", "tp") != nullptr);
+}
+
+// The part of a split train that runs down the chainage within one block gets the block before it too, since a route of
+// one block has to run up the chainage.
+void TestRailmlImporter::extendsOneBlockPartRoutes() {
+	TempDir temp;
+	const SceneImportResult result = importText(temp, downLine(42, 38));
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	QCOMPARE(scene.services.size(), std::size_t(2));
+	const SceneService& second = scene.services[1];
+	QCOMPARE(second.id, std::string("tp_2"));
+	QCOMPARE(second.stops.size(), std::size_t(3));
+	QCOMPARE(second.stops.front().stationId, std::string("ocp_40"));
+	const SceneRoute* firstRoute = findId(scene.routes, scene.services[0].route);
+	const SceneRoute* secondRoute = findId(scene.routes, second.route);
+	QVERIFY(firstRoute != nullptr && secondRoute != nullptr);
+	QVERIFY(secondRoute->reversed);
+	QCOMPARE(secondRoute->blocks.size(), std::size_t(2));
+	QCOMPARE(secondRoute->blocks.back(), firstRoute->blocks.back());
 }
 
 // The periods with their train parts, for a choice before the import, and the one that an import without a choice takes.

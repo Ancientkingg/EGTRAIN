@@ -152,7 +152,8 @@ the first free suffix, `railml_default.2`.
   forward.
 - A service with more than 40 stops runs as consecutive services `<id>_1`, `<id>_2`, ... that meet at a shared stop.
   Each has the part of the route from its first to its last stop, `route.<id>_<n>`, shared with any other service on
-  the same blocks.
+  the same blocks. A part that runs down the chainage within one block gets the block before it as well (or, for the
+  first part, the block after it), as a whole route of one block does.
 - Base time: the earliest time, down to the minute. Duration: to the latest time plus 10 minutes.
 
 ## Report

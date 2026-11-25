@@ -3323,8 +3323,17 @@ void buildTimetable(Context& context) {
 			}
 			if (stop + 1 < service.stops.size())
 				chunk.stops.back().hasPlannedDeparture = false;
-			const std::size_t firstSection = start == 0 ? 0 : stopVisits[start];
-			const std::size_t lastSection = stop + 1 == service.stops.size() ? sceneRoute.blocks.size() - 1 : stopVisits[stop];
+			std::size_t firstSection = start == 0 ? 0 : stopVisits[start];
+			std::size_t lastSection = stop + 1 == service.stops.size() ? sceneRoute.blocks.size() - 1 : stopVisits[stop];
+			// A route of one block has to run up the chainage, as for whole services: a part that runs down within one block
+			// gets the block before it, or else the one after it. A reversed route of a whole service has at least two
+			// blocks, so one of them exists.
+			if (firstSection == lastSection && sceneRoute.reversed) {
+				if (firstSection > 0)
+					--firstSection;
+				else
+					++lastSection;
+			}
 			const std::vector<std::string> blocks(sceneRoute.blocks.begin() + static_cast<std::ptrdiff_t>(firstSection),
 				sceneRoute.blocks.begin() + static_cast<std::ptrdiff_t>(lastSection) + 1);
 			chunk.route = routeFor(blocks, sceneRoute.reversed, chunk.id).id;
