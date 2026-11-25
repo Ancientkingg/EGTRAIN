@@ -48,7 +48,7 @@ train F2-1 sample t=960 x=9879.996000 v=0.000000
 train F2-1 sample t=1020 x=10037.233022 v=17.030225
 train F2-1 sample t=1080 x=11682.339109 v=35.002112
 train F2-1 sample t=1140 x=13846.508854 v=36.111111
-train F2-1 sample t=1200 x=15741.301322 v=14.741613
+train F2-1 sample t=1200 x=15743.451937 v=15.232032
 train F2-1 sample t=1246 x=16000.000100 v=0.000100
 train F2-1 stop t_first=387 t_last=662 x=7879.997900 dwell=275
 train F2-1 braking t=343 x=7114.082727 v=36.111111 stop_t=387
