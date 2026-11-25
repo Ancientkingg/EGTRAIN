@@ -2,12 +2,17 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 
+#include <QElapsedTimer>
 #include <QTest>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -100,6 +105,103 @@ SceneModel importFixture(const char* name, const TempDir& temp, std::vector<Scen
 	return loaded.scene;
 }
 
+// The text of a fixture.
+std::string fixtureText(const char* name) {
+	std::ifstream input(fixture(name), std::ios::binary);
+	return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
+// `text` with the first `from` replaced by `to`; fails the test when the text has no `from`.
+std::string replaced(std::string text, const std::string& from, const std::string& to) {
+	const std::size_t at = text.find(from);
+	if (at == std::string::npos) {
+		QTest::qFail(("the document has no " + from).c_str(), __FILE__, __LINE__);
+		return text;
+	}
+	return text.replace(at, from.size(), to);
+}
+
+// Writes `text` to a railML file in the temporary directory and imports it into the folder "scene" there.
+SceneImportResult importText(const TempDir& temp, const std::string& text, const RailmlImportOptions& options = {}) {
+	const fs::path file = temp.path / "test.railml";
+	std::ofstream(file, std::ios::binary) << text;
+	return importRailmlScene(file.string(), (temp.path / "scene").string(), "", options);
+}
+
+// Loads the scene that an import wrote into the temporary directory and checks that it is runnable.
+SceneModel loadRunnable(const TempDir& temp, const SceneImportResult& result) {
+	if (!result.success()) {
+		QTest::qFail(errorText(result.diagnostics).c_str(), __FILE__, __LINE__);
+		return {};
+	}
+	const SceneLoadResult loaded = loadScene((temp.path / "scene").string());
+	if (hasErrors(loaded.diagnostics)) {
+		QTest::qFail(errorText(loaded.diagnostics).c_str(), __FILE__, __LINE__);
+		return {};
+	}
+	const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene);
+	if (hasErrors(runnable)) {
+		QTest::qFail(errorText(runnable).c_str(), __FILE__, __LINE__);
+		return {};
+	}
+	return loaded.scene;
+}
+
+// The text with a trains element that holds `trains` at the end of its timetable.
+std::string withTrains(const std::string& text, const std::string& trains) {
+	return replaced(text, "  </timetable>", "    <trains>\n" + trains + "    </trains>\n  </timetable>");
+}
+
+// A second train part of the macroscopic fixture, from Westdorf to Mittelstadt an hour after the first.
+constexpr const char* kSecondTrainPart = R"(      <trainPart id="tp_rb2" trainNumber="RB 2">
+        <operatingPeriodRef ref="op_workdays"/>
+        <ocpsTT>
+          <ocpTT ocpRef="ocp_w" sequence="1" ocpType="stop">
+            <times scope="scheduled" departure="07:00:00"/>
+            <sectionTT id="tp_rb2_s1">
+              <trackRef ref="tw" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_m" sequence="2" ocpType="stop">
+            <times scope="scheduled" arrival="07:05:00"/>
+          </ocpTT>
+        </ocpsTT>
+      </trainPart>
+)";
+
+// A line of one track with `stops` OCPs 1 km apart and one train part that stops at each of them, a minute apart.
+std::string longLine(int stops) {
+	std::string sections;
+	std::string ocps;
+	std::string visits;
+	for (int index = 1; index <= stops; ++index) {
+		const std::string id = "ocp_" + std::to_string(index);
+		sections += "            <crossSection id=\"cs_" + std::to_string(index) + "\" pos=\"" + std::to_string(index * 1000) + "\" ocpRef=\"" + id + "\"/>\n";
+		ocps += "      <ocp id=\"" + id + "\" name=\"Stop " + std::to_string(index) + "\"/>\n";
+		char arrival[16];
+		char departure[16];
+		std::snprintf(arrival, sizeof arrival, "%02d:%02d:00", 6 + index / 60, index % 60);
+		std::snprintf(departure, sizeof departure, "%02d:%02d:30", 6 + index / 60, index % 60);
+		visits += "          <ocpTT ocpRef=\"" + id + "\" sequence=\"" + std::to_string(index) + "\" ocpType=\"stop\">\n";
+		visits += std::string("            <times scope=\"scheduled\"") + (index > 1 ? " arrival=\"" + std::string(arrival) + "\"" : "")
+			+ (index < stops ? " departure=\"" + std::string(departure) + "\"" : "") + "/>\n";
+		if (index < stops)
+			visits += "            <sectionTT><trackRef ref=\"t\" dir=\"up\"/></sectionTT>\n";
+		visits += "          </ocpTT>\n";
+	}
+	return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<railml xmlns=\"https://www.railml.org/schemas/2018\" version=\"2.4\">\n"
+		   "  <infrastructure id=\"inf\">\n    <tracks>\n      <track id=\"t\">\n        <trackTopology>\n"
+		   "          <trackBegin id=\"t_begin\" pos=\"0\"><openEnd id=\"t_open1\"/></trackBegin>\n"
+		   "          <trackEnd id=\"t_end\" pos=\""
+		+ std::to_string((stops + 1) * 1000)
+		+ "\"><openEnd id=\"t_open2\"/></trackEnd>\n"
+		  "          <crossSections>\n"
+		+ sections + "          </crossSections>\n        </trackTopology>\n      </track>\n    </tracks>\n"
+		+ "    <operationControlPoints>\n" + ocps + "    </operationControlPoints>\n  </infrastructure>\n"
+		+ "  <timetable id=\"tt\">\n    <trainParts>\n      <trainPart id=\"tp\" trainNumber=\"1\">\n        <ocpsTT>\n" + visits
+		+ "        </ocpsTT>\n      </trainPart>\n    </trainParts>\n  </timetable>\n</railml>\n";
+}
+
 } // namespace
 
 class TestRailmlImporter : public QObject {
@@ -115,6 +217,16 @@ private slots:
 	void refusesRailml3();
 	void refusesOtherXml();
 	void refusesMissingFile();
+	void refusesOutOfRangeTimes();
+	void leavesOutSpeedsOfZero();
+	void refusesDuplicateIds();
+	void renamesClashingSceneIds();
+	void walksDeepNesting();
+	void refusesOutOfRangeCounts();
+	void refusesSceneFolderHoldingFile();
+	void refusesSceneThatFailsValidation();
+	void endsSpeedRestrictions();
+	void splitsTrainsWithManyStops();
 };
 
 void TestRailmlImporter::importsMicroscopicInfrastructure() {
@@ -364,6 +476,239 @@ void TestRailmlImporter::refusesMissingFile() {
 	QCOMPARE(result.diagnostics.size(), std::size_t(1));
 	QCOMPARE(result.diagnostics.front().code, std::string("scene.import.railml.read"));
 	QVERIFY(!fs::exists(sceneDir));
+}
+
+// A day offset or an hour far out of range is refused at once, instead of rolling the times over day by day.
+void TestRailmlImporter::refusesOutOfRangeTimes() {
+	const std::string base = fixtureText("macroscopic.railml");
+	const std::string later = replaced(base, R"(arrival="06:05:00" departure="06:06:00")", R"(arrival="08:10:00" departure="08:11:00")");
+	for (const auto& [from, to, detail] : std::vector<std::array<std::string, 3>>{
+			 {R"(departure="06:00:00"/>)", R"(departure="08:00:00" departureDay="100000000000000000000"/>)", "departureDay"},
+			 {R"(departure="06:00:00"/>)", R"(departure="08:00:00" departureDay="-1"/>)", "departureDay"},
+			 {R"(departure="06:00:00"/>)", R"(departure="1000000000000:00:00"/>)", "departure"},
+			 {R"(<times scope="scheduled" arrival="06:14:00"/>)", R"(<times scope="scheduled" arrival="06:14:00" arrivalDay="0.5"/>)", "arrivalDay"},
+		 }) {
+		TempDir temp;
+		QElapsedTimer timer;
+		timer.start();
+		const SceneImportResult result = importText(temp, replaced(later, from, to));
+		QVERIFY2(timer.elapsed() < 10000, to.c_str());
+		QVERIFY2(!result.success(), to.c_str());
+		const SceneDiagnostic* range = findDiagnostic(result.diagnostics, "scene.import.railml.out_of_range", "tp_rb1");
+		QVERIFY2(range != nullptr, errorText(result.diagnostics).c_str());
+		QVERIFY2(range->message.find(detail) != std::string::npos, range->message.c_str());
+		QCOMPARE(range->severity, SceneSeverity::Error);
+		QVERIFY(!fs::exists(temp.path / "scene"));
+	}
+}
+
+// A speed limit of 0 km/h or less is no limit: the change is left out and reported.
+void TestRailmlImporter::leavesOutSpeedsOfZero() {
+	TempDir temp;
+	const std::string text = replaced(fixtureText("macroscopic.railml"), R"(dir="up" vMax="80")", R"(dir="up" vMax="0")");
+	const SceneImportResult result = importText(temp, replaced(text, R"(dir="down" vMax="120")", R"(dir="down" vMax="-5")"));
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	for (const SceneArc& arc : scene.arcs)
+		QVERIFY2(arc.speedLimitMs > 0.0, arc.id.c_str());
+	// Track te keeps its limit in the other direction; tw gets its up limit both ways.
+	QCOMPARE(arcAt(scene, "te", 8.0)->speedLimitMs * 3.6, 80.0);
+	QCOMPARE(arcAt(scene, "tw", 2.0)->speedLimitMs * 3.6, 120.0);
+	const SceneDiagnostic* zero = findDiagnostic(result.diagnostics, "scene.import.railml.speed", "te_v1");
+	QVERIFY2(zero != nullptr, errorText(result.diagnostics).c_str());
+	QVERIFY(zero->message.find("tw_v2") != std::string::npos);
+	QCOMPARE(findRow(scene, "speedChange")->skippedCount, 2);
+}
+
+// railML ids are unique: a file that uses one id for two elements of one kind is refused before anything is written.
+void TestRailmlImporter::refusesDuplicateIds() {
+	const std::string base = fixtureText("macroscopic.railml");
+	const std::string signalText = replaced(replaced(base, "        </trackElements>\n      </track>\n      <track id=\"te\"",
+												"        </trackElements>\n        <ocsElements><signals><signal id=\"sig\" pos=\"4000\" dir=\"up\" "
+												"type=\"main\"/></signals></ocsElements>\n      </track>\n      <track id=\"te\""),
+		"        </trackElements>\n      </track>\n    </tracks>",
+		"        </trackElements>\n        <ocsElements><signals><signal id=\"sig\" pos=\"6000\" dir=\"up\" "
+		"type=\"main\"/></signals></ocsElements>\n      </track>\n    </tracks>");
+	const std::string train = "      <train id=\"T\" type=\"operational\"><trainPartSequence sequence=\"1\"><trainPartRef ref=\"tp_rb1\" "
+							  "position=\"1\"/></trainPartSequence></train>\n";
+	const std::string trainText = withTrains(base, train + train);
+	const std::string trackText = replaced(base, R"(<track id="te")", R"(<track id="tw")");
+	for (const auto& [text, kind, id] : std::vector<std::array<std::string, 3>>{
+			 {signalText, "signal", "sig"}, {trainText, "train", "T"}, {trackText, "track", "tw"}}) {
+		TempDir temp;
+		const SceneImportResult result = importText(temp, text);
+		QVERIFY2(!result.success(), kind.c_str());
+		const SceneDiagnostic* duplicate = findDiagnostic(result.diagnostics, "scene.import.railml.duplicate_id");
+		QVERIFY2(duplicate != nullptr, errorText(result.diagnostics).c_str());
+		QCOMPARE(duplicate->severity, SceneSeverity::Error);
+		QCOMPARE(duplicate->itemType, kind);
+		QCOMPARE(duplicate->itemId, id);
+		QVERIFY(!fs::exists(temp.path / "scene"));
+	}
+}
+
+// Ids that railML keeps apart but the scene does not, and sequences without a number, get a suffix that is reported.
+void TestRailmlImporter::renamesClashingSceneIds() {
+	TempDir temp;
+	std::string text = replaced(fixtureText("macroscopic.railml"), "  </infrastructure>\n",
+		"  </infrastructure>\n  <rollingstock id=\"rs\">\n    <vehicles>\n"
+		"      <vehicle id=\"F\" length=\"20\" speed=\"100\" bruttoWeight=\"40\" numberDrivenAxles=\"2\"/>\n"
+		"      <vehicle id=\"V\" length=\"25\" speed=\"120\" bruttoWeight=\"50\" numberDrivenAxles=\"2\"/>\n"
+		"    </vehicles>\n    <formations>\n"
+		"      <formation id=\"F\"><trainOrder><vehicleRef orderNumber=\"1\" vehicleRef=\"V\"/></trainOrder></formation>\n"
+		"      <formation id=\"railml_default\"><trainOrder><vehicleRef orderNumber=\"1\" vehicleRef=\"V\"/></trainOrder></formation>\n"
+		"    </formations>\n  </rollingstock>\n");
+	text = replaced(text, "    </trainParts>", std::string(kSecondTrainPart) + "    </trainParts>");
+	text = withTrains(text,
+		"      <train id=\"T\" type=\"operational\">\n"
+		"        <trainPartSequence><trainPartRef ref=\"tp_rb1\" position=\"1\"/></trainPartSequence>\n"
+		"        <trainPartSequence><trainPartRef ref=\"tp_rb2\" position=\"1\"/></trainPartSequence>\n"
+		"      </train>\n");
+	const SceneImportResult result = importText(temp, text);
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	std::vector<std::string> units;
+	for (const SceneTrainUnit& unit : scene.trainUnits)
+		units.push_back(unit.id);
+	QCOMPARE(units, (std::vector<std::string>{"F", "railml_default", "F.2", "railml_default.2"}));
+	std::vector<std::string> services;
+	for (const SceneService& service : scene.services)
+		services.push_back(service.id);
+	QCOMPARE(services, (std::vector<std::string>{"T.0", "T.0.2"}));
+	QCOMPARE(scene.services.front().composition, std::string("railml_default.2"));
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.renamed", "F -> F.2") != nullptr);
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.renamed", "railml_default -> railml_default.2") != nullptr);
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.renamed", "T.0 -> T.0.2") != nullptr);
+}
+
+// Deeply nested elements are walked without recursion.
+void TestRailmlImporter::walksDeepNesting() {
+	TempDir temp;
+	constexpr int depth = 100000;
+	std::string nested;
+	nested.reserve(depth * 7);
+	for (int level = 0; level < depth; ++level)
+		nested += "<n>";
+	for (int level = 0; level < depth; ++level)
+		nested += "</n>";
+	const std::string text = replaced(fixtureText("macroscopic.railml"), R"(<ocp id="ocp_w" name="Westdorf">)",
+		R"(<ocp id="ocp_w" name="Westdorf">)" + nested);
+	const SceneImportResult result = importText(temp, text);
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	QCOMPARE(scene.stationViews.size(), std::size_t(4));
+}
+
+// A count far out of range is refused before it is converted to a whole number.
+void TestRailmlImporter::refusesOutOfRangeCounts() {
+	const std::string stock = "  </infrastructure>\n  <rollingstock id=\"rs\">\n    <vehicles>\n"
+							  "      <vehicle id=\"V\" length=\"25\"><passenger><places category=\"class2\" count=\"PLACES\"/></passenger></vehicle>\n"
+							  "    </vehicles>\n    <formations>\n"
+							  "      <formation id=\"F\"><trainOrder><vehicleRef orderNumber=\"1\" vehicleRef=\"V\" vehicleCount=\"COUNT\"/></trainOrder></formation>\n"
+							  "    </formations>\n  </rollingstock>\n";
+	const auto document = [&stock](const std::string& places, const std::string& count) {
+		return replaced(fixtureText("macroscopic.railml"), "  </infrastructure>\n",
+			replaced(replaced(stock, "PLACES", places), "COUNT", count));
+	};
+	for (const auto& [text, detail] : std::vector<std::array<std::string, 2>>{
+			 {document("80", "1e10"), "formation F vehicleCount"},
+			 {document("80", "2.5"), "formation F vehicleCount"},
+			 {document("1e10", "2"), "vehicle V places count"}}) {
+		TempDir temp;
+		const SceneImportResult result = importText(temp, text);
+		QVERIFY2(!result.success(), detail.c_str());
+		const SceneDiagnostic* range = findDiagnostic(result.diagnostics, "scene.import.railml.out_of_range", detail);
+		QVERIFY2(range != nullptr, errorText(result.diagnostics).c_str());
+		QVERIFY(!fs::exists(temp.path / "scene"));
+	}
+	// Counts within range are converted.
+	TempDir temp;
+	const SceneModel scene = loadRunnable(temp, importText(temp, document("80", "4")));
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY(findId(scene.trainUnits, "F") != nullptr);
+	QCOMPARE(findId(scene.trainUnits, "F")->passengerCapacity, 320);
+}
+
+// The import replaces the scene folder, so a folder that holds the railML file is refused.
+void TestRailmlImporter::refusesSceneFolderHoldingFile() {
+	TempDir temp;
+	const fs::path data = temp.path / "data";
+	fs::create_directories(data);
+	const fs::path file = data / "net.railml";
+	std::ofstream(file, std::ios::binary) << fixtureText("macroscopic.railml");
+	for (const fs::path& sceneDir : {data, temp.path, data / "."}) {
+		const SceneImportResult result = importRailmlScene(file.string(), sceneDir.string(), "");
+		QVERIFY2(!result.success(), sceneDir.string().c_str());
+		const SceneDiagnostic* refused = findDiagnostic(result.diagnostics, "scene.import.railml.destination");
+		QVERIFY2(refused != nullptr, errorText(result.diagnostics).c_str());
+		QVERIFY(refused->message.find("which the import would replace") != std::string::npos);
+		QVERIFY(fs::exists(file));
+	}
+	// A folder beside the file is fine.
+	QVERIFY(importRailmlScene(file.string(), (temp.path / "scene").string(), "").success());
+	QVERIFY(fs::exists(file));
+}
+
+// A scene that does not pass validation is never written; the validation errors are listed.
+void TestRailmlImporter::refusesSceneThatFailsValidation() {
+	TempDir temp;
+	const SceneImportResult result = importText(temp, replaced(fixtureText("macroscopic.railml"), R"(<track id="te")", "<track id=\"te&#9;x\""));
+	QVERIFY(!result.success());
+	QVERIFY2(findDiagnostic(result.diagnostics, "scene.import.railml.invalid") != nullptr, errorText(result.diagnostics).c_str());
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.id.separator") != nullptr);
+	QVERIFY(!fs::exists(temp.path / "scene"));
+}
+
+// A speed change with vMax "end" ends the restriction that the change before it began.
+void TestRailmlImporter::endsSpeedRestrictions() {
+	TempDir temp;
+	const std::string text = replaced(fixtureText("macroscopic.railml"), R"(<speedChange id="te_v2")",
+		R"(<speedChange id="te_v3" pos="7000" dir="up" vMax="40"/>
+            <speedChange id="te_v4" pos="9000" dir="up" vMax="end"/>
+            <speedChange id="te_v5" pos="11000" dir="down" vMax="60"/>
+            <speedChange id="te_v6" pos="10000" dir="down" vMax="end"/>
+            <speedChange id="te_v2")");
+	const SceneModel scene = loadRunnable(temp, importText(temp, text));
+	if (QTest::currentTestFailed())
+		return;
+	QCOMPARE(arcAt(scene, "te", 6.0)->speedLimitMs * 3.6, 80.0);
+	QCOMPARE(arcAt(scene, "te", 8.0)->speedLimitMs * 3.6, 40.0);
+	QCOMPARE(arcAt(scene, "te", 9.5)->speedLimitMs * 3.6, 80.0);
+	QCOMPARE(arcAt(scene, "te", 10.5)->speedLimitMs * 3.6, 60.0);
+	QCOMPARE(arcAt(scene, "te", 11.5)->speedLimitMs * 3.6, 80.0);
+}
+
+// A train with more stops than a service holds runs as consecutive services that meet at a shared stop.
+void TestRailmlImporter::splitsTrainsWithManyStops() {
+	TempDir temp;
+	const SceneImportResult result = importText(temp, longLine(42));
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	QCOMPARE(scene.services.size(), std::size_t(2));
+	const SceneService& first = scene.services[0];
+	const SceneService& second = scene.services[1];
+	QCOMPARE(first.id, std::string("tp_1"));
+	QCOMPARE(second.id, std::string("tp_2"));
+	QCOMPARE(first.stops.size(), std::size_t(40));
+	QCOMPARE(second.stops.size(), std::size_t(3));
+	QCOMPARE(first.stops.back().stationId, std::string("ocp_40"));
+	QCOMPARE(second.stops.front().stationId, std::string("ocp_40"));
+	QVERIFY(!first.stops.back().hasPlannedDeparture);
+	QVERIFY(!second.stops.front().hasPlannedArrival);
+	QVERIFY(!second.hasEntryTime);
+	QCOMPARE(second.stops.back().plannedArrivalSeconds - first.stops.front().plannedDepartureSeconds, 41.0 * 60.0 - 30.0);
+	// The second route starts at the block of the shared stop.
+	const SceneRoute* firstRoute = findId(scene.routes, first.route);
+	const SceneRoute* secondRoute = findId(scene.routes, second.route);
+	QVERIFY(firstRoute != nullptr && secondRoute != nullptr);
+	QCOMPARE(secondRoute->blocks.front(), firstRoute->blocks.back());
+	QCOMPARE(scene.routes.size(), std::size_t(2));
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.service_split", "tp") != nullptr);
 }
 
 QTEST_APPLESS_MAIN(TestRailmlImporter)

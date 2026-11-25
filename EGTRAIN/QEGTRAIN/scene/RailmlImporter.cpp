@@ -2,21 +2,21 @@
 
 #include "io/third_party/pugixml.hpp"
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 #include "scene/SectionInventory.h"
 #include "scene/Utf8Path.h"
+#include "util/TimeFormat.h"
 
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <cmath>
 #include <deque>
-#include <cstdio>
 #include <cstring>
-#include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <functional>
-#include <iterator>
 #include <limits>
 #include <locale>
 #include <map>
@@ -24,6 +24,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -33,6 +34,7 @@
 
 namespace {
 
+namespace fs = std::filesystem;
 using pugi::xml_node;
 
 constexpr std::size_t kNone = std::numeric_limits<std::size_t>::max();
@@ -63,7 +65,15 @@ constexpr std::size_t kInteriorBlockArcs = RuntimeLimits::kNativeMaxSectionArcs;
 constexpr std::size_t kEndBlockArcs = (RuntimeLimits::kNativeMaxSectionArcs - 1) / 2;
 
 constexpr double kDurationMarginSeconds = 600.0;
-constexpr std::size_t kListed = 8; // ids named in one diagnostic
+
+// Values beyond these are refused: no real file has them, and the times of a train are compared and shifted by days.
+constexpr double kMaxClockSeconds = 48.0 * 3600.0; // a clock time runs from 00:00:00 to 47:59:59
+constexpr int kMaxDayOffset = 7;				   // arrivalDay and departureDay run from 0 to 7
+constexpr double kMaxStopSeconds = 86400.0;		   // a minimal stop time of at most a day
+constexpr int kMaxVehicleCount = 1000;			   // vehicleCount of one vehicle in a formation
+constexpr int kMaxPlaces = 100000;				   // count of one places element
+constexpr int kMaxSequence = 1000000;			   // sequence and position numbers of trains
+constexpr std::size_t kListed = 8;				   // ids named in one diagnostic
 
 constexpr const char* kDefaultUnitId = "railml_default";
 
@@ -154,15 +164,6 @@ std::optional<double> parseDuration(const std::string& raw) {
 	return total;
 }
 
-std::string clockText(long long seconds) {
-	seconds %= 86400;
-	if (seconds < 0)
-		seconds += 86400;
-	char text[16];
-	std::snprintf(text, sizeof text, "%02lld:%02lld:%02lld", seconds / 3600, (seconds / 60) % 60, seconds % 60);
-	return text;
-}
-
 std::string numberText(double value) {
 	std::ostringstream text;
 	text.imbue(std::locale::classic());
@@ -217,23 +218,33 @@ std::vector<xml_node> elementChildren(const xml_node& node) {
 	return result;
 }
 
+// The node after `node` below `root` in document order, without its children when `skipChildren` is set; empty after the
+// last one. The walk keeps no stack, so that deeply nested elements cannot exhaust it.
+xml_node nextBelow(const xml_node& root, xml_node node, bool skipChildren) {
+	if (!skipChildren && node.first_child())
+		return node.first_child();
+	while (node != root && !node.next_sibling())
+		node = node.parent();
+	return node == root ? xml_node() : node.next_sibling();
+}
+
 xml_node firstDescendant(const xml_node& node, const char* name) {
-	for (const xml_node& child : node.children()) {
-		if (named(child, name))
-			return child;
-		if (const xml_node found = firstDescendant(child, name))
-			return found;
-	}
+	for (xml_node current = node.first_child(); current; current = nextBelow(node, current, false))
+		if (named(current, name))
+			return current;
 	return {};
 }
 
-void collectDescendants(const xml_node& node, const char* name, std::vector<xml_node>& result) {
-	for (const xml_node& child : node.children()) {
-		if (named(child, name))
-			result.push_back(child);
-		else
-			collectDescendants(child, name, result);
+// The elements below `node` with the name, without those below a match.
+std::vector<xml_node> descendantsNamed(const xml_node& node, const char* name) {
+	std::vector<xml_node> result;
+	for (xml_node current = node.first_child(); current;) {
+		const bool match = named(current, name);
+		if (match)
+			result.push_back(current);
+		current = nextBelow(node, current, match);
 	}
+	return result;
 }
 
 std::string attr(const xml_node& node, const char* name) {
@@ -327,7 +338,7 @@ struct Vehicle {
 	std::optional<double> massT;
 	bool massFromBrutto = false;
 	bool powered = false;
-	int places = 0;
+	long long places = 0;
 };
 
 struct Formation {
@@ -468,7 +479,13 @@ struct Context {
 	std::vector<Train> trains;
 	std::map<std::string, int> unsupported; // element kind to count
 	std::string preferredSpeedProfile;
-	std::string period; // the operating period imported; empty when the file has none
+	std::string period;											  // the operating period imported; empty when the file has none
+	std::map<std::string, std::set<std::string>> ids;			  // element kind to the ids read
+	std::map<std::string, std::vector<std::string>> duplicateIds; // element kind to the ids that the file repeats
+	std::vector<std::string> outOfRange;						  // values that are refused, with their element
+	std::vector<std::string> zeroSpeeds;						  // speeds of 0 km/h or less, which count as missing
+	std::string defaultUnitId;									  // the unit of train parts without a formation
+	std::vector<std::string> renamedUnits;						  // train unit ids that got a suffix
 
 	std::vector<Piece> pieces;
 	std::vector<Link> links;
@@ -511,6 +528,64 @@ bool inPeriod(const Context& context, const TrainPart& part) {
 
 void reportDefault(Context& context, const std::string& kind, const std::string& message) {
 	addDiagnostic(context, SceneSeverity::Info, "scene.import.railml.default", message, kind);
+}
+
+// Notes the id of an element of `kind`; false when the file used it before for an element of that kind. railML ids are
+// unique in a file, so such a file is refused.
+bool claimId(Context& context, const char* kind, const std::string& id) {
+	if (context.ids[kind].insert(id).second)
+		return true;
+	context.duplicateIds[kind].push_back(id);
+	return false;
+}
+
+// The text of an attribute value in a diagnostic, cut short.
+std::string shownValue(const std::string& value) {
+	return value.size() > 40 ? value.substr(0, 40) + "..." : value;
+}
+
+// A whole number attribute from `low` to `high`, `fallback` when the element does not have it. Any other value is noted
+// for refusal as "`where` name="value"" and gives std::nullopt, so that no value out of range reaches a conversion.
+std::optional<int> wholeAttr(Context& context, const xml_node& node, const char* name, int low, int high, int fallback,
+	const std::string& where) {
+	const std::string text = attr(node, name);
+	if (text.empty())
+		return fallback;
+	const auto value = parseNumber(text);
+	if (value && std::floor(*value) == *value && *value >= low && *value <= high)
+		return static_cast<int>(*value);
+	context.outOfRange.push_back(where + " " + name + "=\"" + shownValue(text) + "\" (a whole number from "
+		+ std::to_string(low) + " to " + std::to_string(high) + ")");
+	return std::nullopt;
+}
+
+// A speed attribute in km/h. A speed of 0 or less limits nothing, so it counts as missing and is reported.
+std::optional<double> speedAttr(Context& context, const xml_node& node, const char* name, const std::string& where) {
+	const auto value = numberAttr(node, name);
+	if (value && *value <= 0.0) {
+		context.zeroSpeeds.push_back(where + " " + name + "=\"" + numberText(*value) + "\"");
+		return std::nullopt;
+	}
+	return value;
+}
+
+// `base`, or base with the first suffix ".2", ".3" and so on that `used` does not hold yet; the result is added to `used`.
+// A renamed id is listed in `renamed` as "base -> id".
+std::string uniqueId(std::set<std::string>& used, const std::string& base, std::vector<std::string>& renamed) {
+	std::string id = base;
+	for (int suffix = 2; !used.insert(id).second; ++suffix)
+		id = base + "." + std::to_string(suffix);
+	if (id != base)
+		renamed.push_back(base + " -> " + id);
+	return id;
+}
+
+void reportRenamed(Context& context, const std::string& kind, const std::vector<std::string>& renamed) {
+	if (!renamed.empty())
+		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.renamed",
+			std::to_string(renamed.size()) + " " + kind + " ids get a suffix, because another " + kind
+				+ " of the scene has the same id: " + namedList(renamed),
+			kind);
 }
 
 void countUnsupported(Context& context, const xml_node& element) {
@@ -575,6 +650,12 @@ void readChange(Context& context, const xml_node& element, const char* valueName
 		++row.skippedCount;
 		return;
 	}
+	if (number && *number <= 0.0 && std::strcmp(valueName, "vMax") == 0) {
+		++row.skippedCount;
+		context.zeroSpeeds.push_back(std::string(kind) + " " + (change.id.empty() ? "without id" : change.id) + " vMax=\""
+			+ numberText(*number) + "\"");
+		return;
+	}
 	change.pos = *pos;
 	change.end = value == "end";
 	change.value = number.value_or(0.0);
@@ -602,6 +683,8 @@ void readTrackElements(Context& context, Track& track, const xml_node& trackElem
 					++row.skippedCount;
 					continue;
 				}
+				if (!claimId(context, "platformEdge", edge.id))
+					continue;
 				edge.pos = *pos;
 				edge.hasLength = length && *length > 0.0;
 				edge.length = edge.hasLength ? *length : 0.0;
@@ -630,6 +713,8 @@ void readOcsElements(Context& context, Track& track, const xml_node& ocsElements
 				++row.skippedCount;
 				continue;
 			}
+			if (!claimId(context, "signal", signal.id))
+				continue;
 			signal.pos = *pos;
 			track.signals.push_back(signal);
 		}
@@ -641,6 +726,8 @@ void readTrackEnd(Context& context, Track& track, const xml_node& element, int p
 		if (named(child, "connection")) {
 			ConnectionElement connection;
 			connection.id = attr(child, "id");
+			if (!connection.id.empty() && !claimId(context, "connection", connection.id))
+				continue;
 			connection.ref = attr(child, "ref");
 			connection.track = context.tracks.size();
 			connection.place = place;
@@ -669,8 +756,9 @@ void readTrack(Context& context, const xml_node& element) {
 	const xml_node end = firstChild(topology, "trackEnd");
 	const auto beginPos = numberAttr(begin, "pos");
 	const auto endPos = numberAttr(end, "pos");
-	if (track.id.empty() || !begin || !end || !endPos || context.trackIndex.count(track.id) > 0
-		|| *endPos - beginPos.value_or(0.0) < kMinimumBlockM) {
+	if (!track.id.empty() && !claimId(context, "track", track.id))
+		return;
+	if (track.id.empty() || !begin || !end || !endPos || *endPos - beginPos.value_or(0.0) < kMinimumBlockM) {
 		++row.skippedCount;
 		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.skipped",
 			"Track " + (track.id.empty() ? std::string("without id") : track.id)
@@ -702,6 +790,8 @@ void readTrack(Context& context, const xml_node& element) {
 				for (const xml_node& connectionElement : childrenNamed(owner, "connection")) {
 					ConnectionElement connection;
 					connection.id = attr(connectionElement, "id");
+					if (!connection.id.empty() && !claimId(context, "connection", connection.id))
+						continue;
 					connection.ref = attr(connectionElement, "ref");
 					connection.orientation = attr(connectionElement, "orientation");
 					connection.owner = attr(owner, "id");
@@ -750,10 +840,12 @@ void readOcps(Context& context, const xml_node& group) {
 		ocp.id = attr(element, "id");
 		ocp.name = attr(element, "name");
 		++reportRow(context, "ocp").sourceCount;
-		if (ocp.id.empty() || context.ocpIndex.count(ocp.id) > 0) {
+		if (ocp.id.empty()) {
 			++reportRow(context, "ocp").skippedCount;
 			continue;
 		}
+		if (!claimId(context, "ocp", ocp.id))
+			continue;
 		if (const xml_node geo = firstDescendant(element, "geoCoord")) {
 			SceneImportReportRow& geoRow = reportRow(context, "geoCoord");
 			++geoRow.sourceCount;
@@ -804,12 +896,14 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 				++row.sourceCount;
 				Vehicle vehicle;
 				vehicle.id = attr(element, "id");
-				if (vehicle.id.empty() || context.vehicleIndex.count(vehicle.id) > 0) {
+				if (vehicle.id.empty()) {
 					++row.skippedCount;
 					continue;
 				}
+				if (!claimId(context, "vehicle", vehicle.id))
+					continue;
 				vehicle.lengthM = numberAttr(element, "length");
-				vehicle.speedKmh = numberAttr(element, "speed");
+				vehicle.speedKmh = speedAttr(context, element, "speed", "vehicle " + vehicle.id);
 				vehicle.massT = numberAttr(element, "bruttoWeight");
 				vehicle.massFromBrutto = vehicle.massT.has_value();
 				if (!vehicle.massT)
@@ -818,13 +912,11 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 					vehicle.massT = numberAttr(element, "nettoWeight");
 				vehicle.powered = numberAttr(element, "numberDrivenAxles").value_or(0.0) > 0.0
 					|| firstDescendant(element, "engine");
-				std::vector<xml_node> places;
-				collectDescendants(element, "places", places);
-				for (const xml_node& place : places) {
+				for (const xml_node& place : descendantsNamed(element, "places")) {
 					const std::string category = attr(place, "category");
 					if (category == "bicycle" || category.rfind("other:", 0) == 0)
 						continue;
-					vehicle.places += static_cast<int>(std::max(0.0, numberAttr(place, "count").value_or(0.0)));
+					vehicle.places += wholeAttr(context, place, "count", 0, kMaxPlaces, 0, "vehicle " + vehicle.id + " places").value_or(0);
 				}
 				context.vehicleIndex[vehicle.id] = context.vehicles.size();
 				context.vehicles.push_back(vehicle);
@@ -835,17 +927,21 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 				++row.sourceCount;
 				Formation formation;
 				formation.id = attr(element, "id");
-				if (formation.id.empty() || context.formationIndex.count(formation.id) > 0) {
+				if (formation.id.empty()) {
 					++row.skippedCount;
 					continue;
 				}
+				if (!claimId(context, "formation", formation.id))
+					continue;
 				formation.lengthM = numberAttr(element, "length");
-				formation.speedKmh = numberAttr(element, "speed");
+				formation.speedKmh = speedAttr(context, element, "speed", "formation " + formation.id);
 				formation.weightT = numberAttr(element, "weight");
 				std::vector<std::pair<double, std::pair<std::string, int>>> ordered;
 				for (const xml_node& reference : childrenNamed(firstChild(element, "trainOrder"), "vehicleRef")) {
 					const double order = numberAttr(reference, "orderNumber").value_or(static_cast<double>(ordered.size()));
-					const int count = static_cast<int>(std::max(1.0, numberAttr(reference, "vehicleCount").value_or(1.0)));
+					// A vehicle count of 0 counts as one vehicle, as it did before counts were checked.
+					const int count = std::max(1,
+						wholeAttr(context, reference, "vehicleCount", 0, kMaxVehicleCount, 1, "formation " + formation.id).value_or(1));
 					ordered.push_back({order, {attr(reference, "vehicleRef"), count}});
 				}
 				std::stable_sort(ordered.begin(), ordered.end(),
@@ -861,14 +957,25 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 	}
 }
 
-// Reads the arrival and departure of a times element with their day offsets.
-void readTimes(const xml_node& times, OcpVisit& visit) {
-	const auto arrival = parseClock(attr(times, "arrival"));
-	const auto departure = parseClock(attr(times, "departure"));
-	if (arrival)
-		visit.arrival = *arrival + 86400.0 * numberAttr(times, "arrivalDay").value_or(0.0);
-	if (departure)
-		visit.departure = *departure + 86400.0 * numberAttr(times, "departureDay").value_or(0.0);
+// Reads the arrival and departure of a times element with their day offsets. A time that is not one from 00:00:00 to
+// 47:59:59, or a day offset that is not one from 0 to 7, is noted for refusal with `where`, the element that holds it.
+void readTimes(Context& context, const xml_node& times, OcpVisit& visit, const std::string& where) {
+	const auto read = [&](const char* clockName, const char* dayName) -> std::optional<double> {
+		const std::string text = attr(times, clockName);
+		if (text.empty())
+			return std::nullopt;
+		const auto clock = parseClock(text);
+		if (!clock || *clock >= kMaxClockSeconds) {
+			context.outOfRange.push_back(where + " " + clockName + "=\"" + shownValue(text) + "\" (a time from 00:00:00 to 47:59:59)");
+			return std::nullopt;
+		}
+		const auto day = wholeAttr(context, times, dayName, 0, kMaxDayOffset, 0, where);
+		if (!day)
+			return std::nullopt;
+		return *clock + 86400.0 * *day;
+	};
+	visit.arrival = read("arrival", "arrivalDay");
+	visit.departure = read("departure", "departureDay");
 }
 
 void readTrainPart(Context& context, const xml_node& element) {
@@ -876,22 +983,25 @@ void readTrainPart(Context& context, const xml_node& element) {
 	++row.sourceCount;
 	TrainPart part;
 	part.id = attr(element, "id");
-	if (part.id.empty() || context.partIndex.count(part.id) > 0) {
+	if (part.id.empty()) {
 		++row.skippedCount;
 		return;
 	}
+	if (!claimId(context, "trainPart", part.id))
+		return;
 	part.number = attr(element, "trainNumber");
 	part.category = attr(element, "categoryRef");
 	reportRow(context, "ocpTT").sourceCount += static_cast<int>(childrenNamed(firstChild(element, "ocpsTT"), "ocpTT").size());
 	const xml_node formation = firstChild(element, "formationTT");
 	part.formation = attr(formation, "formationRef");
-	part.speedKmh = numberAttr(formation, "speed");
+	part.speedKmh = speedAttr(context, formation, "speed", "train part " + part.id + " formationTT");
 	part.period = attr(firstChild(element, "operatingPeriodRef"), "ref");
 	std::vector<std::pair<double, OcpVisit>> ordered;
 	for (const xml_node& ocpTT : childrenNamed(firstChild(element, "ocpsTT"), "ocpTT")) {
 		OcpVisit visit;
 		visit.ocp = attr(ocpTT, "ocpRef");
 		visit.type = attr(ocpTT, "ocpType");
+		const std::string where = "train part " + part.id + " ocpTT " + std::to_string(ordered.size() + 1) + " (" + visit.ocp + ")";
 		xml_node chosen;
 		for (const xml_node& times : childrenNamed(ocpTT, "times")) {
 			if (!chosen || attr(times, "scope") == "scheduled")
@@ -900,14 +1010,16 @@ void readTrainPart(Context& context, const xml_node& element) {
 				break;
 		}
 		if (chosen)
-			readTimes(chosen, visit);
-		visit.minimalStop = parseDuration(attr(firstChild(firstChild(ocpTT, "stopDescription"), "stopTimes"), "minimalTime"));
-		for (const xml_node& section : childrenNamed(ocpTT, "sectionTT")) {
-			std::vector<xml_node> references;
-			collectDescendants(section, "trackRef", references);
-			for (const xml_node& reference : references)
-				visit.section.push_back({attr(reference, "ref"), directionAttr(reference)});
+			readTimes(context, chosen, visit, where);
+		const std::string minimalTime = attr(firstChild(firstChild(ocpTT, "stopDescription"), "stopTimes"), "minimalTime");
+		visit.minimalStop = parseDuration(minimalTime);
+		if (visit.minimalStop && *visit.minimalStop > kMaxStopSeconds) {
+			context.outOfRange.push_back(where + " minimalTime=\"" + shownValue(minimalTime) + "\" (at most a day)");
+			visit.minimalStop.reset();
 		}
+		for (const xml_node& section : childrenNamed(ocpTT, "sectionTT"))
+			for (const xml_node& reference : descendantsNamed(section, "trackRef"))
+				visit.section.push_back({attr(reference, "ref"), directionAttr(reference)});
 		const double sequence = numberAttr(ocpTT, "sequence").value_or(static_cast<double>(ordered.size()));
 		ordered.emplace_back(sequence, std::move(visit));
 	}
@@ -924,32 +1036,43 @@ void readTimetable(Context& context, const xml_node& timetable) {
 			for (const xml_node& element : childrenNamed(child, "operatingPeriod")) {
 				++reportRow(context, "operatingPeriod").sourceCount;
 				const std::string id = attr(element, "id");
-				if (!id.empty())
+				if (!id.empty() && claimId(context, "operatingPeriod", id))
 					context.periods[id] = attr(element, "name");
 			}
 		} else if (named(child, "categories")) {
 			for (const xml_node& element : childrenNamed(child, "category")) {
 				++reportRow(context, "category").sourceCount;
 				const std::string code = attr(element, "code");
-				context.categories[attr(element, "id")] = code.empty() ? attr(element, "name") : code;
+				const std::string id = attr(element, "id");
+				if (!id.empty() && claimId(context, "category", id))
+					context.categories[id] = code.empty() ? attr(element, "name") : code;
 			}
 		} else if (named(child, "trainParts")) {
 			for (const xml_node& element : childrenNamed(child, "trainPart"))
 				readTrainPart(context, element);
 		} else if (named(child, "trains")) {
 			for (const xml_node& element : childrenNamed(child, "train")) {
-				++reportRow(context, "train").sourceCount;
+				SceneImportReportRow& trainRow = reportRow(context, "train");
+				++trainRow.sourceCount;
 				Train train;
 				train.id = attr(element, "id");
+				if (train.id.empty()) {
+					++trainRow.skippedCount; // its train parts are imported as trains of their own
+					continue;
+				}
+				if (!claimId(context, "train", train.id))
+					continue;
 				train.number = attr(element, "trainNumber");
 				train.type = attr(element, "type");
 				for (const xml_node& sequenceElement : childrenNamed(element, "trainPartSequence")) {
 					TrainSequence sequence;
-					sequence.sequence = static_cast<int>(numberAttr(sequenceElement, "sequence").value_or(0.0));
+					sequence.sequence =
+						wholeAttr(context, sequenceElement, "sequence", 0, kMaxSequence, 0, "train " + train.id + " trainPartSequence").value_or(0);
 					sequence.category = attr(sequenceElement, "categoryRef");
 					sequence.speedProfile = attr(firstChild(sequenceElement, "speedProfileRef"), "ref");
 					for (const xml_node& reference : childrenNamed(sequenceElement, "trainPartRef"))
-						sequence.parts.emplace_back(static_cast<int>(numberAttr(reference, "position").value_or(0.0)),
+						sequence.parts.emplace_back(
+							wholeAttr(context, reference, "position", 0, kMaxSequence, 0, "train " + train.id + " trainPartRef").value_or(0),
 							attr(reference, "ref"));
 					std::stable_sort(sequence.parts.begin(), sequence.parts.end(),
 						[](const auto& left, const auto& right) { return left.first < right.first; });
@@ -2333,12 +2456,12 @@ UnitBuild buildUnit(const Context& context, const std::string& id, const std::ve
 		anyPowered = anyPowered || entry.first->powered;
 	double tractionMass = 0.0;
 	double wagonMass = 0.0;
-	int wagons = 0;
+	long long wagons = 0;
 	bool massMissing = false;
 	double vehicleLength = 0.0;
 	bool lengthMissing = vehicles.empty();
 	std::optional<double> lowestSpeed;
-	int places = 0;
+	long long places = 0;
 	for (std::size_t index = 0; index < vehicles.size(); ++index) {
 		const Vehicle& vehicle = *vehicles[index].first;
 		const int count = vehicles[index].second;
@@ -2378,8 +2501,8 @@ UnitBuild buildUnit(const Context& context, const std::string& id, const std::ve
 		}
 	}
 	physical.mass_of_traction_unit_kg = tractionMass;
-	physical.number_of_wagons = wagons;
-	physical.mass_of_a_wagon_kg = wagons > 0 ? wagonMass / wagons : 0.0;
+	physical.number_of_wagons = static_cast<double>(wagons);
+	physical.mass_of_a_wagon_kg = wagons > 0 ? wagonMass / static_cast<double>(wagons) : 0.0;
 	if (lengthM && *lengthM > 0.0)
 		physical.length_m = *lengthM;
 	else if (!lengthMissing && vehicleLength > 0.0)
@@ -2408,12 +2531,12 @@ UnitBuild buildUnit(const Context& context, const std::string& id, const std::ve
 	build.defaulted.push_back("traction curve");
 	if (!vehicles.empty()) {
 		unit.hasPassengerCapacity = true;
-		unit.passengerCapacity = std::min(places, kMaxPassengerCapacity);
+		unit.passengerCapacity = static_cast<int>(std::min<long long>(places, kMaxPassengerCapacity));
 	}
 	return build;
 }
 
-void buildRollingStock(Context& context, const std::set<std::string>& neededUnits) {
+void buildRollingStock(Context& context) {
 	std::map<std::string, std::vector<std::string>> defaultedUnits; // quantity to unit ids
 	std::set<std::string> vehiclesInFormations;
 	int unresolved = 0;
@@ -2423,6 +2546,12 @@ void buildRollingStock(Context& context, const std::set<std::string>& neededUnit
 		context.scene.trainUnits.push_back(std::move(build.unit));
 	};
 	SceneImportReportRow& formationRow = reportRow(context, "formation");
+	// Unit ids are unique: a vehicle on its own with the id of a formation gets a suffix.
+	std::set<std::string> unitIds;
+	if (!context.defaultUnitId.empty())
+		unitIds.insert(context.defaultUnitId);
+	for (const Formation& formation : context.formations)
+		unitIds.insert(formation.id);
 	for (const Formation& formation : context.formations) {
 		for (const auto& reference : formation.vehicles)
 			vehiclesInFormations.insert(reference.first);
@@ -2441,16 +2570,18 @@ void buildRollingStock(Context& context, const std::set<std::string>& neededUnit
 		if (vehiclesInFormations.count(vehicle.id) > 0)
 			continue;
 		int none = 0;
-		add(buildUnit(context, vehicle.id, {{vehicle.id, 1}}, std::nullopt, std::nullopt, std::nullopt, none));
+		add(buildUnit(context, uniqueId(unitIds, vehicle.id, context.renamedUnits), {{vehicle.id, 1}}, std::nullopt,
+			std::nullopt, std::nullopt, none));
 	}
-	if (neededUnits.count(kDefaultUnitId) > 0) {
+	if (!context.defaultUnitId.empty()) {
 		int none = 0;
-		add(buildUnit(context, kDefaultUnitId, {}, std::nullopt, std::nullopt, std::nullopt, none));
+		add(buildUnit(context, context.defaultUnitId, {}, std::nullopt, std::nullopt, std::nullopt, none));
 		addDiagnostic(context, SceneSeverity::Info, "scene.import.railml.default",
-			"Train parts without a known formation run with unit " + std::string(kDefaultUnitId)
+			"Train parts without a known formation run with unit " + context.defaultUnitId
 				+ ", which has the values of the reference unit",
-			"formation", kDefaultUnitId);
+			"formation", context.defaultUnitId);
 	}
+	reportRenamed(context, "train unit", context.renamedUnits);
 	for (const auto& entry : defaultedUnits) {
 		std::string rule;
 		if (entry.first == "traction curve")
@@ -2484,12 +2615,30 @@ void buildRollingStock(Context& context, const std::set<std::string>& neededUnit
 
 // --- Timetable ---
 
-std::string choosePeriod(Context& context, bool& failed) {
-	failed = false;
+// The number of train parts that refer to each operating period.
+std::map<std::string, int> periodCounts(const Context& context) {
 	std::map<std::string, int> counts;
 	for (const TrainPart& part : context.parts)
 		if (!part.period.empty())
 			++counts[part.period];
+	return counts;
+}
+
+// The operating period that the most train parts refer to, the first id of those with as many; empty when there is none.
+std::string mostUsedPeriod(const std::map<std::string, int>& counts) {
+	std::string chosen;
+	int most = 0;
+	for (const auto& entry : counts)
+		if (entry.second > most) {
+			most = entry.second;
+			chosen = entry.first;
+		}
+	return chosen;
+}
+
+std::string choosePeriod(Context& context, bool& failed) {
+	failed = false;
+	const std::map<std::string, int> counts = periodCounts(context);
 	SceneImportReportRow& row = reportRow(context, "operatingPeriod");
 	if (!context.options.operatingPeriod.empty()) {
 		if (context.periods.count(context.options.operatingPeriod) == 0 && counts.count(context.options.operatingPeriod) == 0) {
@@ -2507,13 +2656,7 @@ std::string choosePeriod(Context& context, bool& failed) {
 		row.skippedCount = row.sourceCount - row.convertedCount;
 		return context.options.operatingPeriod;
 	}
-	std::string chosen;
-	int most = 0;
-	for (const auto& entry : counts)
-		if (entry.second > most) {
-			most = entry.second;
-			chosen = entry.first;
-		}
+	const std::string chosen = mostUsedPeriod(counts);
 	if (!chosen.empty())
 		row.convertedCount = 1;
 	row.skippedCount = row.sourceCount - row.convertedCount;
@@ -2799,6 +2942,9 @@ void buildTimetable(Context& context) {
 	for (const Train& train : context.trains)
 		anyOperational = anyOperational || train.type == "operational";
 	std::vector<std::string> unknownParts;
+	// Service ids are unique: a sequence without a number, or a train part with the id of a train, gets a suffix.
+	std::set<std::string> serviceIds;
+	std::vector<std::string> renamedServices;
 	for (const Train& train : context.trains) {
 		if (anyOperational && train.type != "operational") {
 			++trainRow.skippedCount;
@@ -2822,6 +2968,7 @@ void buildTimetable(Context& context) {
 					group.parts.push_back(&context.parts[found->second]);
 			}
 			if (!group.parts.empty()) {
+				group.id = uniqueId(serviceIds, group.id, renamedServices);
 				groups.push_back(group);
 				used = true;
 			}
@@ -2844,7 +2991,7 @@ void buildTimetable(Context& context) {
 			"train");
 	for (const TrainPart& part : context.parts)
 		if (grouped.count(part.id) == 0 && inPeriod(context, part))
-			groups.push_back({part.id, part.number, part.category, {&part}});
+			groups.push_back({uniqueId(serviceIds, part.id, renamedServices), part.number, part.category, {&part}});
 	int outOfPeriod = 0;
 	for (const TrainPart& part : context.parts)
 		if (!inPeriod(context, part))
@@ -2869,10 +3016,12 @@ void buildTimetable(Context& context) {
 
 	std::map<std::string, std::vector<std::string>> unresolvedServices; // reason to ids
 	std::vector<ServiceDraft> drafts;
+	std::map<std::vector<std::string>, std::string> compositionByUnits;
+	std::set<std::string> compositionIds;
+	std::vector<std::string> renamedCompositions;
 	int coupledMismatch = 0;
 	int rolledOver = 0;
 	int defaultDwell = 0;
-	std::set<std::string> neededUnits;
 	for (const Group& group : groups) {
 		const TrainPart& lead = *group.parts.front();
 		for (std::size_t index = 1; index < group.parts.size(); ++index) {
@@ -2915,18 +3064,30 @@ void buildTimetable(Context& context) {
 			if (context.formationIndex.count(part->formation) > 0)
 				units.push_back(part->formation);
 			else {
-				units.push_back(kDefaultUnitId);
-				neededUnits.insert(kDefaultUnitId);
+				if (context.defaultUnitId.empty()) {
+					// The default unit takes no id of a formation or a vehicle.
+					std::set<std::string> taken;
+					for (const auto& entry : context.formationIndex)
+						taken.insert(entry.first);
+					for (const auto& entry : context.vehicleIndex)
+						taken.insert(entry.first);
+					context.defaultUnitId = uniqueId(taken, kDefaultUnitId, context.renamedUnits);
+				}
+				units.push_back(context.defaultUnitId);
 			}
 		}
-		std::string compositionId;
-		for (const std::string& unit : units)
-			compositionId += (compositionId.empty() ? "" : "+") + unit;
-		service.composition = compositionId;
-		if (std::none_of(scene.compositions.begin(), scene.compositions.end(),
-				[&](const SceneComposition& composition) { return composition.id == compositionId; }))
+		auto composition = compositionByUnits.find(units);
+		if (composition == compositionByUnits.end()) {
+			std::string compositionId;
+			for (const std::string& unit : units)
+				compositionId += (compositionId.empty() ? "" : "+") + unit;
+			compositionId = uniqueId(compositionIds, compositionId, renamedCompositions);
 			scene.compositions.push_back({compositionId, units});
-		// Times, with a day added where they run back by more than twelve hours.
+			composition = compositionByUnits.emplace(units, compositionId).first;
+		}
+		service.composition = composition->second;
+		// Times, with as many days added as make them run back by no more than twelve hours. The times are checked when
+		// they are read, so every time and every shift is finite and small.
 		double previous = -std::numeric_limits<double>::infinity();
 		double shift = 0.0;
 		bool shifted = false;
@@ -2934,9 +3095,10 @@ void buildTimetable(Context& context) {
 			if (!value)
 				return std::numeric_limits<double>::quiet_NaN();
 			double time = *value + shift;
-			while (time < previous - 43200.0) {
-				shift += 86400.0;
-				time += 86400.0;
+			if (time < previous - 43200.0) {
+				const double days = std::ceil((previous - 43200.0 - time) / 86400.0);
+				shift += days * 86400.0;
+				time += days * 86400.0;
 				shifted = true;
 			}
 			previous = time;
@@ -3023,31 +3185,36 @@ void buildTimetable(Context& context) {
 	double base = 0.0;
 	if (std::isfinite(earliest)) {
 		base = std::floor(earliest / 60.0) * 60.0;
-		scene.baseTime = clockText(static_cast<long long>(base));
+		scene.baseTime = formatSimTime(static_cast<long long>(base));
 		scene.settings.hasDuration = true;
 		scene.settings.durationSeconds = std::ceil((latest - base + kDurationMarginSeconds) / 60.0) * 60.0;
 	}
 
-	// Services, with their stops bound to the platforms that the route passes.
-	std::map<std::string, std::string> routeByBlocks;
+	// Services, with their stops bound to the platforms that the route passes. Services with the same blocks share a
+	// route, which takes its id from the first of them.
+	std::map<std::string, std::string> routeByBlocks; // direction and blocks to route id
+	const auto routeFor = [&](const std::vector<std::string>& blocks, bool reversed, const std::string& serviceId) {
+		std::string key = reversed ? "-" : "+";
+		for (const std::string& block : blocks)
+			key += block + "\n";
+		auto found = routeByBlocks.find(key);
+		if (found == routeByBlocks.end()) {
+			SceneRoute sceneRoute;
+			sceneRoute.id = "route." + serviceId; // unique, since the service ids are
+			sceneRoute.blocks = blocks;
+			sceneRoute.reversed = reversed;
+			scene.routes.push_back(sceneRoute);
+			found = routeByBlocks.emplace(key, sceneRoute.id).first;
+		}
+		return *std::find_if(scene.routes.begin(), scene.routes.end(),
+			[&found](const SceneRoute& candidate) { return candidate.id == found->second; });
+	};
 	int droppedStops = 0;
 	std::vector<std::string> splitServices;
 	std::vector<std::string> droppedServices;
 	for (ServiceDraft& draft : drafts) {
-		std::string key = draft.reversed ? "-" : "+";
-		for (const std::string& block : draft.routeBlocks)
-			key += block + "\n";
-		auto route = routeByBlocks.find(key);
-		if (route == routeByBlocks.end()) {
-			SceneRoute sceneRoute;
-			sceneRoute.id = "route." + draft.service.id;
-			sceneRoute.blocks = draft.routeBlocks;
-			sceneRoute.reversed = draft.reversed;
-			scene.routes.push_back(sceneRoute);
-			route = routeByBlocks.emplace(key, sceneRoute.id).first;
-		}
-		const SceneRoute& sceneRoute = *std::find_if(scene.routes.begin(), scene.routes.end(),
-			[&](const SceneRoute& candidate) { return candidate.id == route->second; });
+		// A copy: routes added below would move the routes of the scene.
+		const SceneRoute sceneRoute = routeFor(draft.routeBlocks, draft.reversed, draft.service.id);
 		const SceneRouteTraversal traversal = buildSceneRouteTraversal(scene, sceneRoute, inventory);
 		SceneService& service = draft.service;
 		service.route = sceneRoute.id;
@@ -3103,7 +3270,7 @@ void buildTimetable(Context& context) {
 		while (start + 1 < service.stops.size()) {
 			const std::size_t stop = std::min(start + limit - 1, service.stops.size() - 1);
 			SceneService chunk = service;
-			chunk.id = service.id + "_" + std::to_string(++chunkNumber);
+			chunk.id = uniqueId(serviceIds, service.id + "_" + std::to_string(++chunkNumber), renamedServices);
 			chunk.stops.assign(service.stops.begin() + static_cast<std::ptrdiff_t>(start),
 				service.stops.begin() + static_cast<std::ptrdiff_t>(stop) + 1);
 			if (start > 0) {
@@ -3114,14 +3281,9 @@ void buildTimetable(Context& context) {
 				chunk.stops.back().hasPlannedDeparture = false;
 			const std::size_t firstSection = start == 0 ? 0 : stopVisits[start];
 			const std::size_t lastSection = stop + 1 == service.stops.size() ? sceneRoute.blocks.size() - 1 : stopVisits[stop];
-			SceneRoute partRoute;
-			partRoute.id = sceneRoute.id + "_" + std::to_string(chunkNumber);
-			partRoute.reversed = sceneRoute.reversed;
-			partRoute.blocks.assign(sceneRoute.blocks.begin() + static_cast<std::ptrdiff_t>(firstSection),
+			const std::vector<std::string> blocks(sceneRoute.blocks.begin() + static_cast<std::ptrdiff_t>(firstSection),
 				sceneRoute.blocks.begin() + static_cast<std::ptrdiff_t>(lastSection) + 1);
-			chunk.route = partRoute.id;
-			if (std::none_of(scene.routes.begin(), scene.routes.end(), [&](const SceneRoute& r) { return r.id == partRoute.id; }))
-				scene.routes.push_back(partRoute);
+			chunk.route = routeFor(blocks, sceneRoute.reversed, chunk.id).id;
 			scene.services.push_back(chunk);
 			start = stop;
 		}
@@ -3155,13 +3317,15 @@ void buildTimetable(Context& context) {
 				+ " stops, which a service cannot hold; each runs as consecutive services that meet at a shared stop: "
 				+ namedList(splitServices),
 			"service");
+	reportRenamed(context, "service", renamedServices);
+	reportRenamed(context, "composition", renamedCompositions);
 	reportOpposingTraffic(context);
 	if (scene.services.size() > static_cast<std::size_t>(RuntimeLimits::kMaxExpandedTrains))
 		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.capacity",
 			"The scene has " + std::to_string(scene.services.size()) + " services, more than the "
 				+ std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains a run holds; select fewer for a run",
 			"service");
-	buildRollingStock(context, neededUnits);
+	buildRollingStock(context);
 }
 
 // The speed profile that the most train sequences of operational trains name.
@@ -3191,20 +3355,61 @@ void reportUnsupported(Context& context) {
 }
 
 bool readDocument(Context& context, pugi::xml_document& document) {
-	std::ifstream input(pathFromUtf8(context.sourceFile), std::ios::binary);
-	if (!input) {
+	const pugi::xml_parse_result parsed = document.load_file(pathFromUtf8(context.sourceFile).c_str());
+	if (parsed.status == pugi::status_file_not_found || parsed.status == pugi::status_io_error) {
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.read", "The railML file cannot be opened", "file",
 			context.sourceFile, "Check the path and the permissions of the file");
 		return false;
 	}
-	const std::string bytes((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
-	const pugi::xml_parse_result parsed = document.load_buffer(bytes.data(), bytes.size());
 	if (!parsed) {
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.format",
 			std::string("The file is not railML: it is not well-formed XML (") + parsed.description() + " at byte "
 				+ std::to_string(parsed.offset) + ")",
 			"file", context.sourceFile, "Choose a railML 2 file");
 		return false;
+	}
+	return true;
+}
+
+// Refuses a file that repeats ids or holds values out of range, and reports the speeds that count as missing.
+bool checkRead(Context& context) {
+	for (const auto& entry : context.duplicateIds)
+		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.duplicate_id",
+			"The file is not valid railML: " + std::to_string(entry.second.size()) + " " + entry.first
+				+ " ids occur more than once, and each railML id names one element: " + namedList(entry.second),
+			entry.first, entry.second.front(), "Give each " + entry.first + " of the file an id of its own");
+	if (!context.outOfRange.empty())
+		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.out_of_range",
+			std::to_string(context.outOfRange.size()) + " values of the file are out of range: " + namedList(context.outOfRange),
+			"file", context.sourceFile, "Correct these values in the file");
+	if (!context.zeroSpeeds.empty())
+		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.speed",
+			std::to_string(context.zeroSpeeds.size())
+				+ " speeds of 0 km/h or less limit nothing, so they count as missing: " + namedList(context.zeroSpeeds));
+	return context.duplicateIds.empty() && context.outOfRange.empty();
+}
+
+// An absolute path with "." and ".." and the symbolic links of its existing part resolved, and no trailing separator.
+fs::path resolvedPath(const std::string& text) {
+	std::error_code error;
+	const fs::path absolute = fs::absolute(pathFromUtf8(text), error);
+	fs::path path = fs::weakly_canonical(absolute, error);
+	if (error)
+		path = absolute.lexically_normal();
+	if (!path.has_filename() && path.has_relative_path())
+		path = path.parent_path();
+	return path;
+}
+
+// True when the folder is the file or holds it at any depth.
+bool holdsFile(const std::string& folder, const std::string& file) {
+	const fs::path outer = resolvedPath(folder);
+	const fs::path inner = resolvedPath(file);
+	auto innerPart = inner.begin();
+	for (const fs::path& part : outer) {
+		if (innerPart == inner.end() || *innerPart != part)
+			return false;
+		++innerPart;
 	}
 	return true;
 }
@@ -3216,6 +3421,12 @@ SceneImportResult importRailmlScene(const std::string& railmlPath, const std::st
 	Context context;
 	context.sourceFile = railmlPath;
 	context.options = options;
+	if (holdsFile(sceneDir, railmlPath)) {
+		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.destination",
+			"The scene folder " + sceneDir + " holds the railML file " + railmlPath + ", which the import would replace",
+			"file", railmlPath, "Choose a scene folder that does not hold the railML file");
+		return std::move(context.result);
+	}
 	pugi::xml_document document;
 	if (!readDocument(context, document))
 		return std::move(context.result);
@@ -3236,6 +3447,8 @@ SceneImportResult importRailmlScene(const std::string& railmlPath, const std::st
 		else if (!named(child, "metadata"))
 			countUnsupported(context, child);
 	}
+	if (!checkRead(context))
+		return std::move(context.result);
 	if (context.tracks.empty()) {
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.empty",
 			"The file has no track that can be imported", "file", railmlPath, "Choose a railML file with infrastructure");
@@ -3275,6 +3488,20 @@ SceneImportResult importRailmlScene(const std::string& railmlPath, const std::st
 		if (row.sourceCount != 0 || row.convertedCount != 0 || row.skippedCount != 0 || row.unresolvedReferences != 0)
 			scene.importReport.push_back(row);
 
+	// A scene that fails validation is not written.
+	std::vector<SceneDiagnostic> invalid;
+	for (SceneDiagnostic& diagnostic : validateScene(scene))
+		if (diagnostic.severity == SceneSeverity::Error)
+			invalid.push_back(std::move(diagnostic));
+	if (!invalid.empty()) {
+		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.invalid",
+			"The converted scene does not pass validation, so it is not written. The " + std::to_string(invalid.size())
+				+ " errors of the validation follow",
+			"file", railmlPath, "Correct the file where the errors point");
+		for (SceneDiagnostic& diagnostic : invalid)
+			context.result.diagnostics.push_back(std::move(diagnostic));
+		return std::move(context.result);
+	}
 	SceneSaveResult saved = replaceSceneDirectory(scene, sceneDir);
 	for (SceneDiagnostic& diagnostic : saved.diagnostics)
 		if (diagnostic.severity == SceneSeverity::Error || diagnostic.code.rfind("scene.save.", 0) == 0)

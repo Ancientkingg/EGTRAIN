@@ -763,7 +763,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	const auto importInto = [&sourcePath, &sceneName](const std::string& sceneDir) {
 		return importLegacyScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString());
 	};
-	importCase(sourcePath, destinationPath, sceneName, texts, importInto, operation);
+	importCase(destinationPath, sceneName, texts, importInto, operation);
 }
 
 void SceneSession::actionImport_Railml() {
@@ -793,10 +793,10 @@ void SceneSession::importRailmlCase(const QString& railmlPath, const QString& de
 	const auto importInto = [&sourcePath, &sceneName](const std::string& sceneDir) {
 		return importRailmlScene(sourcePath.toStdString(), sceneDir, sceneName.toStdString());
 	};
-	importCase(sourcePath, destinationPath, sceneName, texts, importInto, operation);
+	importCase(destinationPath, sceneName, texts, importInto, operation);
 }
 
-void SceneSession::importCase(const QString& sourcePath, const QString& destinationPath, const QString& sceneName,
+void SceneSession::importCase(const QString& destinationPath, const QString& sceneName,
 	const ImportTexts& texts, const std::function<SceneImportResult(const std::string& sceneDir)>& import,
 	const telemetry::OperationObservation& operation) {
 	// The import replaces the folder that it writes with everything in it.
@@ -819,14 +819,6 @@ void SceneSession::importCase(const QString& sourcePath, const QString& destinat
 			return;
 		}
 	}
-	const QString sceneFolder = QDir(sceneDir).absolutePath();
-	if (sourcePath == sceneFolder || sourcePath.startsWith(sceneFolder + '/')) {
-		showError(texts.failure,
-			QString("%1 holds %2, which the import would replace. Choose another destination.")
-				.arg(display_path::format(sceneFolder), display_path::format(sourcePath)));
-		return;
-	}
-
 	if (!maybeSaveScene())
 		return;
 

@@ -83,6 +83,29 @@ def check_unreadable_paths(scene_tool: Path) -> None:
             raise SystemExit(f"import from a folder that cannot be read exited with {proc.returncode}:\n{proc.stdout}")
 
 
+# import-railml refuses a scene folder that holds the railML file, and a scene that fails validation, with exit code 1.
+def check_railml_refusals(scene_tool: Path, root: Path) -> None:
+    fixture = root / "EGTRAIN/QEGTRAIN/tests/fixtures/railml/macroscopic.railml"
+    text = fixture.read_text(encoding="utf-8")
+    with tempfile.TemporaryDirectory(prefix="scene-tool-railml-") as temp_name:
+        temp = Path(temp_name)
+        (temp / "data").mkdir()
+        (temp / "data/net.railml").write_text(text, encoding="utf-8")
+        proc = subprocess.run([scene_tool, "import-railml", "data/net.railml", "data"], cwd=temp,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+        if proc.returncode != 1 or "scene.import.railml.destination" not in proc.stdout:
+            raise SystemExit(f"import-railml into the folder of the file exited with {proc.returncode}:\n{proc.stdout}")
+        if (temp / "data/net.railml").read_text(encoding="utf-8") != text:
+            raise SystemExit("import-railml into the folder of the file changed the file")
+        # A tab in a track id passes the import but not the validation of the scene.
+        (temp / "tab.railml").write_text(text.replace('<track id="te"', '<track id="te&#9;x"'), encoding="utf-8")
+        proc = run_tool(scene_tool, "import-railml", temp / "tab.railml", temp / "scene")
+        if proc.returncode != 1 or "scene.import.railml.invalid" not in proc.stdout:
+            raise SystemExit(f"import-railml of a scene that fails validation exited with {proc.returncode}:\n{proc.stdout}")
+        if (temp / "scene").exists():
+            raise SystemExit("import-railml wrote a scene that fails validation")
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[2]
     scene_tool = Path(sys.argv[1])
@@ -130,6 +153,7 @@ def main() -> None:
 
     check_version_rejections(scene_tool, root)
     check_unreadable_paths(scene_tool)
+    check_railml_refusals(scene_tool, root)
 
 
 if __name__ == "__main__":
