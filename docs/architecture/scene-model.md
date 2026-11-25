@@ -67,7 +67,11 @@ as `saveScene` does, so an imported scene has the form of a saved one. Unlike a
 save, it replaces a folder at the destination with everything in it and keeps
 the default mode of a new folder.
 The exporter writes the items of its area sidecar with `encodeSignallingArea`,
-and the importer reads them with `decodeSignallingArea`.
+and the importer reads them with `decodeSignallingArea`. The settings sidecar
+holds `base_time` and `simulation_settings` as `encodeSceneMetadata` writes
+them, and the importer reads its settings with `decodeSimulationSettings`, the
+decoder that `decodeSceneMetadata` uses for `scene.json`, so both read every
+setting.
 
 `test_scene_codec_contract` (`tools/e2e/test_scene_codec_contract.py`) fails when
 a key of the scene files is written outside `SceneWriter.cpp`, is read outside
@@ -76,8 +80,7 @@ header of `simulation/`. It lists its exceptions with their reasons:
 `SceneBundle.cpp` and `SceneCompatibility.cpp` read `schema_version` and
 `saved_with_app_version` before the loader runs, and `SceneExporter.cpp` and
 `SceneImporter.cpp` handle `signalling_areas` as the top-level key of the area
-sidecar of a legacy folder and `base_time` and `simulation_settings` (with its
-three settings) as the keys of the settings sidecar. The limits of the native runtime, which the validator
+sidecar of a legacy folder and `base_time` as a key of the settings sidecar. The limits of the native runtime, which the validator
 and the builders check against, are in `scene/RuntimeLimits.h`.
 
 ## Model ownership

@@ -1025,16 +1025,12 @@ static void importSettings(ImportContext& context) {
 	if (!settingsSidecar.empty()) {
 		std::string content;
 		const json sidecar = readFile(settingsSidecar, content) ? json::parse(content, nullptr, false) : json();
-		const json noSettings = json::object();
-		const json& values = sidecar.is_object() && sidecar.contains("simulation_settings") ? sidecar["simulation_settings"] : noSettings;
-		knownSettings = sidecar.is_object() && sidecar.contains("format_version") && sidecar["format_version"] == 1 && values.is_object();
+		knownSettings = sidecar.is_object() && sidecar.contains("format_version") && sidecar["format_version"] == 1;
 		if (knownSettings) {
 			std::vector<SceneDiagnostic> problems;
 			const SceneFieldReader reader("EGTRAINInitialParameters.json", kSceneFileFieldCodes, problems);
 			reader.stringField(sidecar, "base_time", "", context.baseTime, false);
-			context.settings.hasDuration = reader.numberField(values, "duration_seconds", "simulation_settings", context.settings.durationSeconds, false);
-			context.settings.hasBufferTime = reader.numberField(values, "buffer_time_seconds", "simulation_settings", context.settings.bufferTimeSeconds, false);
-			context.settings.hasRecoveryTime = reader.numberField(values, "recovery_time_percent", "simulation_settings", context.settings.recoveryTimePercent, false);
+			decodeSimulationSettings(reader, sidecar, context.settings);
 			knownSettings = problems.empty();
 		}
 		if (knownSettings) {

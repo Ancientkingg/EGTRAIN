@@ -183,8 +183,8 @@ void TestSceneExporter::warnsAboutUnitPassengerCapacity() {
 	}));
 }
 
-// The legacy input cannot hold the passenger settings of scene.json: the export leaves them out with one warning on
-// scene.json and still succeeds.
+// The original program ignores the passenger settings that the export keeps in EGTRAINInitialParameters.json: the export
+// warns once on scene.json and still succeeds.
 void TestSceneExporter::warnsAboutPassengerDwellSettings() {
 	// Exports a scene with `settings` as its simulation_settings and counts the compatibility warnings on scene.json.
 	const auto warningCount = [](const std::string& settings) {
