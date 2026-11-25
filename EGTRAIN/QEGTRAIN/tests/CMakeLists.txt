@@ -1289,6 +1289,15 @@ egtrain_add_test(test_headless_scene_smoke
 	LABELS integration
 	TIMEOUT 150)
 
+# The railML import of the sample Ostsachsen_V220.railml, validated and run headless until 08:04. The sample is not
+# in the repository; the script exits with 77 when it is not in Input.
+egtrain_add_test(test_railml_import_smoke
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/railml_import_smoke.py
+		$<TARGET_FILE:scene_tool> $<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/Input/Ostsachsen_V220.railml 28800
+	LABELS integration
+	SKIP_RETURN_CODE 77
+	TIMEOUT 300)
+
 # Paimpol headless and in the window with LANG set to a locale that writes a decimal comma. Qt sets the locale of the C
 # library from LANG on macOS and Linux only. The script exits with 77 when no such locale is installed.
 if(NOT WIN32)
