@@ -2,6 +2,7 @@
 
 #include "editors/EditorHelpers.h"
 
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -76,6 +77,13 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	m_lateThresholdEdit->setToolTip("The delay in seconds up to which passengers plan on the planned times of a train; a train that is "
 									"later, or that runs under a speed limit, is planned on predicted times");
 	layout->addRow("Passenger late threshold (s)", m_lateThresholdEdit);
+	m_demandArrivalsCombo = new QComboBox(this);
+	m_demandArrivalsCombo->setObjectName("caseDemandArrivalsCombo");
+	m_demandArrivalsCombo->addItem("Even", QStringLiteral("even"));
+	m_demandArrivalsCombo->addItem("Random", QStringLiteral("random"));
+	m_demandArrivalsCombo->setToolTip("The arrival pattern of demand passengers: even spreads passengers evenly over the period of each "
+									  "slice; random places them at independent random times");
+	layout->addRow("Demand arrivals", m_demandArrivalsCombo);
 
 	QGroupBox* coupling = new QGroupBox("Virtual coupling", this);
 	coupling->setObjectName("caseVirtualCouplingGroup");
@@ -118,6 +126,7 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	connect(m_walkingSecondsEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_lateThresholdEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_couplingServiceList, &QListWidget::itemChanged, this, [this](QListWidgetItem*) { commitCouplingServices(); });
+	connect(m_demandArrivalsCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) { commit(); });
 	CaseSettingsPanel::refresh();
 }
 
@@ -125,7 +134,8 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 	// A panel that is a shown window closes in the QWidget destructor, after this one, and the field with the focus then
 	// reports that editing finished.
 	QObject* const fields[] = {m_nameEdit, m_descriptionEdit, m_baseTimeEdit, m_durationSecondsEdit, m_bufferSecondsEdit,
-		m_recoveryPercentEdit, m_maxTransfersEdit, m_walkingSecondsEdit, m_lateThresholdEdit, m_couplingDistanceEdit,
+		m_recoveryPercentEdit, m_maxTransfersEdit, m_walkingSecondsEdit, m_lateThresholdEdit, m_demandArrivalsCombo,
+		m_couplingDistanceEdit,
 		m_couplingSpeedToleranceEdit, m_authorityMarginEdit, m_couplingServiceList};
 	for (QObject* field : fields)
 		field->disconnect(this);
@@ -201,6 +211,11 @@ void CaseSettingsPanel::refresh() {
 		const QSignalBlocker blocker(m_lateThresholdEdit);
 		m_lateThresholdEdit->setValue(model.settings.passengerLateThresholdSeconds);
 		m_lateThresholdEdit->setEnabled(loaded);
+	}
+	{
+		const QSignalBlocker blocker(m_demandArrivalsCombo);
+		m_demandArrivalsCombo->setCurrentIndex(model.settings.passengerDemandArrivals == "random" ? 1 : 0);
+		m_demandArrivalsCombo->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_couplingDistanceEdit);
@@ -284,6 +299,9 @@ void CaseSettingsPanel::commit() {
 	const bool walkingEdited = std::clamp(model.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds) != walkingSeconds;
 	const int lateThreshold = m_lateThresholdEdit->value();
 	const bool lateThresholdEdited = std::clamp(model.settings.passengerLateThresholdSeconds, 0, kMaxPassengerLateThresholdSeconds) != lateThreshold;
+	const std::string demandArrivals = m_demandArrivalsCombo->currentIndex() == 1 ? "random" : "even";
+	const std::string currentArrivals = model.settings.passengerDemandArrivals == "random" ? "random" : "even";
+	const bool demandArrivalsEdited = currentArrivals != demandArrivals;
 	const double couplingDistance = m_couplingDistanceEdit->value();
 	const bool couplingDistanceEdited = shownValue(m_couplingDistanceEdit, model.settings.virtualCouplingDistanceM) != couplingDistance;
 	const double speedTolerance = m_couplingSpeedToleranceEdit->value();
@@ -292,7 +310,8 @@ void CaseSettingsPanel::commit() {
 	const bool authorityMarginEdited = shownValue(m_authorityMarginEdit, model.settings.endOfAuthorityMarginM) != authorityMargin;
 	const bool couplingEdited = couplingDistanceEdited || speedToleranceEdited || authorityMarginEdited;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
-		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited && !couplingEdited)
+		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited && !demandArrivalsEdited
+		&& !couplingEdited)
 		return;
 
 	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
@@ -323,6 +342,8 @@ void CaseSettingsPanel::commit() {
 				edited.settings.virtualCouplingSpeedToleranceMs = speedTolerance;
 			if (authorityMarginEdited)
 				edited.settings.endOfAuthorityMarginM = authorityMargin;
+			if (demandArrivalsEdited)
+				edited.settings.passengerDemandArrivals = demandArrivals;
 			if (baseTimeEdited)
 				emit baseTimeChanged(m_baseTimeEdit->text());
 		}))

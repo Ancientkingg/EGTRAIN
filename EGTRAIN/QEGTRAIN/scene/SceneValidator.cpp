@@ -811,6 +811,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene.json", "scene", "", "simulation_settings.passenger_late_threshold_seconds", "",
 			"Use a whole number of seconds from 0 to 3600");
 	}
+	if (scene.settings.passengerDemandArrivals != "even"
+		&& scene.settings.passengerDemandArrivals != "random") {
+		diagnostics.error("scene.passenger.demand_arrivals.invalid",
+			"The demand arrivals setting must be \"even\" or \"random\"", "scene.json",
+			"scene", "", "simulation_settings.passenger_demand_arrivals", "",
+			"Use \"even\" or \"random\"");
+	}
 	if (scene.settings.passengerDwellCoefficients) {
 		const std::vector<double>& coefficients = *scene.settings.passengerDwellCoefficients;
 		const bool valid = coefficients.size() == kPassengerDwellCoefficientCount

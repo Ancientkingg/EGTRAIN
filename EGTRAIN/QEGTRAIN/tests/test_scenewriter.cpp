@@ -723,6 +723,7 @@ private slots:
 	void writesPassengerTransferLimitOnlyWhenNotDefault();
 	void writesPassengerWalkingTimeOnlyWhenNotDefault();
 	void writesPassengerLateThresholdOnlyWhenNotDefault();
+	void writesPassengerDemandArrivalsOnlyWhenNotDefault();
 	void writesPassengerDwellSettingsOnlyWhenSet();
 	void writesVirtualCouplingSettingsOnlyWhenNotDefault();
 	void keepsUnchosenSignallingLevel();
@@ -1001,6 +1002,35 @@ void TestSceneWriter::writesPassengerLateThresholdOnlyWhenNotDefault() {
 	QCOMPARE(written["simulation_settings"].value("passenger_late_threshold_seconds", -1), 0);
 	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
 	QCOMPARE(reloaded.settings.passengerLateThresholdSeconds, 0);
+}
+
+// Demand arrivals are written only when not the default, and a scene without the key loads as the default.
+void TestSceneWriter::writesPassengerDemandArrivalsOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	scene.settings.passengerDemandArrivals = kDefaultPassengerDemandArrivals;
+	const fs::path defaultPath = temp.path / "default-demand-arrivals";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with default demand arrivals saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY2(!written["simulation_settings"].contains("passenger_demand_arrivals"), "the default is not written");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerDemandArrivals, std::string(kDefaultPassengerDemandArrivals));
+
+	scene.settings.passengerDemandArrivals = "random";
+	const fs::path randomPath = temp.path / "random-demand-arrivals";
+	QVERIFY2(saveScene(scene, randomPath.string()).success(), "scene with random demand arrivals saves");
+	{
+		std::ifstream input(randomPath / "scene.json");
+		input >> written;
+	}
+	QCOMPARE(written["simulation_settings"].value("passenger_demand_arrivals", ""), std::string("random"));
+	QVERIFY(loadHasNoErrors(randomPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerDemandArrivals, std::string("random"));
 }
 
 // The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.

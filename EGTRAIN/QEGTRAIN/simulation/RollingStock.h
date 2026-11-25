@@ -56,6 +56,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 /// incidents and statistics.
 void prepareNativeOperationsState(SimulationRun& run);
 
+/// Derives the seed for demand arrivals from the run seed by mixing with a constant and clamping to 1..kMaxRandomSeed,
+/// so demand draws do not alter the sequence of draws of the run.
+unsigned long deriveDemandRandomSeed(unsigned long runSeed);
+
 /// The reset between scene runs, which is the same as preparing a new run.
 void resetNativeOperationsState(SimulationRun& run);
 

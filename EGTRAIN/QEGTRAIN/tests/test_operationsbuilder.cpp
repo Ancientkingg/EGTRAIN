@@ -148,6 +148,7 @@ private slots:
 	void buildsPlatformGeometryAndPassengers();
 	void demandSlicesStageLivePassengers();
 	void demandStagingIgnoresTheOrderOfTheFile();
+	void demandArrivalsSupportEvenAndRandomPatterns();
 	void commandLineBufferAndRecoveryStay();
 	void sceneDwellSettingsReachTheDwellModel();
 	void steppedOperatingCodesReachOccurrences();
@@ -890,6 +891,97 @@ void TestOperationsBuilder::demandStagingIgnoresTheOrderOfTheFile() {
 	QCOMPARE(stagedIds({evening, morning}, {0, 1, 2}), expected);
 	QCOMPARE(stagedIds({morning, evening}, {2, 1, 0}), expected);
 	QCOMPARE(stagedIds({evening, morning}, {1, 2, 0}), expected);
+}
+
+// Demand arrivals support even and random arrival patterns: even arrivals place passengers at evenly spaced intervals,
+// while random arrivals place cell.count independent uniform draws in [start, end) sorted by passenger number; draws
+// repeat for the same seed, differ for another seed, and leave the run's random generator unaffected.
+void TestOperationsBuilder::demandArrivalsSupportEvenAndRandomPatterns() {
+	const auto restoreSeed = qScopeGuard([saved = initial_variables.randomSeed] { initial_variables.randomSeed = saved; });
+	SceneModel scene = completeScene();
+	scene.passengers.clear();
+	ScenePassengerDemandSlice slice;
+	slice.id = "slice0809";
+	slice.startSeconds = 28800.0;
+	slice.endSeconds = 32400.0;
+	slice.cells.push_back({"station.0", "station.2", 50});
+	scene.passengerDemand.push_back(slice);
+
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+
+	// Even arrivals: exactly evenly spaced over the period.
+	scene.settings.passengerDemandArrivals = "even";
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	QCOMPARE(defaultRun().passengers.size(), std::size_t(50));
+	int index = 0;
+	for (const Passenger& passenger : defaultRun().passengers) {
+		QCOMPARE(passenger.Journeys.size(), std::size_t(1));
+		const double expectedTime = 28800.0 + index * 3600.0 / 50.0;
+		QCOMPARE(passenger.Journeys.front().Actual_Planned_Departure_Time, expectedTime);
+		++index;
+	}
+
+	// Random arrivals with seed 42.
+	scene.settings.passengerDemandArrivals = "random";
+	initial_variables.randomSeed = 42UL;
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	QCOMPARE(defaultRun().passengers.size(), std::size_t(50));
+	std::vector<double> seed42Times;
+	seed42Times.reserve(50);
+	for (const Passenger& passenger : defaultRun().passengers) {
+		const double time = passenger.Journeys.front().Actual_Planned_Departure_Time;
+		QVERIFY2(time >= 28800.0 && time < 32400.0, "time must fall within the slice [start, end)");
+		seed42Times.push_back(time);
+	}
+	// Sorted ascending by passenger number.
+	for (std::size_t i = 1; i < seed42Times.size(); ++i) {
+		QVERIFY2(seed42Times[i] >= seed42Times[i - 1], "times must be sorted ascending");
+	}
+	// Not all evenly spaced.
+	bool hasUnevenSpacing = false;
+	for (std::size_t i = 2; i < seed42Times.size(); ++i) {
+		if (std::abs((seed42Times[i] - seed42Times[i - 1]) - (seed42Times[i - 1] - seed42Times[i - 2])) > 1e-4) {
+			hasUnevenSpacing = true;
+			break;
+		}
+	}
+	QVERIFY2(hasUnevenSpacing, "random arrival times must not be evenly spaced");
+
+	// A second build with the same seed produces identical times.
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	std::vector<double> repeatTimes;
+	repeatTimes.reserve(50);
+	for (const Passenger& passenger : defaultRun().passengers)
+		repeatTimes.push_back(passenger.Journeys.front().Actual_Planned_Departure_Time);
+	QCOMPARE(repeatTimes, seed42Times);
+
+	// A different seed produces different times.
+	initial_variables.randomSeed = 99999UL;
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	std::vector<double> otherSeedTimes;
+	otherSeedTimes.reserve(50);
+	for (const Passenger& passenger : defaultRun().passengers)
+		otherSeedTimes.push_back(passenger.Journeys.front().Actual_Planned_Departure_Time);
+	QVERIFY(otherSeedTimes != seed42Times);
+
+	// Seed derivation helper produces valid seeds in 1..kMaxRandomSeed for edge seeds.
+	QVERIFY(deriveDemandRandomSeed(0UL) >= 1UL && deriveDemandRandomSeed(0UL) <= kMaxRandomSeed);
+	QVERIFY(deriveDemandRandomSeed(1UL) >= 1UL && deriveDemandRandomSeed(1UL) <= kMaxRandomSeed);
+	QVERIFY(deriveDemandRandomSeed(kMaxRandomSeed) >= 1UL && deriveDemandRandomSeed(kMaxRandomSeed) <= kMaxRandomSeed);
+	QVERIFY(deriveDemandRandomSeed(0x5bf03635UL) >= 1UL && deriveDemandRandomSeed(0x5bf03635UL) <= kMaxRandomSeed);
+	QVERIFY(deriveDemandRandomSeed(0x5bf03635UL ^ 0x7fffffffUL) >= 1UL && deriveDemandRandomSeed(0x5bf03635UL ^ 0x7fffffffUL) <= kMaxRandomSeed);
+
+	// Demand arrivals do not draw from run.numberGenerator, preserving window sampling and later draws.
+	SceneModel sampledScene = completeScene();
+	sampledScene.passengerDemand.push_back(slice);
+	initial_variables.randomSeed = 12345UL;
+	sampledScene.settings.passengerDemandArrivals = "even";
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), sampledScene, "scenario.base")));
+	const double sampledEven = defaultRun().passengers.front().Journeys.front().Actual_Planned_Departure_Time;
+	sampledScene.settings.passengerDemandArrivals = "random";
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), sampledScene, "scenario.base")));
+	const double sampledRandom = defaultRun().passengers.front().Journeys.front().Actual_Planned_Departure_Time;
+	QCOMPARE(sampledRandom, sampledEven);
 }
 
 void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {

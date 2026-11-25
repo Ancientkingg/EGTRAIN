@@ -580,6 +580,7 @@ private slots:
 	void limitsPassengerTransfers();
 	void limitsPassengerWalkingTime();
 	void limitsPassengerLateThreshold();
+	void validatesPassengerDemandArrivals();
 	void checksPassengerDwellSettings();
 	void limitsVirtualCouplingSettings_data();
 	void limitsVirtualCouplingSettings();
@@ -1205,6 +1206,21 @@ void TestSceneValidator::rejectsUnknownVirtualCouplingService() {
 	QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.virtual_coupling.service.unknown", "simulation_settings.virtual_coupling_services[1]"),
 		"an unknown service is rejected");
 	QVERIFY2(hasErrors(validateScene(scene)), "an unknown service blocks the run");
+}
+
+void TestSceneValidator::validatesPassengerDemandArrivals() {
+	const char* const code = "scene.passenger.demand_arrivals.invalid";
+	const char* const path = "simulation_settings.passenger_demand_arrivals";
+	for (const std::string& allowed : {"even", "random"}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerDemandArrivals = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), code, path), "even and random are allowed");
+	}
+	for (const std::string& refused : {"", "poisson", "uniform", "unknown"}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerDemandArrivals = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), code, path), "other demand arrivals values are rejected");
+	}
 }
 
 void TestSceneValidator::checksPassengerDwellSettings() {

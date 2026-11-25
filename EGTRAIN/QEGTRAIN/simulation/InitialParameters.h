@@ -47,6 +47,8 @@ public:
 	/// The delay in seconds up to which passengers plan on the planned times of a train without a speed limit
 	/// (simulation_settings.passenger_late_threshold_seconds, 0 to 3600).
 	int passengerLateThresholdSeconds = 300;
+	/// The arrival pattern of demand passengers (simulation_settings.passenger_demand_arrivals, "even" or "random").
+	std::string passengerDemandArrivals = "even";
 	/// The coefficients beta0 to beta7 of the passenger dwell model of every train (simulation_settings.passenger_dwell_coefficients).
 	std::array<double, kPassengerDwellCoefficientCount> passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	/// The platform occupancy rate above which the dwell model counts the platform as crowded

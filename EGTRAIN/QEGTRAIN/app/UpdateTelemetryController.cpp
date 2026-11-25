@@ -86,6 +86,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.node.coordinate.invalid",
 		"scene.occurrence.invalid",
 		"scene.passenger.continuity",
+		"scene.passenger.demand_arrivals.invalid",
 		"scene.passenger.dwell.coefficients.invalid",
 		"scene.passenger.dwell.threshold.invalid",
 		"scene.passenger.late_threshold.invalid",

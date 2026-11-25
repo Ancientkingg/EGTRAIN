@@ -7,6 +7,7 @@
 
 #include <QAccessible>
 #include <QApplication>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
@@ -118,6 +119,7 @@ private slots:
 	void editsVirtualCouplingServices();
 	void keepsRenamedCouplingService_data();
 	void keepsRenamedCouplingService();
+	void editsPassengerDemandArrivals();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -402,6 +404,20 @@ void TestCaseSettingsPanel::keepsRenamedCouplingService() {
 	window = nullptr;
 }
 
+// The demand arrivals setting is shown with its default (Even), edited as one Undo step and kept when another field is edited.
+void TestCaseSettingsPanel::editsPassengerDemandArrivals() {
+	SceneModel scene = caseScene("Case D", "08:00:00");
+	CaseFixture f(scene);
+	QCOMPARE(f.panel.demandArrivalsCombo()->currentIndex(), 0);
+	QCOMPARE(f.panel.demandArrivalsCombo()->currentText(), "Even");
+	const quint64 revision = f.document.revision();
+	f.panel.demandArrivalsCombo()->setCurrentIndex(1);
+	QCOMPARE(f.document.model().settings.passengerDemandArrivals, std::string("random"));
+	QCOMPARE(f.document.revision(), revision + 1);
+	typeAndLeave(f.panel.nameEdit(), "Renamed");
+	QCOMPARE(f.document.model().settings.passengerDemandArrivals, std::string("random"));
+}
+
 void TestCaseSettingsPanel::namesFields() {
 	CaseSettingsPanel panel;
 	QStringList labels;
@@ -411,6 +427,7 @@ void TestCaseSettingsPanel::namesFields() {
 	QVERIFY(!panel.findChild<QLabel*>("caseSettingsNote"));
 	QVERIFY(labels.contains("Duration (s)"));
 	QVERIFY(!labels.contains("Duration / horizon (s)"));
+	QVERIFY(labels.contains("Demand arrivals"));
 	QVERIFY2(panel.baseTimeEdit()->placeholderText() == "HH:MM:SS", "the base time field shows the format it expects");
 }
 
@@ -421,6 +438,7 @@ void TestCaseSettingsPanel::showsNothingWithoutScene() {
 	QVERIFY(!panel.nameEdit()->isEnabled());
 	QVERIFY(!panel.baseTimeEdit()->isEnabled());
 	QVERIFY(!panel.durationSecondsEdit()->isEnabled());
+	QVERIFY(!panel.demandArrivalsCombo()->isEnabled());
 	SceneDocument document;
 	panel.setDocument(&document);
 	// A panel stays disabled while its document holds no scene.
