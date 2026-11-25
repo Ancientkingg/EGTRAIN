@@ -175,7 +175,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 			const Search::Label& reached = previous[station];
 			for (const auto& [train, stop] : departures_[station]) {
 				const TrainState& state = states[train];
-				if (stop < state.firstStop)
+				if (stop < state.firstStop || stop + 1 >= state.servedStops)
 					continue;
 				const double walking = walkingSeconds(reached.platformNumber, trains_[train].stops[stop].platformNumber, walkingSecondsPerPlatform_);
 				const double departure = state.boardingDeadline(trains_[train], stop);
@@ -194,7 +194,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 			const std::vector<Stop>& stops = trains_[train].stops;
 			const TrainState& state = states[train];
 			const std::size_t board = boardAt[train];
-			for (std::size_t stop = board + 1; stop < stops.size(); ++stop) {
+			for (std::size_t stop = board + 1; stop < std::min(stops.size(), state.servedStops); ++stop) {
 				const Stop& alight = stops[stop];
 				if (alight.station < 0 || static_cast<std::size_t>(alight.station) >= stationCount_)
 					continue;

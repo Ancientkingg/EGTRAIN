@@ -70,8 +70,9 @@ struct SceneBytes {
 	}
 	static std::size_t heap(const SceneIncident& value) { return texts(value.id, value.target); }
 	static std::size_t heap(const SceneEntranceDelay& value) { return texts(value.serviceId, value.stationId); }
+	static std::size_t heap(const SceneMeasure& value) { return texts(value.id, value.serviceId, value.fromStationId); }
 	static std::size_t heap(const SceneScenario& value) {
-		return texts(value.id, value.name, value.description) + block(value.incidents) + block(value.entranceDelays);
+		return texts(value.id, value.name, value.description) + block(value.incidents) + block(value.entranceDelays) + block(value.measures);
 	}
 	static std::size_t heap(const ScenePassengerLeg& value) {
 		return texts(value.id, value.originStationId, value.destinationStationId, value.serviceId);
@@ -126,6 +127,7 @@ enum Section : std::size_t {
 	ScenarioSection,
 	IncidentSection,
 	EntranceDelaySection,
+	MeasureSection,
 	PassengerSection,
 	JourneySection,
 	LegSection,
@@ -165,6 +167,7 @@ const SectionInfo kSections[SectionCount] = {
 	{"scenario", SectionCount},
 	{"incident", ScenarioSection},
 	{"entrance delay", ScenarioSection},
+	{"measure", ScenarioSection},
 	{"passenger", SectionCount},
 	{"journey", PassengerSection},
 	{"passenger leg", JourneySection},
@@ -208,6 +211,7 @@ SectionCounts countSections(const SceneModel& scene) {
 	for (const SceneScenario& scenario : scene.scenarios) {
 		counts[IncidentSection] += scenario.incidents.size();
 		counts[EntranceDelaySection] += scenario.entranceDelays.size();
+		counts[MeasureSection] += scenario.measures.size();
 	}
 	counts[DemandSliceSection] = scene.passengerDemand.size();
 	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand)

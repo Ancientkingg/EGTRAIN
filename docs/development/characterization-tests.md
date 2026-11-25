@@ -96,11 +96,15 @@ A case is a scenario, a set of services and a level. The case table is in
 | `pax-breakdown-wait` | a breakdown holds `Q1` at P from 400 s to 800 s; `w1` and `w2` (B to C) plan `Q1` before it is late enough to lose to `Q2`, wait for it, and at 761 s, when `Q1` has stood at P 301 s past its planned departure, take `Q2`, which stands on their platform; `w3` appears after `Q1` left P 339 s late, more than the late threshold, and takes `Q2` |
 | `pax-breakdown-terminate` | a breakdown with `terminate_at_destination` holds `Q1` at B from 700 s to 1100 s; `Q1` still runs to C, where its run is marked as ended, `e1` (P to C) stays on board, and `e2` appears at B during the hold and boards `Q1`, which is predicted to leave at once |
 | `pax-signal-failure-change` | a signal failure on `1-B0` from 560 s to 800 s holds `Q3` and `Q4` at 2 km; `c1` (P to C) changes at B from `Q1` to `Q3` and waits for it, and `c2` appears at B after the planned departure of `Q3`, plans `Q4` and takes `Q3` when it arrives |
+| `pax-cancel-from-b` | a measure cancels `Q1` from B at 500 s, while it runs from P to B; `Q1` dwells at B from 622 s and leaves the network there at 683 s. `x2` (B to C) waits for `Q1` and boards `Q2`, which stands at B, when the measure takes effect; `x3` appears at B while `Q1` dwells there and takes `Q2` at once; `x1` (P to C) is set down at B when `Q1` leaves and takes `Q2`; `x4` (P to B) rides `Q1` as planned |
+| `pax-cancel-complete` | a measure cancels `Q1` completely at 300 s, while it stands at P after its dwell, so it ends its run there at once; `z1` (P to B), who boarded at P, is set down there with no trip ridden and finds no route, as `Q2` does not call there, and `z2` (B to C) takes `Q2` instead of `Q1` |
 | `entrance-delay-f2-level-0` | trains `F1` and `F2` with an entrance delay of 120 s for `F2` at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals `follow-level-0` and only the planned departure of `F2` at A moves, from 180 s to 300 s |
 | `breakdown-f1-level-0` | the same trains with a breakdown of `F1` from 200 s that caps its speed at 40 km/h until the end of its route; `F1` reaches C late and `F2`, held behind it, has not reached C when the run ends at 1500 s |
 | `breakdown-line-speed-level-0`, `-3`, `-4` | trains `F1` and `F2` with a breakdown of `F1` from 240 s to 600 s, which finds it at line speed 475 m before the end of `2-B0`; `F1` brakes on its braking curve and stands from 283 s at 6273 m, in `3-B0`, 273 m past the signal at 6 km, until 600 s, and `F2` waits behind it: at level 0 at the end of `2-B0`, at levels 3 and 4 50 m behind its tail. At level 4 `F2` follows `F1` coupled when both start again, loses its coupling while they speed up and stops 50 m behind `F1` at B before it calls there |
 | `breakdown-pass-station-level-0` | train `E1` alone with a breakdown from 300 s to 600 s, which finds it at line speed 308 m before B, where it does not stop; `E1` brakes through B, stands from 343 s at 8440 m until 600 s and then runs on to C |
 | `breakdown-stop-approach-level-0` | train `F1` alone with a breakdown from 320 s to 700 s, which finds it braking for its stop at B, 46 m before it; `F1` stands at B from 331 s as without the breakdown, and its stop starts then: the arrival at B is 331 s. The breakdown outlasts the dwell and the planned departure, 660 s, so `F1` sets off in the step of its end, 700 s, and B shows the departure 699 s, its last second at the platform |
+| `cancel-from-b-level-0`, `-4` | trains `F1` and `F2` with a measure that cancels `F1` from B at 200 s, while it runs from A to B; `F1` stops at B at 331 s, dwells 60 s and leaves the network at 392 s, which clears `3-B0`, and has no times at C. Its blocking times of `3-B0` and of `4-B0`, which it approached, end when it leaves. `F2` runs through to C; at level 4 it couples to `F1` at 387 s, behind it at B, and decouples when `F1` has left |
+| `cancel-before-entry-level-0` | the same trains with a measure that cancels `F1` completely at 30 s, before it is due to enter at 60 s; `F1` is never in the network and `F2` runs alone. The network totals leave the cancelled train out |
 
 Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -276,6 +280,10 @@ one fact: some key words, then `name=value` fields.
 - `incident`, `boundary`, `authority`: the incident definition, and for the steps
   just before and after its start and end, how many signal-failure authorities
   exist and which sections are blocked.
+- `measure <id> <train>` and `vc_notice <train>`: only in a run with dispatching
+  measures. A measure line gives the step at which the measure took effect and its
+  effect on the train, as the results show it; the notices are the virtual coupling
+  messages of the run, with their step and text.
 - `train <id> destination_termination`: only for a train that a breakdown with
   `terminate_at_destination` targets; `terminated=1` when it reached the end of
   its route.

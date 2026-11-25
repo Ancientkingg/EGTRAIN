@@ -7,6 +7,7 @@
 class CaseSettingsPanel;
 class CompositionPanel;
 class EntranceDelayPanel;
+class MeasurePanel;
 class IncidentPanel;
 class InfrastructurePanel;
 class PassengerDemandPanel;
@@ -123,6 +124,8 @@ public:
 	QShortcut* endTargetPickShortcut() const { return m_endTargetPickShortcut; }
 	/// The Entrance delays tab of the Scenarios dock: the entrance delays of the selected scenario.
 	EntranceDelayPanel* entranceDelayPanel() const { return m_entranceDelayPanel; }
+	/// The Measures tab of the Scenarios dock: the dispatching measures of the selected scenario.
+	MeasurePanel* measurePanel() const { return m_measurePanel; }
 	/// The Scenarios dock.
 	QDockWidget* incidentDock() const { return m_incidentDock; }
 	/// The Passengers panel: the passengers with their journeys and ordered legs.
@@ -156,6 +159,7 @@ private:
 	IncidentPanel* m_incidentPanel = nullptr;
 	QShortcut* m_endTargetPickShortcut = nullptr;
 	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
+	MeasurePanel* m_measurePanel = nullptr;
 	QDockWidget* m_passengerDock = nullptr;
 	PassengerPanel* m_passengerPanel = nullptr;
 	PassengerDemandPanel* m_demandPanel = nullptr;

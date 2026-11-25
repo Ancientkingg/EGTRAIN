@@ -146,6 +146,7 @@ private slots:
 	void sanitizeKeepsFiniteSample();
 	void sanitizeStaysInSeries();
 	void networkEnergyPassSanitizes();
+	void networkTotalsLeaveOutCancelledTrains();
 	void collectsRegionalTrains();
 	void describesIncidentEvidence();
 	void describesOccurrences();
@@ -782,6 +783,28 @@ void TestRunResults::sumsNetworkEnergy() {
 	QVERIFY(!incompleteTotals.energyWithRegenKWh.available);
 	QVERIFY(!incompleteTotals.substationKWh.available);
 	QVERIFY(!incompleteTotals.substationWithRegenKWh.available);
+}
+
+void TestRunResults::networkTotalsLeaveOutCancelledTrains() {
+	auto ran = makeTrain("ran", 2, 5, 1.0, 2.0, 3.0, 4.0);
+	auto cancelled = makeTrain("cancelled", 0, 5, 1.0, 2.0, 3.0, 4.0);
+	cancelled->earliestActiveTrajectoryIndex = -1;
+	const std::vector<const Train*> trains{ran.get(), cancelled.get()};
+	// A train that never entered makes the network times unavailable
+	QVERIFY(!buildRunResults(trains, 1.0).networkStartSeconds.available);
+	// unless a measure cancelled it before it entered
+	cancelled->OutOfSimulation = true;
+	const RunResults results = buildRunResults(trains, 1.0);
+	QVERIFY(results.trains[1].cancelledBeforeEntry);
+	QVERIFY(!results.trains[0].cancelledBeforeEntry);
+	QVERIFY(results.networkStartSeconds.available);
+	QVERIFY(closeTo(results.networkStartSeconds.value, 2.0));
+	QVERIFY(closeTo(results.networkEndSeconds.value, 5.0));
+	QVERIFY(results.energyConsumedKWh.available);
+	QVERIFY(closeTo(results.energyConsumedKWh.value, 0.27778));
+	// With every train cancelled there are no network times
+	const std::vector<const Train*> onlyCancelled{cancelled.get()};
+	QVERIFY(!buildRunResults(onlyCancelled, 1.0).networkStartSeconds.available);
 }
 
 void TestRunResults::keepsTerminalPowerOutOfTotals() {

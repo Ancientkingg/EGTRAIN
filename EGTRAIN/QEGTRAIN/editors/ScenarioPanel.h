@@ -56,14 +56,14 @@ public:
 	void selectScenario(int row);
 	/// Appends a scenario "New scenario" without incidents or delays, with a new unique id, and selects it.
 	void addBlankScenario();
-	/// Appends a copy of the selected scenario, named "Copy of" its name, with new unique ids for it and its incidents,
-	/// and selects it.
+	/// Appends a copy of the selected scenario, named "Copy of" its name, with new unique ids for it, its incidents and its
+	/// measures, and selects it.
 	void duplicateScenario();
 	/// Deletes the selected scenario, selects the default one and says in the status line that Undo restores the deleted
 	/// one. The default scenario cannot be deleted, nor any while the scene has no valid default.
 	void deleteScenario();
-	/// Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario or of an incident,
-	/// is made unique.
+	/// Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario, an incident or a
+	/// measure, is made unique.
 	void importScenario();
 	/// Writes the selected scenario to a scenario JSON file. A name without .json gets it, and when a file of that name
 	/// exists the prompts ask whether to replace it (savePathWithSuffix).

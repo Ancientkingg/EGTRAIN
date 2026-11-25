@@ -44,6 +44,9 @@ struct TrainState {
 	/// The first stop where the train can still be boarded: the stop where it stands, or the next one. The train cannot be
 	/// boarded at earlier stops; it is still left at its later stops. A value at or past the last stop leaves the train out.
 	std::size_t firstStop = 0;
+	/// The number of stops, from the first of its timetable, that the train still serves: a train that ends its run early serves
+	/// none after that stop. It cannot be boarded at the last stop it serves, and it cannot be left at the stops after it.
+	std::size_t servedStops = std::numeric_limits<std::size_t>::max();
 	/// The predicted arrival at each stop of the train, one per stop of its timetable; below 0 at a stop without an arrival.
 	/// Empty when the search uses the planned times.
 	std::vector<double> arrivals;

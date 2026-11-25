@@ -781,6 +781,8 @@ private slots:
 	void passengerOnBoardLooksAgainOnlyWhenThePredictionChanges();
 	void passengerStaysOnBoardWhenTheEarlierTrainHasNoRoom();
 	void passengerWhoBoardedAtThisStopStaysOnBoard();
+	void passengerStaysOnATrainThatAMeasureEndsHere();
+	void passengerLeavesATrainThatAMeasureEndsBeforeTheTripEnd();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -1681,6 +1683,27 @@ void TestPassengerJourneys::passengerWhoBoardedAtThisStopStaysOnBoard() {
 	QCOMPARE(onBoard.offer(800), 0);
 	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
 	QVERIFY(!onBoard.journey().IsReplanned);
+}
+
+// A measure ends the run of T1 at B, where it stands 400 s late. Everyone on board is set down at B when T1 leaves the network,
+// so the passenger is not offered T2 on board.
+void TestPassengerJourneys::passengerStaysOnATrainThatAMeasureEndsHere() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, 1100})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	onBoard.run.trains[0].runEndStop = 1;
+	QCOMPARE(onBoard.offer(800), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!onBoard.journey().IsReplanned);
+}
+
+// T1 stands at B 400 s late and is predicted at D at 1,400 s, but a measure ends its run at C. Staying on board no longer reaches
+// D, so the passenger alights at B for T2, although T2 reaches D only at 1,500 s.
+void TestPassengerJourneys::passengerLeavesATrainThatAMeasureEndsBeforeTheTripEnd() {
+	OnBoardRun onBoard({trainCallingAt("T1", {"A", "B", "C", "D"}, {100, 400, 600, 1000}), trainCallingAt("T2", {"B", "D"}, {850, 1500})},
+		{tripOn("r.1", "T1", "A", "D", 1000)}, 1, 800);
+	onBoard.run.trains[0].runEndStop = 2;
+	QCOMPARE(onBoard.offer(800), 1);
+	QCOMPARE(onBoard.rider().Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(onBoard.trains(), (std::vector<std::string>{"T1", "T2"}));
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {

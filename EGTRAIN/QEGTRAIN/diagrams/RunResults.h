@@ -104,6 +104,9 @@ struct TrainRunResult {
 	bool destinationTerminationRequested = false;
 	/// True when the request was set and the train reached the end of its route.
 	bool destinationTerminated = false;
+	/// True when a dispatching measure cancelled the train before it entered the network: it has no times, and the network
+	/// totals leave it out.
+	bool cancelledBeforeEntry = false;
 	/// Entrance delay the scenario applied to this train, in seconds.  Zero with an empty station when none was
 	/// applied.  The station uses the same names as TimetableResultRow::stationId; its planned departure already
 	/// contains the delay.
@@ -143,9 +146,10 @@ struct TimetableResultRow {
 
 /// The Run Results table: one row for each train and the totals of the network.
 struct RunResults {
-	std::vector<TrainRunResult> trains;	   ///< In run order
-	RunResultValue networkStartSeconds;	   ///< Earliest startSeconds; unavailable unless every train has its times
-	RunResultValue networkEndSeconds;	   ///< Latest endSeconds; unavailable unless every train has its times
+	std::vector<TrainRunResult> trains; ///< In run order
+	/// Earliest startSeconds; unavailable unless every train has its times. A train cancelled before it entered does not count.
+	RunResultValue networkStartSeconds;
+	RunResultValue networkEndSeconds;	   ///< Latest endSeconds; unavailable as networkStartSeconds is
 	RunResultValue networkTravelSeconds;   ///< networkEndSeconds minus networkStartSeconds
 	RunResultValue energyConsumedKWh;	   ///< Sum over the trains in kWh; unavailable unless every train has it
 	RunResultValue energyWithRegenKWh;	   ///< Sum over the trains in kWh; unavailable unless every train has it

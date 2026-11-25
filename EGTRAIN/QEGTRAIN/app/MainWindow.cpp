@@ -120,6 +120,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/EntranceDelayPanel.h"
+#include "editors/MeasurePanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/PassengerDemandPanel.h"
@@ -2498,6 +2499,7 @@ void MainWindow::refreshIncidentPanel() {
 	m_editorDocks.scenarioPanel()->refresh();
 	m_editorDocks.incidentPanel()->refresh();
 	m_editorDocks.entranceDelayPanel()->refresh();
+	m_editorDocks.measurePanel()->refresh();
 }
 
 namespace {

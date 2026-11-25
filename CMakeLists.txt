@@ -216,7 +216,8 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/PassengerFlow.cpp
     ${SRC_DIR}/simulation/PassengerResults.cpp
     ${SRC_DIR}/simulation/PassengerJourneys.cpp
-    ${SRC_DIR}/simulation/PassengerRouting.cpp)
+    ${SRC_DIR}/simulation/PassengerRouting.cpp
+    ${SRC_DIR}/simulation/DispatchMeasures.cpp)
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
@@ -292,6 +293,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/infrastructure/SignalFacets.cpp
     ${SRC_DIR}/editors/infrastructure/StationFacets.cpp
     ${SRC_DIR}/editors/infrastructure/TopologyFacets.cpp
+    ${SRC_DIR}/editors/MeasurePanel.cpp
     ${SRC_DIR}/editors/PassengerDemandPanel.cpp
     ${SRC_DIR}/editors/PassengerPanel.cpp
     ${SRC_DIR}/editors/RollingStockLibraryDialog.cpp

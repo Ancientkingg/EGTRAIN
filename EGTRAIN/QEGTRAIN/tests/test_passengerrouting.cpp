@@ -80,6 +80,7 @@ private slots:
 	void transferLimitIsKept();
 	void transferNeedsWalkingTime();
 	void trainStateLimitsBoardingAndShiftsTimes();
+	void trainThatEndsEarlyServesNoLaterStop();
 	void missingTimesBlockBoardingAndAlighting();
 	void originAndUnknownStations();
 	void statesOfTheWrongSizeReachNothing();
@@ -251,6 +252,23 @@ void TestPassengerRouting::trainStateLimitsBoardingAndShiftsTimes() {
 	// A train past its last stop is left out.
 	states[0].firstStop = 4;
 	QCOMPARE(router.search(C, 0, 2, states).arrival(D), kUnreached);
+}
+
+void TestPassengerRouting::trainThatEndsEarlyServesNoLaterStop() {
+	// T0: A 100 - B 200/210 - C 300/310 - D 400, and T1: B 250 - D 500.
+	const Router router({{{stop(A, -1, 100), stop(B, 200, 210), stop(C, 300, 310), stop(D, 400, -1)}}, {{stop(B, -1, 250), stop(D, 500, -1)}}},
+		kStations);
+	std::vector<TrainState> states(2);
+	QCOMPARE(router.search(A, 0, 2, states).arrival(D), 400.0);
+	// A measure ends T0 at C: it is left at B and C, but no longer reaches D, and it cannot be boarded at C.
+	states[0].servedStops = 3;
+	QCOMPARE(router.search(A, 0, 2, states).arrival(C), 300.0);
+	QCOMPARE(router.search(C, 0, 2, states).arrival(D), kUnreached);
+	// From A the passenger changes at B to T1.
+	const Plan plan = router.search(A, 0, 2, states).plan(D);
+	QCOMPARE(plan.arrival, 500.0);
+	QCOMPARE(plan.legs.size(), std::size_t{2});
+	QCOMPARE(plan.legs[1].train, std::size_t{1});
 }
 
 void TestPassengerRouting::missingTimesBlockBoardingAndAlighting() {

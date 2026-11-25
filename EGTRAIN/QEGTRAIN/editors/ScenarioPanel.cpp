@@ -207,6 +207,8 @@ void ScenarioPanel::updatePresentation() {
 			facts << countText(static_cast<long long>(scenario.incidents.size()), QStringLiteral("incident"), QStringLiteral("incidents"));
 		if (!scenario.entranceDelays.empty())
 			facts << countText(static_cast<long long>(scenario.entranceDelays.size()), QStringLiteral("delay"), QStringLiteral("delays"));
+		if (!scenario.measures.empty())
+			facts << countText(static_cast<long long>(scenario.measures.size()), QStringLiteral("measure"), QStringLiteral("measures"));
 		const QString status = validationStatus(index);
 		if (status == QStringLiteral("has errors") || (details && !status.isEmpty()))
 			facts << status;
@@ -312,6 +314,8 @@ void ScenarioPanel::duplicateScenario() {
 	copy.name = "Copy of " + copy.name;
 	for (auto& incident : copy.incidents)
 		incident.id = sceneUniqueIncidentId(model, incident.id + "_copy");
+	for (auto& measure : copy.measures)
+		measure.id = sceneUniqueMeasureId(model, measure.id + "_copy");
 	addScenario("Duplicate scenario", std::move(copy));
 }
 
@@ -407,8 +411,11 @@ void ScenarioPanel::importScenario() {
 	if (prepared.renamedIncidents > 0)
 		message += prepared.renamedIncidents == 1 ? QStringLiteral(" 1 incident ID was renamed to stay unique.")
 												  : QString(" %1 incident IDs were renamed to stay unique.").arg(prepared.renamedIncidents);
+	if (prepared.renamedMeasures > 0)
+		message += prepared.renamedMeasures == 1 ? QStringLiteral(" 1 measure ID was renamed to stay unique.")
+												 : QString(" %1 measure IDs were renamed to stay unique.").arg(prepared.renamedMeasures);
 	emit statusMessage(message, 7000);
-	if (prepared.idTaken || prepared.renamedIncidents > 0)
+	if (prepared.idTaken || prepared.renamedIncidents > 0 || prepared.renamedMeasures > 0)
 		m_prompts->showInfo(this, "Scenario ID Adjusted", message);
 }
 

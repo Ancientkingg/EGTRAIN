@@ -696,6 +696,11 @@ egtrain_add_test(test_editor_entrancedelay
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_editor_measure
+	SOURCES ${SRC_DIR}/tests/test_editor_measure.cpp
+	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
+	LABELS unit gui)
+
 egtrain_add_test(test_editor_infrastructure
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
@@ -953,6 +958,11 @@ egtrain_add_test(test_passengerrouting SIMULATION_HEADERS
 
 egtrain_add_test(test_passengerjourneys SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_passengerjourneys.cpp
+	LIBS egtrain_sim
+	LABELS unit)
+
+egtrain_add_test(test_dispatchmeasures SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_dispatchmeasures.cpp
 	LIBS egtrain_sim
 	LABELS unit)
 

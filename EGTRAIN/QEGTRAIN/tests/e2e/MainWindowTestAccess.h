@@ -106,6 +106,8 @@ public:
 	static QShortcut* endTargetPickShortcut(MainWindow& w) { return w.m_editorDocks.endTargetPickShortcut(); }
 	/// The Entrance delays tab of the Scenarios dock.
 	static EntranceDelayPanel* entranceDelayPanel(MainWindow& w) { return w.m_editorDocks.entranceDelayPanel(); }
+	/// The Measures tab of the Scenarios dock.
+	static MeasurePanel* measurePanel(MainWindow& w) { return w.m_editorDocks.measurePanel(); }
 	/// The Scenarios dock.
 	static QDockWidget* incidentDock(MainWindow& w) { return w.m_editorDocks.incidentDock(); }
 	/// The Passengers panel.

@@ -1,6 +1,7 @@
 #ifndef SIMULATIONRUN_H
 #define SIMULATIONRUN_H
 
+#include "simulation/DispatchMeasures.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
@@ -126,6 +127,12 @@ struct SimulationRun {
 
 	/// Incidents of the selected scenario.
 	std::vector<SimulationIncident> incidents;
+	/// The dispatching measures of the selected scenario, in the order of their times.
+	std::vector<DispatchMeasure> measures;
+	/// The index in measures of the first one that applyDueMeasures has not applied yet.
+	std::size_t nextMeasure = 0;
+	/// Every measure that the run applied, from the scenario or by hand, in the order in which they took effect.
+	std::vector<AppliedMeasure> appliedMeasures;
 
 	/// Step of each virtual coupling notice of the run, in seconds from the start of the run.
 	std::vector<int> vcMsgTimestep;

@@ -199,6 +199,7 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 			BlockTime[N_BlockSections].EndClearTime = End_Time;											// Then the EndClearTime is equal to the exit time of the train from the network
 		}
 	}
+	closeBlockingTimeAtStopEnd(BlockTime[N_BlockSections], 0.0);
 
 	// Defining the StartOccupation and EndOccupationTime and all the other occupation times
 	BlockTime[N_BlockSections].ApproachTime = BlockTime[N_BlockSections].EndApproachTime - BlockTime[N_BlockSections].StartApproachTime;
@@ -225,6 +226,22 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 		N_BlockTimeComplete++; // Increase the number of blocking times that are complete
 							   // Increase the counter of BlockSections
 	this->N_BlockSections++;
+}
+
+void Train::closeBlockingTimeAtStopEnd(BlockingTimes& block, double margin) const {
+	if (!leftNetworkAtStop || (block.StartApproachTime < 0 && block.StartRunTime < 0))
+		return;
+	// The train approached the section, ran in it or stood over it until it left in step End_Time + 1.
+	if (block.StartRunTime < 0) {
+		block.StartRunTime = End_Time;
+		block.EndApproachTime = End_Time;
+	}
+	if (block.EndRunTime < 0) {
+		block.EndRunTime = End_Time;
+		block.StartClearTime = End_Time;
+	}
+	if (block.EndClearTime < 0)
+		block.EndClearTime = End_Time + margin;
 }
 
 bool Train::standsOverAtEntry(double position) const {
@@ -427,6 +444,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 					BlockTime[N_BlockSections].EndClearTime = End_Time + BlockTime[N_BlockSections].RunTimeMargin; // Then the EndClearTime is equal to the exit time of the train from the network
 				}
 			}
+			closeBlockingTimeAtStopEnd(BlockTime[N_BlockSections], BlockTime[N_BlockSections].RunTimeMargin);
 
 			// Defining the StartOccupation and EndOccupationTime and all the other occupation times, NOTE: All of these times include the RunTimeMargin if there is any. I need to subtract the RunTimeMargin from each of those to get the times for the minimum running time
 			BlockTime[N_BlockSections].ApproachTime = BlockTime[N_BlockSections].EndApproachTime - BlockTime[N_BlockSections].StartApproachTime;
@@ -750,6 +768,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 					BlockTime[N_BlockSections].EndClearTime = End_Time + BlockTime[N_BlockSections].RunTimeMargin; // Then the EndClearTime is equal to the exit time of the train from the network
 				}
 			}
+			closeBlockingTimeAtStopEnd(BlockTime[N_BlockSections], BlockTime[N_BlockSections].RunTimeMargin);
 
 			// Defining the StartOccupation and EndOccupationTime and all the other occupation times, NOTE: All of these times include the RunTimeMargin if there is any. I need to subtract the RunTimeMargin from each of those to get the times for the minimum running time
 			BlockTime[N_BlockSections].ApproachTime = BlockTime[N_BlockSections].EndApproachTime - BlockTime[N_BlockSections].StartApproachTime;

@@ -11,6 +11,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/EntranceDelayPanel.h"
+#include "editors/MeasurePanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/TrainUnitPanel.h"
@@ -3894,11 +3895,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		};
 		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
 		auto* scenarioHeader = w.findChild<QLabel*>("scenarioHeaderLabel");
-		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 3 || scenarioTabs->tabText(0) != "Scenario"
+		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 4 || scenarioTabs->tabText(0) != "Scenario"
 			|| scenarioTabs->tabText(1) != "Incidents" || scenarioTabs->tabText(2) != "Entrance delays"
-			|| scenarioTabs->widget(0) != scenarioPanel(w) || scenarioTabs->widget(1) != incidentPanel(w)
-			|| scenarioTabs->widget(2) != entranceDelayPanel(w))
-			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents and Entrance delays tabs");
+			|| scenarioTabs->tabText(3) != "Measures" || scenarioTabs->widget(0) != scenarioPanel(w)
+			|| scenarioTabs->widget(1) != incidentPanel(w) || scenarioTabs->widget(2) != entranceDelayPanel(w)
+			|| scenarioTabs->widget(3) != measurePanel(w))
+			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents, Entrance delays and Measures tabs");
 		else if (scenarioHeader->parentWidget() != scenarioTabs->parentWidget()
 			|| scenarioHeader->text() != scenarioPanel(w)->headerText()
 			|| scenarioPanel(w)->headerText() != "Scenario: " + selectedScenarioName())

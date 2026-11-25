@@ -186,6 +186,13 @@ ScenarioImport prepareScenarioImport(const SceneModel& model, SceneScenario scen
 			++prepared.renamedIncidents;
 		}
 	}
+	for (auto& measure : scenario.measures) {
+		const std::string uniqueMeasure = sceneUniqueMeasureId(model, measure.id);
+		if (uniqueMeasure != measure.id) {
+			measure.id = uniqueMeasure;
+			++prepared.renamedMeasures;
+		}
+	}
 	SceneModel candidate = model;
 	candidate.scenarios.push_back(scenario);
 	const std::string prefix = "scenarios[" + std::to_string(candidate.scenarios.size() - 1) + "]";

@@ -98,7 +98,7 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 }
 
 Description describe(const SimulationRun& run) {
-	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
+	const auto& [settings, occupied, connected, authorities, incidents, measures, nextMeasure, appliedMeasures, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
 		numPassengers, passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
 	(void)passengerJourneys; // Planning state only; reset() and adopt() empty it like passengerFlow.
@@ -113,6 +113,9 @@ Description describe(const SimulationRun& run) {
 		{"blocksConnected", std::to_string(connected.size())},
 		{"etcsMa", std::to_string(authorities.size())},
 		{"incidents", std::to_string(incidents.size())},
+		{"measures", std::to_string(measures.size())},
+		{"nextMeasure", std::to_string(nextMeasure)},
+		{"appliedMeasures", std::to_string(appliedMeasures.size())},
 		{"vcMsgTimestep", std::to_string(vcTimesteps.size())},
 		{"vcMsgTrain", std::to_string(vcTrains.size())},
 		{"vcMsgText", std::to_string(vcTexts.size())},
@@ -168,9 +171,9 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 }
 
 // True when the run is as a new run in every member that the builders do not fill. A prepared scene has its settings, infrastructure,
-// platforms, passengers, incidents and seeded generator.
+// platforms, passengers, incidents, measures and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
-	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
+	const std::set<std::string> builderState = {"settings", "incidents", "measures", "platforms", "numPlatforms", "passengers", "numPassengers",
 		"passengerIndex", "platformIndex", "passengerFlow", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
@@ -182,7 +185,7 @@ bool carriesNothingOver(const SimulationRun& run) {
 
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
-	auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
+	auto& [settings, occupied, connected, authorities, incidents, measures, nextMeasure, appliedMeasures, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
 		passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
 		infrastructure] = run;
 	(void)passengerJourneys;
@@ -197,6 +200,9 @@ void fill(SimulationRun& run) {
 	connected.push_back("2-B0");
 	authorities.emplace_back();
 	incidents.emplace_back();
+	measures.emplace_back();
+	nextMeasure = 1;
+	appliedMeasures.emplace_back();
 	vcTimesteps.push_back(7);
 	vcTrains.push_back("T1-1");
 	vcTexts.push_back("Train is now decoupled");
