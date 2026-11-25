@@ -57,7 +57,8 @@ double nearestRankPercentile(std::vector<double> values, int p);
 std::vector<OriginDestinationSummary> summariseOriginDestinations(const std::list<Passenger>& passengers);
 
 /// Aggregate passenger figures for the run, computed from the same journey fields and stop-call counts that
-/// PassengerJourneys.txt, StationStops.txt, ODSummary.txt and JourneyDelays.txt write.
+/// PassengerJourneys.txt, StationStops.txt, ODSummary.txt and JourneyDelays.txt write, and from the missed connections that the
+/// passenger step counted (Journey::MissedConnections). The delays count the completed journeys only (PassengerRunSummary).
 PassengerRunSummary summarisePassengerRun(const SimulationRun& run);
 
 /// The text of PassengerJourneys.txt: a header row and a tab-separated row for every journey of every passenger.

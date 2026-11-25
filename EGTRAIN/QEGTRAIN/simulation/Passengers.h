@@ -3,6 +3,7 @@
 
 #include "simulation/Infrastructure.h"
 #include "simulation/RollingStock.h"
+#include <cstdint>
 #include <list>
 #include <string>
 #include <unordered_map>
@@ -134,6 +135,11 @@ public:
 	bool IsReplanned = false;
 	JourneyOutcome Outcome = JourneyOutcome::InProgress; ///< Set when the journey completes or finds no route.
 	int LiveTripCount = 0;								 ///< Number of legs the passenger step planned for this journey; the IDs of its legs count it.
+	/// Missed connections of the journey: times that the passenger, after riding a train of the journey, had to plan again because
+	/// the train of the next leg left without the passenger or could no longer be boarded at the platform. A full train, a train
+	/// that ends its service early, a switch to a standing train and a missed train at the origin do not count. It stops at its
+	/// largest value.
+	std::uint16_t MissedConnections = 0;
 	/// The trains that refused the passenger because they were full, as trainDescription and station. A later plan from that
 	/// station leaves out the train while it stands there.
 	std::vector<std::pair<std::string, std::string>> RefusedBy;

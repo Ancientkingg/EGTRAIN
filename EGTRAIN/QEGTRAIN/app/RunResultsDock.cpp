@@ -5,6 +5,7 @@
 #include "app/ResultViews.h"
 #include "diagrams/PassengerComparison.h"
 #include "diagrams/ResultFrame.h"
+#include "diagrams/ResultTable.h"
 #include "diagrams/RunResults.h"
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
@@ -37,33 +38,21 @@ int tableHeight(const QTableWidget& table, int rows) {
 		+ table.horizontalScrollBar()->sizeHint().height() + 2 * table.frameWidth();
 }
 
-QString trimDecimal(double value, int decimals) {
-	QString text = QString::number(value, 'f', decimals);
-	while (text.endsWith('0'))
-		text.chop(1);
-	if (text.endsWith('.'))
-		text.chop(1);
-	return text == QStringLiteral("-0") ? QStringLiteral("0") : text;
-}
-
-QString signedSecondsText(double seconds) {
-	const QString text = trimDecimal(seconds, 2);
-	return (seconds > 0.0 && text != QStringLiteral("0") ? "+" + text : text) + QStringLiteral(" s");
-}
-
+// The passenger summary of a run in three lines. The delays count the completed journeys only, and the second line says so.
 QString passengerSummaryText(const PassengerRunSummary& summary) {
-	const QString totalDelay = summary.completedJourneys > 0 ? signedSecondsText(summary.totalDelaySeconds) : QStringLiteral("-");
-	const QString meanDelay = summary.completedJourneys > 0 ? signedSecondsText(summary.meanDelaySeconds) : QStringLiteral("-");
+	const auto delayText = [&summary](double seconds) {
+		return summary.completedJourneys > 0 ? signedDecimalText(seconds) + QStringLiteral(" s") : QStringLiteral("-");
+	};
 	return QStringLiteral("Passengers: %1 journeys (%2 completed, %3 not reached: %4 no route, %5 in progress)\n"
-						  "Passenger delay: total %6, mean %7, %8 passenger-hours lost\n"
-						  "Disruption: %9 missed connections, %10 planned again, %11 left behind (%12 passengers)")
+						  "Delay of the completed journeys: total %6, mean %7, %8 passenger-hours lost\n"
+						  "Disruption: %9 journeys with a missed connection, %10 planned again, %11 left behind (%12 passengers)")
 		.arg(summary.journeys)
 		.arg(summary.completedJourneys)
 		.arg(summary.notReachedJourneys())
 		.arg(summary.noRouteJourneys)
 		.arg(summary.inProgressJourneys)
-		.arg(totalDelay, meanDelay, trimDecimal(summary.passengerHoursLost, 3))
-		.arg(summary.missedConnections)
+		.arg(delayText(summary.totalDelaySeconds), delayText(summary.meanDelaySeconds), decimalText(summary.passengerHoursLost, 3))
+		.arg(summary.missedConnectionJourneys)
 		.arg(summary.replannedJourneys)
 		.arg(summary.leftBehindEvents)
 		.arg(summary.refusedPassengers);
@@ -151,14 +140,16 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(exportPngBtn);
 	m_exportPassengerCsvButton = new QPushButton("Export passenger CSV...", container);
 	m_exportPassengerCsvButton->setObjectName("exportPassengerCsvButton");
-	m_exportPassengerCsvButton->setToolTip("Write the passenger summary to a CSV file");
+	m_exportPassengerCsvButton->setToolTip("Write the passenger summary and the figures of each origin-destination pair to a CSV file");
 	m_exportPassengerCsvButton->hide();
 	QObject::connect(m_exportPassengerCsvButton, &QPushButton::clicked, m_dock, [this]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 		saveCsvInteractive(
 			m_window, m_prompts, "passenger_summary.csv", operation,
-			[run] { return run && run->settings.hasPassengers ? passengerSummaryCsv(run->passengerSummary) : std::string(); },
+			[run] {
+				return run && run->settings.hasPassengers ? passengerSummaryCsv(run->passengerSummary, run->originDestinations) : std::string();
+			},
 			[run](const QString& path, const std::string& bytes) {
 				return QString::fromStdString(
 					writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance()));

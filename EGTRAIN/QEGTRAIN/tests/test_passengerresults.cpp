@@ -466,7 +466,8 @@ void TestPassengerResults::earlierCallNotMetHasNoCounts() {
 }
 
 // summarisePassengerRun and summariseOriginDestinations must agree exactly with the figures computed from the written
-// PassengerJourneys.txt, StationStops.txt, ODSummary.txt and JourneyDelays.txt files.
+// PassengerJourneys.txt, StationStops.txt, ODSummary.txt and JourneyDelays.txt files. The missed connections are in no file: the
+// summary counts the journeys whose counter the passenger step raised.
 void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	SimulationRun run;
 	run.settings.startingSimulationTime = 0;
@@ -508,10 +509,11 @@ void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	j2.ID = "j2";
 	j2.Trips.push_back(riddenTrip("T1", 110, 420));
 
-	// p3: completed late (+240 s), replanned after missing a connection (rode T1+T2).
+	// p3: completed late (+240 s), replanned after missing two connections at B (rode T1+T2).
 	Journey j3 = completedJourney("A", "C", 40, 600, 240);
 	j3.ID = "j3";
 	j3.IsReplanned = true;
+	j3.MissedConnections = 2;
 	j3.Trips.push_back(riddenTrip("T1", 110, 300));
 	j3.Trips.push_back(riddenTrip("T2", 410, 600));
 
@@ -533,6 +535,7 @@ void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	j5.IsJourneyStarted = true;
 	j5.IsJourneyCompleted = false;
 	j5.IsReplanned = true;
+	j5.MissedConnections = 1;
 	j5.Outcome = JourneyOutcome::NoRoute;
 	j5.Trips.push_back(riddenTrip("T1", 110, 300));
 
@@ -584,23 +587,16 @@ void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	QCOMPARE(delayLines.size(), std::size_t(7));
 
 	int fileJourneys = 0, fileCompleted = 0, fileNoRoute = 0, fileInProgress = 0;
-	int fileReplanned = 0, fileMissed = 0;
+	int fileReplanned = 0;
 	double fileTotalDelay = 0.0, filePositiveDelay = 0.0;
 	for (std::size_t i = 1; i < journeyLines.size(); ++i) {
 		const std::vector<std::string> f = splitTabs(journeyLines[i]);
 		QCOMPARE(f.size(), std::size_t(14));
 		++fileJourneys;
-		const std::string& trains = f[6];
 		const std::string& delayText = f[11];
-		const bool replanned = f[12] == "1";
 		const std::string& outcome = f[13];
-		if (replanned) {
+		if (f[12] == "1")
 			++fileReplanned;
-			const bool multipleLegs = trains.find('+') != std::string::npos;
-			const bool atLeastOneLeg = trains != "-";
-			if (multipleLegs || (atLeastOneLeg && outcome != "completed"))
-				++fileMissed;
-		}
 		if (outcome == "completed") {
 			++fileCompleted;
 			const double d = std::stod(delayText);
@@ -646,7 +642,6 @@ void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	QCOMPARE(summary.meanDelaySeconds, fileTotalDelay / fileCompleted);
 	QCOMPARE(summary.passengerHoursLost, filePositiveDelay / 3600.0);
 	QCOMPARE(summary.replannedJourneys, fileReplanned);
-	QCOMPARE(summary.missedConnections, fileMissed);
 	QCOMPARE(summary.leftBehindEvents, fileLeftBehind);
 	QCOMPARE(summary.refusedPassengers, 1);
 
@@ -659,8 +654,9 @@ void TestPassengerResults::runSummaryMatchesWrittenFiles() {
 	QCOMPARE(summary.meanDelaySeconds, 97.5);
 	QCOMPARE(summary.passengerHoursLost, 420.0 / 3600.0);
 	QCOMPARE(summary.replannedJourneys, 3);
-	QCOMPARE(summary.missedConnections, 2);
 	QCOMPARE(summary.leftBehindEvents, 3);
+	// p3 and p5 missed connections, p3 twice; p4 was planned again after a refusal, which is no missed connection.
+	QCOMPARE(summary.missedConnectionJourneys, 2);
 
 	const std::vector<OriginDestinationSummary> ods = summariseOriginDestinations(run.passengers);
 	QCOMPARE(ods.size() + 1, odLines.size());

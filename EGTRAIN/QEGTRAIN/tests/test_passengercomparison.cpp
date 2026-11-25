@@ -1,6 +1,6 @@
 // Tests of passenger run summary in Run Results, the Compare passengers button,
-// PassengerComparisonWindow (summary figures, differences and top-20 OD ranking)
-// and CSV export with provenance sidecars.
+// PassengerComparisonWindow (summary figures, differences and the ranking of the
+// origin-destination pairs that changed) and the CSV exports with their provenance sidecars.
 
 #include "app/RunController.h"
 #include "app/ResultViews.h"
@@ -12,17 +12,23 @@
 #include "editors/SceneDocument.h"
 
 #include <QApplication>
+#include <QDialog>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QGraphicsView>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QStringList>
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include <cmath>
@@ -204,6 +210,36 @@ QJsonObject sidecarJson(const QString& path) {
 	return file.open(QIODevice::ReadOnly) ? QJsonDocument::fromJson(file.readAll()).object() : QJsonObject();
 }
 
+// Clicks `button` and answers its save dialog with `path`, closing any message that follows. Returns the file name that the
+// dialog suggested.
+QString answerSave(QPushButton* button, const QString& path) {
+	QString suggested;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&suggested, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (answered || !name) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	button->click();
+	return suggested;
+}
+
 } // namespace
 
 class TestPassengerComparison : public QObject {
@@ -213,8 +249,10 @@ private slots:
 	void summaryShownOnlyWhenRunHasPassengers();
 	void comparePassengersButtonStateAndOpensWindow();
 	void comparisonWindowShowsFiguresAndDifferences();
-	void odRankingSortsByAbsoluteLostChangeAndCapsAtTwenty();
+	void odRankingListsChangedPairsAndCapsAtTwenty();
+	void odTableSaysWhenNoPairChanged();
 	void exportsPassengerSummaryAndComparisonCsvWithProvenance();
+	void dockExportsPassengerCsvThroughItsButton();
 };
 
 void TestPassengerComparison::summaryShownOnlyWhenRunHasPassengers() {
@@ -240,7 +278,7 @@ void TestPassengerComparison::summaryShownOnlyWhenRunHasPassengers() {
 	summary.totalDelaySeconds = 450.0;
 	summary.meanDelaySeconds = 50.0;
 	summary.passengerHoursLost = 0.25;
-	summary.missedConnections = 2;
+	summary.missedConnectionJourneys = 2;
 	summary.replannedJourneys = 3;
 	summary.leftBehindEvents = 4;
 	summary.refusedPassengers = 3;
@@ -252,8 +290,8 @@ void TestPassengerComparison::summaryShownOnlyWhenRunHasPassengers() {
 	QVERIFY(fixture.dock.passengerSummaryLabel()->isVisible());
 	const QString text = fixture.dock.passengerSummaryLabel()->text();
 	QVERIFY2(text.contains("12 journeys (9 completed, 3 not reached: 2 no route, 1 in progress)"), qPrintable(text));
-	QVERIFY2(text.contains("total +450 s, mean +50 s, 0.25 passenger-hours lost"), qPrintable(text));
-	QVERIFY2(text.contains("2 missed connections, 3 planned again, 4 left behind (3 passengers)"), qPrintable(text));
+	QVERIFY2(text.contains("Delay of the completed journeys: total +450 s, mean +50 s, 0.25 passenger-hours lost"), qPrintable(text));
+	QVERIFY2(text.contains("2 journeys with a missed connection, 3 planned again, 4 left behind (3 passengers)"), qPrintable(text));
 	QVERIFY(fixture.dock.exportPassengerCsvButton()->isVisible());
 	QVERIFY(fixture.dock.exportPassengerCsvButton()->isEnabled());
 	QVERIFY(fixture.dock.comparePassengersButton()->isVisible());
@@ -316,7 +354,7 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	base.totalDelaySeconds = 180.0;
 	base.meanDelaySeconds = 10.0;
 	base.passengerHoursLost = 0.1;
-	base.missedConnections = 1;
+	base.missedConnectionJourneys = 1;
 	base.replannedJourneys = 2;
 	base.leftBehindEvents = 1;
 	base.refusedPassengers = 1;
@@ -329,7 +367,7 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	cur.totalDelaySeconds = 900.0;
 	cur.meanDelaySeconds = 60.0;
 	cur.passengerHoursLost = 0.35;
-	cur.missedConnections = 4;
+	cur.missedConnectionJourneys = 4;
 	cur.replannedJourneys = 6;
 	cur.leftBehindEvents = 5;
 	cur.refusedPassengers = 3;
@@ -352,10 +390,10 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	QCOMPARE(rowTexts(summaryTable, 2), QStringList({"Not reached (total)", "2", "5", "+3"}));
 	QCOMPARE(rowTexts(summaryTable, 3), QStringList({"Not reached: no route", "1", "3", "+2"}));
 	QCOMPARE(rowTexts(summaryTable, 4), QStringList({"Not reached: in progress", "1", "2", "+1"}));
-	QCOMPARE(rowTexts(summaryTable, 5), QStringList({"Total arrival delay (s)", "+180", "+900", "+720"}));
-	QCOMPARE(rowTexts(summaryTable, 6), QStringList({"Mean arrival delay (s)", "+10", "+60", "+50"}));
-	QCOMPARE(rowTexts(summaryTable, 7), QStringList({"Passenger-hours lost (pax-h)", "0.1", "0.35", "+0.25"}));
-	QCOMPARE(rowTexts(summaryTable, 8), QStringList({"Missed connections", "1", "4", "+3"}));
+	QCOMPARE(rowTexts(summaryTable, 5), QStringList({"Total arrival delay of completed journeys (s)", "+180", "+900", "+720"}));
+	QCOMPARE(rowTexts(summaryTable, 6), QStringList({"Mean arrival delay of completed journeys (s)", "+10", "+60", "+50"}));
+	QCOMPARE(rowTexts(summaryTable, 7), QStringList({"Passenger-hours lost by completed journeys", "0.1", "0.35", "+0.25"}));
+	QCOMPARE(rowTexts(summaryTable, 8), QStringList({"Journeys with a missed connection", "1", "4", "+3"}));
 	QCOMPARE(rowTexts(summaryTable, 9), QStringList({"Journeys planned again", "2", "6", "+4"}));
 	QCOMPARE(rowTexts(summaryTable, 10), QStringList({"Left behind (refusals)", "1", "5", "+4"}));
 	QCOMPARE(rowTexts(summaryTable, 11), QStringList({"Left behind (passengers)", "1", "3", "+2"}));
@@ -365,10 +403,34 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	QVERIFY(summaryTable->item(0, 1)->textAlignment() & Qt::AlignRight);
 	QVERIFY(summaryTable->item(0, 3)->textAlignment() & Qt::AlignRight);
 
-	// Side panel figures match differences.
-	QCOMPARE(window.findChild<ResultFigure*>("passengerComparisonHoursLost")->value(), QStringLiteral("+0.25 h"));
-	QCOMPARE(window.findChild<ResultFigure*>("passengerComparisonMeanDelay")->value(), QStringLiteral("+50 s"));
+	// Side panel figures match differences, and the delays say that they count the completed journeys only.
+	const auto* lost = window.findChild<ResultFigure*>("passengerComparisonHoursLost");
+	const auto* mean = window.findChild<ResultFigure*>("passengerComparisonMeanDelay");
+	QCOMPARE(lost->value(), QStringLiteral("+0.25 h"));
+	QCOMPARE(lost->caption(), QStringLiteral("Passenger-hours lost"));
+	QCOMPARE(mean->value(), QStringLiteral("+50 s"));
+	QCOMPARE(mean->caption(), QStringLiteral("Mean delay"));
+	QVERIFY(lost->toolTip().contains("completed journeys"));
+	QVERIFY(mean->toolTip().contains("completed journeys"));
+	// Both figures are in the section headed Completed journeys, so the heading right above them says what they count.
+	const QWidget* section = lost->parentWidget()->parentWidget();
+	QCOMPARE(mean->parentWidget(), lost->parentWidget());
+	QStringList headings;
+	for (const QLabel* label : section->findChildren<QLabel*>())
+		if (label->property("resultSectionHeading").toBool())
+			headings << label->text();
+	QCOMPARE(headings, QStringList("Completed journeys"));
 	QCOMPARE(window.findChild<ResultFigure*>("passengerComparisonNotReached")->value(), QStringLiteral("+3"));
+
+	// The one pair changed; its delay columns say in their tooltips that they count the completed journeys only.
+	const auto* odTable = window.findChild<QTableWidget*>("passengerComparisonOd");
+	if (odTable == nullptr)
+		QFAIL("OD table missing");
+	QCOMPARE(odTable->rowCount(), 1);
+	QCOMPARE(rowTexts(odTable, 0), QStringList({"A", "B", "20", "20", "2", "5", "+10", "+60", "+50", "0.1", "0.35", "+0.25"}));
+	for (int column = 6; column < odTable->columnCount(); ++column)
+		QVERIFY2(odTable->horizontalHeaderItem(column)->toolTip().contains("completed journeys of the pair"),
+			qPrintable(odTable->horizontalHeaderItem(column)->text()));
 
 	// When no journey completed in the scenario run, total and mean delay are "-" (never 0).
 	PassengerRunSummary emptyCompleted;
@@ -379,32 +441,37 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	const auto* noCompletedTable = noCompletedWindow.findChild<QTableWidget*>("passengerComparisonSummary");
 	if (noCompletedTable == nullptr)
 		QFAIL("summary table missing");
-	QCOMPARE(rowTexts(noCompletedTable, 5), QStringList({"Total arrival delay (s)", "+180", "-", "-"}));
-	QCOMPARE(rowTexts(noCompletedTable, 6), QStringList({"Mean arrival delay (s)", "+10", "-", "-"}));
+	QCOMPARE(rowTexts(noCompletedTable, 5), QStringList({"Total arrival delay of completed journeys (s)", "+180", "-", "-"}));
+	QCOMPARE(rowTexts(noCompletedTable, 6), QStringList({"Mean arrival delay of completed journeys (s)", "+10", "-", "-"}));
 	QCOMPARE(noCompletedWindow.findChild<ResultFigure*>("passengerComparisonMeanDelay")->value(), QStringLiteral("-"));
 }
 
-void TestPassengerComparison::odRankingSortsByAbsoluteLostChangeAndCapsAtTwenty() {
+void TestPassengerComparison::odRankingListsChangedPairsAndCapsAtTwenty() {
 	std::vector<OriginDestinationSummary> baseOds;
 	std::vector<OriginDestinationSummary> curOds;
 
-	// 25 OD pairs:
-	// - "Z" -> "A": -2.0 pax-h change (largest absolute change, negative)
-	// - "B" -> "C": +1.5 pax-h change (tied with "A" -> "D" and "A" -> "B")
-	// - "A" -> "D": +1.5 pax-h change
-	// - "A" -> "B": +1.5 pax-h change
-	// - 21 filler pairs "S01".."S21" -> "T" with smaller changes 0.01..0.21 pax-h
+	// - "Z" -> "A": -2.0 pax-h change, the largest absolute change.
+	// - "B" -> "C", "A" -> "D" and "A" -> "B": +1.5 pax-h each. "B" -> "C" also has two journeys more that did not reach C, so it
+	//   comes first; the other two follow by origin and destination.
+	// - "Q" -> "R": only in the baseline, so this run counts no journeys for it: -0.3 pax-h.
+	// - "U" -> "V": the same in both runs, so it is not listed.
+	// - 21 filler pairs "S01".."S21" -> "T" with changes of 0.01..0.21 pax-h.
 	baseOds.push_back(makeOd("Z", "A", 10, 10, 720.0, 2.0));
 	curOds.push_back(makeOd("Z", "A", 10, 10, 0.0, 0.0));
 
 	baseOds.push_back(makeOd("B", "C", 5, 5, 0.0, 0.0));
-	curOds.push_back(makeOd("B", "C", 6, 6, 900.0, 1.5));
+	curOds.push_back(makeOd("B", "C", 6, 4, 1350.0, 1.5));
 
 	baseOds.push_back(makeOd("A", "D", 4, 4, 0.0, 0.0));
 	curOds.push_back(makeOd("A", "D", 4, 4, 1350.0, 1.5));
 
 	baseOds.push_back(makeOd("A", "B", 8, 8, 0.0, 0.0));
 	curOds.push_back(makeOd("A", "B", 8, 8, 675.0, 1.5));
+
+	baseOds.push_back(makeOd("Q", "R", 2, 2, 540.0, 0.3));
+
+	baseOds.push_back(makeOd("U", "V", 3, 3, 30.0, 0.025));
+	curOds.push_back(makeOd("U", "V", 3, 3, 30.0, 0.025));
 
 	for (int i = 1; i <= 21; ++i) {
 		const std::string origin = std::string("S") + (i < 10 ? "0" : "") + std::to_string(i);
@@ -421,28 +488,43 @@ void TestPassengerComparison::odRankingSortsByAbsoluteLostChangeAndCapsAtTwenty(
 	const auto* odTable = window.findChild<QTableWidget*>("passengerComparisonOd");
 	if (odTable == nullptr)
 		QFAIL("OD table missing");
-	// Capped at 20 rows.
+	// 26 pairs changed; the table keeps 20.
 	QCOMPARE(odTable->rowCount(), 20);
-	// Rank 0: largest absolute change (-2.0 pax-h).
-	QCOMPARE(rowTexts(odTable, 0), QStringList({"Z", "A", "10", "10", "+720", "0", "-720", "2", "0", "-2"}));
-	// Ranks 1-3: tied at |1.5| pax-h, broken by origin then destination ascending: (A,B), (A,D), (B,C).
-	QCOMPARE(cell(odTable, 1, 0), QStringLiteral("A"));
-	QCOMPARE(cell(odTable, 1, 1), QStringLiteral("B"));
-	QCOMPARE(cell(odTable, 2, 0), QStringLiteral("A"));
-	QCOMPARE(cell(odTable, 2, 1), QStringLiteral("D"));
-	QCOMPARE(cell(odTable, 3, 0), QStringLiteral("B"));
-	QCOMPARE(cell(odTable, 3, 1), QStringLiteral("C"));
-	QCOMPARE(rowTexts(odTable, 3), QStringList({"B", "C", "5", "6", "0", "+900", "+900", "0", "1.5", "+1.5"}));
-	// Rank 4: largest filler S21 (0.21 pax-h); S05..S01 dropped beyond top 20.
-	QCOMPARE(cell(odTable, 4, 0), QStringLiteral("S21"));
-	QCOMPARE(cell(odTable, 19, 0), QStringLiteral("S06"));
+	QCOMPARE(rowTexts(odTable, 0), QStringList({"Z", "A", "10", "10", "0", "0", "+720", "0", "-720", "2", "0", "-2"}));
+	QCOMPARE(rowTexts(odTable, 1), QStringList({"B", "C", "5", "6", "0", "2", "0", "+1350", "+1350", "0", "1.5", "+1.5"}));
+	QCOMPARE(cell(odTable, 2, 0) + cell(odTable, 2, 1), QStringLiteral("AB"));
+	QCOMPARE(cell(odTable, 3, 0) + cell(odTable, 3, 1), QStringLiteral("AD"));
+	QCOMPARE(rowTexts(odTable, 4), QStringList({"Q", "R", "2", "0", "0", "0", "+540", "-", "-", "0.3", "0", "-0.3"}));
+	QCOMPARE(cell(odTable, 5, 0), QStringLiteral("S21"));
+	QCOMPARE(cell(odTable, 19, 0), QStringLiteral("S07"));
+	for (int row = 0; row < odTable->rowCount(); ++row)
+		QVERIFY2(cell(odTable, row, 0) != QStringLiteral("U"), "an unchanged pair is listed");
+	QCOMPARE(window.comparison().changedPairs.size(), kMaxComparedOriginDestinations);
+}
+
+void TestPassengerComparison::odTableSaysWhenNoPairChanged() {
+	const std::vector<OriginDestinationSummary> same = {makeOd("A", "B", 4, 4, 60.0, 0.05), makeOd("B", "A", 2, 1, 0.0, 0.0)};
+	PassengerComparisonWindow window(makeSnapshot("baseline", true, {}, same), makeSnapshot("rerun", true, {}, same));
+	window.show();
+	QApplication::processEvents();
+
+	const auto* odTable = window.findChild<QTableWidget*>("passengerComparisonOd");
+	if (odTable == nullptr)
+		QFAIL("OD table missing");
+	QVERIFY(window.comparison().changedPairs.empty());
+	QCOMPARE(odTable->rowCount(), 1);
+	QCOMPARE(cell(odTable, 0, 0), QStringLiteral("No origin-destination pair changed between the two runs"));
+	QCOMPARE(odTable->columnSpan(0, 0), odTable->columnCount());
+	// The CSV has the summary records and no pair.
+	const std::string csv = passengerComparisonCsv(window.comparison());
+	QVERIFY(csv.find("\r\nod,") == std::string::npos);
 }
 
 void TestPassengerComparison::exportsPassengerSummaryAndComparisonCsvWithProvenance() {
 	QTemporaryDir dir;
 	QVERIFY(dir.isValid());
 
-	// Single-run passenger summary CSV + provenance sidecar.
+	// Single-run passenger CSV: the summary records and one record for each origin-destination pair.
 	PassengerRunSummary base;
 	base.journeys = 4;
 	base.completedJourneys = 3;
@@ -450,7 +532,7 @@ void TestPassengerComparison::exportsPassengerSummaryAndComparisonCsvWithProvena
 	base.totalDelaySeconds = 900.0;
 	base.meanDelaySeconds = 300.0;
 	base.passengerHoursLost = 0.25;
-	base.missedConnections = 1;
+	base.missedConnectionJourneys = 1;
 	base.replannedJourneys = 2;
 	base.leftBehindEvents = 2;
 	base.refusedPassengers = 1;
@@ -460,22 +542,26 @@ void TestPassengerComparison::exportsPassengerSummaryAndComparisonCsvWithProvena
 	baseProvenance.appliedScenario = "baseline";
 
 	const QString summaryPath = dir.filePath(QStringLiteral("passenger_summary.csv"));
-	const std::string summaryError = writeRunArtifactWithProvenance(
-		summaryPath.toStdString(), "csv", passengerSummaryCsv(base), baseProvenance);
+	const std::string summaryError = writeRunArtifactWithProvenance(summaryPath.toStdString(), "csv",
+		passengerSummaryCsv(base, {makeOd("A", "B", 3, 3, 300.0, 0.25), makeOd("B", "A", 1, 0, -1.0, 0.0)}), baseProvenance);
 	QVERIFY2(summaryError.empty(), summaryError.c_str());
 
 	const QStringList summaryRows = csvLines(summaryPath);
-	QCOMPARE(summaryRows.size(), 13);
-	QCOMPARE(summaryRows[0], QStringLiteral("Metric,Value,Unit"));
-	QCOMPARE(summaryRows[1], QStringLiteral("Journeys,4,journeys"));
-	QCOMPARE(summaryRows[3], QStringLiteral("Not reached (total),1,journeys"));
-	QCOMPARE(summaryRows[6], QStringLiteral("Total arrival delay,900,s"));
-	QCOMPARE(summaryRows[7], QStringLiteral("Mean arrival delay,300,s"));
-	QCOMPARE(summaryRows[8], QStringLiteral("Passenger-hours lost,0.25,passenger-hours"));
-	QCOMPARE(summaryRows[9], QStringLiteral("Missed connections,1,journeys"));
-	QCOMPARE(summaryRows[10], QStringLiteral("Journeys planned again,2,journeys"));
-	QCOMPARE(summaryRows[11], QStringLiteral("Left behind (refusals),2,refusals"));
-	QCOMPARE(summaryRows[12], QStringLiteral("Left behind (passengers),1,passengers"));
+	QCOMPARE(summaryRows.size(), 15); // header + 12 summary records + 2 pairs
+	QCOMPARE(summaryRows[0], QStringLiteral("Record type,Metric,Unit,Value,Origin,Destination,Journeys,Completed,Not reached,"
+											"Mean delay of completed journeys[s],Passenger-hours lost by completed journeys[pax-h]"));
+	QCOMPARE(summaryRows[1], QStringLiteral("summary,Journeys,journeys,4,,,,,,,"));
+	QCOMPARE(summaryRows[3], QStringLiteral("summary,Not reached (total),journeys,1,,,,,,,"));
+	QCOMPARE(summaryRows[6], QStringLiteral("summary,Total arrival delay of completed journeys,s,900,,,,,,,"));
+	QCOMPARE(summaryRows[7], QStringLiteral("summary,Mean arrival delay of completed journeys,s,300,,,,,,,"));
+	QCOMPARE(summaryRows[8], QStringLiteral("summary,Passenger-hours lost by completed journeys,passenger-hours,0.25,,,,,,,"));
+	QCOMPARE(summaryRows[9], QStringLiteral("summary,Journeys with a missed connection,journeys,1,,,,,,,"));
+	QCOMPARE(summaryRows[10], QStringLiteral("summary,Journeys planned again,journeys,2,,,,,,,"));
+	QCOMPARE(summaryRows[11], QStringLiteral("summary,Left behind (refusals),refusals,2,,,,,,,"));
+	QCOMPARE(summaryRows[12], QStringLiteral("summary,Left behind (passengers),passengers,1,,,,,,,"));
+	QCOMPARE(summaryRows[13], QStringLiteral("od,,,,A,B,3,3,0,300,0.25"));
+	// No journey of B to A completed, so it has no mean delay.
+	QCOMPARE(summaryRows[14], QStringLiteral("od,,,,B,A,1,0,1,,0"));
 
 	const QJsonObject summarySidecar = sidecarJson(summaryPath);
 	QCOMPARE(summarySidecar.value("artifact").toObject().value("kind").toString(), QStringLiteral("csv"));
@@ -497,14 +583,53 @@ void TestPassengerComparison::exportsPassengerSummaryAndComparisonCsvWithProvena
 
 	const QStringList cmpRows = csvLines(comparisonPath);
 	QCOMPARE(cmpRows.size(), 14); // header + 12 summary rows + 1 OD row
-	QVERIFY(cmpRows[0].startsWith(QStringLiteral("Record type,Metric,Unit,Baseline,Scenario,Difference,Origin,Destination")));
+	QCOMPARE(cmpRows[0], QStringLiteral("Record type,Metric,Unit,Baseline,Scenario,Difference,Origin,Destination,Baseline journeys,"
+										"Scenario journeys,Baseline completed,Scenario completed,Baseline not reached,Scenario not reached,"
+										"Baseline mean delay of completed journeys[s],Scenario mean delay of completed journeys[s],"
+										"Mean delay difference[s],Baseline passenger-hours lost by completed journeys[pax-h],"
+										"Scenario passenger-hours lost by completed journeys[pax-h],Passenger-hours lost difference[pax-h]"));
 	QVERIFY(cmpRows[1].startsWith(QStringLiteral("summary,Journeys,journeys,4,4,0,")));
-	QVERIFY(cmpRows[8].startsWith(QStringLiteral("summary,Passenger-hours lost,passenger-hours,0.25,0.5,0.25,")));
-	QCOMPARE(cmpRows[13], QStringLiteral("od,,,,,,A,B,4,4,3,4,300,450,150,0.25,0.5,0.25"));
+	QVERIFY(cmpRows[8].startsWith(QStringLiteral("summary,Passenger-hours lost by completed journeys,passenger-hours,0.25,0.5,0.25,")));
+	QCOMPARE(cmpRows[13], QStringLiteral("od,,,,,,A,B,4,4,3,4,1,0,300,450,150,0.25,0.5,0.25"));
 
 	const QJsonObject cmpSidecar = sidecarJson(comparisonPath);
 	QCOMPARE(cmpSidecar.value("baseline_run").toObject().value("applied_scenario").toString(), QStringLiteral("baseline"));
 	QCOMPARE(cmpSidecar.value("scenario_run").toObject().value("applied_scenario").toString(), QStringLiteral("incident"));
+}
+
+// Export passenger CSV... in Run Results writes the passengers of the completed run through the save dialog, with the provenance
+// of that run beside it.
+void TestPassengerComparison::dockExportsPassengerCsvThroughItsButton() {
+	QTemporaryDir dir;
+	QVERIFY(dir.isValid());
+	DockFixture fixture;
+	PassengerRunSummary summary;
+	summary.journeys = 3;
+	summary.completedJourneys = 2;
+	summary.inProgressJourneys = 1;
+	summary.totalDelaySeconds = 120.0;
+	summary.meanDelaySeconds = 60.0;
+	summary.passengerHoursLost = 0.25;
+	summary.missedConnectionJourneys = 1;
+	MainWindowTestAccess::setCompletedRun(*fixture.controller,
+		std::make_shared<const CompletedRunData>(makeRunData("disruption", true, summary, {makeOd("A", "B", 3, 2, 60.0, 0.25)})));
+	fixture.dock.refresh();
+	fixture.dock.updateAvailability(true);
+	QApplication::processEvents();
+	QPushButton* button = fixture.dock.exportPassengerCsvButton();
+	QVERIFY(button->isVisible() && button->isEnabled());
+
+	const QString path = dir.filePath(QStringLiteral("exported.csv"));
+	QCOMPARE(answerSave(button, path), QStringLiteral("passenger_summary.csv"));
+	const QStringList rows = csvLines(path);
+	QCOMPARE(rows.size(), 14); // header + 12 summary records + 1 pair
+	QCOMPARE(rows[1], QStringLiteral("summary,Journeys,journeys,3,,,,,,,"));
+	QCOMPARE(rows[9], QStringLiteral("summary,Journeys with a missed connection,journeys,1,,,,,,,"));
+	QCOMPARE(rows[13], QStringLiteral("od,,,,A,B,3,2,1,60,0.25"));
+	const QJsonObject sidecar = sidecarJson(path);
+	QCOMPARE(sidecar.value("artifact").toObject().value("kind").toString(), QStringLiteral("csv"));
+	QCOMPARE(sidecar.value("run").toObject().value("case_name").toString(), QStringLiteral("PaxCase"));
+	QCOMPARE(sidecar.value("run").toObject().value("applied_scenario").toString(), QStringLiteral("disruption"));
 }
 
 QTEST_MAIN(TestPassengerComparison)

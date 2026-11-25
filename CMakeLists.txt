@@ -422,6 +422,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/PassengerComparisonWindow.cpp
     ${SRC_DIR}/diagrams/PositionScale.cpp
     ${SRC_DIR}/diagrams/ResultFrame.cpp
+    ${SRC_DIR}/diagrams/ResultTable.cpp
     ${SRC_DIR}/diagrams/RouteCharts.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramData.cpp

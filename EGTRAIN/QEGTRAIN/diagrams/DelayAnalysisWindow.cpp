@@ -2,6 +2,7 @@
 
 #include "diagrams/ChartTicks.h"
 #include "diagrams/ResultFrame.h"
+#include "diagrams/ResultTable.h"
 #include "diagrams/RunCsv.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/CsvWriter.h"
@@ -13,7 +14,6 @@
 #include <QEvent>
 #include <QDialogButtonBox>
 #include <QFont>
-#include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
 #include <QSet>
@@ -42,31 +42,9 @@ constexpr int kSummaryTab = 1;
 constexpr int kPunctualityTab = 2;
 constexpr int kBaselineTab = 3;
 
-// Up to two decimals and no trailing zeros: 168.2, -72.25, 301.
-QString numberText(double value) {
-	QString text = QString::number(value, 'f', 2);
-	while (text.endsWith('0'))
-		text.chop(1);
-	if (text.endsWith('.'))
-		text.chop(1);
-	return text == QStringLiteral("-0") ? QStringLiteral("0") : text;
-}
-
-QString secondsText(const RunResultValue& value) {
-	return value.available ? numberText(value.value) : QStringLiteral("-");
-}
-
-// A delay or a difference: positive with a plus sign.
-QString signedSecondsText(const RunResultValue& value) {
-	if (!value.available)
-		return QStringLiteral("-");
-	const QString text = numberText(value.value);
-	return value.value > 0.0 && text != QStringLiteral("0") ? "+" + text : text;
-}
-
 // A figure with its unit, or "-".
 QString figureText(const RunResultValue& value) {
-	return value.available ? signedSecondsText(value) + " s" : QStringLiteral("-");
+	return value.available ? signedDecimalText(value) + " s" : QStringLiteral("-");
 }
 
 QString shareText(const DelayShare& share) {
@@ -76,7 +54,7 @@ QString shareText(const DelayShare& share) {
 }
 
 QString thresholdText(const DelayShare& share) {
-	return "Later than " + numberText(share.thresholdSeconds) + " s";
+	return "Later than " + decimalText(share.thresholdSeconds) + " s";
 }
 
 QString eventName(DelayEventKind kind) {
@@ -151,50 +129,6 @@ void setChoices(TrainFilterButton* button, const QStringList& labels) {
 	button->setTrains(choices);
 }
 
-// A column of a table: its header, and whether it holds numbers, which lie at the right.
-struct Column {
-	Column(const char* header, bool number = false)
-		: header(header), number(number) {}
-	Column(QString header, bool number)
-		: header(std::move(header)), number(number) {}
-	QString header;
-	bool number;
-};
-constexpr bool kNumber = true;
-// The role of the header item of a column that says whether the column holds numbers.
-constexpr int kNumberRole = Qt::UserRole;
-
-QTableWidget* makeTable(QWidget* parent, const char* name, const QVector<Column>& columns) {
-	auto* table = new QTableWidget(0, static_cast<int>(columns.size()), parent);
-	table->setObjectName(name);
-	for (int column = 0; column < table->columnCount(); ++column) {
-		auto* header = new QTableWidgetItem(columns[column].header);
-		header->setData(kNumberRole, columns[column].number);
-		table->setHorizontalHeaderItem(column, header);
-	}
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	table->setSelectionBehavior(QAbstractItemView::SelectRows);
-	table->setAlternatingRowColors(true);
-	// Tab leaves the table for the next control; the arrow keys move between the cells.
-	table->setTabKeyNavigation(false);
-	table->horizontalHeader()->setStretchLastSection(true);
-	table->verticalHeader()->setVisible(false);
-	return table;
-}
-
-void fillTable(QTableWidget* table, const std::vector<QStringList>& rows) {
-	table->setRowCount(static_cast<int>(rows.size()));
-	for (int row = 0; row < table->rowCount(); ++row) {
-		for (int column = 0; column < table->columnCount(); ++column) {
-			auto* item = new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column));
-			if (table->horizontalHeaderItem(column)->data(kNumberRole).toBool())
-				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-			table->setItem(row, column, item);
-		}
-	}
-	table->resizeColumnsToContents();
-}
-
 // Gives every column whose header ends with `header` the tooltip `tip`.
 void setHeaderTip(QTableWidget* table, const QString& header, const QString& tip) {
 	for (int column = 0; column < table->columnCount(); ++column)
@@ -204,16 +138,16 @@ void setHeaderTip(QTableWidget* table, const QString& header, const QString& tip
 
 QStringList callRow(const DelayEvent& event) {
 	return {fromStd(event.serviceId), QString::number(event.occurrence), fromStd(event.trainId), fromStd(event.operatingCode), fromStd(event.stationId),
-		QString::number(event.journeyIndex), QString::number(event.callIndex), eventName(event.kind), secondsText(event.plannedSeconds),
-		secondsText(event.simulatedSeconds), signedSecondsText(event.delaySeconds), delayClassText(event.delayClass),
+		QString::number(event.journeyIndex), QString::number(event.callIndex), eventName(event.kind), decimalText(event.plannedSeconds),
+		decimalText(event.simulatedSeconds), signedDecimalText(event.delaySeconds), delayClassText(event.delayClass),
 		delayStatusText(event.status)};
 }
 
 QStringList summaryRow(const QString& label, const DelayStatistics& statistics) {
 	QStringList row = {label, QString::number(statistics.calls), QString::number(statistics.available), QString::number(statistics.noPlan),
 		QString::number(statistics.notReached), QString::number(statistics.noPlanAndNotReached), QString::number(statistics.early),
-		QString::number(statistics.onTime), QString::number(statistics.late), signedSecondsText(statistics.sumSeconds),
-		signedSecondsText(statistics.meanSeconds), signedSecondsText(statistics.minimumSeconds), signedSecondsText(statistics.maximumSeconds)};
+		QString::number(statistics.onTime), QString::number(statistics.late), signedDecimalText(statistics.sumSeconds),
+		signedDecimalText(statistics.meanSeconds), signedDecimalText(statistics.minimumSeconds), signedDecimalText(statistics.maximumSeconds)};
 	for (const DelayShare& share : statistics.shares)
 		row << shareText(share);
 	return row;
@@ -226,14 +160,14 @@ QString evidenceText(const BaselineOccurrence& occurrence) {
 }
 
 QStringList differenceCells(const DelayDifference& difference) {
-	return {secondsText(difference.baselineSeconds), secondsText(difference.scenarioSeconds), signedSecondsText(difference.additionalSeconds),
+	return {decimalText(difference.baselineSeconds), decimalText(difference.scenarioSeconds), signedDecimalText(difference.additionalSeconds),
 		delayChangeText(difference.change)};
 }
 
 QStringList occurrenceRow(const BaselineOccurrence& occurrence) {
 	QStringList row = {fromStd(occurrence.serviceId), QString::number(occurrence.occurrence), fromStd(occurrence.trainId), fromStd(occurrence.operatingCode),
-		numberText(occurrence.inputDelaySeconds), fromStd(occurrence.inputDelayStationId), evidenceText(occurrence), fromStd(occurrence.finalStationId)};
-	row << differenceCells(occurrence.finalArrival) << signedSecondsText(occurrence.secondarySeconds);
+		decimalText(occurrence.inputDelaySeconds), fromStd(occurrence.inputDelayStationId), evidenceText(occurrence), fromStd(occurrence.finalStationId)};
+	row << differenceCells(occurrence.finalArrival) << signedDecimalText(occurrence.secondarySeconds);
 	return row;
 }
 
@@ -555,9 +489,9 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 
 	auto* callsPage = new QWidget(m_tabs);
 	auto* callsLayout = new QVBoxLayout(callsPage);
-	m_callsTable = makeTable(callsPage, "delayCalls",
-		{"Service", {"Occurrence", kNumber}, "Train", "Operating code", "Station", {"Journey order", kNumber}, {"Call", kNumber}, "Event",
-			{"Planned (s)", kNumber}, {"Simulated (s)", kNumber}, {"Delay (s)", kNumber}, "Class", "Status"});
+	m_callsTable = makeResultTable(callsPage, "delayCalls",
+		{"Service", {"Occurrence", kNumberColumn}, "Train", "Operating code", "Station", {"Journey order", kNumberColumn}, {"Call", kNumberColumn}, "Event",
+			{"Planned (s)", kNumberColumn}, {"Simulated (s)", kNumberColumn}, {"Delay (s)", kNumberColumn}, "Class", "Status"});
 	setHeaderTip(m_callsTable, "Delay (s)", "Simulated minus planned time\nNegative is early");
 	callsLayout->addWidget(m_callsTable, 1);
 	m_tabs->addTab(callsPage, "Calls");
@@ -565,16 +499,16 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	auto* summaryPage = new QWidget(m_tabs);
 	auto* summaryLayout = new QVBoxLayout(summaryPage);
 	// Every column after the station holds numbers.
-	QVector<Column> summaryColumns = {"Station"};
+	QVector<ResultColumn> summaryColumns = {"Station"};
 	for (const char* header : {"Calls", "Available", "No plan", "Not reached", "No plan, not reached", "Early", "On time", "Late", "Sum (s)",
 			 "Mean (s)", "Minimum (s)", "Maximum (s)"})
-		summaryColumns.append({header, kNumber});
+		summaryColumns.append({header, kNumberColumn});
 	for (const double threshold : defaultDelayThresholdsSeconds()) {
 		DelayShare share;
 		share.thresholdSeconds = threshold;
-		summaryColumns.append({thresholdText(share), kNumber});
+		summaryColumns.append({thresholdText(share), kNumberColumn});
 	}
-	m_summaryTable = makeTable(summaryPage, "delaySummary", summaryColumns);
+	m_summaryTable = makeResultTable(summaryPage, "delaySummary", summaryColumns);
 	for (int column = 0; column < m_summaryTable->columnCount(); ++column)
 		if (QTableWidgetItem* item = m_summaryTable->horizontalHeaderItem(column); item && item->text().startsWith("Later than"))
 			item->setToolTip("Strictly later\nCounts available events only");
@@ -641,7 +575,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineNote = new QLabel(baselinePage);
 	m_baselineNote->setObjectName("delayBaselineNote");
 	baselineLayout->addWidget(m_baselineNote);
-	m_baselineDiagnostics = makeTable(baselinePage, "delayBaselineDiagnostics", {"Reason"});
+	m_baselineDiagnostics = makeResultTable(baselinePage, "delayBaselineDiagnostics", {"Reason"});
 	baselineLayout->addWidget(m_baselineDiagnostics, 1);
 	m_baselineResults = new QWidget(baselinePage);
 	auto* resultsLayout = new QVBoxLayout(m_baselineResults);
@@ -652,20 +586,20 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineTotals->setWordWrap(true);
 	resultsLayout->addWidget(m_baselineTotals);
 	resultsLayout->addWidget(EditorLayout::sectionHeading("Trains", m_baselineResults));
-	m_baselineOccurrences = makeTable(m_baselineResults, "delayBaselineOccurrences",
-		{"Service", {"Occurrence", kNumber}, "Train", "Operating code", {"Input delay (s)", kNumber}, "Input delay station",
-			"Direct incident evidence", "Final station", {"Baseline final arrival (s)", kNumber}, {"Scenario final arrival (s)", kNumber},
-			{"Additional delay (s)", kNumber}, "Change", {"Secondary delay (s)", kNumber}});
+	m_baselineOccurrences = makeResultTable(m_baselineResults, "delayBaselineOccurrences",
+		{"Service", {"Occurrence", kNumberColumn}, "Train", "Operating code", {"Input delay (s)", kNumberColumn}, "Input delay station",
+			"Direct incident evidence", "Final station", {"Baseline final arrival (s)", kNumberColumn}, {"Scenario final arrival (s)", kNumberColumn},
+			{"Additional delay (s)", kNumberColumn}, "Change", {"Secondary delay (s)", kNumberColumn}});
 	setHeaderTip(m_baselineOccurrences, "Input delay (s)", "Entrance delay set in this scenario");
 	setHeaderTip(m_baselineOccurrences, "Secondary delay (s)", "Additional delay at the final arrival minus the input delay");
 	resultsLayout->addWidget(m_baselineOccurrences, 1);
 	resultsLayout->addWidget(EditorLayout::sectionHeading("Calls", m_baselineResults));
-	const QVector<Column> differences = {{"Baseline (s)", kNumber}, {"Scenario (s)", kNumber}, {"Additional delay (s)", kNumber}, "Change"};
-	QVector<Column> callColumns = {"Service", {"Occurrence", kNumber}, "Station", {"Journey order", kNumber}, {"Call", kNumber}, "Final call"};
+	const QVector<ResultColumn> differences = {{"Baseline (s)", kNumberColumn}, {"Scenario (s)", kNumberColumn}, {"Additional delay (s)", kNumberColumn}, "Change"};
+	QVector<ResultColumn> callColumns = {"Service", {"Occurrence", kNumberColumn}, "Station", {"Journey order", kNumberColumn}, {"Call", kNumberColumn}, "Final call"};
 	for (const char* event : {"Arrival: ", "Departure: "})
-		for (const Column& difference : differences)
+		for (const ResultColumn& difference : differences)
 			callColumns.append({event + difference.header, difference.number});
-	m_baselineCalls = makeTable(m_baselineResults, "delayBaselineCalls", callColumns);
+	m_baselineCalls = makeResultTable(m_baselineResults, "delayBaselineCalls", callColumns);
 	for (QTableWidget* table : {m_baselineOccurrences, m_baselineCalls})
 		setHeaderTip(table, "Additional delay (s)", "This run minus the baseline, same call");
 	resultsLayout->addWidget(m_baselineCalls, 1);
@@ -821,7 +755,7 @@ void DelayAnalysisWindow::fillCalls() {
 	std::vector<QStringList> rows;
 	for (const DelayEvent& event : m_shownEvents)
 		rows.push_back(callRow(event));
-	fillTable(m_callsTable, rows);
+	fillResultTable(m_callsTable, rows);
 }
 
 void DelayAnalysisWindow::fillSummary() {
@@ -829,7 +763,7 @@ void DelayAnalysisWindow::fillSummary() {
 	for (const StationDelaySummary& station : m_shownSummary.stations)
 		rows.push_back(summaryRow(fromStd(station.stationId), station.statistics));
 	rows.push_back(summaryRow("All selected stations", m_shownSummary.network));
-	fillTable(m_summaryTable, rows);
+	fillResultTable(m_summaryTable, rows);
 }
 
 void DelayAnalysisWindow::fillHistogram() {
@@ -867,7 +801,7 @@ void DelayAnalysisWindow::fillBaseline() {
 		std::vector<QStringList> rows;
 		for (const DelayDiagnostic& diagnostic : m_shownBaseline.diagnostics)
 			rows.push_back({delayDiagnosticText(diagnostic)});
-		fillTable(m_baselineDiagnostics, rows);
+		fillResultTable(m_baselineDiagnostics, rows);
 		return;
 	}
 	DialogLayout::setHelp(m_baselineNote, QString());
@@ -875,11 +809,11 @@ void DelayAnalysisWindow::fillBaseline() {
 	std::vector<QStringList> occurrenceRows;
 	for (const BaselineOccurrence& occurrence : m_shownBaseline.occurrences)
 		occurrenceRows.push_back(occurrenceRow(occurrence));
-	fillTable(m_baselineOccurrences, occurrenceRows);
+	fillResultTable(m_baselineOccurrences, occurrenceRows);
 	std::vector<QStringList> callRows;
 	for (const BaselineCall& call : m_shownBaseline.calls)
 		callRows.push_back(baselineCallRow(call));
-	fillTable(m_baselineCalls, callRows);
+	fillResultTable(m_baselineCalls, callRows);
 }
 
 void DelayAnalysisWindow::updateExport() {

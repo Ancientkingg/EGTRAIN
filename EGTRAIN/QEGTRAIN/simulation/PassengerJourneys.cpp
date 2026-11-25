@@ -3,6 +3,7 @@
 #include "util/Log.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <iterator>
 #include <limits>
 
@@ -538,6 +539,14 @@ void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, 
 		journey->Waitingtime += now - line->Actual_Departure_Time;
 }
 
+void PassengerJourneys::missedTrain(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
+	// The trips before the one that the passenger waits for were ridden, so a missed train after them was a connection.
+	Journey* journey = activeJourney(passenger);
+	if (journey != nullptr && tripsBefore(*journey, passenger.current_TripID) > 0 && journey->MissedConnections < numeric_limits<uint16_t>::max())
+		++journey->MissedConnections;
+	replanWaiting(run, passenger, t, alightedAtPlatform);
+}
+
 optional<Plan> PassengerJourneys::standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
 	const Trip& current, int t, optional<int> alightedAtPlatform, int onlyTrain) const {
 	const string& station = passenger.Current_WaitingStationID;
@@ -627,7 +636,7 @@ void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, i
 		return;
 	ensureStates(run, t);
 	if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID)) {
-		replanWaiting(run, passenger, t, alightedAtPlatform);
+		missedTrain(run, passenger, t, alightedAtPlatform);
 	} else if (const optional<Plan> direct = standingDirectPlan(run, passenger, *journey, *trip, t, alightedAtPlatform)) {
 		// A train that stands here and goes direct to the destination in time is taken instead of the plan.
 		replanWaiting(run, passenger, t, alightedAtPlatform, &*direct);
@@ -675,7 +684,7 @@ void PassengerJourneys::flushLeftStops(SimulationRun& run, PassengerFlow& flow, 
 	for (; watch.handled < watch.firstStop; ++watch.handled) {
 		const Node& stop = T.Stations[static_cast<size_t>(watch.handled)];
 		for (const int position : flow.waitingFor(flow.platformNumber(stop.stationName, stop.stationPlatformId), trainId)) {
-			replanWaiting(run, flow.passenger(position), t);
+			missedTrain(run, flow.passenger(position), t);
 			flow.alighted(position);
 		}
 	}

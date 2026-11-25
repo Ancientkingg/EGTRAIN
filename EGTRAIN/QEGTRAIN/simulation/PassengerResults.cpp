@@ -37,15 +37,6 @@ string ridden(const Journey& journey, double& inVehicle) {
 	return trains.empty() ? "-" : trains;
 }
 
-// Number of legs that ridden() writes for the journey.
-int riddenLegCount(const Journey& journey) {
-	int count = 0;
-	for (const Trip& trip : journey.Trips)
-		if (trip.IsTripCompleted && trip.Actual_Boarding_Time != -9999 && trip.Actual_Arrival_Time != -9999)
-			++count;
-	return count;
-}
-
 const char* modeName(JourneyMode mode) {
 	return mode == JourneyMode::Live ? "live" : "assigned";
 }
@@ -236,12 +227,10 @@ PassengerRunSummary summarisePassengerRun(const SimulationRun& run) {
 			++summary.journeys;
 			if (!journey.RefusedBy.empty())
 				refused = true;
-			if (journey.IsReplanned) {
+			if (journey.IsReplanned)
 				++summary.replannedJourneys;
-				const int legs = riddenLegCount(journey);
-				if (legs >= 2 || (legs >= 1 && !journey.IsJourneyCompleted))
-					++summary.missedConnections;
-			}
+			if (journey.MissedConnections > 0)
+				++summary.missedConnectionJourneys;
 			if (journey.IsJourneyCompleted) {
 				++summary.completedJourneys;
 				summary.totalDelaySeconds += journey.totalJourneyArrivalDelay;

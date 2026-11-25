@@ -365,6 +365,13 @@ section: a scene without a signalling level does not separate trains, and
 validation warns about it (`scene.signalling.level.missing`,
 `scene.single_track.no_effect`).
 The `-level-none` goldens therefore show trains at one position.
+In the passenger cases the journeys with a missed connection, which the
+passenger step counts during the run, must match the case table: one missed
+connection of `t1.1` in `pax-live-missed` and `pax-live-missed-gui1`, where
+`t1` rides `Q1` to B and misses the change to `Q3`, and none in the other
+cases. Their passengers plan again at their origin, after a full train refused
+them, to take a train that stands at their platform or to leave a late train
+for an earlier route, and none of that is a missed connection.
 
 The signal states that the simulation hands to the window are checked at every
 step of every case against the section codes of all routes. There must be one

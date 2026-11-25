@@ -217,6 +217,26 @@ std::string describe(const std::optional<RouteDiagramData>& d) {
 	return d ? describe(*d) : std::string("no diagram\n");
 }
 
+// Every figure of the passenger summary, one per line.
+std::string describe(const PassengerRunSummary& s) {
+	std::ostringstream text;
+	text << "journeys " << s.journeys << "\ncompleted " << s.completedJourneys << "\nno route " << s.noRouteJourneys << "\nin progress "
+		 << s.inProgressJourneys << "\nnot reached " << s.notReachedJourneys() << "\ntotal delay " << num(s.totalDelaySeconds)
+		 << "\nmean delay " << num(s.meanDelaySeconds) << "\npassenger-hours lost " << num(s.passengerHoursLost) << "\nreplanned "
+		 << s.replannedJourneys << "\nmissed connection " << s.missedConnectionJourneys << "\nleft behind " << s.leftBehindEvents
+		 << "\nrefused passengers " << s.refusedPassengers << '\n';
+	return text.str();
+}
+
+// Every field of each origin-destination pair, one pair per line.
+std::string describe(const std::vector<OriginDestinationSummary>& pairs) {
+	std::ostringstream text;
+	for (const OriginDestinationSummary& p : pairs)
+		text << p.origin << '|' << p.destination << '|' << p.journeys << '|' << p.completed << '|' << p.noRoute << '|' << num(p.meanWait) << '|'
+			 << num(p.p95Wait) << '|' << num(p.meanTravel) << '|' << num(p.meanDelay) << '|' << num(p.passengerHoursLost) << '\n';
+	return text.str();
+}
+
 // --- Running a scene ---
 
 // The scenes of the test, in the order in which they run.
@@ -284,17 +304,16 @@ void compareCapture(const CapturedRun& run) {
 		(scene + ": onboard crowding threshold").c_str());
 	QVERIFY2(data.settings.hasPassengers == !simulation.run().passengers.empty(), (scene + ": has passengers").c_str());
 	if (data.settings.hasPassengers) {
-		const PassengerRunSummary expectedSummary = summarisePassengerRun(simulation.run());
-		QVERIFY2(data.passengerSummary.journeys == expectedSummary.journeys
-				&& data.passengerSummary.completedJourneys == expectedSummary.completedJourneys
-				&& data.passengerSummary.passengerHoursLost == expectedSummary.passengerHoursLost,
-			(scene + ": passenger summary").c_str());
-		QVERIFY2(data.originDestinations.size() == summariseOriginDestinations(simulation.run().passengers).size(),
-			(scene + ": origin-destination summaries").c_str());
+		checkSame(scene + ": passenger summary", describe(summarisePassengerRun(simulation.run())), describe(data.passengerSummary));
+		QVERIFY2(data.passengerSummary.journeys > 0, (scene + ": passenger journeys").c_str());
+		checkSame(scene + ": origin-destination summaries", describe(summariseOriginDestinations(simulation.run().passengers)),
+			describe(data.originDestinations));
 	} else {
-		QVERIFY2(data.passengerSummary.journeys == 0 && data.originDestinations.empty(),
-			(scene + ": empty passenger summary").c_str());
+		checkSame(scene + ": empty passenger summary", describe(PassengerRunSummary()), describe(data.passengerSummary));
+		QVERIFY2(data.originDestinations.empty(), (scene + ": no origin-destination summaries").c_str());
 	}
+	if (QTest::currentTestFailed())
+		return;
 	const std::string caseName = scene + ": case name";
 	QVERIFY2(data.settings.caseName == run.loaded.scene.name, caseName.c_str());
 	QVERIFY2(data.provenance.caseName == run.loaded.scene.name, caseName.c_str());

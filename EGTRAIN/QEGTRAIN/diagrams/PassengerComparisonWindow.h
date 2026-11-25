@@ -14,8 +14,8 @@ class QPushButton;
 class QTableWidget;
 
 /// Non-modal result window comparing the passengers of a completed run against a baseline run.
-/// Shows a summary table (baseline, this run and difference) and the top origin-destination pairs
-/// ranked by absolute change in passenger-hours lost.
+/// Shows a summary table (baseline, this run and difference) and the origin-destination pairs that changed most
+/// (comparePassengersAgainstBaseline), or one line that says that no pair changed.
 class PassengerComparisonWindow : public QDialog {
 public:
 	/// Opens a comparison of `scenario` against `baseline`. Holds both snapshots by value so the window outlives the runs.

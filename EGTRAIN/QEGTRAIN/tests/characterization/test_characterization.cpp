@@ -255,6 +255,9 @@ struct CaseSpec {
 	std::string passengers = "";
 	bool paxGui = false;
 	int capacity = 0;
+	// The journeys with missed connections that the passenger step counts in the run (Journey::MissedConnections), as
+	// "<journey>=<count>" in the order of the passengers, separated by spaces.
+	std::string missedConnections = "";
 	// Writes the capacity lines of the two trains of the case. They are written only when both trains run on one route
 	// and have complete blocking times.
 	bool capacityLines = false;
@@ -452,17 +455,22 @@ std::vector<CaseSpec> buildCaseTable() {
 		}
 	}
 	// Journeys without legs are planned on the timetable when the passenger appears, and again when a train is missed or full.
+	// Only t1 of live-missed misses a connection. m1 of fixed-missed plans again at its origin, the fourth passenger of live-full
+	// after a refusal and c2 of signal-failure-change for a standing train, and none of them has missed a connection. Nor have
+	// b1 of live-breakdown and w1 and w2 of breakdown-wait, who leave the late Q1 at their origin B for Q2, or l1 of live-late,
+	// who keeps Q1.
 	const struct {
 		const char* set;
 		std::vector<std::string> services;
 		int capacity;
+		const char* missedConnections = "";
 	} livePassengers[] = {
 		{"live-direct", {"Q1"}, 0},
 		{"live-transfer", {"Q1", "Q2", "Q3"}, 0},
 		{"live-full", {"Q1", "Q2", "Q3"}, 3},
 		{"fixed-missed", {"Q1", "Q2", "Q3"}, 0},
 		{"live-noroute", {"Q1"}, 0},
-		{"live-missed", {"Q1", "Q3", "Q4"}, 0},
+		{"live-missed", {"Q1", "Q3", "Q4"}, 0, "t1.1=1"},
 		{"live-slowed", {"Q1", "Q2"}, 0},
 		{"live-breakdown", {"Q1", "Q2"}, 0},
 		{"live-late", {"Q1", "Q4"}, 0},
@@ -474,6 +482,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
 		spec.passengers = live.set;
 		spec.capacity = live.capacity;
+		spec.missedConnections = live.missedConnections;
 		cases.push_back(spec);
 		// The passenger GUI boards from platform lists: replanned passengers must board in the same step there too.
 		if (spec.name == "pax-live-full" || spec.name == "pax-live-missed") {
@@ -1022,6 +1031,16 @@ std::vector<std::string> findStatisticsViolations(const Observation& obs, const 
 	if (anyDelay && comparedSigned == 0)
 		failures.push_back("Pos&Neg_Stats_Stations.txt holds no station row to compare with the timetable results");
 	return failures;
+}
+
+// The journeys of the run with missed connections, as "<journey>=<count>" separated by spaces.
+std::string missedConnections(const SimulationRun& run) {
+	std::string missed;
+	for (const Passenger& passenger : run.passengers)
+		for (const Journey& journey : passenger.Journeys)
+			if (journey.MissedConnections > 0)
+				missed += (missed.empty() ? "" : " ") + journey.ID + "=" + std::to_string(journey.MissedConnections);
+	return missed;
 }
 
 // Checks that hold for the fixture whatever the golden file says.
@@ -2132,6 +2151,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		outcome.invariantFailures = findInvariantViolations(spec, tracks, separations, rows);
 		const std::vector<std::string> statisticsFailures = findStatisticsViolations(obs, rows);
 		outcome.invariantFailures.insert(outcome.invariantFailures.end(), statisticsFailures.begin(), statisticsFailures.end());
+		if (const std::string missed = missedConnections(simulation.run()); missed != spec.missedConnections)
+			outcome.invariantFailures.push_back("missed connections \"" + missed + "\", expected \"" + spec.missedConnections + "\"");
 	}
 	if (!keptOutputDir.empty())
 		simulation.printLastTrainServicePathDiagram();
