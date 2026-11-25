@@ -679,8 +679,8 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 		SceneDiagnostic d;
 		d.severity = SceneSeverity::Warning;
 		d.code = "scene.export.compatibility";
-		d.message = "The legacy input has no passenger transfer limit, walking time, late threshold or dwell model settings, so they "
-					"were not exported and a legacy run uses the built-in values";
+		d.message = "The original program ignores the passenger transfer limit, walking time, late threshold and dwell model settings "
+					"in EGTRAINInitialParameters.json and uses its built-in values; an import reads them back";
 		d.file = "scene.json";
 		result.diagnostics.push_back(d);
 	}
