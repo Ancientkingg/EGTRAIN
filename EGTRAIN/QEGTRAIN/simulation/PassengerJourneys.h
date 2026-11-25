@@ -40,10 +40,12 @@ std::vector<double> limitedRunningSeconds(const SimulationRun& run, const Train&
 /// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
 /// there, so that a passenger who comes to the platform now can still board it.
 ///
-/// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. The
-/// running times under the limit (limitedRunningSeconds) are those to the stop ahead from where the head of the train was at the
-/// step before (passengers who enter the network plan before the trains move), or from where it enters when it has not run a step
-/// yet, and those between the later stops, as far as they follow each other along the route of the train.
+/// A speed cap of a breakdown that applies to the train now (Active_Train_Breakdown) limits it until the end of the incident. When
+/// another cap that applies now lasts longer, it limits the train from there, as the simulator takes the lowest cap at every step;
+/// a cap that starts later is not foreseen. The running times under a limit (limitedRunningSeconds) are the one to the stop ahead
+/// from where the head of the train was at the step before (passengers who enter the network plan before the trains move), or
+/// from where it enters when it has not run a step yet, under the cap that applies when it sets off, and those between two later
+/// stops on the route of the train that follow each other, as far as the stops come in order along the route.
 passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, const Train& train, int firstStop, int elapsed);
 
 /// The times on which passengers plan the train at `elapsed`: passenger_routing::predictTrainState of timetable, the timetable of the

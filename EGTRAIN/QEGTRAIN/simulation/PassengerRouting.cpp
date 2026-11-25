@@ -8,11 +8,6 @@
 namespace passenger_routing {
 
 namespace {
-// The planned time at which the train leaves the stop: its departure, or its arrival when it has none; below 0 for neither.
-double plannedLeave(const Stop& stop) {
-	return stop.departure >= 0.0 ? stop.departure : stop.arrival;
-}
-
 // The planned time at which the train reaches the stop: its arrival, or its departure when it has none; below 0 for neither.
 double plannedReach(const Stop& stop) {
 	return stop.arrival >= 0.0 ? stop.arrival : stop.departure;
@@ -21,6 +16,15 @@ double plannedReach(const Stop& stop) {
 // A planned time moved by seconds; a missing time stays missing.
 double shifted(double planned, double seconds) {
 	return planned >= 0.0 ? planned + seconds : planned;
+}
+
+// The running time from stop `from` to the next stop of a train that leaves at `leave`, under the limit of progress that applies
+// then; below 0 when no limit applies or the running time is not known.
+double limitedRun(const TrainProgress& progress, std::size_t from, double leave) {
+	for (const LimitPeriod& period : progress.limits)
+		if (leave < period.ends)
+			return from < period.runs.size() ? period.runs[from] : -1.0;
+	return -1.0;
 }
 
 // True when the state has no predicted times, or one of each per stop of the train.
@@ -49,44 +53,42 @@ TrainState predictTrainState(const TrainTimetable& timetable, const TrainProgres
 	state.slowed = progress.limited;
 	const std::vector<Stop>& stops = timetable.stops;
 	const std::size_t count = stops.size();
-	const bool predicted = state.late || state.slowed;
-	const double shift = predicted ? progress.delay : 0.0;
-	const bool standing = progress.standing && progress.firstStop < count;
-	// A train that stands at its stop past the time it would leave is boarded there until it leaves.
-	if (!predicted && !(standing && stops[progress.firstStop].departure >= 0.0 && stops[progress.firstStop].departure < progress.now))
+	// The lateness that the train carries from stop to stop: the delay when the times are predicted, at least the time it stands
+	// past its planned departure, and what it loses under a limit.
+	double lateness = state.late || state.slowed ? progress.delay : 0.0;
+	if (progress.standing && progress.firstStop < count && stops[progress.firstStop].departure >= 0.0)
+		lateness = std::max(lateness, progress.now - stops[progress.firstStop].departure);
+	if (lateness <= 0.0 && !state.slowed)
 		return state;
 	state.arrivals.resize(count);
 	state.departures.resize(count);
 	for (std::size_t stop = 0; stop < count; ++stop) {
-		state.arrivals[stop] = shifted(stops[stop].arrival, shift);
-		state.departures[stop] = shifted(stops[stop].departure, shift);
+		state.arrivals[stop] = shifted(stops[stop].arrival, lateness);
+		state.departures[stop] = shifted(stops[stop].departure, lateness);
 	}
-	const auto hold = [&state, &progress, standing]() {
-		if (standing && state.departures[progress.firstStop] >= 0.0)
-			state.departures[progress.firstStop] = std::max(state.departures[progress.firstStop], progress.now);
-	};
-	hold();
 	if (!state.slowed)
 		return state;
-	// The lateness that the train carries from stop to stop: the delay, and what it loses under the limit.
-	double lateness = shift;
+	// When the train is at the stop before, or leaves it; below 0 when not known.
+	double atBefore = -1.0;
 	for (std::size_t stop = progress.nextStop; stop < count; ++stop) {
 		double reached = -1.0;
 		if (stop == progress.nextStop) {
 			reached = progress.nextArrival;
 		} else {
-			const std::size_t from = stop - 1;
-			const double leave = state.departures[from] >= 0.0 ? state.departures[from] : state.arrivals[from];
-			const double run = from < progress.runs.size() ? progress.runs[from] : -1.0;
-			if (leave >= 0.0 && leave < progress.limitEnds && run >= 0.0 && plannedLeave(stops[from]) >= 0.0 && plannedReach(stops[stop]) >= 0.0)
-				reached = leave + std::max(plannedReach(stops[stop]) - plannedLeave(stops[from]), run);
+			const double run = limitedRun(progress, stop - 1, atBefore);
+			if (atBefore >= 0.0 && run >= 0.0)
+				reached = atBefore + run;
 		}
+		// The lateness only grows, so a run counts with the longer of its planned running time and run.
 		if (reached >= 0.0 && plannedReach(stops[stop]) >= 0.0)
 			lateness = std::max(lateness, reached - plannedReach(stops[stop]));
 		state.arrivals[stop] = shifted(stops[stop].arrival, lateness);
 		state.departures[stop] = shifted(stops[stop].departure, lateness);
-		if (stop == progress.firstStop)
-			hold();
+		// The train leaves at its predicted departure, or at its arrival; a stop without planned times when it gets there.
+		if (state.departures[stop] >= 0.0)
+			atBefore = state.departures[stop];
+		else
+			atBefore = state.arrivals[stop] >= 0.0 ? state.arrivals[stop] : reached;
 	}
 	return state;
 }
@@ -164,7 +166,8 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 				if (stop < state.firstStop)
 					continue;
 				const double walking = walkingSeconds(reached.platformNumber, trains_[train].stops[stop].platformNumber, walkingSecondsPerPlatform_);
-				if (reached.arrival + walking > state.departure(trains_[train], stop))
+				const double departure = state.departure(trains_[train], stop);
+				if (departure < 0.0 || reached.arrival + walking > departure)
 					continue;
 				if (boardAt[train] == npos)
 					boarded.push_back(train);
@@ -185,6 +188,8 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 					continue;
 				const std::size_t station = static_cast<std::size_t>(alight.station);
 				const double arrival = state.arrival(trains_[train], stop);
+				if (arrival < 0.0)
+					continue;
 				// Equal arrivals keep the earlier round, which uses fewer trains. In the same round the train that leaves
 				// earlier wins, and the first one found when they leave together.
 				if (arrival > result.best_[station])

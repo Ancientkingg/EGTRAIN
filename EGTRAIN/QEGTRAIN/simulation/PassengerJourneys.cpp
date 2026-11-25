@@ -161,24 +161,24 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 			progress.delay = elapsed - planned;
 	}
 
-	const SimulationIncident* incident = train.OutOfSimulation ? nullptr : Active_Train_Breakdown(run, train.trainDescription, elapsed);
-	if (incident == nullptr || !incident->hasReducedSpeed || !(incident->reducedSpeedKmh > 0.0) || !std::isfinite(incident->reducedSpeedKmh))
+	// A breakdown with a speed cap; Active_Train_Breakdown gives a hold first, and otherwise the lowest cap.
+	const auto isCap = [](const SimulationIncident* incident) {
+		return incident != nullptr && incident->hasReducedSpeed && incident->reducedSpeedKmh > 0.0 && std::isfinite(incident->reducedSpeedKmh);
+	};
+	const SimulationIncident* cap = train.OutOfSimulation ? nullptr : Active_Train_Breakdown(run, train.trainDescription, elapsed);
+	if (!isCap(cap))
 		return progress;
-	const double limit = incident->reducedSpeedKmh / 3.6;
 	progress.limited = true;
-	if (incident->hasEndSeconds)
-		progress.limitEnds = start + incident->endSeconds;
 	// The route position of a stop in metres; only a stop on the route has one.
 	const auto onRoute = [&train](int stop) { return train.stationBlockSection[stop] >= 0; };
 	const auto position = [&train](int stop) { return train.Stations[static_cast<size_t>(stop)].X * 1000; };
 	int next = max(0, firstStop);
-	// Where the train is, and the stops ahead as far as they follow each other along its route.
+	// Where the train sets off from when it does not stand at a stop, then the stops ahead on its route as far as they follow each
+	// other along it.
 	vector<double> positions;
 	// The time at which the train sets off from positions.front() when it does not stand at a stop.
 	double setOff = -1.0;
-	if (progress.standing) {
-		positions.push_back(onRoute(next) ? position(next) : 0.0);
-	} else {
+	if (!progress.standing) {
 		// The position of the step before is known in every phase of this step: passengers who enter plan before the trains move.
 		const int last = elapsed - 1;
 		const bool moving = entered && train.earliestActiveTrajectoryIndex <= last && last >= 0
@@ -192,15 +192,36 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 		setOff = moving ? start + last * timestep : start + max(static_cast<double>(elapsed), train.departure_time);
 	}
 	progress.nextStop = static_cast<size_t>(next);
-	for (int stop = next; stop < count && onRoute(stop) && position(stop) >= positions.back(); ++stop)
+	// seconds[offset + i] below is the time to stop ahead[i]. A stop off the route is passed over.
+	const size_t offset = positions.size();
+	vector<int> ahead;
+	for (int stop = next; stop < count; ++stop) {
+		if (!onRoute(stop))
+			continue;
+		if (!positions.empty() && position(stop) < positions.back())
+			break;
 		positions.push_back(position(stop));
-	const vector<double> seconds = limitedRunningSeconds(run, train, positions, limit);
-	// seconds[i + 1] is the time to stop next + i.
-	if (!progress.standing && seconds.size() > 1)
-		progress.nextArrival = setOff + seconds[1];
-	progress.runs.assign(static_cast<size_t>(max(0, count)), -1.0);
-	for (size_t i = 1; i + 1 < seconds.size(); ++i)
-		progress.runs[static_cast<size_t>(next) + i - 1] = seconds[i + 1] - seconds[i];
+		ahead.push_back(stop);
+	}
+	// The caps that apply now, each from the end of the one before, as Active_Train_Breakdown takes the lowest at every step. A cap
+	// that starts later is not foreseen.
+	while (cap != nullptr) {
+		const bool ends = cap->hasEndSeconds || cap->endSeconds != 0.0;
+		passenger_routing::LimitPeriod period;
+		period.ends = ends ? start + cap->endSeconds : passenger_routing::kUnreached;
+		const vector<double> seconds = limitedRunningSeconds(run, train, positions, cap->reducedSpeedKmh / 3.6);
+		// A run is known between two stops on the route that follow each other.
+		period.runs.assign(static_cast<size_t>(max(0, count)), -1.0);
+		for (size_t i = 1; i < ahead.size(); ++i)
+			if (ahead[i] == ahead[i - 1] + 1)
+				period.runs[static_cast<size_t>(ahead[i - 1])] = seconds[offset + i] - seconds[offset + i - 1];
+		// The run to the stop ahead counts under the cap that applies when the train sets off.
+		if (offset > 0 && !ahead.empty() && progress.nextArrival < 0.0 && setOff < period.ends)
+			progress.nextArrival = setOff + seconds[offset];
+		progress.limits.push_back(std::move(period));
+		const SimulationIncident* later = ends ? Active_Train_Breakdown(run, train.trainDescription, static_cast<int>(std::ceil(cap->endSeconds))) : nullptr;
+		cap = isCap(later) && later->startSeconds <= elapsed ? later : nullptr;
+	}
 	return progress;
 }
 

@@ -73,31 +73,40 @@ inline constexpr double kDefaultLateThresholdSeconds = 300.0;
 /// Acceleration and braking are not counted.
 double limitedStretchSeconds(double lengthMetres, double speedMs, double limitMs);
 
+/// The running times of a train under one speed limit, while that limit applies.
+struct LimitPeriod {
+	/// When the limit stops applying; kUnreached when it lasts to the end of the route. A run that starts at this time or later
+	/// is not limited by it.
+	double ends = kUnreached;
+	/// runs[s]: seconds the train needs under the limit from stop s to stop s + 1; below 0 when not known.
+	std::vector<double> runs;
+};
+
 /// What a prediction of the times of a train starts from. Times are seconds on the clock of the router.
 struct TrainProgress {
 	std::size_t firstStop = 0; ///< TrainState::firstStop.
 	double delay = 0.0;		   ///< Seconds the train is late now, never negative.
 	double now = 0.0;		   ///< The time now.
 	bool standing = false;	   ///< True while the train stands at firstStop.
-	/// True while a speed limit applies to the train; nextStop, nextArrival, runs and limitEnds then say what it costs.
+	/// True while a speed limit applies to the train; nextStop, nextArrival and limits then say what it costs.
 	bool limited = false;
 	/// The stop the train runs to: firstStop while it stands there, otherwise the first stop ahead of it. At or past the last
 	/// stop when there is none.
 	std::size_t nextStop = 0;
-	/// The earliest arrival at nextStop under the limit from where the train is now; below 0 when it is not known.
+	/// The earliest arrival at nextStop from where the train is now, under the limit that applies when it sets off from there;
+	/// below 0 when it is not known or when no limit applies then.
 	double nextArrival = -1.0;
-	/// runs[s]: seconds the train needs under the limit from stop s to stop s + 1; below 0 when not known. Read from nextStop on.
-	std::vector<double> runs;
-	/// When the limit ends; kUnreached when it lasts to the end of the route. A run that starts at this time or later is not
-	/// limited.
-	double limitEnds = kUnreached;
+	/// The limits from now on in time order, each from the end of the one before until its own end. A run counts under the limit
+	/// that applies when it starts; a run that starts after the last end is not limited. Read from nextStop on.
+	std::vector<LimitPeriod> limits;
 };
 
 /// The state that a search uses for a train with this timetable and progress. A train that is late by lateThresholdSeconds or
-/// less and has no speed limit keeps its planned times. Otherwise each time is predicted: the planned time plus the delay, and
-/// under a limit each run still to make takes the longer of its planned running time and its running time under the limit,
-/// with the time lost carried to the later stops like a delay. A train that stands at firstStop can be boarded there until now,
-/// whatever its delay.
+/// less, has no speed limit and is not held keeps its planned times. Otherwise each time is predicted: the planned time plus the
+/// delay. A train that stands at firstStop past its planned departure there leaves it now at the earliest, whatever its delay,
+/// and its later times move as much, so that it can be boarded until now and never arrives before it leaves. Under a limit
+/// each run still to make takes the longer of its planned running time and its running time under the limit, with the time
+/// lost carried to the later stops like a delay; a stop without planned times is left as soon as the train gets there.
 TrainState predictTrainState(const TrainTimetable& timetable, const TrainProgress& progress, double lateThresholdSeconds = kDefaultLateThresholdSeconds);
 
 /// One ride of a plan: a train from the stop where the passenger boards to the stop where the passenger leaves it.

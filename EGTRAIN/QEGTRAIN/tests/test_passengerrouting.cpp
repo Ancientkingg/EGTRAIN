@@ -60,7 +60,7 @@ TrainProgress limitedAtA(double now) {
 	progress.now = now;
 	progress.standing = true;
 	progress.limited = true;
-	progress.runs = {30000.0 / (40.0 / 3.6), 12000.0 / (40.0 / 3.6), -1.0};
+	progress.limits = {{kUnreached, {30000.0 / (40.0 / 3.6), 12000.0 / (40.0 / 3.6), -1.0}}};
 	return progress;
 }
 
@@ -85,7 +85,11 @@ private slots:
 	void statesOfTheWrongSizeReachNothing();
 	void delayUpToTheThresholdKeepsPlannedTimes();
 	void delayAboveTheThresholdShiftsLaterStops();
-	void standingTrainStaysBoardableOnPlannedTimes();
+	void standingTrainCarriesItsHoldToLaterStops();
+	void heldTrainNeverArrivesBeforeItLeaves();
+	void negativePredictedTimesAreMissing();
+	void stopWithoutTimesIsLeftWhenTheTrainGetsThere();
+	void laterLimitTakesOverWhenTheFirstEnds();
 	void limitedStretchRunsAtTheLowerSpeed();
 	void slowedTrainTakesTheLongerRunningTime();
 	void slowedTrainLosesTimeFromWhereItIs();
@@ -313,19 +317,75 @@ void TestPassengerRouting::delayAboveTheThresholdShiftsLaterStops() {
 }
 
 // A train that stands at A 80 s after its planned departure is late by 80 s, within the threshold: it can be boarded at A now, and
-// its later stops keep their planned times.
-void TestPassengerRouting::standingTrainStaysBoardableOnPlannedTimes() {
+// its later stops move by the 80 s it is held, since it cannot reach them on time.
+void TestPassengerRouting::standingTrainCarriesItsHoldToLaterStops() {
 	const TrainTimetable train = aToC();
 	TrainProgress progress = lateBy(80.0, daySeconds(9, 42) + 80.0);
 	progress.standing = true;
 	const TrainState state = predictTrainState(train, progress);
 	QVERIFY(!state.late);
 	QCOMPARE(state.departure(train, 0), daySeconds(9, 42) + 80.0);
-	QCOMPARE(state.arrival(train, 1), daySeconds(10, 0));
-	QCOMPARE(state.departure(train, 1), daySeconds(10, 1));
-	// Before its planned departure it keeps its planned times.
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 0) + 80.0);
+	QCOMPARE(state.departure(train, 1), daySeconds(10, 1) + 80.0);
+	// Before its planned departure it keeps its planned times, and so does a train late by 80 s that is not held.
 	progress.now = daySeconds(9, 40);
 	QVERIFY(predictTrainState(train, progress).departures.empty());
+	QVERIFY(predictTrainState(train, lateBy(80.0, daySeconds(9, 50))).departures.empty());
+}
+
+// A leaves at 100 and B is reached at 160; the train still stands at A at 200. It leaves A at 200 and reaches B at 260, also when
+// the delay it is known to have is smaller than the time it is held.
+void TestPassengerRouting::heldTrainNeverArrivesBeforeItLeaves() {
+	const TrainTimetable train{{stop(A, -1, 100), stop(B, 160, -1)}};
+	TrainProgress progress = lateBy(0.0, 200.0);
+	progress.standing = true;
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.departure(train, 0), 200.0);
+	QCOMPARE(state.arrival(train, 1), 260.0);
+	const Router router({train}, kStations);
+	const std::vector<TrainState> states{state};
+	const Plan plan = router.search(A, 150, 2, states).plan(B);
+	QCOMPARE(plan.legs.size(), std::size_t{1});
+	QVERIFY(plan.legs[0].departure <= plan.legs[0].arrival);
+}
+
+// A predicted time below 0 is missing, like a planned one: a train cannot be left at a stop without a predicted arrival.
+void TestPassengerRouting::negativePredictedTimesAreMissing() {
+	const Router router({{{stop(A, -1, 100), stop(B, 200, -1)}}}, kStations);
+	std::vector<TrainState> states(1);
+	states[0].arrivals = {-1, -1};
+	states[0].departures = {100, -1};
+	QCOMPARE(router.search(A, 0, 2, states).arrival(B), kUnreached);
+	states[0].arrivals = {-1, 200};
+	states[0].departures = {-1, -1};
+	QCOMPARE(router.search(A, -10, 2, states).arrival(B), kUnreached);
+}
+
+// The train enters at A, where it has no times, and is planned at B 2 km on 100 s after it sets off at 9:42. Under a limit of
+// 10 m/s it needs 200 s from A, so it is predicted at B 100 s late.
+void TestPassengerRouting::stopWithoutTimesIsLeftWhenTheTrainGetsThere() {
+	const TrainTimetable train{{stop(A, -1, -1), stop(B, daySeconds(9, 42) + 100.0, daySeconds(9, 44)), stop(C, daySeconds(9, 50), -1)}};
+	TrainProgress progress;
+	progress.now = daySeconds(9, 40);
+	progress.limited = true;
+	progress.nextArrival = daySeconds(9, 42);
+	progress.limits = {{kUnreached, {200.0, 300.0, -1.0}}};
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(9, 42) + 200.0);
+	QCOMPARE(state.departure(train, 1), daySeconds(9, 44) + 100.0);
+	QCOMPARE(state.arrival(train, 2), daySeconds(9, 50) + 100.0);
+}
+
+// Two limits: the first, under which A to B takes 2,700 s, ends at 10:10; the second, under which B to C takes 1,200 s, lasts.
+// The train leaves B at 10:28 under the second limit.
+void TestPassengerRouting::laterLimitTakesOverWhenTheFirstEnds() {
+	const TrainTimetable train = aToC();
+	TrainProgress progress = limitedAtA(daySeconds(9, 42));
+	progress.limits[0].ends = daySeconds(10, 10);
+	progress.limits.push_back({kUnreached, {1800.0, 1200.0, -1.0}});
+	const TrainState state = predictTrainState(train, progress);
+	QCOMPARE(state.arrival(train, 1), daySeconds(10, 27));
+	QCOMPARE(state.arrival(train, 2), daySeconds(10, 28) + 1200.0);
 }
 
 // The plain rule: 30 km under a limit of 40 km/h take 30,000 m / 11.11 m/s = 2,700 s. A stretch whose line speed is below the
@@ -351,7 +411,7 @@ void TestPassengerRouting::slowedTrainTakesTheLongerRunningTime() {
 	QCOMPARE(state.arrival(train, 2), daySeconds(10, 46));
 	// A run that is faster under the limit than planned keeps its planned running time.
 	TrainProgress fast = limitedAtA(daySeconds(9, 42));
-	fast.runs = {600.0, 600.0, -1.0};
+	fast.limits[0].runs = {600.0, 600.0, -1.0};
 	const TrainState onPlan = predictTrainState(train, fast);
 	QCOMPARE(onPlan.arrival(train, 1), daySeconds(10, 0));
 	QCOMPARE(onPlan.arrival(train, 2), daySeconds(10, 16));
@@ -383,7 +443,7 @@ void TestPassengerRouting::slowedTrainLosesTimeFromWhereItIs() {
 void TestPassengerRouting::limitThatEndsLeavesLaterRunsAlone() {
 	const TrainTimetable train = aToC();
 	TrainProgress progress = limitedAtA(daySeconds(9, 42));
-	progress.limitEnds = daySeconds(10, 10);
+	progress.limits[0].ends = daySeconds(10, 10);
 	const TrainState state = predictTrainState(train, progress);
 	QCOMPARE(state.arrival(train, 1), daySeconds(10, 27));
 	QCOMPARE(state.arrival(train, 2), daySeconds(10, 43));
