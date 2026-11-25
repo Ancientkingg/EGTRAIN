@@ -35,8 +35,8 @@ std::vector<double> limitedRunningSeconds(const SimulationRun& run, const Train&
 /// (passenger_routing::TrainProgress, with times on the clock of the day: SimulationRun::settings.startingSimulationTime plus the
 /// seconds of the run).
 ///
-/// The delay is the later of the arrival delay and, once the train left it, the departure delay (Train::StationDepartures) at the
-/// latest stop the train reached, and never negative. Before the train arrived anywhere
+/// The delay is the departure delay (Train::StationDepartures) at the latest stop the train reached once it left that stop, else
+/// the arrival delay there, and never negative: a train that arrived late can make up the time while it stands. Before the train arrived anywhere
 /// it is the lateness of its entry (the step of entering minus Train::departure_time) when it has entered, and 0 when it has not.
 /// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
 /// there, so that a passenger who comes to the platform now can still board it.

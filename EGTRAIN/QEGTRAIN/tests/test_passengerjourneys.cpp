@@ -490,6 +490,7 @@ private slots:
 	void capThatLastsLongerTakesOver();
 	void runsPassOverStopsOffTheRoute();
 	void departureDelayCountsOnceTheTrainLeft();
+	void timeMadeUpAtAStopCounts();
 	void capWithAVeryLateEndIsOnePeriod();
 	void capThatStartsLaterDoesNotHideOneThatAppliesNow();
 	void capsThatEndWithinOneSecondKeepTheirPeriods();
@@ -728,6 +729,22 @@ void TestPassengerJourneys::departureDelayCountsOnceTheTrainLeft() {
 	const passenger_routing::TrainState state = liveTrainState(run, train, timetable, 1, 440);
 	QVERIFY(state.late);
 	QCOMPARE(state.arrival(timetable, 1), 501.0);
+}
+
+// The train arrived at A at 500, 400 s late, and left at 701, 1 s after its planned departure at 700. It made up the time while it
+// stood, so it is 1 s late and its later stops keep their planned times.
+void TestPassengerJourneys::timeMadeUpAtAStopCounts() {
+	Train train = threeStops();
+	train.ScheduledDepartures[0] = 700.0;
+	train.Stations[0].StepStopped = 10;
+	train.StationArrivals[0] = 500;
+	train.StationDepartures[0] = 701;
+	QCOMPARE(progressOf(train, 1, 710).delay, 1.0);
+	const SimulationRun run;
+	const passenger_routing::TrainTimetable timetable{{{0, 0, -1.0, 700.0}, {1, 0, 800.0, 830.0}, {2, 0, 900.0, -1.0}}};
+	const passenger_routing::TrainState state = liveTrainState(run, train, timetable, 1, 710);
+	QVERIFY(!state.late);
+	QCOMPARE(state.arrival(timetable, 1), 800.0);
 }
 
 // A cap that ends long after any time of the run gives one period that ends then.

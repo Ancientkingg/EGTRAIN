@@ -142,16 +142,16 @@ passenger_routing::TrainProgress liveTrainProgress(const SimulationRun& run, con
 	const double start = run.settings.startingSimulationTime;
 	progress.firstStop = static_cast<size_t>(max(0, firstStop));
 	progress.now = start + elapsed;
-	// The latest stop that the train reached gives the delay: the later of its arrival delay and, once it left, its departure delay.
+	// The latest stop that the train reached gives the delay: its departure delay once it left, else its arrival delay. A train that
+	// arrived late can make up the time while it stands, so the departure is the newer of the two.
 	bool arrived = false;
 	for (int stop = min(firstStop, count - 1); stop >= 0 && !arrived; --stop) {
 		const size_t at = static_cast<size_t>(stop);
-		if (train.StationArrivals[at] >= 0 && train.ScheduledArrivals[at] >= 0) {
-			progress.delay = max(progress.delay, train.StationArrivals[at] - train.ScheduledArrivals[at]);
-			arrived = true;
-		}
 		if (train.StationDepartures[at] >= 0 && train.ScheduledDepartures[at] >= 0) {
-			progress.delay = max(progress.delay, train.StationDepartures[at] - train.ScheduledDepartures[at]);
+			progress.delay = max(0.0, train.StationDepartures[at] - train.ScheduledDepartures[at]);
+			arrived = true;
+		} else if (train.StationArrivals[at] >= 0 && train.ScheduledArrivals[at] >= 0) {
+			progress.delay = max(0.0, train.StationArrivals[at] - train.ScheduledArrivals[at]);
 			arrived = true;
 		}
 	}
