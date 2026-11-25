@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An XML file that is not railML, which the import refuses. -->
+<network>
+  <track id="t1" length="1000"/>
+</network>

@@ -820,6 +820,12 @@ egtrain_add_test(test_sceneimporter
 	LIBS egtrain_scene
 	LABELS legacy-compat unit)
 
+egtrain_add_test(test_railmlimporter
+	SOURCES ${SRC_DIR}/tests/test_railmlimporter.cpp
+	LIBS egtrain_scene
+	DEFINITIONS EGTRAIN_RAILML_FIXTURES="${SRC_DIR}/tests/fixtures/railml"
+	LABELS scene-v1 unit)
+
 egtrain_add_test(test_scenesavepolicy
 	SOURCES ${SRC_DIR}/tests/test_scenesavepolicy.cpp
 	LIBS Qt::Core

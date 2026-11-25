@@ -169,6 +169,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/LoadedDataSummary.cpp
     ${SRC_DIR}/scene/PassengerDemandCsv.cpp
+    ${SRC_DIR}/scene/RailmlImporter.cpp
     ${SRC_DIR}/scene/RollingStockLibrary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
@@ -189,7 +190,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
     PUBLIC nlohmann_json::nlohmann_json egtrain_miniz
-    PRIVATE egtrain_util)
+    PRIVATE egtrain_util egtrain_pugixml)
 
 # RollingStockTrajectory.cpp follows RollingStock.cpp instead of its alphabetical place. In that place the
 # unchanged braking functions were linked at other alignments and Copenhagen ran about 3.6 percent slower.

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A made-up macroscopic line for the railML import tests: Westdorf - Mittelstadt - Ostheim on two tracks that meet
+     at Mittelstadt, with coordinates and one train part. There are no signals, switches or rolling stock. -->
+<railml xmlns="https://www.railml.org/schemas/2018" version="2.4">
+  <infrastructure id="inf">
+    <tracks>
+      <track id="tw" name="Westdorf - Mittelstadt" type="mainTrack">
+        <trackTopology>
+          <trackBegin id="tw_begin" pos="0">
+            <macroscopicNode ocpRef="ocp_w"/>
+          </trackBegin>
+          <trackEnd id="tw_end" pos="5000">
+            <macroscopicNode ocpRef="ocp_m"/>
+          </trackEnd>
+          <crossSections>
+            <crossSection id="tw_cs" pos="2500" ocpRef="ocp_k"/>
+          </crossSections>
+        </trackTopology>
+        <trackElements>
+          <speedChanges>
+            <speedChange id="tw_v1" pos="0" dir="up" vMax="120"/>
+            <speedChange id="tw_v2" pos="5000" dir="down" vMax="120"/>
+          </speedChanges>
+          <gradientChanges>
+            <gradientChange id="tw_g1" pos="1000" slope="-4"/>
+            <gradientChange id="tw_g2" pos="4000" slope="0"/>
+          </gradientChanges>
+        </trackElements>
+      </track>
+      <track id="te" name="Mittelstadt - Ostheim" type="mainTrack">
+        <trackTopology>
+          <trackBegin id="te_begin" pos="5000">
+            <macroscopicNode ocpRef="ocp_m"/>
+          </trackBegin>
+          <trackEnd id="te_end" pos="12000">
+            <macroscopicNode ocpRef="ocp_o"/>
+          </trackEnd>
+        </trackTopology>
+        <trackElements>
+          <speedChanges>
+            <speedChange id="te_v1" pos="5000" dir="up" vMax="80"/>
+            <speedChange id="te_v2" pos="12000" dir="down" vMax="80"/>
+          </speedChanges>
+        </trackElements>
+      </track>
+    </tracks>
+    <operationControlPoints>
+      <ocp id="ocp_w" name="Westdorf">
+        <geoCoord coord="51.0000 13.0000" epsgCode="urn:ogc:def:crs:EPSG::4326"/>
+      </ocp>
+      <ocp id="ocp_k" name="Kleinfeld">
+        <geoCoord coord="51.0100 13.0300"/>
+      </ocp>
+      <ocp id="ocp_m" name="Mittelstadt">
+        <geoCoord coord="51.0200 13.0700"/>
+      </ocp>
+      <ocp id="ocp_o" name="Ostheim">
+        <geoCoord coord="51.0500 13.1600"/>
+      </ocp>
+    </operationControlPoints>
+  </infrastructure>
+  <timetable id="tt">
+    <operatingPeriods>
+      <operatingPeriod id="op_workdays" name="Workdays"/>
+    </operatingPeriods>
+    <trainParts>
+      <trainPart id="tp_rb1" trainNumber="RB 1">
+        <operatingPeriodRef ref="op_workdays"/>
+        <ocpsTT>
+          <ocpTT ocpRef="ocp_w" sequence="1" ocpType="stop">
+            <times scope="scheduled" departure="06:00:00"/>
+            <sectionTT id="tp_rb1_s1">
+              <trackRef ref="tw" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_k" sequence="2" ocpType="pass">
+            <times scope="scheduled" departure="06:02:30"/>
+            <sectionTT id="tp_rb1_s2">
+              <trackRef ref="tw" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_m" sequence="3" ocpType="stop">
+            <times scope="scheduled" arrival="06:05:00" departure="06:06:00"/>
+            <stopDescription>
+              <stopTimes minimalTime="PT45S"/>
+            </stopDescription>
+            <sectionTT id="tp_rb1_s3">
+              <trackRef ref="te" dir="up"/>
+            </sectionTT>
+          </ocpTT>
+          <ocpTT ocpRef="ocp_o" sequence="4" ocpType="stop">
+            <times scope="scheduled" arrival="06:14:00"/>
+          </ocpTT>
+        </ocpsTT>
+      </trainPart>
+    </trainParts>
+  </timetable>
+</railml>
