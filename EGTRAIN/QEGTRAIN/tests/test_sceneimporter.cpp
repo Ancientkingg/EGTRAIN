@@ -278,6 +278,7 @@ private slots:
 	void markedConversionKeepsTrackFolders();
 	void marksCopenhagenDoubleSwitches_data();
 	void marksCopenhagenDoubleSwitches();
+	void keepsSettingsThroughExport();
 	void selectsKnownCase_data();
 	void selectsKnownCase();
 	void readsRouteBlockTokens_data();
@@ -1164,6 +1165,39 @@ void TestSceneImporter::marksCopenhagenDoubleSwitches() {
 	QVERIFY(importLegacyScene(exported.dir, reimported.dir, name.toStdString()).success());
 	QVERIFY(readJson(fs::path(reimported.dir) / "views.json", reimportedViews));
 	QVERIFY(reimportedViews["tracks"] == views["tracks"]);
+}
+
+// A case whose passenger settings differ from the defaults keeps every simulation setting through an export and an
+// import, and the import report names the settings file of the export.
+void TestSceneImporter::keepsSettingsThroughExport() {
+	TempDir legacyDir, output, exported, reimported;
+	writeSmallLegacyCase(legacyDir.dir);
+	QVERIFY(importLegacyScene(legacyDir.dir, output.dir, "Settings").success());
+	const json settings = json::parse(
+		R"({"duration_seconds":1234,"buffer_time_seconds":30,"recovery_time_percent":5,"passenger_max_transfers":4,)"
+		R"("passenger_walking_seconds_per_platform":45,"passenger_late_threshold_seconds":600,)"
+		R"("passenger_dwell_coefficients":[6,0.5,2,0.6,5,3,0.1,0.7],"passenger_platform_crowding_threshold":0.5,)"
+		R"("passenger_onboard_crowding_threshold":0.6,"passenger_car_boarding_threshold":12})");
+	json scene;
+	QVERIFY(readJson(fs::path(output.dir) / "scene.json", scene));
+	scene["base_time"] = "08:15:00";
+	scene["simulation_settings"] = settings;
+	writeText(fs::path(output.dir) / "scene.json", scene.dump());
+	QVERIFY(exportLegacyScene(output.dir, exported.dir).success());
+	QVERIFY(importLegacyScene(exported.dir, reimported.dir, "Settings").success());
+	json reimportedScene;
+	QVERIFY(readJson(fs::path(reimported.dir) / "scene.json", reimportedScene));
+	QVERIFY(reimportedScene["base_time"] == "08:15:00");
+	QVERIFY2(reimportedScene["simulation_settings"] == settings, reimportedScene["simulation_settings"].dump().c_str());
+	const json& report = reimportedScene["import_report"];
+	const auto row = std::find_if(report.begin(), report.end(),
+		[](const json& item) { return item["category"] == "simulation_settings"; });
+	if (row == report.end())
+		QFAIL("the import report has no simulation_settings row");
+	std::error_code ec;
+	QVERIFY(fs::equivalent(fs::u8path(row->value("source_file", std::string())),
+		fs::path(exported.dir) / "EGTRAINInitialParameters.json", ec));
+	QCOMPARE(row->value("converted_count", 0), 1);
 }
 
 void TestSceneImporter::selectsKnownCase_data() {

@@ -99,6 +99,10 @@ SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const n
 // Whether an input file must not carry this key because it names a simulation result.
 bool isSimulationResultField(const std::string& name);
 
+/// Reads the optional simulation_settings object of root into settings, every key that it may hold. scene.json and the
+/// EGTRAINInitialParameters.json of a legacy export both use it. The validator checks the values.
+void decodeSimulationSettings(const SceneFieldReader& reader, const nlohmann::json& root, SceneSimulationSettings& settings);
+
 // The decoders of the scene files, one for each file. SceneWriter.cpp has an encoder for each file that it writes.
 // loadScene calls them in the order of this list. Each reads the root object of its file into scene, and its reader must
 // belong to that file and use kSceneFileFieldCodes. The reader reports each field that is absent or invalid, in the

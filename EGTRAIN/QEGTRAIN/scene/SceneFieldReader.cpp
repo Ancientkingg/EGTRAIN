@@ -304,6 +304,29 @@ bool isSimulationResultField(const std::string& name) {
 		|| name.find("departure_delay") != std::string::npos;
 }
 
+void decodeSimulationSettings(const SceneFieldReader& reader, const json& root, SceneSimulationSettings& settings) {
+	if (!root.contains("simulation_settings"))
+		return;
+	const json& values = root["simulation_settings"];
+	if (!values.is_object()) {
+		reader.report("scene.field.missing",
+			"simulation_settings must be an object", "simulation_settings");
+		return;
+	}
+	settings.hasDuration = reader.numberField(values, "duration_seconds",
+		"simulation_settings", settings.durationSeconds, false);
+	settings.hasBufferTime = reader.numberField(values, "buffer_time_seconds",
+		"simulation_settings", settings.bufferTimeSeconds, false);
+	settings.hasRecoveryTime = reader.numberField(values, "recovery_time_percent",
+		"simulation_settings", settings.recoveryTimePercent, false);
+	reader.integerField(values, "passenger_max_transfers", "simulation_settings", settings.passengerMaxTransfers, false);
+	reader.integerField(values, "passenger_walking_seconds_per_platform", "simulation_settings",
+		settings.passengerWalkingSecondsPerPlatform, false);
+	reader.integerField(values, "passenger_late_threshold_seconds", "simulation_settings",
+		settings.passengerLateThresholdSeconds, false);
+	decodeDwellSettings(reader, values, settings);
+}
+
 void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, SceneModel& scene) {
 	if (!root.contains("schema_version")) {
 		reader.report("scene.version.missing", "Missing schema_version", "schema_version");
@@ -335,26 +358,7 @@ void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, Scene
 			}
 		}
 	}
-	if (root.contains("simulation_settings")) {
-		const json& settings = root["simulation_settings"];
-		if (!settings.is_object()) {
-			reader.report("scene.field.missing",
-				"simulation_settings must be an object", "simulation_settings");
-		} else {
-			scene.settings.hasDuration = reader.numberField(settings, "duration_seconds",
-				"simulation_settings", scene.settings.durationSeconds, false);
-			scene.settings.hasBufferTime = reader.numberField(settings, "buffer_time_seconds",
-				"simulation_settings", scene.settings.bufferTimeSeconds, false);
-			scene.settings.hasRecoveryTime = reader.numberField(settings, "recovery_time_percent",
-				"simulation_settings", scene.settings.recoveryTimePercent, false);
-			reader.integerField(settings, "passenger_max_transfers", "simulation_settings", scene.settings.passengerMaxTransfers, false);
-			reader.integerField(settings, "passenger_walking_seconds_per_platform", "simulation_settings",
-				scene.settings.passengerWalkingSecondsPerPlatform, false);
-			reader.integerField(settings, "passenger_late_threshold_seconds", "simulation_settings",
-				scene.settings.passengerLateThresholdSeconds, false);
-			decodeDwellSettings(reader, settings, scene.settings);
-		}
-	}
+	decodeSimulationSettings(reader, root, scene.settings);
 	if (root.contains("import_report")) {
 		if (reader.arraySection(root, "import_report", "", false)) {
 			for (std::size_t index = 0; index < root["import_report"].size(); ++index) {
