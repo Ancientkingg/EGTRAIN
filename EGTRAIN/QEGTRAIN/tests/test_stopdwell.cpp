@@ -17,6 +17,7 @@
 #include "support/PassengerStep.h"
 #include "util/Log.h"
 
+#include <QScopeGuard>
 #include <QTest>
 
 #include <cmath>
@@ -196,9 +197,11 @@ private slots:
 	void stationPositionsCacheMatchesComputation();
 	void fractionalWagonCount_data();
 	void fractionalWagonCount();
+	/// Dwell at the legacy calibration point: 10 boarding and 10 alighting passengers per door.
+	void legacyCalibrationPoint();
 
 private:
-	// The dwell that one boarding passenger needs (25 s with the parameters of the builder), and planned dwells below and
+	// The dwell that one boarding passenger needs (8 s with the parameters of the builder), and planned dwells below and
 	// above it.
 	int m_needed = 0;
 	int m_below = 0;
@@ -215,7 +218,7 @@ void TestStopDwell::initTestCase() {
 	defaultRun().settings.PAX_GUI = true;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 	m_needed = static_cast<int>(boardingOnlyDwell(nativeTrain()));
-	m_below = m_needed - 15;
+	m_below = 4;
 	m_above = m_needed + 15;
 }
 
@@ -357,6 +360,31 @@ void TestStopDwell::fractionalWagonCount() {
 	};
 	QCOMPARE(dwell(wagons, 1, 0), boardingOnlyDwell(nativeTrain()));
 	QCOMPARE_EQ(dwell(wagons, 40, 20), dwell(std::floor(wagons), 40, 20));
+}
+
+// A door with 10 boarding and 10 alighting passengers gives the legacy calibration dwell of 40 s (within rounding
+// of beta6) with no crowding terms.
+void TestStopDwell::legacyCalibrationPoint() {
+	Train formula = nativeTrain();
+	formula.number_of_wagons = 0;
+	formula.Current_OnBoard_Passengers = 0;
+	constexpr unsigned long kSeedB = 987654321;
+	const NumberGenerator savedDraws = defaultRun().numberGenerator;
+	// The seed splits 20 boarding and 20 alighting passengers into exactly 10 of each on both doors of the car.
+	defaultRun().numberGenerator = NumberGenerator(kSeedB);
+	const int previousThreshold = defaultRun().settings.passengerCarBoardingThreshold;
+	defaultRun().settings.passengerCarBoardingThreshold = 25;
+	const auto restoreSettings = qScopeGuard([savedDraws, previousThreshold] {
+		defaultRun().settings.passengerCarBoardingThreshold = previousThreshold;
+		defaultRun().numberGenerator = savedDraws;
+	});
+	const float* beta = formula.GibsonDwellTimeParameters;
+	const double dwell = formula.computePaxDependentDwellTimeAtStations(
+		20, 20, 0.0, beta[0], beta[1], beta[2], beta[3], beta[4], beta[5], beta[6], beta[7]);
+	const double expected = static_cast<double>(beta[0]) + 10.0 * beta[2]
+		+ 10.0 * (beta[5] * std::exp(-static_cast<double>(beta[6]) * 10.0));
+	QVERIFY2(near(dwell, expected), "10 boarding and 10 alighting passengers give the calibrated dwell");
+	QVERIFY2(near(dwell, 40.1379), "pins the dwell of 40.1379 s that beta6 = 0.04 gives");
 }
 
 QTEST_APPLESS_MAIN(TestStopDwell)

@@ -995,7 +995,7 @@ void TestOperationsBuilder::sceneDwellSettingsReachTheDwellModel() {
 	};
 
 	QVERIFY(!hasErrors(build(completeScene())));
-	const float defaults[] = {7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f};
+	const float defaults[] = {7.0f, 0.32f, 1.823f, 0.564f, 4.838f, 2.224f, 0.04f, 0.562f};
 	for (std::size_t index = 0; index < 8; ++index)
 		QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[index], defaults[index]);
 	QCOMPARE_EQ(initial_variables.passengerPlatformCrowdingThreshold, 0.65);
@@ -1024,7 +1024,7 @@ void TestOperationsBuilder::sceneDwellSettingsReachTheDwellModel() {
 
 	// A changed beta0 changes the dwell time by the same amount.
 	SceneModel changed = completeScene();
-	changed.settings.passengerDwellCoefficients = std::vector<double>{9.0, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	changed.settings.passengerDwellCoefficients = std::vector<double>{9.0, 0.32, 1.823, 0.564, 4.838, 2.224, 0.04, 0.562};
 	QVERIFY(!hasErrors(build(changed)));
 	QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[0], 9.0f);
 	Train changedTrain = train;
