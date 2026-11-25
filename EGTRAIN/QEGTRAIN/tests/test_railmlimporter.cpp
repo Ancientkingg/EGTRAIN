@@ -15,6 +15,7 @@
 #include <iterator>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -218,6 +219,9 @@ private slots:
 	void refusesOtherXml();
 	void refusesMissingFile();
 	void refusesOutOfRangeTimes();
+	void readsTimeZoneOffsets();
+	void warnsAboutUnreadableTimes();
+	void ignoresTimesOfOtherPeriods();
 	void leavesOutSpeedsOfZero();
 	void refusesDuplicateIds();
 	void renamesClashingSceneIds();
@@ -501,6 +505,87 @@ void TestRailmlImporter::refusesOutOfRangeTimes() {
 		QCOMPARE(range->severity, SceneSeverity::Error);
 		QVERIFY(!fs::exists(temp.path / "scene"));
 	}
+}
+
+// An xs:time may end in a UTC offset. The clock time is kept as written, since timetable times are local times; offsets
+// that differ from each other are reported once.
+void TestRailmlImporter::readsTimeZoneOffsets() {
+	const std::string base = fixtureText("macroscopic.railml");
+	TempDir plainTemp;
+	const SceneModel plain = loadRunnable(plainTemp, importText(plainTemp, base));
+	if (QTest::currentTestFailed())
+		return;
+	const std::string sameOffset = replaced(replaced(base, R"(departure="06:00:00"/>)", R"(departure="06:00:00+01:00"/>)"),
+		R"(arrival="06:14:00"/>)", R"(arrival="06:14:00.0000000+01:00"/>)");
+	const std::string otherOffsets =
+		replaced(sameOffset, R"(arrival="06:05:00" departure="06:06:00")", R"(arrival="06:05:00Z" departure="06:06:00-02:30")");
+	for (const auto& [text, mixed] : std::vector<std::pair<std::string, bool>>{{sameOffset, false}, {otherOffsets, true}}) {
+		TempDir temp;
+		const SceneImportResult result = importText(temp, text);
+		const SceneModel scene = loadRunnable(temp, result);
+		if (QTest::currentTestFailed())
+			return;
+		QCOMPARE(scene.baseTime, plain.baseTime);
+		QCOMPARE(scene.services.size(), std::size_t(1));
+		const std::vector<SceneStop>& stops = scene.services.front().stops;
+		const std::vector<SceneStop>& plainStops = plain.services.front().stops;
+		QCOMPARE(stops.size(), plainStops.size());
+		for (std::size_t index = 0; index < stops.size(); ++index) {
+			QCOMPARE(stops[index].hasPlannedArrival, plainStops[index].hasPlannedArrival);
+			QCOMPARE(stops[index].plannedArrivalSeconds, plainStops[index].plannedArrivalSeconds);
+			QCOMPARE(stops[index].hasPlannedDeparture, plainStops[index].hasPlannedDeparture);
+			QCOMPARE(stops[index].plannedDepartureSeconds, plainStops[index].plannedDepartureSeconds);
+		}
+		const SceneDiagnostic* offsets = findDiagnostic(result.diagnostics, "scene.import.railml.time_offset");
+		QCOMPARE(offsets != nullptr, mixed);
+		if (offsets != nullptr) {
+			QCOMPARE(offsets->severity, SceneSeverity::Warning);
+			for (const char* offset : {"-02:30", "+00:00", "+01:00"})
+				QVERIFY2(offsets->message.find(offset) != std::string::npos, offsets->message.c_str());
+		}
+	}
+}
+
+// A time that is not an xs:time, such as one without seconds, is left out with a warning, and the stop has no such time.
+void TestRailmlImporter::warnsAboutUnreadableTimes() {
+	TempDir temp;
+	const SceneImportResult result = importText(temp,
+		replaced(fixtureText("macroscopic.railml"), R"(arrival="06:05:00" departure="06:06:00")", R"(arrival="06:05" departure="06:06:00")"));
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	const SceneDiagnostic* unreadable =
+		findDiagnostic(result.diagnostics, "scene.import.railml.time", R"(train part tp_rb1 ocpTT 3 (ocp_m) arrival="06:05")");
+	QVERIFY2(unreadable != nullptr, errorText(result.diagnostics).c_str());
+	QCOMPARE(unreadable->severity, SceneSeverity::Warning);
+	const std::vector<SceneStop>& stops = scene.services.front().stops;
+	const auto stop = std::find_if(stops.begin(), stops.end(), [](const SceneStop& candidate) { return candidate.stationId == "ocp_m"; });
+	QVERIFY(stop != stops.end());
+	QVERIFY(!stop->hasPlannedArrival);
+	QVERIFY(stop->hasPlannedDeparture);
+}
+
+// The times of train parts that the import leaves out, those of other operating periods, do not refuse the file.
+void TestRailmlImporter::ignoresTimesOfOtherPeriods() {
+	const std::string text = replaced(fixtureText("microscopic.railml"), R"(departure="10:00:00"/>)",
+		R"(departure="10:00:00" departureDay="9"/>)");
+	TempDir temp;
+	const SceneImportResult result = importText(temp, text);
+	const SceneModel scene = loadRunnable(temp, result);
+	if (QTest::currentTestFailed())
+		return;
+	QCOMPARE(scene.services.size(), std::size_t(2));
+	QVERIFY(findDiagnostic(result.diagnostics, "scene.import.railml.out_of_range") == nullptr);
+	// Imported, the train part refuses the file.
+	TempDir sundayTemp;
+	RailmlImportOptions options;
+	options.operatingPeriod = "op_sunday";
+	const SceneImportResult sunday = importText(sundayTemp, text, options);
+	QVERIFY(!sunday.success());
+	QVERIFY2(findDiagnostic(sunday.diagnostics, "scene.import.railml.out_of_range", R"(train part tp_3 ocpTT 1 (ocp_a) departureDay="9")")
+			!= nullptr,
+		errorText(sunday.diagnostics).c_str());
+	QVERIFY(!fs::exists(sundayTemp.path / "scene"));
 }
 
 // A speed limit of 0 km/h or less is no limit: the change is left out and reported.

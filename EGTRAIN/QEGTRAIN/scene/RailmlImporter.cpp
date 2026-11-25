@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cmath>
 #include <deque>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <iomanip>
@@ -104,11 +105,32 @@ std::optional<double> parseNumber(const std::string& raw) {
 	return value;
 }
 
-// Seconds of an xs:time "HH:MM:SS" with optional fraction and a trailing Z.
-std::optional<double> parseClock(const std::string& raw) {
+// A clock time of an xs:time: the seconds of the day as written, and the UTC offset in minutes when the time has one.
+struct ClockTime {
+	double seconds = 0.0;
+	std::optional<int> offsetMinutes;
+};
+
+// An xs:time "HH:MM:SS" with an optional fraction and an optional time zone, "Z" or "+HH:MM" or "-HH:MM". The clock time
+// is kept as written: timetable times are local times, so the offset is not applied.
+std::optional<ClockTime> parseClock(const std::string& raw) {
 	std::string text = trimmed(raw);
-	if (!text.empty() && (text.back() == 'Z' || text.back() == 'z'))
+	ClockTime clock;
+	if (!text.empty() && (text.back() == 'Z' || text.back() == 'z')) {
 		text.pop_back();
+		clock.offsetMinutes = 0;
+	} else if (text.size() > 6 && (text[text.size() - 6] == '+' || text[text.size() - 6] == '-')) {
+		const std::size_t sign = text.size() - 6;
+		const auto digit = [&text](std::size_t index) { return text[index] >= '0' && text[index] <= '9'; };
+		if (!digit(sign + 1) || !digit(sign + 2) || text[sign + 3] != ':' || !digit(sign + 4) || !digit(sign + 5))
+			return std::nullopt;
+		const int offsetHours = (text[sign + 1] - '0') * 10 + (text[sign + 2] - '0');
+		const int offsetMinutes = (text[sign + 4] - '0') * 10 + (text[sign + 5] - '0');
+		if (offsetMinutes > 59 || offsetHours * 60 + offsetMinutes > 14 * 60)
+			return std::nullopt;
+		clock.offsetMinutes = (text[sign] == '-' ? -1 : 1) * (offsetHours * 60 + offsetMinutes);
+		text.erase(sign);
+	}
 	const std::size_t first = text.find(':');
 	const std::size_t second = first == std::string::npos ? std::string::npos : text.find(':', first + 1);
 	if (second == std::string::npos || text.find(':', second + 1) != std::string::npos)
@@ -119,7 +141,16 @@ std::optional<double> parseClock(const std::string& raw) {
 	if (!hours || !minutes || !seconds || *hours < 0.0 || std::floor(*hours) != *hours || *minutes < 0.0
 		|| *minutes >= 60.0 || std::floor(*minutes) != *minutes || *seconds < 0.0 || *seconds >= 61.0)
 		return std::nullopt;
-	return *hours * 3600.0 + *minutes * 60.0 + *seconds;
+	clock.seconds = *hours * 3600.0 + *minutes * 60.0 + *seconds;
+	return clock;
+}
+
+// A UTC offset in minutes as "+HH:MM" or "-HH:MM".
+std::string offsetText(int minutes) {
+	std::ostringstream text;
+	text << (minutes < 0 ? '-' : '+') << std::setfill('0') << std::setw(2) << std::abs(minutes) / 60 << ':' << std::setw(2)
+		 << std::abs(minutes) % 60;
+	return text.str();
 }
 
 // Seconds of an xs:duration such as "PT1M12.5S" or "P0DT0H0M30S". Years and months have no fixed length and are refused.
@@ -371,6 +402,9 @@ struct TrainPart {
 	std::string period;
 	std::optional<double> speedKmh;
 	std::vector<OcpVisit> visits;
+	std::vector<std::string> outOfRange; // times and day offsets out of range, which refuse the file if the part is imported
+	std::vector<std::string> unreadable; // times that are not an xs:time; the stop has no such time
+	std::set<int> offsets;				 // the UTC offsets of its times in minutes
 };
 
 struct TrainSequence {
@@ -545,17 +579,17 @@ std::string shownValue(const std::string& value) {
 	return value.size() > 40 ? value.substr(0, 40) + "..." : value;
 }
 
-// A whole number attribute from `low` to `high`, `fallback` when the element does not have it. Any other value is noted
-// for refusal as "`where` name="value"" and gives std::nullopt, so that no value out of range reaches a conversion.
-std::optional<int> wholeAttr(Context& context, const xml_node& node, const char* name, int low, int high, int fallback,
-	const std::string& where) {
+// A whole number attribute from `low` to `high`, `fallback` when the element does not have it. Any other value is added
+// to `outOfRange` as "`where` name="value"" and gives std::nullopt, so that no value out of range reaches a conversion.
+std::optional<int> wholeAttr(std::vector<std::string>& outOfRange, const xml_node& node, const char* name, int low, int high,
+	int fallback, const std::string& where) {
 	const std::string text = attr(node, name);
 	if (text.empty())
 		return fallback;
 	const auto value = parseNumber(text);
 	if (value && std::floor(*value) == *value && *value >= low && *value <= high)
 		return static_cast<int>(*value);
-	context.outOfRange.push_back(where + " " + name + "=\"" + shownValue(text) + "\" (a whole number from "
+	outOfRange.push_back(where + " " + name + "=\"" + shownValue(text) + "\" (a whole number from "
 		+ std::to_string(low) + " to " + std::to_string(high) + ")");
 	return std::nullopt;
 }
@@ -917,7 +951,7 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 					const std::string category = attr(place, "category");
 					if (category == "bicycle" || category.rfind("other:", 0) == 0)
 						continue;
-					vehicle.places += wholeAttr(context, place, "count", 0, kMaxPlaces, 0, "vehicle " + vehicle.id + " places").value_or(0);
+					vehicle.places += wholeAttr(context.outOfRange, place, "count", 0, kMaxPlaces, 0, "vehicle " + vehicle.id + " places").value_or(0);
 				}
 				context.vehicleIndex[vehicle.id] = context.vehicles.size();
 				context.vehicles.push_back(vehicle);
@@ -942,7 +976,7 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 					const double order = numberAttr(reference, "orderNumber").value_or(static_cast<double>(ordered.size()));
 					// A vehicle count of 0 counts as one vehicle, as it did before counts were checked.
 					const int count = std::max(1,
-						wholeAttr(context, reference, "vehicleCount", 0, kMaxVehicleCount, 1, "formation " + formation.id).value_or(1));
+						wholeAttr(context.outOfRange, reference, "vehicleCount", 0, kMaxVehicleCount, 1, "formation " + formation.id).value_or(1));
 					ordered.push_back({order, {attr(reference, "vehicleRef"), count}});
 				}
 				std::stable_sort(ordered.begin(), ordered.end(),
@@ -958,22 +992,29 @@ void readRollingStock(Context& context, const xml_node& rollingStock) {
 	}
 }
 
-// Reads the arrival and departure of a times element with their day offsets. A time that is not one from 00:00:00 to
-// 47:59:59, or a day offset that is not one from 0 to 7, is noted for refusal with `where`, the element that holds it.
-void readTimes(Context& context, const xml_node& times, OcpVisit& visit, const std::string& where) {
+// Reads the arrival and departure of a times element of the train part with their day offsets; `where` names the element
+// that holds them. A time that is not an xs:time is noted as unreadable, and the stop has no such time. A time beyond
+// 47:59:59, or a day offset that is not a whole number from 0 to 7, is noted as out of range.
+void readTimes(TrainPart& part, const xml_node& times, OcpVisit& visit, const std::string& where) {
 	const auto read = [&](const char* clockName, const char* dayName) -> std::optional<double> {
 		const std::string text = attr(times, clockName);
 		if (text.empty())
 			return std::nullopt;
 		const auto clock = parseClock(text);
-		if (!clock || *clock >= kMaxClockSeconds) {
-			context.outOfRange.push_back(where + " " + clockName + "=\"" + shownValue(text) + "\" (a time from 00:00:00 to 47:59:59)");
+		if (!clock) {
+			part.unreadable.push_back(where + " " + clockName + "=\"" + shownValue(text) + "\"");
 			return std::nullopt;
 		}
-		const auto day = wholeAttr(context, times, dayName, 0, kMaxDayOffset, 0, where);
+		if (clock->offsetMinutes)
+			part.offsets.insert(*clock->offsetMinutes);
+		if (clock->seconds >= kMaxClockSeconds) {
+			part.outOfRange.push_back(where + " " + clockName + "=\"" + shownValue(text) + "\" (a time from 00:00:00 to 47:59:59)");
+			return std::nullopt;
+		}
+		const auto day = wholeAttr(part.outOfRange, times, dayName, 0, kMaxDayOffset, 0, where);
 		if (!day)
 			return std::nullopt;
-		return *clock + 86400.0 * *day;
+		return clock->seconds + 86400.0 * *day;
 	};
 	visit.arrival = read("arrival", "arrivalDay");
 	visit.departure = read("departure", "departureDay");
@@ -1011,11 +1052,11 @@ void readTrainPart(Context& context, const xml_node& element) {
 				break;
 		}
 		if (chosen)
-			readTimes(context, chosen, visit, where);
+			readTimes(part, chosen, visit, where);
 		const std::string minimalTime = attr(firstChild(firstChild(ocpTT, "stopDescription"), "stopTimes"), "minimalTime");
 		visit.minimalStop = parseDuration(minimalTime);
 		if (visit.minimalStop && *visit.minimalStop > kMaxStopSeconds) {
-			context.outOfRange.push_back(where + " minimalTime=\"" + shownValue(minimalTime) + "\" (at most a day)");
+			part.outOfRange.push_back(where + " minimalTime=\"" + shownValue(minimalTime) + "\" (at most a day)");
 			visit.minimalStop.reset();
 		}
 		for (const xml_node& section : childrenNamed(ocpTT, "sectionTT"))
@@ -1070,12 +1111,12 @@ void readTimetable(Context& context, const xml_node& timetable) {
 				for (const xml_node& sequenceElement : childrenNamed(element, "trainPartSequence")) {
 					TrainSequence sequence;
 					sequence.sequence =
-						wholeAttr(context, sequenceElement, "sequence", 0, kMaxSequence, 0, "train " + train.id + " trainPartSequence").value_or(0);
+						wholeAttr(context.outOfRange, sequenceElement, "sequence", 0, kMaxSequence, 0, "train " + train.id + " trainPartSequence").value_or(0);
 					sequence.category = attr(sequenceElement, "categoryRef");
 					sequence.speedProfile = attr(firstChild(sequenceElement, "speedProfileRef"), "ref");
 					for (const xml_node& reference : childrenNamed(sequenceElement, "trainPartRef"))
 						sequence.parts.emplace_back(
-							wholeAttr(context, reference, "position", 0, kMaxSequence, 0, "train " + train.id + " trainPartRef").value_or(0),
+							wholeAttr(context.outOfRange, reference, "position", 0, kMaxSequence, 0, "train " + train.id + " trainPartRef").value_or(0),
 							attr(reference, "ref"));
 					std::stable_sort(sequence.parts.begin(), sequence.parts.end(),
 						[](const auto& left, const auto& right) { return left.first < right.first; });
@@ -3374,22 +3415,48 @@ bool readDocument(Context& context, pugi::xml_document& document) {
 	return true;
 }
 
-// Refuses a file that repeats ids or holds values out of range, and reports the speeds that count as missing.
+// Refuses a file that repeats ids or holds values out of range, and reports the speeds that count as missing. The times of
+// train parts count only for the parts that the import takes, those of the imported operating period.
 bool checkRead(Context& context) {
+	std::vector<std::string> outOfRange = context.outOfRange;
+	std::vector<std::string> unreadable;
+	std::set<int> offsets;
+	for (const TrainPart& part : context.parts) {
+		if (!inPeriod(context, part))
+			continue;
+		outOfRange.insert(outOfRange.end(), part.outOfRange.begin(), part.outOfRange.end());
+		unreadable.insert(unreadable.end(), part.unreadable.begin(), part.unreadable.end());
+		offsets.insert(part.offsets.begin(), part.offsets.end());
+	}
 	for (const auto& entry : context.duplicateIds)
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.duplicate_id",
 			"The file is not valid railML: " + std::to_string(entry.second.size()) + " " + entry.first
 				+ " ids occur more than once, and each railML id names one element: " + namedList(entry.second),
 			entry.first, entry.second.front(), "Give each " + entry.first + " of the file an id of its own");
-	if (!context.outOfRange.empty())
+	if (!outOfRange.empty())
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.out_of_range",
-			std::to_string(context.outOfRange.size()) + " values of the file are out of range: " + namedList(context.outOfRange),
-			"file", context.sourceFile, "Correct these values in the file");
+			std::to_string(outOfRange.size()) + " values of the file are out of range: " + namedList(outOfRange), "file",
+			context.sourceFile, "Correct these values in the file");
+	if (!unreadable.empty())
+		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.time",
+			std::to_string(unreadable.size())
+				+ " times cannot be read as an xs:time HH:MM:SS, so their stops are imported without them: " + namedList(unreadable),
+			"ocpTT", "", "Write these times as HH:MM:SS");
+	if (offsets.size() > 1) {
+		std::vector<std::string> texts;
+		for (const int offset : offsets)
+			texts.push_back(offsetText(offset));
+		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.time_offset",
+			"The times of the file have different UTC offsets (" + namedList(texts)
+				+ "). Each time is read as the clock time it shows and its offset is ignored, so times with different offsets "
+				  "may be out of order by up to the difference between the offsets",
+			"ocpTT");
+	}
 	if (!context.zeroSpeeds.empty())
 		addDiagnostic(context, SceneSeverity::Warning, "scene.import.railml.speed",
 			std::to_string(context.zeroSpeeds.size())
 				+ " speeds of 0 km/h or less limit nothing, so they count as missing: " + namedList(context.zeroSpeeds));
-	return context.duplicateIds.empty() && context.outOfRange.empty();
+	return context.duplicateIds.empty() && outOfRange.empty();
 }
 
 // An absolute path with "." and ".." and the symbolic links of its existing part resolved, and no trailing separator.
@@ -3480,7 +3547,10 @@ SceneImportResult importRailmlScene(const std::string& railmlPath, const std::st
 		else if (!named(child, "metadata"))
 			countUnsupported(context, child);
 	}
-	if (!checkRead(context))
+	// The operating period comes first: only the train parts of that period are checked.
+	bool unknownPeriod = false;
+	context.period = choosePeriod(context, unknownPeriod);
+	if (unknownPeriod || !checkRead(context))
 		return std::move(context.result);
 	if (context.tracks.empty()) {
 		addDiagnostic(context, SceneSeverity::Error, "scene.import.railml.empty",
@@ -3489,10 +3559,6 @@ SceneImportResult importRailmlScene(const std::string& railmlPath, const std::st
 	}
 
 	context.scene = makeNewSceneModel();
-	bool unknownPeriod = false;
-	context.period = choosePeriod(context, unknownPeriod);
-	if (unknownPeriod)
-		return std::move(context.result);
 	choosePreferredSpeedProfile(context);
 	placeOcps(context);
 	buildPieces(context);

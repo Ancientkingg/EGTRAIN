@@ -38,10 +38,11 @@ and, after reading it and before converting anything:
   ids are unique in a file. The kinds checked are track, OCP, signal, platform edge, connection, vehicle, formation,
   operating period, category, train part and train.
 - values far out of range (`scene.import.railml.out_of_range`, one error that lists them): an arrival or departure that
-  is not a time from 00:00:00 to 47:59:59, an `arrivalDay` or `departureDay` that is not a whole number from 0 to 7, a
-  `minimalTime` above a day, a `vehicleCount` that is not a whole number from 0 to 1000, a `places count` that is not one
-  from 0 to 100000, and a train sequence or position that is not one from 0 to 1000000. No such value reaches a
-  conversion to a whole number or the rolling over of times by days.
+  is a time but not one from 00:00:00 to 47:59:59, an `arrivalDay` or `departureDay` that is not a whole number from 0
+  to 7, a `minimalTime` above a day, a `vehicleCount` that is not a whole number from 0 to 1000, a `places count` that is
+  not one from 0 to 100000, and a train sequence or position that is not one from 0 to 1000000. No such value reaches a
+  conversion to a whole number or the rolling over of times by days. Times, day offsets and `minimalTime` count only
+  for the train parts that the import takes, those of the imported operating period and those without one.
 
 Last, the converted scene goes through `validateScene` before it is written. A scene with an error is not written
 (`scene.import.railml.invalid`, followed by the errors of the validation), so `scene_tool import-railml` exits with 1.
@@ -137,7 +138,11 @@ the first free suffix, `railml_default.2`.
   Coupled parts of one sequence run as the first part. Operating code from `trainNumber`, maximum speed from
   `formationTT speed`.
 - Stops: `ocpTT` of type stop, begin or end, with the scheduled times (`times scope="scheduled"`, else the first
-  `times`), `arrivalDay`/`departureDay`, and `stopTimes minimalTime` as the dwell (0 s when missing). A time that runs
+  `times`), `arrivalDay`/`departureDay`, and `stopTimes minimalTime` as the dwell (0 s when missing). A time may end in
+  `Z` or a UTC offset such as `+01:00`, and may have a fraction of a second (`06:00:00.0000000+01:00`). The clock time
+  is kept as written, since timetable times are local times; when the times have different offsets, one
+  `scene.import.railml.time_offset` warning lists them. A time that is not an xs:time, such as `06:00`, is left out
+  with a `scene.import.railml.time` warning that names it, and the stop has no such time. A time that runs
   back by more than 12 hours is moved on by as many days as it takes to run back by no more than 12 hours
   (`scene.import.railml.midnight`). A first OCP that is passed gives the entry time. The platform of a stop is the
   first platform of its OCP on the route after the previous stop.
@@ -163,6 +168,8 @@ have get no row.
 | `scene.import.railml.out_of_range` | error | times, day offsets and counts out of range |
 | `scene.import.railml.invalid` | error | the converted scene fails validation; the errors follow |
 | `scene.import.railml.speed` | warning | speeds of 0 km/h or less, which count as missing |
+| `scene.import.railml.time` | warning | times that are not an xs:time; their stops are imported without them |
+| `scene.import.railml.time_offset` | warning | times with different UTC offsets, read as the clock times they show |
 | `scene.import.railml.renamed` | warning | service, composition or train unit ids that got a suffix |
 | `scene.import.railml.operating_period` | info, error | the imported period and the parts left out; an unknown period |
 | `scene.import.railml.default` | info | a value the file lacks, with the default and the count |
