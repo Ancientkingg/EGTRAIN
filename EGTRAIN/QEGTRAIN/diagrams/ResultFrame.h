@@ -124,6 +124,9 @@ public:
 	ResultPanel* panel() const { return m_panel; }
 	/// The checkable header button that shows and hides the panel.
 	QToolButton* panelButton() const { return m_panelButton; }
+	/// The width of the frame at which the main widget is `mainWidth` wide beside the panel at the width that the frame gives
+	/// it, before the user drags the splitter: 200 px in a window narrower than 1000 px, 260 px in a wider one.
+	int widthForMain(int mainWidth) const;
 	/// Lays out `dialog` with DialogLayout::install, with the frame as its body from edge to edge and `buttons` as the
 	/// footer, which keeps the margins of the dialog. The heading becomes the window title. The panel keeps its sections
 	/// whole, so that the body scrolls when the window is shorter than the panel.

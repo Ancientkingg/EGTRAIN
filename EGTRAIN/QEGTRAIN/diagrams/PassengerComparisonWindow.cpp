@@ -39,9 +39,12 @@ QString metricLabel(const PassengerMetricRow& row) {
 	return row.unit == "s" ? label + QStringLiteral(" (s)") : label;
 }
 
-constexpr int kMeanDelayColumns[] = {6, 7, 8};
-constexpr int kLostColumns[] = {9, 10, 11};
-constexpr int kLostDifferenceColumn = 11;
+// The pair table: the change that ranks the pairs and the change in journeys not reached right after the pair, then the
+// figures of both runs.
+constexpr int kLostDifferenceColumn = 2;
+constexpr int kNotReachedDifferenceColumn = 3;
+constexpr int kMeanDelayColumns[] = {8, 9, 10};
+constexpr int kLostColumns[] = {kLostDifferenceColumn, 11, 12};
 
 } // namespace
 
@@ -68,11 +71,11 @@ PassengerComparisonWindow::PassengerComparisonWindow(DelayRunSnapshot baseline, 
 
 	contentLayout->addWidget(EditorLayout::sectionHeading(QStringLiteral("Origin-destination pairs that changed most"), content));
 	m_odTable = makeResultTable(content, "passengerComparisonOd",
-		{"Origin", "Destination", {"Baseline journeys", kNumberColumn}, {"This run journeys", kNumberColumn},
-			{"Baseline not reached", kNumberColumn}, {"This run not reached", kNumberColumn},
-			{"Baseline mean delay (s)", kNumberColumn}, {"This run mean delay (s)", kNumberColumn},
-			{"Mean delay difference (s)", kNumberColumn}, {"Baseline passenger-hours lost", kNumberColumn},
-			{"This run passenger-hours lost", kNumberColumn}, {"Passenger-hours lost difference", kNumberColumn}});
+		{"Origin", "Destination", {"Passenger-hours lost difference", kNumberColumn}, {"Not reached difference", kNumberColumn},
+			{"Baseline journeys", kNumberColumn}, {"This run journeys", kNumberColumn}, {"Baseline not reached", kNumberColumn},
+			{"This run not reached", kNumberColumn}, {"Baseline mean delay (s)", kNumberColumn},
+			{"This run mean delay (s)", kNumberColumn}, {"Mean delay difference (s)", kNumberColumn},
+			{"Baseline passenger-hours lost", kNumberColumn}, {"This run passenger-hours lost", kNumberColumn}});
 	for (const int column : kMeanDelayColumns)
 		m_odTable->horizontalHeaderItem(column)->setToolTip(QStringLiteral("Mean arrival delay of the completed journeys of the pair"));
 	for (const int column : kLostColumns)
@@ -82,9 +85,13 @@ PassengerComparisonWindow::PassengerComparisonWindow(DelayRunSnapshot baseline, 
 		->setToolTip(QStringLiteral("This run minus the baseline, for the completed journeys of the pair. The pairs that changed are "
 									"ranked by this change, then by the change in journeys not reached, up to %1")
 				.arg(static_cast<int>(kMaxComparedOriginDestinations)));
+	m_odTable->horizontalHeaderItem(kNotReachedDifferenceColumn)
+		->setToolTip(QStringLiteral("This run minus the baseline: journeys of the pair that did not reach the destination, with no "
+									"route or still on their way"));
 	contentLayout->addWidget(m_odTable, 1);
 
 	auto* frame = new ResultFrame(resultTableArea({content}), QStringLiteral("passengerComparison"));
+	m_frame = frame;
 	ResultPanel* panel = frame->panel();
 	panel->readout()->hide();
 
@@ -149,10 +156,16 @@ PassengerComparisonWindow::PassengerComparisonWindow(DelayRunSnapshot baseline, 
 
 	frame->setContext(runContextText(m_scenario.provenance) + QStringLiteral(" · baseline ") + runContextText(m_baseline.provenance));
 	frame->installInDialog(*this, QStringLiteral("Passenger comparison"), closeButtons);
-	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 
 	fillSummaryTable();
 	fillOdTable();
+	resize(qMin(maximumWidth(), qMax(960, summaryFitWidth())), qMin(maximumHeight(), 640));
+}
+
+int PassengerComparisonWindow::summaryFitWidth() const {
+	// The table lies in the table area of the main widget, inside its margins.
+	const QMargins margins = m_summaryTable->parentWidget()->parentWidget()->layout()->contentsMargins();
+	return m_frame->widthForMain(margins.left() + resultTableWidth(*m_summaryTable) + margins.right());
 }
 
 void PassengerComparisonWindow::fillSummaryTable() {
@@ -178,6 +191,8 @@ void PassengerComparisonWindow::fillOdTable() {
 		rows.push_back({
 			QString::fromStdString(od.origin),
 			QString::fromStdString(od.destination),
+			signedDecimalText(od.passengerHoursLostDifference, 3),
+			signedDecimalText(od.scenarioNotReached - od.baselineNotReached, 0),
 			QString::number(od.baselineJourneys),
 			QString::number(od.scenarioJourneys),
 			QString::number(od.baselineNotReached),
@@ -187,7 +202,6 @@ void PassengerComparisonWindow::fillOdTable() {
 			signedDecimalText(od.meanDelayDifference),
 			decimalText(od.baselinePassengerHoursLost, 3),
 			decimalText(od.scenarioPassengerHoursLost, 3),
-			signedDecimalText(od.passengerHoursLostDifference, 3),
 		});
 	}
 	fillResultTable(m_odTable, rows);

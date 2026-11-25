@@ -3,7 +3,10 @@
 #include "diagrams/RunResults.h"
 
 #include <QHeaderView>
+#include <QScrollBar>
 #include <QTableWidget>
+
+#include <algorithm>
 
 namespace {
 
@@ -40,7 +43,22 @@ void fillResultTable(QTableWidget* table, const std::vector<QStringList>& rows) 
 			table->setItem(row, column, item);
 		}
 	}
+	// A stretched last column keeps at least the width that it had when the stretch was turned on, so the stretch is turned
+	// on again once the columns fit their content: the last column then shrinks to its content, not to the width it had
+	// before the rows came.
+	QHeaderView* header = table->horizontalHeader();
+	header->setStretchLastSection(false);
 	table->resizeColumnsToContents();
+	header->setStretchLastSection(true);
+}
+
+int resultTableWidth(const QTableWidget& table) {
+	// The width that resizeColumnsToContents gives each column; QTableView has the hint of a column protected.
+	const QAbstractItemView& view = table;
+	int width = 2 * table.frameWidth() + table.verticalScrollBar()->sizeHint().width();
+	for (int column = 0; column < table.columnCount(); ++column)
+		width += std::max(view.sizeHintForColumn(column), table.horizontalHeader()->sectionSizeHint(column));
+	return width;
 }
 
 QString decimalText(double value, int decimals) {

@@ -300,6 +300,12 @@ void ResultFrame::installInDialog(QDialog& dialog, const QString& heading, QDial
 	layout->setSpacing(0);
 }
 
+int ResultFrame::widthForMain(int mainWidth) const {
+	const int beside = mainWidth + m_splitter->handleWidth();
+	// The rule of fitPanel: the narrow panel while the window is narrower than kNarrowWindow.
+	return beside + kNarrowPanelWidth < kNarrowWindow ? beside + kNarrowPanelWidth : beside + kPanelWidth;
+}
+
 void ResultFrame::resizeEvent(QResizeEvent* event) {
 	QWidget::resizeEvent(event);
 	fitPanel();

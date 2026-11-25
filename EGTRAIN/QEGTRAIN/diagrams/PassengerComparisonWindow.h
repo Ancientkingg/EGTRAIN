@@ -12,6 +12,7 @@
 
 class QPushButton;
 class QTableWidget;
+class ResultFrame;
 
 /// Non-modal result window comparing the passengers of a completed run against a baseline run.
 /// Shows a summary table (baseline, this run and difference) and the origin-destination pairs that changed most
@@ -32,6 +33,9 @@ public:
 	bool exportCsvTo(const QString& path) const;
 	/// The computed comparison shown in the window.
 	const PassengerBaselineComparison& comparison() const { return m_comparison; }
+	/// The width of the window at which the four columns of the summary fit beside the panel without a horizontal scroll
+	/// bar. The window opens at this width, at least 960 px as the Delay analysis window, and at most its maximum width.
+	int summaryFitWidth() const;
 
 private:
 	void fillSummaryTable();
@@ -42,6 +46,7 @@ private:
 	DelayRunSnapshot m_baseline;
 	DelayRunSnapshot m_scenario;
 	PassengerBaselineComparison m_comparison;
+	ResultFrame* m_frame = nullptr; ///< The frame of the window, with the tables in its main area and the figures in its panel.
 	QTableWidget* m_summaryTable = nullptr;
 	QTableWidget* m_odTable = nullptr;
 	QPushButton* m_exportButton = nullptr;

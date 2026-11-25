@@ -29,8 +29,12 @@ inline constexpr bool kNumberColumn = true;
 QTableWidget* makeResultTable(QWidget* parent, const char* name, const QVector<ResultColumn>& columns);
 
 /// Puts `rows` in the table of makeResultTable in place of its rows, with the numbers at the right, and fits the columns to
-/// their content.
+/// their content. The last column stretches into the room that is left and is never narrower than its content.
 void fillResultTable(QTableWidget* table, const std::vector<QStringList>& rows);
+
+/// The width at which a table of makeResultTable shows every column at the width of its content, as fillResultTable sizes
+/// them, without a horizontal scroll bar: the columns, the frame and room for a vertical scroll bar.
+int resultTableWidth(const QTableWidget& table);
 
 /// `value` with at most `decimals` decimals and no trailing zeros, such as 168.2, -72.25 or 301; never "-0".
 QString decimalText(double value, int decimals = 2);

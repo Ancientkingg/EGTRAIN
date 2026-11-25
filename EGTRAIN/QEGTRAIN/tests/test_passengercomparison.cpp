@@ -24,6 +24,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QStringList>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -249,6 +250,7 @@ private slots:
 	void summaryShownOnlyWhenRunHasPassengers();
 	void comparePassengersButtonStateAndOpensWindow();
 	void comparisonWindowShowsFiguresAndDifferences();
+	void windowOpensWideEnoughForTheSummary();
 	void odRankingListsChangedPairsAndCapsAtTwenty();
 	void odTableSaysWhenNoPairChanged();
 	void exportsPassengerSummaryAndComparisonCsvWithProvenance();
@@ -427,8 +429,11 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	if (odTable == nullptr)
 		QFAIL("OD table missing");
 	QCOMPARE(odTable->rowCount(), 1);
-	QCOMPARE(rowTexts(odTable, 0), QStringList({"A", "B", "20", "20", "2", "5", "+10", "+60", "+50", "0.1", "0.35", "+0.25"}));
-	for (int column = 6; column < odTable->columnCount(); ++column)
+	// The change that ranks the pairs and the change in journeys not reached come right after the pair.
+	QCOMPARE(rowTexts(odTable, 0), QStringList({"A", "B", "+0.25", "+3", "20", "20", "2", "5", "+10", "+60", "+50", "0.1", "0.35"}));
+	QCOMPARE(odTable->horizontalHeaderItem(2)->text(), QStringLiteral("Passenger-hours lost difference"));
+	QCOMPARE(odTable->horizontalHeaderItem(3)->text(), QStringLiteral("Not reached difference"));
+	for (const int column : {2, 8, 9, 10, 11, 12})
 		QVERIFY2(odTable->horizontalHeaderItem(column)->toolTip().contains("completed journeys of the pair"),
 			qPrintable(odTable->horizontalHeaderItem(column)->text()));
 
@@ -444,6 +449,53 @@ void TestPassengerComparison::comparisonWindowShowsFiguresAndDifferences() {
 	QCOMPARE(rowTexts(noCompletedTable, 5), QStringList({"Total arrival delay of completed journeys (s)", "+180", "-", "-"}));
 	QCOMPARE(rowTexts(noCompletedTable, 6), QStringList({"Mean arrival delay of completed journeys (s)", "+10", "-", "-"}));
 	QCOMPARE(noCompletedWindow.findChild<ResultFigure*>("passengerComparisonMeanDelay")->value(), QStringLiteral("-"));
+}
+
+// The window opens wide enough for the four columns of the summary beside the panel, and at least as wide as the Delay analysis
+// window. The screen of the offscreen platform is narrower than that, so the test lifts the limit that the screen sets.
+void TestPassengerComparison::windowOpensWideEnoughForTheSummary() {
+	PassengerRunSummary base;
+	base.journeys = 5050;
+	base.completedJourneys = 1333;
+	base.noRouteJourneys = 3441;
+	base.inProgressJourneys = 276;
+	base.totalDelaySeconds = 471226.0;
+	base.meanDelaySeconds = 353.51;
+	base.passengerHoursLost = 131.134;
+	PassengerRunSummary cur = base;
+	cur.completedJourneys = 1342;
+	cur.noRouteJourneys = 3432;
+	cur.totalDelaySeconds = 473512.0;
+	cur.meanDelaySeconds = 352.84;
+	cur.passengerHoursLost = 134.676;
+	PassengerComparisonWindow window(makeSnapshot("baseline", true, base), makeSnapshot("incident", true, cur));
+	const int fit = window.summaryFitWidth();
+	QCOMPARE(window.width(), qMin(window.maximumWidth(), qMax(960, fit)));
+
+	const auto* summary = window.findChild<QTableWidget*>("passengerComparisonSummary");
+	if (summary == nullptr)
+		QFAIL("summary table missing");
+	const auto layOut = [&window](int width) {
+		window.resize(width, 640);
+		for (int round = 0; round < 4; ++round) {
+			QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+			QApplication::processEvents();
+		}
+	};
+	const int metricWidth = summary->columnWidth(0);
+	window.setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+	window.show();
+	for (const int width : {fit, qMax(960, fit)}) {
+		layOut(width);
+		QVERIFY2(!summary->horizontalScrollBar()->isVisible(), qPrintable(QString::number(width)));
+	}
+	// The metric column keeps the width of its longest name; the last column takes the room that is left.
+	QCOMPARE(summary->columnWidth(0), metricWidth);
+	// A little narrower than the width that fits, the columns scroll: the width is not more than the summary needs.
+	if (fit < 1000) {
+		layOut(fit - 8);
+		QVERIFY2(summary->horizontalScrollBar()->isVisible(), qPrintable(QString::number(fit)));
+	}
 }
 
 void TestPassengerComparison::odRankingListsChangedPairsAndCapsAtTwenty() {
@@ -490,11 +542,11 @@ void TestPassengerComparison::odRankingListsChangedPairsAndCapsAtTwenty() {
 		QFAIL("OD table missing");
 	// 26 pairs changed; the table keeps 20.
 	QCOMPARE(odTable->rowCount(), 20);
-	QCOMPARE(rowTexts(odTable, 0), QStringList({"Z", "A", "10", "10", "0", "0", "+720", "0", "-720", "2", "0", "-2"}));
-	QCOMPARE(rowTexts(odTable, 1), QStringList({"B", "C", "5", "6", "0", "2", "0", "+1350", "+1350", "0", "1.5", "+1.5"}));
+	QCOMPARE(rowTexts(odTable, 0), QStringList({"Z", "A", "-2", "0", "10", "10", "0", "0", "+720", "0", "-720", "2", "0"}));
+	QCOMPARE(rowTexts(odTable, 1), QStringList({"B", "C", "+1.5", "+2", "5", "6", "0", "2", "0", "+1350", "+1350", "0", "1.5"}));
 	QCOMPARE(cell(odTable, 2, 0) + cell(odTable, 2, 1), QStringLiteral("AB"));
 	QCOMPARE(cell(odTable, 3, 0) + cell(odTable, 3, 1), QStringLiteral("AD"));
-	QCOMPARE(rowTexts(odTable, 4), QStringList({"Q", "R", "2", "0", "0", "0", "+540", "-", "-", "0.3", "0", "-0.3"}));
+	QCOMPARE(rowTexts(odTable, 4), QStringList({"Q", "R", "-0.3", "0", "2", "0", "0", "0", "+540", "-", "-", "0.3", "0"}));
 	QCOMPARE(cell(odTable, 5, 0), QStringLiteral("S21"));
 	QCOMPARE(cell(odTable, 19, 0), QStringLiteral("S07"));
 	for (int row = 0; row < odTable->rowCount(); ++row)
