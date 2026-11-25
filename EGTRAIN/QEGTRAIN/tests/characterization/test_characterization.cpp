@@ -50,6 +50,7 @@
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/DelayAnalysis.h"
 #include "diagrams/RunResults.h"
+#include "scene/SignallingLevel.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Passengers.h"
@@ -233,6 +234,8 @@ struct CaseSpec {
 	bool stub = false;
 	// Adds the service E1 to the scene: F1 without its stop at B.
 	bool skipStop = false;
+	// F1 runs at no more than 90 km/h, so that F2 catches up with it between B and C.
+	bool slowLeader = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
 	// F1 stands at B until 1050 s, in front of the restriction, and R1 runs on routeCB from C to B from 650 s.
@@ -331,6 +334,13 @@ std::vector<CaseSpec> buildCaseTable() {
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
+	// F1 runs at 90 km/h and F2 at line speed. F2 waits behind F1 at B and calls there after F1 has left. At level 4 that ends
+	// its coupling. F2 then catches up with F1 at line speed and has to brake behind it when F1 brakes for C.
+	for (int level = 3; level <= 4; ++level) {
+		CaseSpec catchUp{"catch-up-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""};
+		catchUp.slowLeader = true;
+		cases.push_back(catchUp);
+	}
 	// E1 does not stop at B. F2 stops there and moves first in every step, while E1 runs ahead of it towards B.
 	CaseSpec skipStop{"skip-stop-level-0", "baseline", {"F2", "E1"}, 0, ""};
 	skipStop.skipStop = true;
@@ -489,8 +499,9 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back(spec);
 	}
 	// F1 breaks down at line speed from 240 s to 600 s, 475 m before the end of 2-B0: it brakes to a stand 273 m past the
-	// signal at 6 km, and F2 is held behind it.
-	for (int level : {0, 3})
+	// signal at 6 km, and F2 is held behind it. At level 4 F2 follows F1 coupled from there, loses its coupling while both
+	// speed up and brakes behind F1 when F1 brakes for B.
+	for (int level : {0, 3, 4})
 		cases.push_back({"breakdown-line-speed-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""});
 	// E1 breaks down at line speed from 300 s to 600 s, 308 m before B, where it does not stop: it brakes to a stand 440 m
 	// past B.
@@ -1032,8 +1043,9 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 	// running resistance. A case with a known-wrong marker is exempt from
 	// the checks on stops, separation and the timetable. A case without a
 	// signalling area is exempt from the check for overlapping trains: a
-	// scene without a signalling level does not separate trains. A train
-	// may stop anywhere when a breakdown holds it there.
+	// scene without a signalling level does not separate trains. At level 3
+	// and 4 a train also keeps the safety margin behind the train ahead. A
+	// train may stop anywhere when a breakdown holds it there.
 	constexpr double kTopSpeed = 36.111111111111 + 1e-6;
 	constexpr double kMaxAcceleration = 209000.0 / 151000.0 + 1e-3;
 	constexpr double kMaxDeceleration = 0.95;
@@ -1107,6 +1119,14 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "
 					+ formatReal(-separation.gap) + " m at t=" + std::to_string(separation.step));
+	// On the moving block levels a train stops the safety margin behind the tail of the train ahead, and never comes closer.
+	if (!waived && isMovingBlockLevel(spec.level)) {
+		const double margin = simulation.run().settings.endOfAuthorityMarginM;
+		for (const Separation& separation : separations)
+			if (separation.overlap && separation.gap >= 0.0 && separation.gap < margin)
+				fail(separation.follower + " comes within " + formatReal(separation.gap) + " m of the tail of " + separation.leader
+					+ " at t=" + std::to_string(separation.step) + ", inside the safety margin of " + formatReal(margin) + " m");
+	}
 	if (spec.singleTrack && !spec.stub && !spec.runningConflict && !waived && spec.level != kNoSignallingArea) {
 		// S1 runs on routeAB and R1 on route1, so the check above does not pair them. The restricted section with its
 		// protected sections is 0-B0 to 5-B0: the whole of routeAB (0 to 8000 m) for S1 and 4000 to 16000 m for R1.
@@ -1627,6 +1647,12 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
 	}
+	if (spec.slowLeader)
+		for (SceneService& service : loaded.scene.services)
+			if (service.id == "F1") {
+				service.hasMaximumSpeed = true;
+				service.maximumSpeedKmh = 90.0;
+			}
 	if (spec.skipStop) {
 		const auto f1 = std::find_if(loaded.scene.services.begin(), loaded.scene.services.end(), [](const SceneService& service) {
 			return service.id == "F1";
