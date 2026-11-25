@@ -31,4 +31,41 @@ PassengerDemandCsv readPassengerDemandCsv(const std::string& text, const std::ve
 /// every station in the order of stations, by id.
 std::string writePassengerDemandCsv(const ScenePassengerDemandSlice& slice, const std::vector<SceneStation>& stations);
 
+/// One unknown station name skipped while reading a demand table.
+struct PassengerDemandUnknownStation {
+	std::string name;		  ///< Station name as written in the table.
+	int rows = 0;			  ///< Number of rows skipped because of this name.
+	long long passengers = 0; ///< Total passengers skipped across those rows.
+};
+
+/// A day of origin-destination demand read from a long-format CSV table.
+struct PassengerDemandTable {
+	std::vector<ScenePassengerDemandSlice> slices;				///< Non-overlapping slices in time order, with cells in station order.
+	std::vector<PassengerDemandUnknownStation> unknownStations; ///< Unknown station names skipped, in first-seen order.
+	long long totalPassengers = 0;								///< Total passengers across all kept slices.
+	std::vector<std::string> errors;							///< One message per problem, with its line; slices are kept only when empty.
+	/// True when no problem was found.
+	bool ok() const { return errors.empty(); }
+};
+
+/// Reads a whole day of origin-destination demand from a long-format CSV table with a header row naming the columns
+/// in any order (case-insensitive):
+///
+///     origin,destination,start,end,count
+///     Guingamp,Paimpol,07:00:00,08:00:00,75
+///     Paimpol,Guingamp,07:00:00,08:00:00,52
+///     Guingamp,Paimpol,08:00:00,09:00:00,40
+///
+/// start and end accept HH:MM:SS, HH:MM or whole seconds since midnight (0 to 86400). A period column (whole seconds,
+/// HH:MM:SS or HH:MM) may replace end, with end = start + period; exactly one of end and period must be present.
+/// Stations are matched by id, then by name; rows naming unknown stations are skipped and listed in unknownStations.
+/// Rows with the same start and end form one slice, duplicate origin-destination pairs within a slice add up, and rows
+/// with count 0 are skipped. Overlapping distinct periods and a total above kMaxScenePassengerDemand are errors.
+PassengerDemandTable readPassengerDemandTable(const std::string& text, const std::vector<SceneStation>& stations);
+
+/// Writes slices in the table format that readPassengerDemandTable reads: header origin,destination,start,end,count,
+/// station ids, times as HH:MM:SS, slices in time order and cells in the order of stations.
+std::string writePassengerDemandTable(
+	const std::vector<ScenePassengerDemandSlice>& slices, const std::vector<SceneStation>& stations);
+
 #endif

@@ -79,6 +79,10 @@ private slots:
 	void readsTheSupervisorMatrix();
 	void reportsMatrixErrors();
 	void writesAMatrixThatReadsBack();
+	void readsDemandTableFormatsAndSumsRows();
+	void readsDemandTableWithPeriodAndSkipsUnknowns();
+	void reportsDemandTableErrors();
+	void writesDemandTableThatReadsBack();
 	void followsStationRenamesAndBlocksDeletes();
 };
 
@@ -322,6 +326,152 @@ void TestPassengerDemand::writesAMatrixThatReadsBack() {
 	QCOMPARE(matrix.cells[0].count, 75);
 	QCOMPARE(matrix.cells[1].originStationId, std::string("Paimpol"));
 	QCOMPARE(matrix.cells[1].count, 37);
+}
+
+void TestPassengerDemand::readsDemandTableFormatsAndSumsRows() {
+	SceneModel scene = paimpol();
+	// Add a station whose name has a comma to exercise quoted CSV fields and name matching.
+	SceneStation commaStation = scene.stations.front();
+	commaStation.id = "Port,North";
+	commaStation.name = "Port, North";
+	scene.stations.push_back(commaStation);
+
+	// BOM, Windows line endings, empty lines, reordered case-insensitive headers, all three time forms,
+	// duplicate rows summed, zero-count rows skipped, and quoted fields with commas.
+	const std::string text = "\xEF\xBB\xBF"
+							 "COUNT,Start,End,Destination,Origin\r\n"
+							 "40,08:00,09:00,Paimpol,Guingamp\r\n"
+							 "\r\n"
+							 "50,07:00:00,08:00:00,Paimpol,Guingamp\r\n"
+							 "25,25200,28800,Paimpol,Guingamp\r\n"
+							 "12,07:00:00,08:00:00,\"Port, North\",Paimpol\r\n"
+							 "0,07:00:00,08:00:00,Gourland,Guingamp\r\n"
+							 "0,10:00:00,11:00:00,Paimpol,Guingamp\r\n";
+	const PassengerDemandTable table = readPassengerDemandTable(text, scene.stations);
+	QVERIFY2(table.ok(), table.errors.empty() ? "" : table.errors[0].c_str());
+	QVERIFY(table.unknownStations.empty());
+	QCOMPARE(table.totalPassengers, 127LL);
+	// Slices are sorted in time order; the zero-only 10:00-11:00 slice is skipped.
+	QCOMPARE(table.slices.size(), std::size_t{2});
+	QCOMPARE(table.slices[0].id, std::string("slice-1"));
+	QCOMPARE(table.slices[0].startSeconds, 7 * 3600.0);
+	QCOMPARE(table.slices[0].endSeconds, 8 * 3600.0);
+	QCOMPARE(table.slices[0].cells.size(), std::size_t{2});
+	QCOMPARE(table.slices[0].cells[0].originStationId, std::string("Guingamp"));
+	QCOMPARE(table.slices[0].cells[0].destinationStationId, std::string("Paimpol"));
+	QCOMPARE(table.slices[0].cells[0].count, 75);
+	QCOMPARE(table.slices[0].cells[1].originStationId, std::string("Paimpol"));
+	QCOMPARE(table.slices[0].cells[1].destinationStationId, std::string("Port,North"));
+	QCOMPARE(table.slices[0].cells[1].count, 12);
+	QCOMPARE(table.slices[1].id, std::string("slice-2"));
+	QCOMPARE(table.slices[1].startSeconds, 8 * 3600.0);
+	QCOMPARE(table.slices[1].endSeconds, 9 * 3600.0);
+	QCOMPARE(table.slices[1].cells.size(), std::size_t{1});
+	QCOMPARE(table.slices[1].cells[0].count, 40);
+}
+
+void TestPassengerDemand::readsDemandTableWithPeriodAndSkipsUnknowns() {
+	const std::vector<SceneStation> stations = paimpol().stations;
+	const std::string text = "origin,destination,start,period,count\n"
+							 "Guingamp,Paimpol,07:00:00,3600,30\n"
+							 "Paimpol,Guingamp,08:00:00,00:30:00,15\n"
+							 "Atlantis,Paimpol,07:00:00,3600,10\n"
+							 "Guingamp,Atlantis,08:00:00,00:30:00,5\n"
+							 "Mars,Venus,09:00:00,1800,4\n";
+	const PassengerDemandTable table = readPassengerDemandTable(text, stations);
+	QVERIFY2(table.ok(), table.errors.empty() ? "" : table.errors[0].c_str());
+	QCOMPARE(table.slices.size(), std::size_t{2});
+	QCOMPARE(table.slices[0].startSeconds, 7 * 3600.0);
+	QCOMPARE(table.slices[0].endSeconds, 8 * 3600.0);
+	QCOMPARE(table.slices[1].startSeconds, 8 * 3600.0);
+	QCOMPARE(table.slices[1].endSeconds, 8.5 * 3600.0);
+	QCOMPARE(table.totalPassengers, 45LL);
+	QCOMPARE(table.unknownStations.size(), std::size_t{3});
+	QCOMPARE(table.unknownStations[0].name, std::string("Atlantis"));
+	QCOMPARE(table.unknownStations[0].rows, 2);
+	QCOMPARE(table.unknownStations[0].passengers, 15LL);
+	QCOMPARE(table.unknownStations[1].name, std::string("Mars"));
+	QCOMPARE(table.unknownStations[1].rows, 1);
+	QCOMPARE(table.unknownStations[1].passengers, 4LL);
+	QCOMPARE(table.unknownStations[2].name, std::string("Venus"));
+	QCOMPARE(table.unknownStations[2].rows, 1);
+	QCOMPARE(table.unknownStations[2].passengers, 4LL);
+}
+
+void TestPassengerDemand::reportsDemandTableErrors() {
+	const std::vector<SceneStation> stations = paimpol().stations;
+	const auto mentions = [](const PassengerDemandTable& table, const std::string& part) {
+		return std::any_of(table.errors.begin(), table.errors.end(),
+			[&part](const std::string& error) { return error.find(part) != std::string::npos; });
+	};
+
+	// Empty file, both end and period, neither end nor period.
+	QVERIFY(!readPassengerDemandTable("", stations).ok());
+	const PassengerDemandTable both = readPassengerDemandTable(
+		"origin,destination,start,end,period,count\nGuingamp,Paimpol,07:00,08:00,3600,5\n", stations);
+	QVERIFY(!both.ok());
+	QVERIFY(mentions(both, "both end and period"));
+	const PassengerDemandTable neither = readPassengerDemandTable(
+		"origin,destination,start,count\nGuingamp,Paimpol,07:00,5\n", stations);
+	QVERIFY(!neither.ok());
+	QVERIFY(mentions(neither, "either an end or a period"));
+
+	// Row-level errors: bad times, non-integer/negative counts, same station, overlap.
+	const PassengerDemandTable bad = readPassengerDemandTable(
+		"origin,destination,start,end,count\n"
+		"Guingamp,Paimpol,soon,08:00:00,5\n"
+		"Guingamp,Paimpol,08:00:00,07:00:00,5\n"
+		"Guingamp,Paimpol,07:00:00,08:00:00,-3\n"
+		"Guingamp,Paimpol,07:00:00,08:00:00,2.5\n"
+		"Guingamp,Guingamp,07:00:00,08:00:00,4\n"
+		"Guingamp,Paimpol,07:00:00,08:00:00,10\n"
+		"Paimpol,Guingamp,07:30:00,08:30:00,10\n",
+		stations);
+	QVERIFY(!bad.ok());
+	QVERIFY(bad.slices.empty());
+	QVERIFY(mentions(bad, "Line 2: Start time"));
+	QVERIFY(mentions(bad, "Line 3: End time must be after start time"));
+	QVERIFY(mentions(bad, "Line 4: Count '-3'"));
+	QVERIFY(mentions(bad, "Line 5: Count '2.5'"));
+	QVERIFY(mentions(bad, "Line 6: Origin and destination station Guingamp must differ"));
+	QVERIFY(mentions(bad, "Line 8: Period 07:30:00-08:30:00 overlaps 07:00:00-08:00:00"));
+
+	// Total above kMaxScenePassengerDemand.
+	const PassengerDemandTable overLimit = readPassengerDemandTable(
+		"origin,destination,start,end,count\n"
+		"Guingamp,Paimpol,07:00:00,08:00:00,600000\n"
+		"Paimpol,Guingamp,08:00:00,09:00:00,500000\n",
+		stations);
+	QVERIFY(!overLimit.ok());
+	QVERIFY(overLimit.slices.empty());
+	QVERIFY(mentions(overLimit, std::to_string(kMaxScenePassengerDemand)));
+}
+
+void TestPassengerDemand::writesDemandTableThatReadsBack() {
+	SceneModel scene = paimpol();
+	// Deliberately out of time order and out of station order; writePassengerDemandTable normalizes both.
+	const ScenePassengerDemandSlice evening{"evening", 17 * 3600.0, 18 * 3600.0, {{"Paimpol", "Guingamp", 22}}};
+	const ScenePassengerDemandSlice early{"early", 8 * 3600.0, 9 * 3600.0,
+		{{"Paimpol", "Gourland", 37}, {"Guingamp", "Paimpol", 75}}};
+	const std::string text = writePassengerDemandTable({evening, early}, scene.stations);
+	QVERIFY(text.rfind("origin,destination,start,end,count\n", 0) == 0);
+	const PassengerDemandTable readBack = readPassengerDemandTable(text, scene.stations);
+	QVERIFY2(readBack.ok(), readBack.errors.empty() ? "" : readBack.errors[0].c_str());
+	QCOMPARE(readBack.slices.size(), std::size_t{2});
+	QCOMPARE(readBack.slices[0].startSeconds, 8 * 3600.0);
+	QCOMPARE(readBack.slices[0].endSeconds, 9 * 3600.0);
+	QCOMPARE(readBack.slices[0].cells.size(), std::size_t{2});
+	QCOMPARE(readBack.slices[0].cells[0].originStationId, std::string("Guingamp"));
+	QCOMPARE(readBack.slices[0].cells[0].destinationStationId, std::string("Paimpol"));
+	QCOMPARE(readBack.slices[0].cells[0].count, 75);
+	QCOMPARE(readBack.slices[0].cells[1].originStationId, std::string("Paimpol"));
+	QCOMPARE(readBack.slices[0].cells[1].destinationStationId, std::string("Gourland"));
+	QCOMPARE(readBack.slices[0].cells[1].count, 37);
+	QCOMPARE(readBack.slices[1].startSeconds, 17 * 3600.0);
+	QCOMPARE(readBack.slices[1].endSeconds, 18 * 3600.0);
+	QCOMPARE(readBack.slices[1].cells.size(), std::size_t{1});
+	QCOMPARE(readBack.slices[1].cells[0].count, 22);
+	QCOMPARE(writePassengerDemandTable(readBack.slices, scene.stations), text);
 }
 
 void TestPassengerDemand::followsStationRenamesAndBlocksDeletes() {
