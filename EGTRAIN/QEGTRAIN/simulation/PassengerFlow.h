@@ -78,6 +78,20 @@ public:
 
 	/// The number of passengers waiting at the platform now, 0 for a platform nobody ever waited at.
 	int waitingCount(const std::string& stationId, const std::string& platformId) const;
+	/// The number of passengers held at the entrance of the platform now, 0 when none are held.
+	int heldCount(const std::string& stationId, const std::string& platformId) const;
+	/// The number of passengers held at the entrance of platform key `platform`, 0 when out of range or none.
+	int heldCount(int platform) const;
+	/// True when any passenger in the flow is held at a station entrance.
+	bool hasHeld() const { return totalHeld_ > 0; }
+	/// The first passenger in FIFO order held at the entrance of platform key `platform`, or none.
+	std::optional<int> nextHeld(int platform) const;
+	/// Updates the train a held passenger waits for without changing its FIFO place in the entrance queue.
+	void updateHeldTrain(int position);
+	/// Platform keys that currently hold passengers at their entrance, in key order.
+	std::vector<int> platformsWithHeld() const;
+	/// The station ID and platform ID of platform key `platform`.
+	const std::pair<std::string, std::string>& platformIdOf(int platform) const { return platformIds_[static_cast<std::size_t>(platform)]; }
 	/// The number that the flow gives the platform, or -1 when nobody ever waited there.
 	int platformNumber(const std::string& stationId, const std::string& platformId) const { return findPlatformKey(stationId, platformId); }
 	/// The number that the flow gives the train, or -1 when nobody ever waited for it or was on it.
@@ -113,14 +127,16 @@ public:
 private:
 	enum class Kind : char { None,
 		Waiting,
-		OnBoard };
+		OnBoard,
+		Held };
 	struct Registration {
 		Kind kind = Kind::None;
-		int first = -1;				 // waiting: platform; on board: train
-		int second = -1;			 // waiting: train; on board: arrival station
-		std::vector<Waiter> waiters; // waiting only
-		bool refused = false;		 // waiting only: refused boarding the train that the passenger waits for
-		int destination = -1;		 // waiting only: number of the arrival station of the journey, -1 for none
+		int first = -1;						// waiting or held: platform; on board: train
+		int second = -1;					// waiting or held: train; on board: arrival station
+		std::vector<Waiter> waiters;		// waiting only
+		bool refused = false;				// waiting only: refused boarding the train that the passenger waits for
+		int destination = -1;				// waiting only: number of the arrival station of the journey, -1 for none
+		std::list<int>::iterator heldEntry; // held only: entry in PlatformQueues::held
 	};
 	struct TrainQueue {
 		std::set<Waiter> all;
@@ -132,6 +148,7 @@ private:
 		std::map<int, int> byDestination; // station number to the entries of the waiting passengers going there
 		bool dirty = false;
 		std::unordered_map<int, TrainQueue> byTrain;
+		std::list<int> held; // passenger positions held at the entrance in FIFO order
 	};
 	struct JourneyStart {
 		double due;
@@ -161,7 +178,9 @@ private:
 	std::unordered_map<std::string, int> ids_; // train descriptions and station names, numbered
 	std::vector<std::string> idNames_;		   // the name of each number
 	std::map<std::pair<std::string, std::string>, int> platformKeys_;
+	std::vector<std::pair<std::string, std::string>> platformIds_;
 	std::vector<PlatformQueues> queues_;
+	int totalHeld_ = 0;
 	std::unordered_map<std::uint64_t, std::vector<int>> onBoard_;
 	std::vector<int> dirtyPlatforms_;
 
@@ -171,6 +190,14 @@ private:
 	std::vector<StationPlatform*> allPlatforms_;
 	bool allPlatformsStale_ = true;
 };
+
+/// Holds the passenger at the station entrance if the target platform is at capacity or already has an entrance queue,
+/// when SimulationRun::settings.passengerPlatformCapacityLimit is on. `now` is seconds since midnight.
+void holdIfPlatformFull(SimulationRun& run, const PassengerFlow& flow, Passenger& passenger, int now);
+
+/// Admits passengers from every platform entrance queue in FIFO order while room is available on the platform, recording
+/// their held time on their active journey. `now` is seconds since midnight.
+void admitHeldPassengers(SimulationRun& run, PassengerFlow& flow, int now);
 
 /// At the start of step t: the passengers whose journey starts enter the network and, with settings.PAX_GUI, the waiting lists of
 /// the platforms are refreshed. The flow of the run is built or rebuilt here when it does not describe the passengers of the run.

@@ -490,12 +490,15 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"signal-failure-change", {"Q1", "Q3", "Q4"}, 0},
 		{"cancel-from-b", {"Q1", "Q2"}, 0},
 		{"cancel-complete", {"Q1", "Q2"}, 0},
+		{"platform-limit", {"Q1"}, 0},
 	};
 	for (const auto& live : livePassengers) {
 		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
 		spec.passengers = live.set;
 		spec.capacity = live.capacity;
 		spec.missedConnections = live.missedConnections;
+		if (spec.name == "pax-platform-limit")
+			spec.paxGui = true;
 		cases.push_back(spec);
 		// The passenger GUI boards from platform lists: replanned passengers must board in the same step there too.
 		if (spec.name == "pax-live-full" || spec.name == "pax-live-missed") {
@@ -700,6 +703,8 @@ public:
 			Line line{"gui_platform " + platform.stationId + " " + platform.platformId, {textField("ids", ids)}};
 			if (platform.passengerCount != static_cast<int>(platform.passengers.size()))
 				line.fields.push_back(integerField("count", platform.passengerCount));
+			if (platform.heldCount > 0)
+				line.fields.push_back(integerField("held", platform.heldCount));
 			observe(std::move(line));
 		}
 		// The passengers that a platform lists, in the order of the run.
@@ -1466,6 +1471,23 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		// No train runs from C to A, and Q1 left P before n2 appears.
 		scene.passengers.push_back({"n1", {journey("n1.1", 100, 1250, "C", "A", {})}});
 		scene.passengers.push_back({"n2", {journey("n2.1", 480, 1250, "P", "B", {})}});
+	} else if (set == "platform-limit") {
+		// Station P gets a small platform of capacity 2 (3 m by 2 m) with the platform capacity limit on.
+		// Five passengers appear before Q1 arrives: h1 and h2 enter the platform; h3, h4 and h5 wait at the entrance
+		// in FIFO order and are admitted as room opens while Q1 boards.
+		scene.settings.passengerPlatformCapacityLimit = true;
+		for (SceneStation& station : scene.stations) {
+			if (station.id == "P" && !station.platforms.empty()) {
+				station.platforms.front().hasLength = true;
+				station.platforms.front().lengthM = 3.0;
+				station.platforms.front().hasWidth = true;
+				station.platforms.front().widthM = 2.0;
+			}
+		}
+		for (int i = 0; i < 5; ++i) {
+			const std::string id = "h" + std::to_string(i + 1);
+			scene.passengers.push_back({id, {journey(id + ".1", 100 + i * 20, 760, "P", "B", {})}});
+		}
 	} else {
 		// x1 transfers to Q2; x2 boards Q3 on Platform_4; the change from B.platform.1 has no walk, as that platform has no number.
 		scene.passengers.push_back({"x1", {journey("x1.1", 150, 1400, "P", "C", {"Q1", "Q2"})}});
@@ -2204,6 +2226,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 				// How the journey was planned again or ended, only when it was, so that other cases read as before.
 				if (j.IsReplanned)
 					journeyFields.push_back(integerField("replanned", 1));
+				if (j.Heldtime > 0.0)
+					journeyFields.push_back(realField("held", j.Heldtime));
 				if (j.Outcome == JourneyOutcome::NoRoute)
 					journeyFields.push_back(textField("outcome", journeyOutcomeName(j.Outcome)));
 				add("journey " + p.ID + " " + j.ID, std::move(journeyFields));

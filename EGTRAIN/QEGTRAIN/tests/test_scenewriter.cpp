@@ -724,6 +724,7 @@ private slots:
 	void writesPassengerWalkingTimeOnlyWhenNotDefault();
 	void writesPassengerLateThresholdOnlyWhenNotDefault();
 	void writesPassengerDemandArrivalsOnlyWhenNotDefault();
+	void writesPlatformCapacityLimitOnlyWhenOn();
 	void writesPassengerDwellSettingsOnlyWhenSet();
 	void writesVirtualCouplingSettingsOnlyWhenNotDefault();
 	void keepsUnchosenSignallingLevel();
@@ -1032,6 +1033,34 @@ void TestSceneWriter::writesPassengerDemandArrivalsOnlyWhenNotDefault() {
 	QCOMPARE(written["simulation_settings"].value("passenger_demand_arrivals", ""), std::string("random"));
 	QVERIFY(loadHasNoErrors(randomPath, reloaded));
 	QCOMPARE(reloaded.settings.passengerDemandArrivals, std::string("random"));
+}
+
+// passenger_platform_capacity_limit is omitted while off and written and loaded back when on.
+void TestSceneWriter::writesPlatformCapacityLimitOnlyWhenOn() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	const fs::path offPath = temp.path / "platform-limit-off";
+	QVERIFY2(saveScene(scene, offPath.string()).success(), "scene with default platform capacity limit saves");
+	json written;
+	{
+		std::ifstream input(offPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY(!written.contains("simulation_settings") || !written["simulation_settings"].contains("passenger_platform_capacity_limit"));
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(offPath, reloaded));
+	QVERIFY(!reloaded.settings.passengerPlatformCapacityLimit);
+
+	scene.settings.passengerPlatformCapacityLimit = true;
+	const fs::path onPath = temp.path / "platform-limit-on";
+	QVERIFY2(saveScene(scene, onPath.string()).success(), "scene with platform capacity limit on saves");
+	{
+		std::ifstream input(onPath / "scene.json");
+		input >> written;
+	}
+	QCOMPARE(written["simulation_settings"].value("passenger_platform_capacity_limit", false), true);
+	QVERIFY(loadHasNoErrors(onPath, reloaded));
+	QVERIFY(reloaded.settings.passengerPlatformCapacityLimit);
 }
 
 // The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.

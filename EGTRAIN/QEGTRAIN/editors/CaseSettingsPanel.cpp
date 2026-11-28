@@ -2,6 +2,7 @@
 
 #include "editors/EditorHelpers.h"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -84,6 +85,10 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	m_demandArrivalsCombo->setToolTip("The arrival pattern of demand passengers: even spreads passengers evenly over the period of each "
 									  "slice; random places them at independent random times");
 	layout->addRow("Demand arrivals", m_demandArrivalsCombo);
+	m_platformCapacityLimitCheck = new QCheckBox("Keep passengers off a full platform", this);
+	m_platformCapacityLimitCheck->setObjectName("casePlatformCapacityLimitCheck");
+	m_platformCapacityLimitCheck->setToolTip("When on, passengers who would exceed a platform's capacity wait at the station entrance until room appears");
+	layout->addRow("Platform capacity limit", m_platformCapacityLimitCheck);
 
 	QGroupBox* coupling = new QGroupBox("Virtual coupling", this);
 	coupling->setObjectName("caseVirtualCouplingGroup");
@@ -127,6 +132,7 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	connect(m_lateThresholdEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	connect(m_couplingServiceList, &QListWidget::itemChanged, this, [this](QListWidgetItem*) { commitCouplingServices(); });
 	connect(m_demandArrivalsCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) { commit(); });
+	connect(m_platformCapacityLimitCheck, &QCheckBox::toggled, this, [this](bool) { commit(); });
 	CaseSettingsPanel::refresh();
 }
 
@@ -135,7 +141,7 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 	// reports that editing finished.
 	QObject* const fields[] = {m_nameEdit, m_descriptionEdit, m_baseTimeEdit, m_durationSecondsEdit, m_bufferSecondsEdit,
 		m_recoveryPercentEdit, m_maxTransfersEdit, m_walkingSecondsEdit, m_lateThresholdEdit, m_demandArrivalsCombo,
-		m_couplingDistanceEdit,
+		m_platformCapacityLimitCheck, m_couplingDistanceEdit,
 		m_couplingSpeedToleranceEdit, m_authorityMarginEdit, m_couplingServiceList};
 	for (QObject* field : fields)
 		field->disconnect(this);
@@ -216,6 +222,11 @@ void CaseSettingsPanel::refresh() {
 		const QSignalBlocker blocker(m_demandArrivalsCombo);
 		m_demandArrivalsCombo->setCurrentIndex(model.settings.passengerDemandArrivals == "random" ? 1 : 0);
 		m_demandArrivalsCombo->setEnabled(loaded);
+	}
+	{
+		const QSignalBlocker blocker(m_platformCapacityLimitCheck);
+		m_platformCapacityLimitCheck->setChecked(model.settings.passengerPlatformCapacityLimit);
+		m_platformCapacityLimitCheck->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_couplingDistanceEdit);
@@ -302,6 +313,8 @@ void CaseSettingsPanel::commit() {
 	const std::string demandArrivals = m_demandArrivalsCombo->currentIndex() == 1 ? "random" : "even";
 	const std::string currentArrivals = model.settings.passengerDemandArrivals == "random" ? "random" : "even";
 	const bool demandArrivalsEdited = currentArrivals != demandArrivals;
+	const bool platformCapacityLimit = m_platformCapacityLimitCheck->isChecked();
+	const bool platformCapacityLimitEdited = model.settings.passengerPlatformCapacityLimit != platformCapacityLimit;
 	const double couplingDistance = m_couplingDistanceEdit->value();
 	const bool couplingDistanceEdited = shownValue(m_couplingDistanceEdit, model.settings.virtualCouplingDistanceM) != couplingDistance;
 	const double speedTolerance = m_couplingSpeedToleranceEdit->value();
@@ -311,7 +324,7 @@ void CaseSettingsPanel::commit() {
 	const bool couplingEdited = couplingDistanceEdited || speedToleranceEdited || authorityMarginEdited;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
 		&& !bufferEdited && !recoveryEdited && !transfersEdited && !walkingEdited && !lateThresholdEdited && !demandArrivalsEdited
-		&& !couplingEdited)
+		&& !platformCapacityLimitEdited && !couplingEdited)
 		return;
 
 	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
@@ -344,6 +357,8 @@ void CaseSettingsPanel::commit() {
 				edited.settings.endOfAuthorityMarginM = authorityMargin;
 			if (demandArrivalsEdited)
 				edited.settings.passengerDemandArrivals = demandArrivals;
+			if (platformCapacityLimitEdited)
+				edited.settings.passengerPlatformCapacityLimit = platformCapacityLimit;
 			if (baseTimeEdited)
 				emit baseTimeChanged(m_baseTimeEdit->text());
 		}))

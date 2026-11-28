@@ -33,18 +33,23 @@ public:
 	void setGauge(bool enabled);
 	/// Whether the bar draws as a gauge.
 	bool gauge() const { return m_gauge; }
-	/// Sets how many passengers wait on a platform that holds capacity of them, and the occupancy rate above which it
-	/// counts as crowded. A capacity of 0 or less leaves the trough empty. The bar is drawn again only when something
-	/// changes.
-	void setCrowding(int waiting, int capacity, double threshold);
+	/// Sets how many passengers wait on a platform that holds capacity of them, the occupancy rate above which it
+	/// counts as crowded, and how many passengers are held at the station entrance. A capacity of 0 or less leaves the
+	/// trough empty. The bar is drawn again only when something changes.
+	void setCrowding(int waiting, int capacity, double threshold, int held = 0);
 	/// The number of passengers that setCrowding() was given.
 	int waiting() const { return m_waiting; }
 	/// The capacity that setCrowding() was given, 0 or more.
 	int capacity() const { return m_capacity; }
+	/// The number of passengers held at the entrance that setCrowding() was given, 0 or more.
+	int held() const { return m_held; }
 	/// The fraction of the bar that the fill covers: waiting over capacity up to 1, 0 without a capacity.
 	qreal fillFraction() const;
-	/// How crowded the platform is: Over above its capacity, Busy above its threshold, else Normal; Normal without a
-	/// capacity.
+	/// The fraction of the bar length that the held-at-entrance overflow past capacity covers, 0 when none are held or
+	/// without a capacity.
+	qreal heldFraction() const;
+	/// How crowded the platform is: Over above its capacity or with passengers held at the entrance, Busy above its
+	/// threshold, else Normal; Normal without a capacity.
 	PlatformCrowding crowding() const;
 
 	/// The node of the run beside which the bar lies, which belongs to the run; null in the preview.
@@ -63,6 +68,11 @@ public:
 	QGraphicsPathItem* moreIcon = nullptr;
 	/// The text of the chip, a child of the chip; null when the chip is null.
 	QGraphicsSimpleTextItem* moreLabel = nullptr;
+	/// The "+N held" chip past the end of the bar for passengers held at the entrance while figures show, which the scene
+	/// owns; null while none are held.
+	QGraphicsPathItem* heldIcon = nullptr;
+	/// The text of the held chip, a child of heldIcon; null when heldIcon is null.
+	QGraphicsSimpleTextItem* heldLabel = nullptr;
 
 	/// The figure of each passenger on the platform that the snapshot lists and that fits along the bar, in its order.
 	/// The scene owns them.
@@ -72,6 +82,7 @@ private:
 	bool m_gauge = false;
 	int m_waiting = 0;
 	int m_capacity = 0;
+	int m_held = 0;
 	double m_threshold = 0.0;
 
 public:

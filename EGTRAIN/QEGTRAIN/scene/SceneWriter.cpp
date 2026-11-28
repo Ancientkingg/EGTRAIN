@@ -713,6 +713,8 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["passenger_late_threshold_seconds"] = scene.settings.passengerLateThresholdSeconds;
 	if (scene.settings.passengerDemandArrivals != kDefaultPassengerDemandArrivals)
 		settings["passenger_demand_arrivals"] = scene.settings.passengerDemandArrivals;
+	if (scene.settings.passengerPlatformCapacityLimit)
+		settings["passenger_platform_capacity_limit"] = true;
 	if (scene.settings.passengerDwellCoefficients)
 		settings["passenger_dwell_coefficients"] = *scene.settings.passengerDwellCoefficients;
 	if (scene.settings.passengerPlatformCrowdingThreshold)

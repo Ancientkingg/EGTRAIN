@@ -49,6 +49,9 @@ public:
 	int passengerLateThresholdSeconds = 300;
 	/// The arrival pattern of demand passengers (simulation_settings.passenger_demand_arrivals, "even" or "random").
 	std::string passengerDemandArrivals = "even";
+	/// Whether platform passenger capacity holds arriving passengers at the station entrance
+	/// (simulation_settings.passenger_platform_capacity_limit).
+	bool passengerPlatformCapacityLimit = false;
 	/// The coefficients beta0 to beta7 of the passenger dwell model of every train (simulation_settings.passenger_dwell_coefficients).
 	std::array<double, kPassengerDwellCoefficientCount> passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	/// The platform occupancy rate above which the dwell model counts the platform as crowded

@@ -75,8 +75,8 @@ inline bool operator==(const GuiDestinationCount& a, const GuiDestinationCount& 
 
 /// The fields of a platform, in declaration order.
 inline auto fields(const GuiPlatformState& v) {
-	const auto& [stationId, platformId, maxVolume, passengerCount, passengers, destinations] = v;
-	return std::make_tuple(stationId, platformId, maxVolume, passengerCount, passengers, destinations);
+	const auto& [stationId, platformId, maxVolume, passengerCount, heldCount, passengers, destinations] = v;
+	return std::make_tuple(stationId, platformId, maxVolume, passengerCount, heldCount, passengers, destinations);
 }
 
 /// The fields of a virtual coupling message, in declaration order.
@@ -115,7 +115,7 @@ inline const std::array<const char*, 20> trainNames{"index", "id", "type", "desc
 	"currentOnboardPassengers", "maxOnboardPassengers", "wagonHeadPositions", "wagonTailPositions", "occupiedArcs"};
 inline const std::array<const char*, 5> signalNames{"sectionId", "code", "reversedDirection", "level", "failed"};
 inline const std::array<const char*, 3> sectionNames{"sectionId", "prepared", "blocked"};
-inline const std::array<const char*, 6> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "passengers", "destinations"};
+inline const std::array<const char*, 7> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "heldCount", "passengers", "destinations"};
 inline const std::array<const char*, 2> destinationNames{"destination", "count"};
 inline const std::array<const char*, 6> passengerNames{"id", "status", "waitingPlatform", "nextTrain", "nextDestination", "finalDestination"};
 inline const std::array<const char*, 3> messageNames{"timestep", "trainDescription", "message"};

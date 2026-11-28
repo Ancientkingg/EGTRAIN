@@ -677,13 +677,14 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 		|| settings.passengerWalkingSecondsPerPlatform != kDefaultPassengerWalkingSeconds
 		|| settings.passengerLateThresholdSeconds != kDefaultPassengerLateThresholdSeconds
 		|| settings.passengerDemandArrivals != kDefaultPassengerDemandArrivals
+		|| settings.passengerPlatformCapacityLimit
 		|| settings.virtualCouplingDistanceM != kDefaultVirtualCouplingDistanceM
 		|| settings.virtualCouplingSpeedToleranceMs != kDefaultVirtualCouplingSpeedToleranceMs
 		|| settings.endOfAuthorityMarginM != kDefaultEndOfAuthorityMarginM || !settings.virtualCouplingServices.empty()) {
 		SceneDiagnostic d;
 		d.severity = SceneSeverity::Warning;
 		d.code = "scene.export.compatibility";
-		d.message = "The original program ignores the passenger transfer limit, walking time, late threshold, demand arrivals and dwell model settings, "
+		d.message = "The original program ignores the passenger transfer limit, walking time, late threshold, demand arrivals, platform capacity limit and dwell model settings, "
 					"the virtual coupling settings and the margin of the ends of authority in EGTRAINInitialParameters.json and uses its "
 					"built-in values; an import reads them back";
 		d.file = "scene.json";

@@ -164,6 +164,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 	StationCalloutContent content;
 	content.title = StationOverlayItem::displayName(station);
 	int waiting = 0;
+	int held = 0;
 	QStringList capacities;
 	QStringList platformNames;
 	std::map<std::string, int> byDestination;
@@ -171,6 +172,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 		if (platform.stationId != station)
 			continue;
 		waiting += platform.passengerCount;
+		held += platform.heldCount;
 		if (platform.maxVolume > 0) {
 			capacities << QString::number(platform.maxVolume);
 			platformNames << platformShortName(platform.platformId);
@@ -184,8 +186,10 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 	else if (capacities.size() > 1)
 		subtitle += QStringLiteral(" · capacity ") + capacities.join(QStringLiteral(" · "));
 	content.subtitle = subtitle;
+	if (held > 0)
+		content.held = QStringLiteral("%1 held at the entrance").arg(held);
 
-	content.nobodyWaiting = waiting <= 0;
+	content.nobodyWaiting = waiting <= 0 && held <= 0;
 	if (!content.nobodyWaiting && !byDestination.empty()) {
 		content.destinationHeader = true;
 		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
@@ -293,9 +297,17 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 	return hasPlatformId(platformId) && stationName.find("virtual") == std::string::npos;
 }
 
-// The counter of a platform: how many passengers wait on it and how many it holds, such as "3 waiting (capacity 99)".
-QString platformCounterText(int waiting, int capacity) {
+// The counter of a platform: how many passengers wait on it and how many it holds, such as "3 waiting (capacity 99)",
+// or "99 waiting, 12 held at the entrance (capacity 99)" when passengers wait at the entrance.
+QString platformCounterText(int waiting, int capacity, int held = 0) {
+	if (held > 0)
+		return QStringLiteral("%1 waiting, %2 held at the entrance (capacity %3)").arg(waiting).arg(held).arg(capacity);
 	return QStringLiteral("%1 waiting (capacity %2)").arg(waiting).arg(capacity);
+}
+
+// The compact count shown above a platform gauge bar: waiting count, plus "+N" when N passengers are held at the entrance.
+QString platformGaugeCountText(int waiting, int held) {
+	return held > 0 ? QStringLiteral("%1 +%2").arg(waiting).arg(held) : QString::number(waiting);
 }
 
 // The font of the count of the passengers on a platform, which the view shows at this size whatever the zoom.
@@ -1698,8 +1710,10 @@ void NetworkPresenter::updateStationCounts() {
 		if (bars == m_platformsById.end() || bars->second.front() != platform)
 			continue;
 		Total& total = totals[platform->stationId];
-		total.waiting += platform->waiting();
-		const qreal fraction = platform->capacity() > 0 ? static_cast<qreal>(platform->waiting()) / platform->capacity() : 0.0;
+		total.waiting += platform->waiting() + platform->held();
+		const qreal fraction = platform->capacity() > 0
+			? static_cast<qreal>(platform->waiting() + platform->held()) / platform->capacity()
+			: 0.0;
 		if (fraction > total.worst) {
 			total.worst = fraction;
 			total.crowding = platform->crowding();
@@ -1763,9 +1777,11 @@ void NetworkPresenter::applyPlatformPassengerVisibility(PlatformItem* platform) 
 	const bool passengers = platformPassengersVisible();
 	const bool figures = paxFiguresVisible();
 	platform->setGauge(passengers);
-	platform->textIcon->setVisible(passengers && !figures && platform->waiting() > 0);
+	platform->textIcon->setVisible(passengers && !figures && (platform->waiting() > 0 || platform->held() > 0));
 	if (platform->moreIcon)
 		platform->moreIcon->setVisible(figures);
+	if (platform->heldIcon)
+		platform->heldIcon->setVisible(figures);
 	for (PassengerItem* icon : std::as_const(platform->passengerIcons))
 		icon->setVisible(figures);
 }
@@ -2282,13 +2298,14 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 	}
 
 	const int waiting = platform ? platform->Current_N_Passengers : 0;
+	const int held = platform ? platform->Current_N_Held : 0;
 	const int capacity = platform ? platform->Max_Passenger_Volume : 0;
-	platformItem->setCrowding(waiting, capacity, m_source->platformCrowdingThreshold());
-	platformItem->setToolTip(platformCounterText(waiting, capacity));
+	platformItem->setCrowding(waiting, capacity, m_source->platformCrowdingThreshold(), held);
+	platformItem->setToolTip(platformCounterText(waiting, capacity, held));
 	platformItem->setGauge(m_passengerLayerVisible);
 
 	// The count is level and centred above the bar, whatever the direction of the bar, at one size on the screen.
-	auto* textItem = new QGraphicsTextItem(QString::number(waiting));
+	auto* textItem = new QGraphicsTextItem(platformGaugeCountText(waiting, held));
 	textItem->setDefaultTextColor(Qt::white);
 	textItem->setFont(platformCountFont());
 	textItem->document()->setDocumentMargin(1.0);
@@ -3521,16 +3538,59 @@ void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden, in
 	chip->setVisible(paxFiguresVisible());
 }
 
+// The "+N held" chip past the end of the platform bar when passengers wait at the entrance while figures show.
+void NetworkPresenter::updatePlatformHeld(PlatformItem* platform, int held) {
+	if (held <= 0) {
+		delete platform->heldIcon;
+		platform->heldIcon = nullptr;
+		platform->heldLabel = nullptr;
+		return;
+	}
+	constexpr qreal kChipHeight = 22.0;
+	constexpr qreal kChipPadding = 7.0;
+	if (!platform->heldIcon) {
+		auto* chip = new QGraphicsPathItem;
+		chip->setPen(QPen(PassengerItem::troughOutline(), 1.0));
+		chip->setBrush(PassengerItem::crowdingColour(PlatformCrowding::Over));
+		chip->setZValue(3);
+		chip->setAcceptedMouseButtons(Qt::NoButton);
+		auto* label = new QGraphicsSimpleTextItem(chip);
+		label->setBrush(PassengerItem::ink());
+		QFont font;
+		font.setPixelSize(14);
+		font.setBold(true);
+		label->setFont(font);
+		m_scene->addItem(chip);
+		platform->heldIcon = chip;
+		platform->heldLabel = label;
+	}
+	QGraphicsPathItem* chip = platform->heldIcon;
+	QGraphicsSimpleTextItem* label = platform->heldLabel;
+	label->setText(QStringLiteral("+%1 held").arg(held));
+	const QRectF text = label->boundingRect();
+	const qreal width = std::max(text.width() + 2 * kChipPadding, PassengerItem::FigureWidth);
+	QPainterPath shape;
+	shape.addRoundedRect(QRectF(0.0, 0.0, width, kChipHeight), 6.0, 6.0);
+	chip->setPath(shape);
+	label->setPos((width - text.width()) / 2.0, (kChipHeight - text.height()) / 2.0);
+	chip->setScale(presentationScale());
+	const QRectF bounds = platform->boundingRect();
+	const qreal x = (platform->rect().right() + bounds.right()) / 2.0;
+	const QPointF stand = figureStandPoint(*platform, x, 4.0 * presentationScale());
+	chip->setPos(stand - QPointF(width * presentationScale() / 2.0, kChipHeight * presentationScale()));
+	chip->setVisible(paxFiguresVisible());
+}
+
 // The count of a platform, the crowding that its gauge and its figures show, and one figure for each passenger on it that
 // the snapshot lists and that fits along the bar. A figure stays for as long as its passenger is on the platform and
 // moves when the passengers stand differently. The figures that this adds, or that swap places, are listed in restack.
 void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack) {
 	const auto& listed = state.passengers;
 
-	platform->setCrowding(state.passengerCount, state.maxVolume, platformCrowdingThreshold());
-	const QString tooltip = platformCounterText(state.passengerCount, state.maxVolume);
+	platform->setCrowding(state.passengerCount, state.maxVolume, platformCrowdingThreshold(), state.heldCount);
+	const QString tooltip = platformCounterText(state.passengerCount, state.maxVolume, state.heldCount);
 	platform->setToolTip(tooltip);
-	const QString count = QString::number(state.passengerCount);
+	const QString count = platformGaugeCountText(state.passengerCount, state.heldCount);
 	if (platform->textIcon->toPlainText() != count) {
 		platform->textIcon->setPlainText(count);
 		centreCountAboveAnchor(platform->textIcon);
@@ -3548,6 +3608,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	const QPixmap& figure = m_passengerFigures[static_cast<std::size_t>(platform->crowding())];
 	const QSizeF figureSize = figure.deviceIndependentSize() * presentationScale();
 	updatePlatformMore(platform, chip ? std::max(state.passengerCount - nPaxIcons, 1) : 0, nPaxIcons, spacing);
+	updatePlatformHeld(platform, state.heldCount);
 	applyPlatformPassengerVisibility(platform);
 
 	// the figures stay when they belong to the same passengers in the same order

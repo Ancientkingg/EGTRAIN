@@ -80,6 +80,9 @@ struct SceneSimulationSettings {
 	/// on predicted times (passenger_late_threshold_seconds, 0 to 3600). Always counts; the scene file holds it only when it
 	/// differs from the default.
 	int passengerLateThresholdSeconds = kDefaultPassengerLateThresholdSeconds;
+	/// Whether platform passenger capacity limits entry to a platform (passenger_platform_capacity_limit). Off by default;
+	/// the scene file holds it only when on.
+	bool passengerPlatformCapacityLimit = false;
 	/// The arrival pattern of demand passengers (passenger_demand_arrivals, "even" or "random"). Always counts; the
 	/// scene file holds it only when it differs from the default.
 	std::string passengerDemandArrivals = kDefaultPassengerDemandArrivals;

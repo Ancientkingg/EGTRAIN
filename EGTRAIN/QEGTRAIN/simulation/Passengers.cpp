@@ -116,6 +116,8 @@ const char* passengerStatusName(PassengerStatus status) {
 			return "OnPlatform";
 		case PassengerStatus::OnBoard:
 			return "OnBoard";
+		case PassengerStatus::HeldAtEntrance:
+			return "HeldAtEntrance";
 		case PassengerStatus::Outside:
 			break;
 	}

@@ -18,6 +18,18 @@ bool isWaitingOnPlatform(const Passenger& p) {
 	return p.IsIntheNetwork && p.CurrentStatus == PassengerStatus::OnPlatform;
 }
 
+bool isHeldAtEntrance(const Passenger& p) {
+	return p.IsIntheNetwork && p.CurrentStatus == PassengerStatus::HeldAtEntrance;
+}
+
+// The journey the passenger is currently on, or null.
+Journey* activeJourneyOf(Passenger& p) {
+	for (Journey& journey : p.Journeys)
+		if (journey.ID == p.current_JourneyID && !journey.isFinished())
+			return &journey;
+	return nullptr;
+}
+
 // Calls emit(departureTime) for each trip that the waiting passenger waits for: the active trip of each journey with the ID of the
 // active journey. It is the time from which the passenger waits for the train of the trip.
 template <class Emit>
@@ -83,8 +95,10 @@ int PassengerFlow::findId(const string& name) const {
 
 int PassengerFlow::platformKey(const string& stationId, const string& platformId) {
 	const auto added = platformKeys_.try_emplace({stationId, platformId}, static_cast<int>(queues_.size()));
-	if (added.second)
+	if (added.second) {
 		queues_.emplace_back();
+		platformIds_.emplace_back(stationId, platformId);
+	}
 	return added.first->second;
 }
 
@@ -156,6 +170,15 @@ void PassengerFlow::registerState(int position) {
 		registration.first = idOf(p.Current_Train_Boarded);
 		registration.second = idOf(p.Current_Arrival_Station);
 		onBoard_[pairKey(registration.first, registration.second)].push_back(position);
+	} else if (isHeldAtEntrance(p)) {
+		registration.kind = Kind::Held;
+		registration.first = platformKey(p.Current_WaitingStationID, p.Current_WaitingStationPlatformID);
+		registration.second = idOf(p.Current_Train_To_Wait);
+		PlatformQueues& queue = queues_[static_cast<std::size_t>(registration.first)];
+		queue.held.push_back(position);
+		registration.heldEntry = std::prev(queue.held.end());
+		++totalHeld_;
+		markDirty(registration.first);
 	}
 }
 
@@ -184,6 +207,11 @@ void PassengerFlow::unregister(int position) {
 	} else if (registration.kind == Kind::OnBoard) {
 		std::vector<int>& bucket = onBoard_[pairKey(registration.first, registration.second)];
 		bucket.erase(std::find(bucket.begin(), bucket.end(), position));
+	} else if (registration.kind == Kind::Held) {
+		PlatformQueues& queue = queues_[static_cast<std::size_t>(registration.first)];
+		queue.held.erase(registration.heldEntry);
+		--totalHeld_;
+		markDirty(registration.first);
 	}
 	registration = Registration();
 }
@@ -230,6 +258,41 @@ int PassengerFlow::waitingCount(const string& stationId, const string& platformI
 	return key < 0 ? 0 : queues_[static_cast<std::size_t>(key)].count;
 }
 
+int PassengerFlow::heldCount(const string& stationId, const string& platformId) const {
+	return heldCount(findPlatformKey(stationId, platformId));
+}
+
+int PassengerFlow::heldCount(int platform) const {
+	if (platform < 0 || static_cast<std::size_t>(platform) >= queues_.size())
+		return 0;
+	return static_cast<int>(queues_[static_cast<std::size_t>(platform)].held.size());
+}
+
+std::optional<int> PassengerFlow::nextHeld(int platform) const {
+	if (platform < 0 || static_cast<std::size_t>(platform) >= queues_.size())
+		return std::nullopt;
+	const std::list<int>& held = queues_[static_cast<std::size_t>(platform)].held;
+	return held.empty() ? std::nullopt : std::optional<int>(held.front());
+}
+
+void PassengerFlow::updateHeldTrain(int position) {
+	const Passenger& p = *passengers_[static_cast<std::size_t>(position)];
+	Registration& registration = registrations_[static_cast<std::size_t>(position)];
+	if (registration.kind != Kind::Held)
+		return;
+	registration.second = idOf(p.Current_Train_To_Wait);
+}
+
+std::vector<int> PassengerFlow::platformsWithHeld() const {
+	std::vector<int> result;
+	if (totalHeld_ <= 0)
+		return result;
+	for (std::size_t i = 0; i < queues_.size(); ++i)
+		if (!queues_[i].held.empty())
+			result.push_back(static_cast<int>(i));
+	return result;
+}
+
 std::optional<PassengerFlow::Waiter> PassengerFlow::nextWaiter(int platform, int train, const std::optional<Waiter>& after, bool onlyNotRefused) const {
 	if (platform < 0 || train < 0)
 		return std::nullopt;
@@ -267,16 +330,19 @@ void PassengerFlow::beginCall(int platform, int train, int call) {
 
 std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
 	std::vector<int> positions;
-	if (platform < 0 || train < 0)
+	if (platform < 0 || train < 0 || static_cast<std::size_t>(platform) >= queues_.size())
 		return positions;
 	const PlatformQueues& queue = queues_[static_cast<std::size_t>(platform)];
-	const auto line = queue.byTrain.find(train);
-	if (line == queue.byTrain.end())
-		return positions;
 	std::set<int> seen;
-	for (const Waiter& waiter : line->second.all)
-		if (seen.insert(waiter.position).second)
-			positions.push_back(waiter.position);
+	const auto line = queue.byTrain.find(train);
+	if (line != queue.byTrain.end()) {
+		for (const Waiter& waiter : line->second.all)
+			if (seen.insert(waiter.position).second)
+				positions.push_back(waiter.position);
+	}
+	for (const int position : queue.held)
+		if (registrations_[static_cast<std::size_t>(position)].second == train && seen.insert(position).second)
+			positions.push_back(position);
 	return positions;
 }
 
@@ -395,6 +461,7 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 	const auto assign = [this](StationPlatform& platform, int key) {
 		WaitingAtPlatform waiting = listFor(key, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		platform.Current_N_Passengers = waiting.count;
+		platform.Current_N_Held = heldCount(key);
 		platform.Current_List_Pax_On_Platform = std::move(waiting.passengers);
 	};
 	if (allPlatformsStale_) {
@@ -682,6 +749,8 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 
 // The flow of the run, built again when it does not describe the passengers of the run or the time went back.
 PassengerFlow& flowOfRun(SimulationRun& run, int now) {
+	if (!run.platformIndex.covers(run.platforms))
+		run.platformIndex.build(run.platforms);
 	if (!run.passengerFlow.covers(run.passengers) || now < run.passengerFlow.lastTime()) {
 		run.passengerFlow.build(run.passengers);
 		run.passengerJourneys.clear();
@@ -691,22 +760,69 @@ PassengerFlow& flowOfRun(SimulationRun& run, int now) {
 }
 } // namespace
 
+void holdIfPlatformFull(SimulationRun& run, const PassengerFlow& flow, Passenger& passenger, int now) {
+	if (!run.settings.passengerPlatformCapacityLimit || !passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform)
+		return;
+	if (!run.platformIndex.covers(run.platforms))
+		run.platformIndex.build(run.platforms);
+	const StationPlatform* platform = run.platformIndex.find(passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID);
+	if (platform == nullptr || platform->Max_Passenger_Volume <= 0)
+		return;
+	if (flow.waitingCount(platform->StationID, platform->ID) >= platform->Max_Passenger_Volume
+		|| flow.heldCount(platform->StationID, platform->ID) > 0) {
+		passenger.CurrentStatus = PassengerStatus::HeldAtEntrance;
+		passenger.HeldSince = now;
+	}
+}
+
+void admitHeldPassengers(SimulationRun& run, PassengerFlow& flow, int now) {
+	if (!run.settings.passengerPlatformCapacityLimit || !flow.hasHeld())
+		return;
+	if (!run.platformIndex.covers(run.platforms))
+		run.platformIndex.build(run.platforms);
+	for (const int platform : flow.platformsWithHeld()) {
+		const auto& id = flow.platformIdOf(platform);
+		const StationPlatform* stop = run.platformIndex.find(id.first, id.second);
+		const int capacity = stop != nullptr ? stop->Max_Passenger_Volume : 0;
+		while (const std::optional<int> next = flow.nextHeld(platform)) {
+			if (capacity > 0 && flow.waitingCount(id.first, id.second) >= capacity)
+				break;
+			Passenger& passenger = flow.passenger(*next);
+			if (passenger.HeldSince >= 0) {
+				if (Journey* const journey = activeJourneyOf(passenger))
+					if (now > passenger.HeldSince)
+						journey->Heldtime += now - passenger.HeldSince;
+				passenger.HeldSince = -1;
+			}
+			passenger.CurrentStatus = PassengerStatus::OnPlatform;
+			flow.placed(*next);
+		}
+	}
+}
+
 void enterPassengersAndRefreshPlatforms(SimulationRun& run, int t) {
-	PassengerFlow& flow = flowOfRun(run, t + run.settings.startingSimulationTime);
+	const int now = t + run.settings.startingSimulationTime;
+	PassengerFlow& flow = flowOfRun(run, now);
 	// Simulate entrance process of passengers on the railway network according to route choice
 	run.passengerJourneys.beginPhase();
-	flow.startDueJourneys(t + run.settings.startingSimulationTime,
-		[&run, &flow, t](int position) { run.passengerJourneys.startJourney(run, flow.passenger(position), t); });
+	flow.startDueJourneys(now, [&run, &flow, t, now](int position) {
+		Passenger& passenger = flow.passenger(position);
+		run.passengerJourneys.startJourney(run, passenger, t);
+		if (run.settings.passengerPlatformCapacityLimit)
+			holdIfPlatformFull(run, flow, passenger, now);
+	});
 	// With the passenger GUI the waiting lists of all platforms of the network are updated at every instant
 	if (run.settings.PAX_GUI)
 		flow.refreshPlatformLists(run.platforms);
 }
 
 void simulateTrainPassengerInteractions(SimulationRun& run, int t) {
-	PassengerFlow& flow = flowOfRun(run, t + run.settings.startingSimulationTime);
+	const int now = t + run.settings.startingSimulationTime;
+	PassengerFlow& flow = flowOfRun(run, now);
 	run.passengerJourneys.settleTrains(run, flow, t);
 	for (int n = 0; n < run.numTrains; n++)
 		interactAtServiceStop(flow, run, t, run.settings.startingSimulationTime, n);
+	admitHeldPassengers(run, flow, now);
 	// With the passenger GUI the waiting lists of the platforms that this step changed are brought up to date for the window.
 	// The trains do not read them.
 	if (run.settings.PAX_GUI)

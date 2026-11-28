@@ -7,6 +7,7 @@
 
 #include <QAccessible>
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
@@ -120,6 +121,7 @@ private slots:
 	void keepsRenamedCouplingService_data();
 	void keepsRenamedCouplingService();
 	void editsPassengerDemandArrivals();
+	void editsPlatformCapacityLimit();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -418,6 +420,22 @@ void TestCaseSettingsPanel::editsPassengerDemandArrivals() {
 	QCOMPARE(f.document.model().settings.passengerDemandArrivals, std::string("random"));
 }
 
+// The platform capacity limit check box defaults off, edits as one Undo step, and stays across other edits.
+void TestCaseSettingsPanel::editsPlatformCapacityLimit() {
+	SceneModel scene = caseScene("Case P", "08:00:00");
+	CaseFixture f(scene);
+	QVERIFY(!f.panel.platformCapacityLimitCheck()->isChecked());
+	QVERIFY(f.panel.platformCapacityLimitCheck()->isEnabled());
+	const quint64 revision = f.document.revision();
+	f.panel.platformCapacityLimitCheck()->setChecked(true);
+	QVERIFY(f.document.model().settings.passengerPlatformCapacityLimit);
+	QCOMPARE(f.document.revision(), revision + 1);
+	typeAndLeave(f.panel.nameEdit(), "Renamed");
+	QVERIFY(f.document.model().settings.passengerPlatformCapacityLimit);
+	f.panel.platformCapacityLimitCheck()->setChecked(false);
+	QVERIFY(!f.document.model().settings.passengerPlatformCapacityLimit);
+}
+
 void TestCaseSettingsPanel::namesFields() {
 	CaseSettingsPanel panel;
 	QStringList labels;
@@ -439,6 +457,7 @@ void TestCaseSettingsPanel::showsNothingWithoutScene() {
 	QVERIFY(!panel.baseTimeEdit()->isEnabled());
 	QVERIFY(!panel.durationSecondsEdit()->isEnabled());
 	QVERIFY(!panel.demandArrivalsCombo()->isEnabled());
+	QVERIFY(!panel.platformCapacityLimitCheck()->isEnabled());
 	SceneDocument document;
 	panel.setDocument(&document);
 	// A panel stays disabled while its document holds no scene.

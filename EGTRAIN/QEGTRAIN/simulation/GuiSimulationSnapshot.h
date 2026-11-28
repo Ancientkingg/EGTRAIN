@@ -228,6 +228,8 @@ struct GuiPlatformState {
 	/// The passengers waiting on the platform, which is the number that the counter of the platform shows. It can exceed
 	/// the size of `passengers`.
 	int passengerCount = 0;
+	/// Passengers held at the station entrance because the platform is at capacity.
+	int heldCount = 0;
 	/// The first kGuiPlatformPassengerIcons of those passengers, in the order in which they board.
 	std::vector<GuiPassengerState> passengers;
 	/// The passengers waiting on the platform by their final destination, all of them and not only those listed, the most

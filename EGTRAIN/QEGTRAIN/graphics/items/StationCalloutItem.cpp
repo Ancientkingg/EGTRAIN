@@ -121,7 +121,7 @@ void StationCalloutItem::setScrollOffset(qreal offset) {
 }
 
 qreal StationCalloutItem::fixedHeight() const {
-	qreal height = kTopPadding + kTitleHeight + kSubtitleHeight + kHeaderGap;
+	qreal height = kTopPadding + kTitleHeight + kSubtitleHeight + (m_content.held.isEmpty() ? 0.0 : kSubtitleHeight) + kHeaderGap;
 	if (m_content.nobodyWaiting || m_content.destinationHeader) {
 		height += kSectionHeadingHeight;
 		if (m_content.nobodyWaiting)
@@ -168,7 +168,8 @@ QRectF StationCalloutItem::destinationsRect() const {
 	if (m_destinationsHeight <= 0.0)
 		return {};
 	const QRectF card = cardRect();
-	const qreal top = card.top() + kTopPadding + kTitleHeight + kSubtitleHeight + kHeaderGap + kSectionHeadingHeight;
+	const qreal top = card.top() + kTopPadding + kTitleHeight + kSubtitleHeight
+		+ (m_content.held.isEmpty() ? 0.0 : kSubtitleHeight) + kHeaderGap + kSectionHeadingHeight;
 	return QRectF(card.left(), top, CardWidth, m_destinationsHeight);
 }
 
@@ -261,7 +262,14 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	y += kTitleHeight;
 	painter->setFont(pixelFont(11));
 	painter->drawText(QRectF(left, y, right - left, kSubtitleHeight), Qt::AlignVCenter | Qt::AlignLeft, shownSubtitle());
-	y += kSubtitleHeight + kHeaderGap;
+	y += kSubtitleHeight;
+	if (!m_content.held.isEmpty()) {
+		painter->setFont(pixelFont(11, true));
+		painter->setPen(PassengerItem::crowdingColour(PlatformCrowding::Over));
+		painter->drawText(QRectF(left, y, right - left, kSubtitleHeight), Qt::AlignVCenter | Qt::AlignLeft, m_content.held);
+		y += kSubtitleHeight;
+	}
+	y += kHeaderGap;
 
 	painter->setFont(sectionFont());
 	painter->setPen(kMuted);

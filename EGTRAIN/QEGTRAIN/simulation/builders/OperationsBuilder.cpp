@@ -973,6 +973,7 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 	stagedParameters.passengerWalkingSecondsPerPlatform = std::clamp(scene.settings.passengerWalkingSecondsPerPlatform, 0, kMaxPassengerWalkingSeconds);
 	stagedParameters.passengerLateThresholdSeconds = std::clamp(scene.settings.passengerLateThresholdSeconds, 0, kMaxPassengerLateThresholdSeconds);
 	stagedParameters.passengerDemandArrivals = scene.settings.passengerDemandArrivals == "random" ? "random" : "even";
+	stagedParameters.passengerPlatformCapacityLimit = scene.settings.passengerPlatformCapacityLimit;
 	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
 		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,
@@ -1017,6 +1018,7 @@ std::list<StationPlatform> nativeStagedPlatforms(const SimulationRun& run, const
 			: kDefaultPlatformWidthM;
 		platform.Max_Passenger_Volume = static_cast<int>(scenePlatformCapacity(platform.length, platform.width));
 		platform.Current_N_Passengers = 0;
+		platform.Current_N_Held = 0;
 		platform.Current_List_Pax_On_Platform.clear();
 		platform.List_Trains_Stopping_At_Platform.clear();
 	}
