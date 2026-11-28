@@ -213,6 +213,8 @@ public:
 
 	/// Number of passengers the platform holds, which the operations builder works out from length and width.
 	int Max_Passenger_Volume, Current_N_Passengers; ///< Number of passengers waiting now.
+	/// Number of passengers held at the station entrance because the platform is at capacity.
+	int Current_N_Held = 0;
 
 	/// Pairs of passenger ID and the time, in seconds since midnight, from which the passenger waits for the train of its
 	/// trip. Sorted by that time.

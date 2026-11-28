@@ -35,14 +35,15 @@ struct StationCalloutContent {
 	};
 	QString title;					 ///< The name of the station.
 	QString subtitle;				 ///< The passengers waiting and the capacity of the platforms.
+	QString held;					 ///< Passengers held at the station entrance, empty when none are held.
 	bool nobodyWaiting = false;		 ///< No passenger waits: the card says so instead of listing destinations.
 	bool destinationHeader = false;	 ///< The card has the section of destinations, under the heading "Waiting, by destination".
 	QList<Destination> destinations; ///< The destinations of the waiting passengers, the largest first.
 	QList<Call> calls;				 ///< The latest calls, newest first.
 	/// True when every field is the same. A field added above has to be added here too.
 	bool operator==(const StationCalloutContent& other) const {
-		return std::tie(title, subtitle, nobodyWaiting, destinationHeader, destinations, calls)
-			== std::tie(other.title, other.subtitle, other.nobodyWaiting, other.destinationHeader, other.destinations, other.calls);
+		return std::tie(title, subtitle, held, nobodyWaiting, destinationHeader, destinations, calls)
+			== std::tie(other.title, other.subtitle, other.held, other.nobodyWaiting, other.destinationHeader, other.destinations, other.calls);
 	}
 };
 

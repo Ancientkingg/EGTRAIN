@@ -13,12 +13,13 @@
 
 /// Where a passenger is.
 enum class PassengerStatus {
-	Outside,	///< Outside the network: not entered yet, or arrived.
-	OnPlatform, ///< Waiting on a platform for a train.
-	OnBoard		///< On a train.
+	Outside,	   ///< Outside the network: not entered yet, or arrived.
+	OnPlatform,	   ///< Waiting on a platform for a train.
+	OnBoard,	   ///< On a train.
+	HeldAtEntrance ///< Waiting at the station entrance because the platform is at capacity.
 };
 
-/// The name of a status as the output files, traces and the GUI write it: "None", "OnPlatform" or "OnBoard".
+/// The name of a status as the output files, traces and the GUI write it: "None", "OnPlatform", "OnBoard" or "HeldAtEntrance".
 const char* passengerStatusName(PassengerStatus status);
 
 /// What a passenger does at the destination of a journey, as the scene describes it.
@@ -144,7 +145,8 @@ public:
 	/// station leaves out the train while it stands there.
 	std::vector<std::pair<std::string, std::string>> RefusedBy;
 	double Walkingtime;			  ///< Total walking time between platforms at transfers in seconds.
-	double Waitingtime;			  ///< Total waiting time on platforms in seconds.
+	double Waitingtime;			  ///< Total waiting time on platforms and held at station entrances in seconds.
+	double Heldtime;			  ///< Total time held at a station entrance because the platform was at capacity, in seconds. Included in Waitingtime.
 	int totalJourneyArrivalDelay; ///< Arrival delay of the journey in seconds; 0 until the journey is completed.
 	/// Planned arrival of the first plan of the journey: the last given leg, or the last leg of the first plan of the run. -9999
 	/// until set; it is set once and a later plan does not change it.
@@ -166,7 +168,7 @@ public:
 		Planned_Departure_Time = Planned_Arrival_Time = Actual_Planned_Departure_Time = Actual_Planned_Arrival_Time = -9999;
 		Actual_Departure_Time = Actual_Arrival_Time = -9999;
 
-		Walkingtime = Waitingtime = totalJourneyArrivalDelay = 0;
+		Walkingtime = Waitingtime = Heldtime = totalJourneyArrivalDelay = 0;
 		N_Trips = 0;
 		IsJourneyCompleted = IsJourneyStarted = false;
 	}
@@ -212,6 +214,8 @@ public:
 	/// Index of the stop of that train (Train::Stations) at which the refusal happened; -1 before that. A later call of the
 	/// same train refuses the passenger again.
 	int StopThatRefusedBoarding = -1;
+	/// Time in seconds since midnight when the passenger started waiting at the station entrance; -1 when not held.
+	int HeldSince = -1;
 
 	Passenger() {
 		ID = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = kNoneId;

@@ -192,7 +192,7 @@ private:
 	// First slot of each group of values, in the order of the layout.
 	struct Slots {
 		std::size_t signalCode = 0, signalLevel = 0, signalFailed = 0, sectionFlags = 0, trainOut = 0, trainOnboard = 0, trainArcs = 0,
-					platformList = 0, platformCount = 0, platformDestinations = 0, total = 0;
+					platformList = 0, platformCount = 0, platformHeld = 0, platformDestinations = 0, total = 0;
 	};
 
 	static bool sameCounts(const Layout& layout, const GuiSimulationSnapshot& snapshot);

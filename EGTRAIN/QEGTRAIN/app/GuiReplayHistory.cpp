@@ -41,7 +41,7 @@ bool sameStatic(const GuiSectionState& a, const GuiSectionState& b) {
 }
 
 bool sameStatic(const GuiPlatformState& a, const GuiPlatformState& b) {
-	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerCount, passengers, destinations] = a;
+	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerCount, heldCount, passengers, destinations] = a;
 	return stationId == b.stationId && platformId == b.platformId && maxVolume == b.maxVolume;
 }
 
@@ -81,6 +81,7 @@ void resetChanging(GuiSectionState& section) {
 
 void resetChanging(GuiPlatformState& platform) {
 	platform.passengerCount = 0;
+	platform.heldCount = 0;
 	release(platform.passengers);
 	release(platform.destinations);
 }
@@ -409,7 +410,8 @@ void GuiReplayHistory::makeLayout(const GuiSimulationSnapshot& snapshot) {
 	slots_.trainArcs = slots_.trainOnboard + trains;
 	slots_.platformList = slots_.trainArcs + trains;
 	slots_.platformCount = slots_.platformList + layout_.platforms.size();
-	slots_.platformDestinations = slots_.platformCount + layout_.platforms.size();
+	slots_.platformHeld = slots_.platformCount + layout_.platforms.size();
+	slots_.platformDestinations = slots_.platformHeld + layout_.platforms.size();
 	slots_.total = slots_.platformDestinations + layout_.platforms.size();
 }
 
@@ -476,6 +478,7 @@ void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
 		internEntries(snapshot.platforms[i].passengers, currentPlatforms_[i]);
 		current_[slots_.platformList + i] = addPlatformList(interval, currentPlatforms_[i]);
 		current_[slots_.platformCount + i] = snapshot.platforms[i].passengerCount;
+		current_[slots_.platformHeld + i] = snapshot.platforms[i].heldCount;
 	}
 	interval.keyframe = current_;
 	intervals_.push_back(std::move(interval));
@@ -521,6 +524,7 @@ void GuiReplayHistory::addChanges(const GuiSimulationSnapshot& snapshot) {
 			putValue(slots_.platformList + i, addPlatformList(interval, known));
 		}
 		putValue(slots_.platformCount + i, snapshot.platforms[i].passengerCount);
+		putValue(slots_.platformHeld + i, snapshot.platforms[i].heldCount);
 		std::vector<std::uint32_t>& counts = currentDestinations_[i];
 		if (!sameDestinations(snapshot.platforms[i].destinations, counts)) {
 			internDestinations(snapshot.platforms[i].destinations, counts);
@@ -654,6 +658,7 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		const std::size_t from = list == 0 ? 0 : interval.platformEnds[list - 1];
 		GuiPlatformState& platform = snapshot->platforms[i];
 		platform.passengerCount = values[slots_.platformCount + i];
+		platform.heldCount = values[slots_.platformHeld + i];
 		const auto counts = static_cast<std::size_t>(values[slots_.platformDestinations + i]);
 		const std::size_t countsFrom = counts == 0 ? 0 : interval.destinationEnds[counts - 1];
 		for (std::size_t k = countsFrom; k < interval.destinationEnds[counts]; k += 2)

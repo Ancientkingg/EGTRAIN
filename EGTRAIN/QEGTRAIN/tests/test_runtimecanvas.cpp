@@ -1593,6 +1593,26 @@ void TestRuntimeCanvas::platformBarShowsCrowdingGauge() {
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QCOMPARE(pixel(0.5, 0.5).name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
 	QCOMPARE(pixel(0.999, -0.3).name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
+	// At capacity with passengers held at the entrance: red gauge with held overflow past capacity, "+N" in counter and held chip.
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	snapshot.platforms[0].passengerCount = 40;
+	snapshot.platforms[0].heldCount = 15;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(platform->held(), 15);
+	QCOMPARE(platform->crowding(), PlatformCrowding::Over);
+	QCOMPARE_GT(platform->heldFraction(), 0.0);
+	QCOMPARE(platform->textIcon->toPlainText(), QString("40 +15"));
+	QVERIFY(platform->toolTip().contains("15 held at the entrance"));
+	QVERIFY(platform->heldIcon);
+	QCOMPARE(platform->heldLabel->text(), QString("+15 held"));
+	QCOMPARE(pixel(0.5, 0.5).name(), PassengerItem::crowdingColour(PlatformCrowding::Over).name());
+	// Clearing the held count removes the held chip and returns to Busy at capacity.
+	snapshot.platforms[0].heldCount = 0;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(platform->held(), 0);
+	QCOMPARE(platform->crowding(), PlatformCrowding::Busy);
+	QCOMPARE(platform->textIcon->toPlainText(), QString("40"));
+	QVERIFY(!platform->heldIcon);
 	// A platform without capacity is the trough only.
 	snapshot.platforms = {platformWith("B", "P1", 0, Ids{})};
 	snapshot.platforms[0].passengerCount = 55;
@@ -1790,6 +1810,17 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	snapshot.platforms[0].destinations = {{"A", 200}, {"B", 60}, {"C", 9}};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QCOMPARE(card->content().subtitle, QString("269 waiting \u00b7 capacity 40 on platform P1"));
+	QVERIFY(card->content().held.isEmpty());
+	// passengers held at the entrance show on the station card while held > 0
+	snapshot.platforms[0].passengerCount = 40;
+	snapshot.platforms[0].heldCount = 12;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(card->content().subtitle, QString("40 waiting \u00b7 capacity 40 on platform P1"));
+	QCOMPARE(card->content().held, QString("12 held at the entrance"));
+	snapshot.platforms[0].heldCount = 0;
+	snapshot.platforms[0].passengerCount = 269;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(card->content().held.isEmpty());
 	QVERIFY(card->content().destinationHeader);
 	QCOMPARE(card->content().destinations.size(), qsizetype(3));
 	QCOMPARE(card->content().destinations[0].count, 200);

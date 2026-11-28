@@ -812,6 +812,7 @@ private:
 	void updatePlatforms(const GuiSimulationSnapshot& snapshot);
 	void updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack);
 	void updatePlatformMore(PlatformItem* platform, int hidden, int shown, qreal spacing);
+	void updatePlatformHeld(PlatformItem* platform, int held);
 	void stackPassengerIcons(const std::vector<PassengerItem*>& restack);
 	void showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay);
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, const GuiSimulationSnapshot& snapshot, int t);

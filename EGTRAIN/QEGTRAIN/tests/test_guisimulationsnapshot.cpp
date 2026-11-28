@@ -148,6 +148,7 @@ GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int tota
 			platform.destinations.push_back({"final " + std::to_string(d), 9 - d});
 		// Some of the passengers have no entry in the list.
 		platform.passengerCount = static_cast<int>(platform.passengers.size()) + (step % 3 == 0 ? 2 : 0);
+		platform.heldCount = (step + p) % 5 == 0 ? (step % 7 + 1) : 0;
 		snapshot.platforms.push_back(std::move(platform));
 	}
 	if (step % 3 == 0) {
@@ -634,6 +635,7 @@ void TestGuiSimulationSnapshot::platformListsAndCountsReplay() {
 		for (int k = 0; k < listed; ++k)
 			platform.passengers.push_back({"q" + std::to_string(t / 5 + k), t % 4 == 0 ? "OnPlatform" : "None", "P1", "T" + std::to_string(k % 3), "B"});
 		platform.passengerCount = listed + (t / 10) * 5 - (t > 25 ? 9 : 0);
+		platform.heldCount = t >= 12 && t < 28 ? (t - 11) : 0;
 		return snapshot;
 	};
 	GuiReplayHistory history(GuiReplayHistory::payloadLimit, 10);

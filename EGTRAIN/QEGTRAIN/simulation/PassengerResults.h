@@ -62,7 +62,8 @@ std::vector<OriginDestinationSummary> summariseOriginDestinations(const std::lis
 PassengerRunSummary summarisePassengerRun(const SimulationRun& run);
 
 /// The text of PassengerJourneys.txt: a header row and a tab-separated row for every journey of every passenger.
-std::string passengerJourneysText(const std::list<Passenger>& passengers);
+/// When includeHeld is true, appends a Held column with the time held at a station entrance in seconds.
+std::string passengerJourneysText(const std::list<Passenger>& passengers, bool includeHeld = false);
 
 /// The text of StationStops.txt: a header row and a tab-separated row for every stop where a train of the run stood. Arrival and
 /// departure are the first and the last step of the train at the stand, in seconds since midnight.

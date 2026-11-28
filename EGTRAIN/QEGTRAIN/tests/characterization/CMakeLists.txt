@@ -161,6 +161,7 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-signal-failure-change
 	pax-cancel-from-b
 	pax-cancel-complete
+	pax-platform-limit
 	entrance-delay-f2-level-0
 	breakdown-f1-level-0
 	breakdown-line-speed-level-0

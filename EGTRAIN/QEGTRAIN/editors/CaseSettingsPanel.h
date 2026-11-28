@@ -7,6 +7,7 @@
 
 #include <optional>
 
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
@@ -76,6 +77,8 @@ public:
 	QLabel* couplingServicesNote() const { return m_couplingServicesNote; }
 	/// The field of the arrival pattern of demand passengers, Even or Random.
 	QComboBox* demandArrivalsCombo() const { return m_demandArrivalsCombo; }
+	/// The check box that enforces platform passenger capacity at station entrances.
+	QCheckBox* platformCapacityLimitCheck() const { return m_platformCapacityLimitCheck; }
 
 Q_SIGNALS:
 	/// The base time of the model has been set to this text. Emitted before the document is marked changed.
@@ -108,6 +111,7 @@ private:
 	QListWidget* m_couplingServiceList = nullptr;
 	QLabel* m_couplingServicesNote = nullptr;
 	QComboBox* m_demandArrivalsCombo = nullptr;
+	QCheckBox* m_platformCapacityLimitCheck = nullptr;
 };
 
 #endif // CASESETTINGSPANEL_H

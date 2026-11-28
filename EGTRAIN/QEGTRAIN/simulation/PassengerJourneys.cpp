@@ -125,6 +125,30 @@ int extraLateMinutes(double predicted, double planned, double reference) {
 	constexpr double kToleranceSeconds = 0.001;
 	return hasLateness(predicted, planned) ? wholeMinutes(predicted - planned - reference + kToleranceSeconds) : -1;
 }
+// Updates flow and entrance-hold state after a waiting or held passenger was replanned.
+void settleReplannedWaiting(SimulationRun& run, PassengerFlow& flow, int position, bool wasHeld,
+	const string& oldStation, const string& oldPlatform, Journey* journey, int now) {
+	Passenger& passenger = flow.passenger(position);
+	if (!wasHeld) {
+		flow.alighted(position);
+		return;
+	}
+	if (passenger.IsIntheNetwork && passenger.CurrentStatus == PassengerStatus::OnPlatform
+		&& passenger.Current_WaitingStationID == oldStation && passenger.Current_WaitingStationPlatformID == oldPlatform) {
+		// Stay held at the same platform in the same FIFO place.
+		passenger.CurrentStatus = PassengerStatus::HeldAtEntrance;
+		flow.updateHeldTrain(position);
+		return;
+	}
+	if (passenger.HeldSince >= 0) {
+		if (journey != nullptr && now > passenger.HeldSince)
+			journey->Heldtime += now - passenger.HeldSince;
+		passenger.HeldSince = -1;
+	}
+	if (run.settings.passengerPlatformCapacityLimit)
+		holdIfPlatformFull(run, flow, passenger, now);
+	flow.alighted(position);
+}
 } // namespace
 
 vector<int> predictionSignature(const passenger_routing::TrainTimetable& timetable, const TrainState& state) {
@@ -700,11 +724,17 @@ void PassengerJourneys::flushLeftStops(SimulationRun& run, PassengerFlow& flow, 
 	Watch& watch = watches_[static_cast<size_t>(train)];
 	const Train& T = run.trains[static_cast<size_t>(train)];
 	const int trainId = flow.trainNumber(T.trainDescription);
+	const int now = t + run.settings.startingSimulationTime;
 	for (; watch.handled < watch.firstStop; ++watch.handled) {
 		const Node& stop = T.Stations[static_cast<size_t>(watch.handled)];
 		for (const int position : flow.waitingFor(flow.platformNumber(stop.stationName, stop.stationPlatformId), trainId)) {
-			missedTrain(run, flow.passenger(position), t);
-			flow.alighted(position);
+			Passenger& passenger = flow.passenger(position);
+			const bool wasHeld = passenger.CurrentStatus == PassengerStatus::HeldAtEntrance;
+			const string oldStation = passenger.Current_WaitingStationID;
+			const string oldPlatform = passenger.Current_WaitingStationPlatformID;
+			Journey* const journey = activeJourney(passenger);
+			missedTrain(run, passenger, t);
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
 		}
 	}
 }
@@ -744,23 +774,27 @@ void PassengerJourneys::replanCutTrips(SimulationRun& run, PassengerFlow& flow, 
 	sort(waiting.begin(), waiting.end());
 	waiting.erase(unique(waiting.begin(), waiting.end()), waiting.end());
 	ensureStates(run, t);
+	const int now = t + run.settings.startingSimulationTime;
 	for (const int position : waiting) {
 		Passenger& passenger = flow.passenger(position);
-		const Journey* journey = activeJourney(passenger);
+		Journey* const journey = activeJourney(passenger);
 		if (journey == nullptr)
 			continue;
 		const auto trip = find_if(journey->Trips.begin(), journey->Trips.end(),
 			[&passenger](const Trip& candidate) { return candidate.TripID == passenger.current_TripID; });
 		if (trip == journey->Trips.end())
 			continue;
+		const bool wasHeld = passenger.CurrentStatus == PassengerStatus::HeldAtEntrance;
+		const string oldStation = passenger.Current_WaitingStationID;
+		const string oldPlatform = passenger.Current_WaitingStationPlatformID;
 		// As in checkWaiting: a train that no longer calls here is a missed train, one that ends before the stop where the
-		// passenger would leave it is not.
+		// passenger would leave it is not. A passenger held at the entrance stays held, or queues again, as in flushLeftStops.
 		if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID)) {
 			missedTrain(run, passenger, t);
-			flow.alighted(position);
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
 		} else if (!takesToTripEnd(run, train, passenger, *trip)) {
 			replanWaiting(run, passenger, t);
-			flow.alighted(position);
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
 		}
 	}
 }
@@ -1005,9 +1039,16 @@ void PassengerJourneys::offerEarlierPlans(SimulationRun& run, PassengerFlow& flo
 	// In the order of the passenger list, and once for a passenger at a platform where the train calls twice.
 	sort(waiting.begin(), waiting.end());
 	waiting.erase(unique(waiting.begin(), waiting.end()), waiting.end());
-	for (const int position : waiting)
-		if (switchToEarlierPlan(run, flow.passenger(position), t, nullopt))
-			flow.alighted(position);
+	const int now = t + run.settings.startingSimulationTime;
+	for (const int position : waiting) {
+		Passenger& passenger = flow.passenger(position);
+		const bool wasHeld = passenger.CurrentStatus == PassengerStatus::HeldAtEntrance;
+		const string oldStation = passenger.Current_WaitingStationID;
+		const string oldPlatform = passenger.Current_WaitingStationPlatformID;
+		Journey* const journey = activeJourney(passenger);
+		if (switchToEarlierPlan(run, passenger, t, nullopt))
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
+	}
 }
 
 void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, int t) {
@@ -1035,4 +1076,5 @@ void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, in
 	}
 	newPredictions_ = trainsWithNewPrediction(run, t);
 	offerEarlierPlans(run, flow, newPredictions_, t);
+	admitHeldPassengers(run, flow, t + run.settings.startingSimulationTime);
 }

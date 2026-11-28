@@ -230,6 +230,9 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int s
 			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
 			: platform.Current_List_Pax_On_Platform.size();
 		state.passengerCount = static_cast<int>(waitingCount);
+		state.heldCount = flowCounts
+			? run.passengerFlow.heldCount(platform.StationID, platform.ID)
+			: platform.Current_N_Held;
 		const std::size_t listed = std::min(waitingCount, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		state.passengers.reserve(listed);
 		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {

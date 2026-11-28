@@ -41,7 +41,7 @@ const char* modeName(JourneyMode mode) {
 	return mode == JourneyMode::Live ? "live" : "assigned";
 }
 
-string journeyRow(const Passenger& passenger, const Journey& journey) {
+string journeyRow(const Passenger& passenger, const Journey& journey, bool includeHeld) {
 	double inVehicle = 0;
 	const string trains = ridden(journey, inVehicle);
 	const bool completed = journey.IsJourneyCompleted;
@@ -50,7 +50,10 @@ string journeyRow(const Passenger& passenger, const Journey& journey) {
 	row += "\t" + trains + "\t" + formatSeconds(journey.Waitingtime) + "\t" + formatSeconds(journey.Walkingtime) + "\t" + formatSeconds(inVehicle);
 	row += "\t" + (completed ? formatSeconds(journey.Actual_Arrival_Time) : string("-"));
 	row += "\t" + (completed ? formatSeconds(journey.totalJourneyArrivalDelay) : string("-"));
-	row += string("\t") + (journey.IsReplanned ? "1" : "0") + "\t" + journeyOutcomeName(journey.Outcome) + "\n";
+	row += string("\t") + (journey.IsReplanned ? "1" : "0") + "\t" + journeyOutcomeName(journey.Outcome);
+	if (includeHeld)
+		row += "\t" + formatSeconds(journey.Heldtime);
+	row += "\n";
 	return row;
 }
 
@@ -265,23 +268,24 @@ PassengerRunSummary summarisePassengerRun(const SimulationRun& run) {
 
 namespace {
 const char* const kJourneysHeader = "PaxID\tJourneyID\tMode\tOrigin\tDestination\tAppeared\tTrains\tWait\tWalk\tInVehicle\tArrival\tDelay\tReplanned\tOutcome\n";
+const char* const kJourneysHeaderWithHeld = "PaxID\tJourneyID\tMode\tOrigin\tDestination\tAppeared\tTrains\tWait\tWalk\tInVehicle\tArrival\tDelay\tReplanned\tOutcome\tHeld\n";
 
 // Writes the rows to the file as they are made, so the whole text is never in memory.
-void writePassengerJourneys(const string& path, const list<Passenger>& passengers) {
+void writePassengerJourneys(const string& path, const list<Passenger>& passengers, bool includeHeld) {
 	ofstream file = openRunOutputFile(path, ios::binary);
-	file << kJourneysHeader;
+	file << (includeHeld ? kJourneysHeaderWithHeld : kJourneysHeader);
 	for (const Passenger& passenger : passengers)
 		for (const Journey& journey : passenger.Journeys)
-			file << journeyRow(passenger, journey);
+			file << journeyRow(passenger, journey, includeHeld);
 	closeRunOutputFile(file, path);
 }
 } // namespace
 
-string passengerJourneysText(const list<Passenger>& passengers) {
-	string text = kJourneysHeader;
+string passengerJourneysText(const list<Passenger>& passengers, bool includeHeld) {
+	string text = includeHeld ? kJourneysHeaderWithHeld : kJourneysHeader;
 	for (const Passenger& passenger : passengers)
 		for (const Journey& journey : passenger.Journeys)
-			text += journeyRow(passenger, journey);
+			text += journeyRow(passenger, journey, includeHeld);
 	return text;
 }
 
@@ -308,7 +312,7 @@ string originDestinationSummaryText(const list<Passenger>& passengers) {
 }
 
 void printPassengerResultFiles(const SimulationRun& run, const string& mainFolder) {
-	writePassengerJourneys(mainFolder + "/PassengerJourneys.txt", run.passengers);
+	writePassengerJourneys(mainFolder + "/PassengerJourneys.txt", run.passengers, run.settings.passengerPlatformCapacityLimit);
 	writeText(mainFolder + "/StationStops.txt", stationStopsText(run));
 	writeText(mainFolder + "/ODSummary.txt", originDestinationSummaryText(run.passengers));
 }
