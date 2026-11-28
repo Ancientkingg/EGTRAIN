@@ -44,6 +44,14 @@ train that is due at its entry asks too. A granted request is kept until the
 train has passed the zone, has ended its run, or has a changed route, destination
 or entry.
 
+Of the trains of one direction on one track before a zone, only the first asks
+for it. A train whose way to the zone entry passes the head of another train of
+its direction, which has the zone on its route and has not entered it yet,
+cannot enter before that train. It does not ask, and a reservation that it had
+lapses. It asks again once the train ahead is in the zone or has left its way.
+The train ahead may dwell at a station in front of the zone, so that it does not
+ask either; the follower then still does not take the zone from it.
+
 Every route of the other direction then treats the sections of the zone as
 occupied (`occupySingleTrackForRoute`) and, at levels 0 to 5, gets an end of
 authority in front of the zone that only trains of its direction obey.
@@ -196,8 +204,16 @@ refusal closes the route of the train in front of the first way out of the zone,
 for a route of the other direction, that the train has not reached yet, or else
 at the zone entry. A refused train does not count as running toward a way out
 behind the zone. The closure is skipped while a train of the same route that
-holds the zone has still to pass the closed section, because that train is
-ahead and the refused one cannot pass it.
+holds the zone stands between the refused train and the closed section, because
+the closure would stop that train too and the refused one cannot pass it.
+
+Because only the first train on a track asks, the trains of a direction get the
+zone, and the room after it, in the order in which they reach it. A train that
+holds the zone and has still to enter it is never behind a refused train on the
+same track, so the closure for the refused train never stops it.
+
+A train whose route does not pass the requested zone but joins the stretch after
+it is bound for the stretch once its head is on it.
 
 ### Entering the network
 
@@ -205,15 +221,22 @@ A train that is due at its entry and would find no room after its first zone
 does not enter the network (`RunInfrastructure::singleTrackKeptOut`,
 `Train::checkEntrance`). Otherwise it would wait on its first platform, which at
 a terminal is the way out of that zone for the trains that arrive there. Trains
-in the network that have still to reach that zone, and waiting trains let in
-earlier in the step, have the room first.
+in the network that have still to reach that zone have the room first, then the
+waiting trains in the order in which they are due, the order in which
+`Train::checkEntrance` lets them in. A train that is let in keeps the room while
+it cannot enter yet, so a train due later does not overtake it. A train that is
+kept out asks for no zone and keeps no reservation, so it does not hold a zone
+that a train in the network needs.
 
 ### The invariant
 
 A train enters a zone only when, for every stretch after it up to a place where
 it blocks no train of the other direction, the trains of its direction that are
-bound for that stretch leave it room there clear of the zones. So every train in
-a zone can leave it, and every zone held by a direction is released again.
+bound for that stretch leave it room there clear of the zones. No train holds a
+zone that it cannot enter: a train behind another one on its way to the zone
+does not ask for it, and a train kept out of the network keeps no reservation.
+So every train in a zone can leave it, and every zone held by a direction is
+released again.
 
 ### Cases
 
@@ -224,6 +247,11 @@ a zone can leave it, and every zone held by a direction is released again.
 - The Paimpol restrictions one block shorter at each end: the zones still take
   in the blocks under the switch sections at their ends
   (`paimpolNarrowRestrictionsCrossOnSingleTrack`).
+- A follower behind a train that dwells in front of a zone, a follower that asks
+  in the same step as the train ahead, a holder that has passed the way out with
+  a train behind it, and a train kept out of the network next to a train that
+  has still to reach the zone (`singleTrackRoomOrder` in
+  `tests/test_operationsbuilder.cpp`).
 
 ## Limits
 
@@ -234,4 +262,6 @@ than the line can hold waits longer than needed. A way out lasts as long as the
 two routes share track, so where both directions use the same track through a
 station, trains cross only at a station where they use different tracks.
 Closures act on a whole route, so a refused train holds back the trains of its
-route behind it too.
+route behind it too. A train counts as ahead of another only when its head is on
+a section of the other train's route; a train on a section that only shares
+track with it, such as a switch section over a plain block, does not count.

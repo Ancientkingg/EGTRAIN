@@ -224,6 +224,7 @@ private slots:
 	void singleTrackLocks();
 	void singleTrackServiceStops();
 	void singleTrackWaysOut();
+	void singleTrackRoomOrder();
 	void signallingFindsSectionsById();
 	void signallingRejectsUnnumberedRoutes();
 	void rollingStockMessages();
@@ -6085,9 +6086,10 @@ void TestOperationsBuilder::singleTrackWaysOut() {
 	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
 	QVERIFY(reservesZone(2));
 	// The holder closes the way of the opposing route in front of e.5, and a committed opposing train behind that closure
-	// does not keep a second follower out.
+	// does not keep a second follower out once the holder is in the zone.
 	QCOMPARE(closure(2), 1);
 	placeLockTrain(1, 2, 1950.0, true);
+	placeLockTrain(2, 1, 2500.0, true);
 	placeLockTrain(0, 1, 1960.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
 	QCOMPARE(defaultRun().infra.singleTrackHeld[0], 1);
@@ -6110,6 +6112,110 @@ void TestOperationsBuilder::singleTrackWaysOut() {
 	QVERIFY(listHas(defaultRun().blocksConnected, "e.5"));
 }
 
+
+// Of the trains of a direction on their way to a zone, the first on the track gets the zone and the room after it first, and a
+// train that stays out of the network keeps no reservation, so that no train holds a zone that it cannot enter (#1505).
+void TestOperationsBuilder::singleTrackRoomOrder() {
+	const auto restore = keepSingleTrackState();
+	// Zone A is a.2 and zone B is b.4, with room for one train on s.3 between them. Route 1 runs the other way and leaves A
+	// over w.1, so that is its way out on route 0. Route 2 joins route 0 at u.0 and route 3 starts at the entry of A.
+	setLockRoutes({{{"u.0", "w.1", "a.2", "s.3", "b.4", "e.5"}, false},
+					  {{"e.5", "b.4", "s.3", "a.2", "w.1", "west.5"}, true},
+					  {{"v.0", "u.0", "w.1", "a.2", "s.3", "b.4"}, false},
+					  {{"a.2", "s.3", "b.4"}, false}},
+		5);
+	defaultRun().infra.singleTrackLimits = {{"a.2", "a.2", "a.2", "a.2"}, {"b.4", "b.4", "b.4", "b.4"}};
+	resetSingleTrackLocks(defaultRun());
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).waitBefore[1], 1);
+	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).next, 1);
+	const std::vector<int>& closures = defaultRun().infra.singleTrackClosures;
+	auto closure = [&closures](int route) { return closures.size() > static_cast<std::size_t>(route) ? closures[route] : -2; };
+	// A train of route k that waits to enter the network at head, due at departure.
+	auto waitToEnter = [](int k, int route, double head, double departure) {
+		placeLockTrain(k, route, head, true);
+		defaultRun().trains[k].CanEnter = false;
+		defaultRun().trains[k].Start_Node_X = head / 1000.0;
+		defaultRun().trains[k].departure_time = departure;
+	};
+	// Train k stands at a service stop in front of A, still dwelling when stood is 10 and ready to leave when it is 80.
+	auto standAtStop = [](int k, int stood) {
+		Regional& stopping = defaultRun().trains[k];
+		placeLockTrain(k, 0, 4000.0 - kStopHoldbackM, true);
+		stopping.instant_train_speed = {0.0, 0.0};
+		stopping.StoppedForServiceStop = true;
+		stopping.CurrentServiceStop = "W";
+		stopping.Stations.assign(1, Node());
+		stopping.Stations[0].stationName = "W";
+		stopping.Stations[0].StopTime = 60;
+		stopping.Stations[0].StepStopped = stood;
+		stopping.numStations = 1;
+		stopping.StationDepartures[0] = -1;
+		stopping.stop = 1 - stood;
+		stopping.ScheduledDepartures[0] = 1;
+	};
+	waitToEnter(2, 1, 0.0, 1e6); // keeps route 1 in use
+
+	// A follower on another route behind a train that dwells in front of A does not take A from it.
+	standAtStop(0, 10);
+	placeLockTrain(1, 2, 5800.0, true); // on w.1, behind the tail of train 0
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(!reservesZone(1));
+	standAtStop(0, 80);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(reservesZone(0));
+	QVERIFY(!reservesZone(1));
+	QCOMPARE(closure(0), -1);
+	// Once the leader is in A, the follower asks, finds the room after A taken and waits in front of A.
+	placeLockTrain(0, 0, 5000.0, true);
+	defaultRun().trains[0].StoppedForServiceStop = false;
+	placeLockTrain(1, 2, 5900.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(!reservesZone(1));
+	QCOMPARE(closure(2), 3);
+
+	// Of a leader and a follower that ask in the same step, the leader gets A, whatever their order.
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(0, 0, 0.0, false);
+	placeLockTrain(1, 2, 5700.0, true);
+	placeLockTrain(4, 0, 3900.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(reservesZone(4));
+	QVERIFY(!reservesZone(1));
+	QCOMPARE(closure(0), -1);
+
+	// The train behind a holder that has passed the way out of route 1 does not close route 0 in front of A, which would stop
+	// the holder too.
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(4, 0, 0.0, false);
+	placeLockTrain(1, 0, 3500.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(reservesZone(1));
+	placeLockTrain(0, 0, 1990.0, true);
+	defaultRun().trains[0].max_train_decelaration = 0.2; // it can no longer stop in front of A
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(reservesZone(1));
+	QVERIFY(!reservesZone(0));
+	QCOMPARE(closure(0), -1);
+	// Once the holder is in A, the train behind it waits in front of the way out of route 1.
+	placeLockTrain(1, 0, 5000.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(!reservesZone(0));
+	QCOMPARE(closure(0), 1);
+
+	// A train due at the entry of A that stays out of the network, because a train in the network that has still to reach A
+	// takes the room after it, does not reserve A, and so does not keep that train out of A.
+	resetSingleTrackLocks(defaultRun());
+	placeLockTrain(0, 0, 0.0, false);
+	placeLockTrain(1, 0, 1000.0, true);
+	waitToEnter(3, 3, 0.0, 0.0);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(defaultRun().infra.singleTrackKeptOut[3], char(1));
+	QVERIFY(!reservesZone(3));
+	placeLockTrain(1, 0, 3900.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QVERIFY(reservesZone(1));
+	QCOMPARE(defaultRun().infra.singleTrackKeptOut[3], char(1));
+}
 
 // True when every route section has the number of its ID and different IDs have different numbers.
 static bool numbersFollowIds(const RunInfrastructure& infra) {

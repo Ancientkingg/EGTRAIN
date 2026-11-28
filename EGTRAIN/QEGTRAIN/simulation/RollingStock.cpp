@@ -12,7 +12,6 @@
 #include <cmath>
 #include <limits>
 #include <sstream>
-#include <unordered_set>
 
 using namespace std;
 
@@ -355,7 +354,7 @@ struct LockTrain {
 	bool waiting = false;
 	bool dwelling = false;
 	double head = 0, tail = 0, speed = 0;
-	/// By limit: the train is inside the zone or keeps a reservation of it.
+	/// By limit: the train is inside the zone, keeps a reservation of it or has just been given one.
 	std::vector<char> holds;
 };
 
@@ -371,9 +370,9 @@ struct WayOutBlock {
 } // namespace
 
 // Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
-// same-direction followers. A train at a service stop asks only when its dwell is over and its planned departure has come,
-// so a reservation does not survive a service stop. Other temporary stops do not cancel a reservation; passage,
-// termination or retargeting does.
+// same-direction followers once the train ahead of them on the track is in the zone. A train at a service stop asks only when
+// its dwell is over and its planned departure has come, so a reservation does not survive a service stop. Other temporary
+// stops do not cancel a reservation; passage, termination or retargeting does.
 // A new request is refused while a train of the other direction stands on the way out of the zone of the requesting route,
 // or cannot stop before it any more. The requesting route then waits in front of the way out of that train's route, which
 // stays closed as long as a train holds the zone or is on its way out of it.
@@ -475,14 +474,29 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 		}
 	};
 
+	// The trains that can be bound to wait after a zone (see roomAfter): those in the network and those with a request.
+	std::vector<const LockTrain*> candidates;
+	auto listCandidates = [&]() {
+		candidates.clear();
+		for (const LockTrain& train : active) {
+			bool asks = false;
+			for (std::size_t l = 0; l < limits && !asks; ++l)
+				asks = std::any_of(requests[l].begin(), requests[l].end(), [&train](const SingleTrackReservation& request) {
+					return request.trainIndex == train.index;
+				});
+			if (!train.waiting || asks)
+				candidates.push_back(&train);
+		}
+	};
+
 	// Whether requester, which asks for zone l, has room at each stretch between two zones on its route up to the first one
 	// where it waits on no way out of the other direction (or up to the end of its route): behind the trains of its direction
 	// that are bound to wait there. A train is bound to wait at such a stretch when its route passes the stretch, it does not
-	// hold the zone after it, and it holds l or is between the entry of l and the end of the stretch. given lists trains that
-	// count as holding l, such as those that a new request gave l earlier in this step. The trains are queued from the entry of
-	// the next zone, each in front of the section under the tail of the one ahead, as fixed blocks hold them. A stretch that no
-	// train is bound for has room: a train alone may still wait inside a zone for the next one, which the ways out keep free of
-	// the other direction. A requester already past the entry of l is not checked.
+	// hold the zone after it, and it holds l or is between the entry of l (or of the stretch, on a route without l) and the end
+	// of the stretch. given lists further trains that count as holding l. The trains are queued from the entry of the next zone,
+	// each in front of the section under the tail of the one ahead, as fixed blocks hold them. A stretch that no train is bound
+	// for has room: a train alone may still wait inside a zone for the next one, which the ways out keep free of the other
+	// direction. A requester already past the entry of l is not checked.
 	auto roomAfter = [&](std::size_t l, const LockTrain& requester, const std::vector<const LockTrain*>& given) {
 		const int r = requester.route;
 		const Route& route = infra.routes[r];
@@ -495,22 +509,18 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 				return true;
 			const std::size_t next = static_cast<std::size_t>(zone.next);
 			const SingleTrackZone& after = singleTrackZone(run, next, r);
-			std::unordered_set<std::string> stretch;
-			for (int b = zone.last + 1; b < after.first; ++b)
-				stretch.insert(route.sequence_of_block_sections[b].ID);
 			auto bound = [&](const LockTrain& other, bool holdsZone) {
-				const int end = singleTrackZone(run, next, other.route).first; // where the train waits on its own route
-				if (other.index == requester.index || infra.routes[other.route].reversed_direction != route.reversed_direction
-					|| end < 0 || other.holds[next] != 0)
+				if (other.index == requester.index || (other.waiting && !holdsZone) || other.holds[next] != 0
+					|| infra.routes[other.route].reversed_direction != route.reversed_direction)
 					return false;
-				const Route& otherRoute = infra.routes[other.route];
-				bool passes = false;
-				for (int b = 0; b < end && !passes; ++b)
-					passes = stretch.count(otherRoute.sequence_of_block_sections[b].ID) != 0;
-				const int start = std::max(singleTrackZone(run, l, other.route).first, 0);
-				return passes
-					&& (holdsZone
-						|| (!other.waiting && other.head > sectionStart(other.route, start) && other.tail < sectionStart(other.route, end)));
+				const int joins = zone.nextStretchFrom[static_cast<std::size_t>(other.route)];
+				if (joins < 0)
+					return false;
+				if (holdsZone)
+					return true;
+				const int entryOfL = singleTrackZone(run, l, other.route).first;
+				const int end = singleTrackZone(run, next, other.route).first; // where the train waits on its own route
+				return other.head > sectionStart(other.route, entryOfL >= 0 ? entryOfL : joins) && other.tail < sectionStart(other.route, end);
 			};
 			double front = sectionStart(r, after.first);
 			auto queue = [&](const LockTrain& train) {
@@ -522,10 +532,10 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 				return b > zone.last;
 			};
 			bool waiting = false, room = true;
-			for (const LockTrain& other : active)
-				if (bound(other, other.holds[l] != 0)) {
+			for (const LockTrain* other : candidates)
+				if (bound(*other, other->holds[l] != 0)) {
 					waiting = true;
-					room = queue(other) && room;
+					room = queue(*other) && room;
 				}
 			for (const LockTrain* other : given)
 				if (bound(*other, true)) {
@@ -556,6 +566,121 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 				stop = zone.waitBefore[q];
 		return stop;
 	};
+
+	// Drops every request of train index k for zone l, or for every zone when l is limits, with what it kept for them.
+	auto dropRequests = [&](int k, std::size_t l) {
+		for (std::size_t m = 0; m < limits; ++m) {
+			if (l != limits && m != l)
+				continue;
+			for (std::size_t q = requests[m].size(); q-- > 0;)
+				if (requests[m][q].trainIndex == k) {
+					requests[m].erase(requests[m].begin() + static_cast<std::ptrdiff_t>(q));
+					retainedRequest[m].erase(retainedRequest[m].begin() + static_cast<std::ptrdiff_t>(q));
+				}
+		}
+	};
+
+	// Of the trains of one direction on their way to a zone, only the first on a track asks for it: a train behind another one that
+	// has still to enter the zone cannot enter before it. Its reservation lapses, and it asks again once the train ahead is in the
+	// zone, so the trains get the zone, and the room after it, in the order in which they reach it. headSectionOf caches, by index in
+	// active, the index on its route of the section under the head of a train in the network.
+	std::vector<int> headSectionOf(active.size(), -2);
+	auto headSection = [&](const LockTrain& train) {
+		int& found = headSectionOf[static_cast<std::size_t>(activeOf[train.index])];
+		if (found == -2) {
+			found = -1;
+			for (int b = 0; found < 0 && b < infra.routes[train.route].N_Block_Sections; ++b)
+				if (sectionStart(train.route, b) < train.head && train.head <= sectionEnd(train.route, b))
+					found = b;
+		}
+		return found;
+	};
+	// Whether front, in the network and still before the entry of zone l, stands between back and the entry of l on the route of back.
+	auto inFrontOf = [&](const LockTrain& front, const LockTrain& back, std::size_t l) {
+		if (front.index == back.index || front.waiting
+			|| infra.routes[front.route].reversed_direction != infra.routes[back.route].reversed_direction)
+			return false;
+		const int frontEntry = singleTrackZone(run, l, front.route).first;
+		const int backEntry = singleTrackZone(run, l, back.route).first;
+		if (frontEntry < 0 || backEntry < 0 || front.head > sectionStart(front.route, frontEntry))
+			return false;
+		const int b = headSection(front);
+		if (b < 0)
+			return false;
+		const std::string& id = infra.routes[front.route].sequence_of_block_sections[b].ID;
+		const Route& backRoute = infra.routes[back.route];
+		for (int c = 0; c < backEntry; ++c)
+			if (backRoute.sequence_of_block_sections[c].ID == id)
+				return sectionStart(back.route, c) + front.head - sectionStart(front.route, b) > back.head;
+		return false;
+	};
+	for (std::size_t l = 0; l < limits; ++l) {
+		std::vector<int> behind;
+		for (const SingleTrackReservation& request : requests[l]) {
+			const LockTrain& back = active[static_cast<std::size_t>(activeOf[request.trainIndex])];
+			if (std::any_of(active.begin(), active.end(), [&](const LockTrain& front) { return inFrontOf(front, back, l); }))
+				behind.push_back(back.index);
+		}
+		for (int k : behind) {
+			active[static_cast<std::size_t>(activeOf[k])].holds[l] = 0; // it is before the entry, so only a reservation held it
+			dropRequests(k, l);
+		}
+	}
+	listCandidates();
+
+	// A train that waits to enter the network and has no room after its first zone stays out of the network, so that it does not
+	// stand on the way out of that zone for a route of the other direction. The trains in the network that have still to reach
+	// that zone have the room first, then the waiting trains in the order in which they are due, as Train::checkEntrance lets them
+	// in; a train let in keeps the room while it cannot enter yet, so that a train due later does not take it. A train kept out
+	// asks for no zone and keeps no reservation.
+	std::vector<int> firstZoneOf(routeCount, -2); // by route: the limit of the first zone on it, or -1
+	auto firstZone = [&](const LockTrain& train) {
+		int& found = firstZoneOf[static_cast<std::size_t>(train.route)];
+		if (found == -2) {
+			found = -1;
+			for (std::size_t l = 0; l < limits; ++l) {
+				const int first = singleTrackZone(run, l, train.route).first;
+				if (first >= 0 && (found < 0 || first < singleTrackZone(run, static_cast<std::size_t>(found), train.route).first))
+					found = static_cast<int>(l);
+			}
+		}
+		return found;
+	};
+	infra.singleTrackKeptOut.assign(run.trains.size(), 0);
+	std::vector<LockTrain*> due;
+	for (LockTrain& train : active)
+		if (train.waiting && step + 1 >= run.trains[train.index].departure_time && firstZone(train) >= 0)
+			due.push_back(&train);
+	std::sort(due.begin(), due.end(), [&run](const LockTrain* a, const LockTrain* b) {
+		const double first = run.trains[a->index].departure_time, second = run.trains[b->index].departure_time;
+		return first < second || (first == second && a->index < b->index);
+	});
+	std::vector<const LockTrain*> letIn;
+	for (LockTrain* train : due) {
+		const std::size_t l = static_cast<std::size_t>(firstZone(*train));
+		// Those that hold the zone already count as bound; the others count as holding it.
+		std::vector<const LockTrain*> ahead;
+		for (const LockTrain* other : candidates)
+			if (!other->waiting && other->holds[l] == 0 && firstZone(*other) == static_cast<int>(l)
+				&& other->head <= sectionStart(other->route, singleTrackZone(run, l, other->route).first))
+				ahead.push_back(other);
+		for (const LockTrain* other : letIn)
+			if (other->holds[l] == 0 && firstZone(*other) == static_cast<int>(l))
+				ahead.push_back(other);
+		if (roomAfter(l, *train, ahead)) {
+			letIn.push_back(train);
+			continue;
+		}
+		infra.singleTrackKeptOut[static_cast<std::size_t>(train->index)] = 1;
+		std::fill(train->holds.begin(), train->holds.end(), 0);
+		dropRequests(train->index, limits);
+	}
+	for (std::size_t l = 0; l < limits; ++l) {
+		retainedDirection[l] = 0;
+		for (std::size_t q = 0; q < requests[l].size(); ++q)
+			if (retainedRequest[l][q])
+				retainedDirection[l] = infra.routes[requests[l][q].routeIndex].reversed_direction ? -1 : 1;
+	}
 
 	// The new requests that find no room after their zone. They are refused whatever else this step decides, so the train stops in
 	// front of the zone and does not count as heading for a way out behind it.
@@ -623,40 +748,6 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 					roomStop(l, active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])]));
 		closeForLeavers(l, closeAndList);
 	}
-	// A train that waits to enter the network and has no room after its first zone stays out of the network, so that it does not
-	// stand on the way out of that zone for a route of the other direction. The trains in the network that have still to reach
-	// that zone, and the waiting trains let in before in this step, have the room first.
-	auto firstZone = [&](const LockTrain& train) {
-		int found = -1;
-		for (std::size_t l = 0; l < limits; ++l) {
-			const int first = singleTrackZone(run, l, train.route).first;
-			if (first >= 0 && (found < 0 || first < singleTrackZone(run, static_cast<std::size_t>(found), train.route).first))
-				found = static_cast<int>(l);
-		}
-		return found;
-	};
-	infra.singleTrackKeptOut.assign(run.trains.size(), 0);
-	std::vector<const LockTrain*> letIn;
-	for (const LockTrain& train : active) {
-		if (!train.waiting || step + 1 < run.trains[train.index].departure_time)
-			continue;
-		const int l = firstZone(train);
-		if (l < 0)
-			continue;
-		std::vector<const LockTrain*> ahead;
-		for (const LockTrain& other : active)
-			if (!other.waiting && firstZone(other) == l
-				&& other.head <= sectionStart(other.route, singleTrackZone(run, static_cast<std::size_t>(l), other.route).first))
-				ahead.push_back(&other);
-		for (const LockTrain* other : letIn)
-			if (firstZone(*other) == l)
-				ahead.push_back(other);
-		if (roomAfter(static_cast<std::size_t>(l), train, ahead)) {
-			letIn.push_back(&train);
-			continue;
-		}
-		infra.singleTrackKeptOut[static_cast<std::size_t>(train.index)] = 1;
-	}
 	// A train behind a closed section in front of its way out cannot reach it. A train on its way out blocks; of two trains that
 	// are only committed, the forward one blocks; then the reversed trains that are still not held in front of their way out.
 	std::vector<char> blocked(limits * routeCount, 0); // the new requests of the route for the zone are refused
@@ -686,9 +777,8 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 			held = -1;
 		auto direction = [&infra](const SingleTrackReservation& owner) { return infra.routes[owner.routeIndex].reversed_direction ? -1 : 1; };
 		auto blockedRequest = [&](std::size_t q) { return !retainedRequest[l][q] && blocked[l * routeCount + requests[l][q].routeIndex] != 0; };
-		std::vector<const LockTrain*> given; // the trains that a new request gave the zone in this step
 		auto full = [&](std::size_t q) {
-			return !retainedRequest[l][q] && !roomAfter(l, active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])], given);
+			return !retainedRequest[l][q] && !roomAfter(l, active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])], {});
 		};
 		auto refused = [&](std::size_t q) { return blockedRequest(q) || full(q); };
 		if (held == 0)
@@ -698,31 +788,31 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 				if (!refused(q) && (direction(requests[l][q]) > 0 || held == 0))
 					held = direction(requests[l][q]); // forward wins only simultaneous requests on a free zone
 		infra.singleTrackReservations[l].clear();
-		std::vector<std::pair<int, int>> waitOutside; // the route and stop of each request that found no room after the zone
+		std::vector<std::pair<const LockTrain*, int>> waitOutside; // each train that found no room after the zone, and its stop
 		for (std::size_t q = 0; q < requests[l].size(); ++q) {
 			if ((direction(requests[l][q]) != held && held != 0) || blockedRequest(q))
 				continue;
+			LockTrain& train = active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])];
 			if (full(q)) {
-				const int r = requests[l][q].routeIndex;
-				waitOutside.emplace_back(r, roomStop(l, active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])]));
+				waitOutside.emplace_back(&train, roomStop(l, train));
 				continue;
 			}
 			if (direction(requests[l][q]) != held)
 				continue;
 			infra.singleTrackReservations[l].push_back(requests[l][q]);
 			closeForHolder(l, requests[l][q].routeIndex, [&](int r, int b) { closeInFront(l, r, b); });
-			if (!retainedRequest[l][q])
-				given.push_back(&active[static_cast<std::size_t>(activeOf[requests[l][q].trainIndex])]);
+			train.holds[l] = 1; // the next requests count it as bound
 		}
-		// A route without room is closed at the stop of the waiting train, unless a train of the route that holds the zone has still
-		// to pass that stop: that train is ahead of the waiting one, which cannot pass it anyway.
+		// A route without room is closed at the stop of the waiting train, unless a train of the route that holds the zone stands
+		// between that train and its stop: the waiting train cannot pass it anyway, and the closure would stop it too.
 		for (const auto& wait : waitOutside) {
-			const int r = wait.first;
+			const int r = wait.first->route;
 			const double stop = sectionStart(r, wait.second);
 			const auto& owners = infra.singleTrackReservations[l];
 			if (std::none_of(owners.begin(), owners.end(), [&](const SingleTrackReservation& owner) {
 					const int a = activeOf[owner.trainIndex];
-					return owner.routeIndex == r && a >= 0 && active[static_cast<std::size_t>(a)].head <= stop;
+					return owner.routeIndex == r && a >= 0 && active[static_cast<std::size_t>(a)].head > wait.first->head
+						&& active[static_cast<std::size_t>(a)].head <= stop;
 				}))
 				closeSlot(l, r, wait.second);
 		}

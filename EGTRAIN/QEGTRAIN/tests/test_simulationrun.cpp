@@ -982,14 +982,14 @@ void TestSimulationRun::paimpolNarrowRestrictionsCrossOnSingleTrack() {
 // Pontrieaux, behind the trains that waited on its loop and main track, from about 15000 s to the end of the run.
 void TestSimulationRun::paimpolLongDwellsTwiceCrossOnSingleTrack() {
 	SceneModel scene = m_passengers;
-	scene.settings.durationSeconds = 27000.0;
+	scene.settings.durationSeconds = 30000.0;
 	scene.settings.passengerDwellCoefficients = std::vector<double>{7.0, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
 	SceneRunSelection twoRuns;
 	for (const SceneService& service : scene.services) {
 		twoRuns.insert({service.id, 1});
 		twoRuns.insert({service.id, 2});
 	}
-	const std::unique_ptr<SimulationRun> run = steppedRun(scene, twoRuns, 27000);
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, twoRuns, 30000);
 	if (run == nullptr || run->numTrains != 16)
 		QFAIL("the run is not built");
 	for (const Regional& train : run->trains)

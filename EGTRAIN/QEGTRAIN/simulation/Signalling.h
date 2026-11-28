@@ -533,6 +533,10 @@ struct SingleTrackZone {
 	/// The limit whose zone the route passes next after this one, or -1 when it passes none. The sections between the two
 	/// zones are where a train of the route waits for the next zone.
 	int next = -1;
+	/// By route index, for each route of the same direction: the index on that route of its first section on the stretch
+	/// between this zone and next on this route, before it reaches its own zone of next, or -1 when it has none there. Empty
+	/// when next is -1.
+	std::vector<int> nextStretchFrom;
 };
 /// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
 void resetSingleTrackLocks(SimulationRun& run);

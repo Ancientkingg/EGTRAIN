@@ -3058,6 +3058,27 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 						onRoute.next = static_cast<int>(m);
 				}
 			}
+		// Where each route of the same direction joins the stretch between each zone and the next one.
+		for (std::size_t r = 0; r < infra.singleTrackZoneRoutes; ++r)
+			for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
+				SingleTrackZone& onRoute = infra.singleTrackZones[k * infra.singleTrackZoneRoutes + r];
+				if (onRoute.next < 0)
+					continue;
+				const std::size_t next = static_cast<std::size_t>(onRoute.next) * infra.singleTrackZoneRoutes;
+				const Route& route = infra.routes[r];
+				std::unordered_set<std::string> stretch;
+				for (int b = onRoute.last + 1; b < infra.singleTrackZones[next + r].first; ++b)
+					stretch.insert(route.sequence_of_block_sections[b].ID);
+				onRoute.nextStretchFrom.assign(infra.singleTrackZoneRoutes, -1);
+				for (std::size_t q = 0; q < infra.singleTrackZoneRoutes; ++q) {
+					const Route& other = infra.routes[q];
+					for (int b = 0; other.reversed_direction == route.reversed_direction && b < infra.singleTrackZones[next + q].first; ++b)
+						if (stretch.count(other.sequence_of_block_sections[b].ID) != 0) {
+							onRoute.nextStretchFrom[q] = b;
+							break;
+						}
+				}
+			}
 		infra.singleTrackZonesDerived = true;
 	}
 	if (l >= infra.singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= infra.singleTrackZoneRoutes)
