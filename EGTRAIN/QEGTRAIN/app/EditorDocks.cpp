@@ -2,6 +2,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/EntranceDelayPanel.h"
+#include "editors/MeasurePanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/PassengerDemandPanel.h"
@@ -273,6 +274,9 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 
 	m_entranceDelayPanel = new EntranceDelayPanel(scenarioEditorTabs);
 	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance delays");
+
+	m_measurePanel = new MeasurePanel(scenarioEditorTabs);
+	scenarioEditorTabs->addTab(m_measurePanel, "Measures");
 	scenarioEditorTabs->setMinimumSize(0, 0);
 	incidentLayout->addWidget(scenarioEditorTabs, 1);
 
@@ -324,6 +328,11 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_entranceDelayPanel->setOccurrenceDuration([this] { return m_host.serviceOccurrenceDuration(); });
 	m_entranceDelayPanel->setDocument(m_document);
 	QObject::connect(m_entranceDelayPanel, &EntranceDelayPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
+	m_measurePanel->setPrompts(prompts);
+	m_measurePanel->setRunSelection(&runSelection);
+	m_measurePanel->setOccurrenceDuration([this] { return m_host.serviceOccurrenceDuration(); });
+	m_measurePanel->setDocument(m_document);
+	QObject::connect(m_measurePanel, &MeasurePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 
 	// Passenger authoring: a deliberately direct list/detail editor over the
 	// canonical SceneModel.  Journeys and legs remain nested under the selected
@@ -424,7 +433,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_timetableStopsPanel->setDocument(m_document);
 	m_serviceDock->widget()->setEnabled(false);
 	m_panels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_demandPanel, m_compositionPanel,
-		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
+		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel, m_measurePanel};
 	for (SceneEditorPanel* panel : m_panels)
 		QObject::connect(panel, &SceneEditorPanel::statusMessage, m_window,
 			[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });

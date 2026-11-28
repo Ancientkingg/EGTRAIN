@@ -53,7 +53,7 @@ static bool writeNewerBundle(const fs::path& path, const char* unsafeName = null
 		return false;
 	const std::string manifest = json({{"format", "egscene"},
 										  {"bundle_version", kCurrentSceneBundleVersion + 1},
-										  {"schema_version", kCurrentSceneSchemaVersion}})
+										  {"schema_version", kOldestCurrentSceneSchemaVersion}})
 									 .dump();
 	const char* futureName = unsafeName ? unsafeName : "future-layout.json";
 	bool ok = mz_zip_writer_add_mem(&writer, "scene.json", manifest.data(), manifest.size(), MZ_BEST_COMPRESSION)
@@ -447,13 +447,13 @@ void TestSceneCompatibility::migratesOlderBundle() {
 	const SceneCompatibilityProbeResult olderBundleProbe = probeSceneCompatibility(olderBundle.string());
 	// Older bundle is independent from current schema support.
 	QVERIFY(olderBundleProbe.classification == SceneCompatibilityClass::OlderUnsupported);
-	QCOMPARE(olderBundleProbe.schemaVersion, kCurrentSceneSchemaVersion);
+	QCOMPARE(olderBundleProbe.schemaVersion, kOldestCurrentSceneSchemaVersion);
 	QVERIFY(olderBundleProbe.bundleVersion);
 	QCOMPARE(*olderBundleProbe.bundleVersion, kCurrentSceneBundleVersion - 1);
 	const std::string olderBundleReason = reasonOf(olderBundleProbe, "scene.compatibility.older");
 	// Older bundle reason names both layout numbers.
 	QVERIFY2(contains(olderBundleReason, "schema 1, case file version 0 (saved"), olderBundleReason.c_str());
-	QVERIFY2(contains(olderBundleReason, "reads schema 1, case file version 1."), olderBundleReason.c_str());
+	QVERIFY2(contains(olderBundleReason, "reads schema 1 to 2, case file version 1."), olderBundleReason.c_str());
 	const SceneMigrationRegistry bundleRegistry = bundleStepRegistry();
 	const SceneCompatibilityProbeResult migratableBundle = probeSceneCompatibility(olderBundle.string(), bundleRegistry);
 	// Registered bundle step makes only the older bundle migratable.
@@ -714,7 +714,7 @@ void TestSceneCompatibility::namesRejectionReasons() {
 	QVERIFY(!olderReason.empty());
 	QVERIFY2(contains(olderReason, "schema 0 (saved with EGTRAIN 0.9)"), olderReason.c_str());
 	QVERIFY2(contains(olderReason, "saved by an older version of EGTRAIN"), olderReason.c_str());
-	QVERIFY2(contains(olderReason, "reads schema 1."), olderReason.c_str());
+	QVERIFY2(contains(olderReason, "reads schema 1 to 2."), olderReason.c_str());
 	QVERIFY2(contains(olderReason, "Import Legacy Case"), olderReason.c_str());
 	QVERIFY2(!contains(olderReason, "case file version"), olderReason.c_str());
 	const fs::path refusedCopy = folder / "refused-copy";
@@ -746,7 +746,7 @@ void TestSceneCompatibility::namesRejectionReasons() {
 
 	// The draft layout: a legacy_source and an infrastructure.json without nodes and arcs.
 	const json emptyInfrastructure = {{"arcs", json::array()}, {"nodes", json::array()}};
-	QVERIFY2(changeManifest(scene, {{"schema_version", kCurrentSceneSchemaVersion}, {"saved_with_app_version", nullptr}, {"legacy_source", "Input/Input_EGTRAIN_Paimpol"}}),
+	QVERIFY2(changeManifest(scene, {{"schema_version", kOldestCurrentSceneSchemaVersion}, {"saved_with_app_version", nullptr}, {"legacy_source", "Input/Input_EGTRAIN_Paimpol"}}),
 		"draft reason fixture writes");
 	const SceneCompatibilityProbeResult onlyLegacySource = probeSceneCompatibility(scene.string());
 	// legacy_source alone does not mark the draft layout.

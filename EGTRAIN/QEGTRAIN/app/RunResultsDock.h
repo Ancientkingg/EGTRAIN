@@ -84,6 +84,10 @@ public:
 	QPushButton* compareDelayButton() const { return m_compareDelayButton; }
 	/// The button that compares the passengers of the completed run with the baseline; hidden when the run had no passengers.
 	QPushButton* comparePassengersButton() const { return m_comparePassengersButton; }
+	/// The dispatching measures that the completed run applied, one line each (appliedMeasureText); hidden without any.
+	QLabel* measuresLabel() const { return m_measuresLabel; }
+	/// The button that adds the measures taken by hand during the run to the scenario of the run.
+	QPushButton* saveMeasuresButton() const { return m_saveMeasuresButton; }
 
 	/// Writes the table and the summary of the completed run and shows the dock, a third of the window high when it opens at
 	/// the bottom. Does nothing without trains in the results.
@@ -100,6 +104,8 @@ public:
 signals:
 	/// The table of a completed run has been written and the dock is shown.
 	void refreshed();
+	/// The user asked to add the measures taken by hand during the run to its scenario.
+	void saveMeasuresRequested();
 
 private:
 	QMainWindow* const m_window;
@@ -115,6 +121,9 @@ private:
 	QPushButton* m_setDelayBaselineButton = nullptr;
 	QPushButton* m_compareDelayButton = nullptr;
 	QPushButton* m_comparePassengersButton = nullptr;
+	QLabel* m_measuresCaption = nullptr;
+	QLabel* m_measuresLabel = nullptr;
+	QPushButton* m_saveMeasuresButton = nullptr;
 };
 
 #endif // RUNRESULTSDOCK_H

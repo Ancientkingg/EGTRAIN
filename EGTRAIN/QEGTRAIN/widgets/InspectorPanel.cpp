@@ -218,6 +218,10 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	m_incidentButton = new QPushButton(infoWidget);
 	m_incidentButton->setObjectName("inspectorIncidentButton");
 	connect(m_incidentButton, &QPushButton::clicked, this, &InspectorPanel::incidentRequested);
+	// The button under the form of a train that cancels it during a run.
+	m_cancelServiceButton = new QPushButton("Cancel service...", infoWidget);
+	m_cancelServiceButton->setObjectName("inspectorCancelServiceButton");
+	connect(m_cancelServiceButton, &QPushButton::clicked, this, &InspectorPanel::cancelServiceRequested);
 
 	// main layout
 	auto* infoWidgetMainLayout = new QVBoxLayout();
@@ -227,6 +231,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	infoWidgetMainLayout->addWidget(m_signallingInfoWidget);
 	infoWidgetMainLayout->addWidget(m_trainInfoWidget);
 	infoWidgetMainLayout->addWidget(m_incidentButton, 0, Qt::AlignLeft);
+	infoWidgetMainLayout->addWidget(m_cancelServiceButton, 0, Qt::AlignLeft);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
 	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
@@ -263,6 +268,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	m_signallingInfoWidget->hide();
 	m_trainInfoWidget->hide();
 	m_incidentButton->hide();
+	m_cancelServiceButton->hide();
 
 	connect(m_infoDockWidget, &InfoDockWidget::closed, this, &InspectorPanel::handleCloseInfoDockWidget);
 }
@@ -328,6 +334,7 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_signallingInfoWidget->hide();
 	m_trainInfoWidget->hide();
 	m_incidentButton->hide();
+	m_cancelServiceButton->hide();
 	m_presenter->removeTrainPaxInfoIcon();
 	m_presenter->clearSelectedTrain(); // Explicitly dismissed or replaced train inspection.
 	m_presenter->removePaxInfoIcon();
@@ -358,6 +365,12 @@ void InspectorPanel::showIncidentAction(const QString& text, const QString& bloc
 	m_incidentButton->setEnabled(blocked.isEmpty());
 	m_incidentButton->setToolTip(blocked);
 	m_incidentButton->setVisible(!text.isEmpty());
+}
+
+void InspectorPanel::showCancelServiceAction(bool shown, const QString& blocked) {
+	m_cancelServiceButton->setEnabled(blocked.isEmpty());
+	m_cancelServiceButton->setToolTip(blocked);
+	m_cancelServiceButton->setVisible(shown);
 }
 
 void InspectorPanel::clearPreviewInspection() {

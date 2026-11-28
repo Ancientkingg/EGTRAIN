@@ -59,7 +59,7 @@ IncidentTargetChoices incidentTargetChoices(const SceneModel& model, const Scene
 
 /// A scenario read from a file, made ready to be added to a scene.
 struct ScenarioImport {
-	/// The scenario, with an id and incident ids that the scene does not use yet.
+	/// The scenario, with an id and incident and measure ids that the scene does not use yet.
 	SceneScenario scenario;
 	/// The id that the file gave the scenario.
 	std::string requestedId;
@@ -67,10 +67,12 @@ struct ScenarioImport {
 	bool idTaken = false;
 	/// The number of incidents that got another id.
 	int renamedIncidents = 0;
+	/// The number of measures that got another id.
+	int renamedMeasures = 0;
 	/// The errors that validateScene() finds in the scenario once it is added. The scenario can be added only without
 	/// them; errors elsewhere in the scene do not count.
 	std::vector<SceneDiagnostic> errors;
 };
 
-/// Gives `scenario` an id and incident ids that `model` does not use yet, and checks it as the last scenario of the scene.
+/// Gives `scenario` an id and incident and measure ids that `model` does not use yet, and checks it as the last scenario of the scene.
 ScenarioImport prepareScenarioImport(const SceneModel& model, SceneScenario scenario);

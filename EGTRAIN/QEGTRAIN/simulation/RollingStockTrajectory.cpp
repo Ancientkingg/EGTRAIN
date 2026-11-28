@@ -640,6 +640,41 @@ void Train::leaveRouteAtEnd(int time_seconds) {
 	OutOfSimulation = true;
 }
 
+void Train::leaveNetworkAtStop(int time_seconds) {
+	const Route& route = run_->infra.routes[indexOfRoute];
+	const double head = instant_spatial_position[time_seconds - 1];
+	End_Time = time_seconds - 1;
+	instant_train_speed[time_seconds] = 0;
+	instant_spatial_position[time_seconds] = -9999;
+	instant_train_power_consumption[time_seconds] = -9999;
+	instant_train_tractive_effort[time_seconds] = -9999;
+	// The sections under the train, from the tail to the head.
+	for (int h = 0; h < route.N_Block_Sections; ++h) {
+		const Section& section = route.sequence_of_block_sections[h];
+		if (section.end_node.X * 1000 > head - train_length && section.start_node.X * 1000 <= head)
+			relLastSectionMixedSignalling(*run_, section.ID);
+	}
+	// A train that follows another is decoupled from it; one that was only closing in stops doing so without a notice.
+	if (IsTrainInFollowingMode) {
+		EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train "
+								<< LeadingTrainInFollowingMode << ", because it ends its run\n";
+		run_->vcMsgTimestep.push_back(time_seconds);
+		run_->vcMsgTrain.push_back(trainDescription);
+		run_->vcMsgText.push_back("Decoupled");
+	}
+	IsTrainCoupling = false;
+	IsTrainInFollowingMode = false;
+	LeadingTrainInFollowingMode = kNoneId;
+	IsInUnintentionalDecoupling = false;
+	CounterFollowingMode = 0;
+	StoppedForServiceStop = false;
+	CurrentServiceStop = kNoneId;
+	CurrentServiceStopPlatform = kNoneId;
+	currentServiceStopPlatformNumber = 0;
+	leftNetworkAtStop = true;
+	OutOfSimulation = true;
+}
+
 bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head) {
 	// Determination of Train Coupling phase for Virtual Coupling
 	if ((IsTrainCoupling == 1) && liveLeader
@@ -750,7 +785,7 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 	}
 
 	// if the speed limit on the Arc is 0: this case happens only when the BACC is implemented
-	if (V_lim == 0) {
+	if (V_lim == 0 && !OutOfSimulation) {
 		counter = 0;
 		setStepBranch(TrajectoryBranch::ZeroSpeedLimit);
 		instant_train_speed[time_seconds] = 0;
@@ -768,7 +803,8 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	double stoptime = 0;
 	double dep_time = 0;
 	counter = 0;
-	if (const int s = serviceStopOf(As.endNode.stationName); s >= 0) {
+	const int s = serviceStopOf(As.endNode.stationName);
+	if (s >= 0) {
 		this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
 		this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
 		this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
@@ -785,6 +821,12 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		Stations[s].StepStopped++;
 		if (Stations[s].StepStopped > Stations[s].StopTime)
 			stoptime = 0;
+	}
+	// A dispatching measure ends the run here: the train leaves the network once it has dwelt, whatever its planned departure and
+	// the signal ahead.
+	if (s >= 0 && s == runEndStop && (time_seconds - stop) > stoptime) {
+		leaveNetworkAtStop(time_seconds);
+		return;
 	}
 
 

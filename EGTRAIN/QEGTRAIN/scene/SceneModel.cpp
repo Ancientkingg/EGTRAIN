@@ -266,7 +266,7 @@ double scenePlatformCapacity(double lengthM, double widthM) {
 
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
-	scene.schemaVersion = kCurrentSceneSchemaVersion;
+	scene.schemaVersion = kOldestCurrentSceneSchemaVersion;
 	scene.name = "Untitled case";
 	scene.baseTime = "08:00:00";
 	scene.settings.hasDuration = true;
@@ -512,6 +512,13 @@ void refreshSavedSceneMetadata(SceneModel& scene) {
 		else
 			scene.sourceFiles.erase(file.name);
 	}
+	scene.schemaVersion = sceneSchemaVersionToWrite(scene);
+}
+
+int sceneSchemaVersionToWrite(const SceneModel& scene) {
+	const bool hasMeasures = std::any_of(scene.scenarios.begin(), scene.scenarios.end(),
+		[](const SceneScenario& scenario) { return !scenario.measures.empty(); });
+	return hasMeasures ? kCurrentSceneSchemaVersion : kOldestCurrentSceneSchemaVersion;
 }
 
 SceneLoadResult loadScene(const std::string& sceneDir) {
@@ -669,6 +676,21 @@ bool incidentTypeFromName(const std::string& name, IncidentType& type) {
 		type = IncidentType::TrainBreakdown;
 	else
 		return false;
+	return true;
+}
+
+const char* measureTypeName(MeasureType type) {
+	switch (type) {
+		case MeasureType::CancelService:
+			break;
+	}
+	return "cancel_service";
+}
+
+bool measureTypeFromName(const std::string& name, MeasureType& type) {
+	if (name != "cancel_service")
+		return false;
+	type = MeasureType::CancelService;
 	return true;
 }
 

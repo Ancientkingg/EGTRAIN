@@ -82,8 +82,9 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// times of any other. Its rides become the trips of the journey, named <journey>.live<n>, with the
 /// stations and platforms exactly as the stops of the train name them, so that boarding and alighting treat them like trips from
 /// the scene. A passenger plans again from the station where it is when it misses its train (the train left, or cannot call
-/// there any more), when the train is full, when the train ends its service before the stop where the passenger leaves it, and
-/// when the train it waits for, or rides, runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
+/// there any more), when the train is full, when the train ends its service before the stop where the passenger leaves it, when a
+/// dispatching measure ends the run of the train it waits for before the stop where it would leave the train (the plans of the router
+/// then end there too, passenger_routing::TrainState::servedStops), and when the train it waits for, or rides, runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 /// A missed train after the passenger has ridden a train of the journey is a missed connection (Journey::MissedConnections).
 ///
 /// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
@@ -103,9 +104,9 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// use the planned times of that train. The passengers whose train changed in a step plan in the order of the passenger list.
 ///
 /// A passenger on board of a train that is late or slowed looks for an earlier plan at each stop where the train stands and that
-/// is not its last: once when the train comes to a stand there, and again whenever its prediction changes while it stands there,
+/// is not its last (nor the stop where a dispatching measure ends its run): once when the train comes to a stand there, and again whenever its prediction changes while it stands there,
 /// also while a breakdown or a signal holds it. The plan the passenger has is to stay on board to where the trip leaves the train
-/// and then follow the rest of the plan (tripsArrival); the new plan starts on the platform of the train now and counts the train
+/// and then follow the rest of the plan (tripsArrival), which a train that a measure ends before that stop does not make; the new plan starts on the platform of the train now and counts the train
 /// as ridden. The rule is that of a waiting passenger: the passenger takes the new plan only when it reaches the destination more
 /// than kSwitchMarginSeconds earlier, and then alights at this call, counted with the passengers who alight there, and waits for
 /// the new plan (switchOnBoard). A new plan that rides the same train on from here is not taken: the passenger stays on board
@@ -162,7 +163,8 @@ public:
 
 	/// Settles the trains at the start of the passenger step at `t`: the passengers who wait for a train that has left a stop,
 	/// or cannot call there any more, plan again, and the passengers on a train that ended its service are set down at its last
-	/// stop and plan again from there. Then the passengers who wait for a train whose prediction changed look for an earlier
+	/// stop and plan again from there. The passengers who wait for a train whose run a dispatching measure has just ended early plan
+	/// again when it no longer takes them where their trip goes. Then the passengers who wait for a train whose prediction changed look for an earlier
 	/// plan (see the rule above). The trains whose prediction changed are kept for offerEarlierPlansOnBoard in the same step.
 	void settleTrains(SimulationRun& run, PassengerFlow& flow, int t);
 
@@ -177,6 +179,7 @@ private:
 		int firstStop = 0; ///< advanceFirstStop of the train.
 		int handled = 0;   ///< The stops before this one have had their waiting passengers planned again.
 		bool ended = false;
+		int runEndStop = -1; ///< Train::runEndStop when the passengers who wait for the train were last checked against it.
 	};
 	void ensureBuilt(const SimulationRun& run);
 	void ensureStates(const SimulationRun& run, int t);
@@ -202,6 +205,13 @@ private:
 	std::optional<passenger_routing::Plan> standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
 		const Trip& current, int t, std::optional<int> alightedAtPlatform, int onlyTrain = -1) const;
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
+	/// True when the train still takes the passenger, who waits for it, from the station and platform where the passenger waits to the
+	/// arrival station of the trip: always for a train that runs its whole route, otherwise only from a stop before the one where a
+	/// dispatching measure ends its run (Train::runEndStop) to that stop or one before it.
+	bool takesToTripEnd(const SimulationRun& run, int train, const Passenger& passenger, const Trip& trip) const;
+	/// A dispatching measure has just ended the run of the train early: the passengers who wait for it at its stops and whose trip it
+	/// no longer makes (takesToTripEnd) plan again, in the order of the passenger list.
+	void replanCutTrips(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	/// The passenger leaves the train at `stop` now, before the end of the trip, and plans the rest of the journey from its platform:
 	/// with `given` that plan, otherwise the earliest arrival from the station.

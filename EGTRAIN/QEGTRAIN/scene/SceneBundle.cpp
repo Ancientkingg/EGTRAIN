@@ -544,7 +544,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 			"Unsupported bundle_version; only the current case file version can be loaded", "scene.json");
 		return result;
 	}
-	if (manifest.schemaVersion != kCurrentSceneSchemaVersion) {
+	if (!isCurrentSceneSchemaVersion(manifest.schemaVersion)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.schema",
 			"Unsupported schema_version; only the current scene schema can be loaded", "scene.json");
 		return result;
@@ -574,7 +574,7 @@ SceneLoadResult loadScenePath(const std::string& path) {
 
 SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bundlePath) {
 	SceneSaveResult result;
-	if (scene.schemaVersion != kCurrentSceneSchemaVersion) {
+	if (!isCurrentSceneSchemaVersion(scene.schemaVersion)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.schema",
 			"Case file writer requires the current schema_version", "scene.json");
 		return result;
@@ -748,7 +748,7 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	if (!inspectBundle(pathFromUtf8(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
 		return result;
 	if (manifest.bundleVersion != kCurrentSceneBundleVersion
-		|| manifest.schemaVersion != kCurrentSceneSchemaVersion) {
+		|| !isCurrentSceneSchemaVersion(manifest.schemaVersion)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.version",
 			"Only the current case file can be unpacked", "scene.json");
 		return result;

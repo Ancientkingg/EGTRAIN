@@ -30,7 +30,7 @@ void sceneRewriteNodeReferences(SceneModel& model, const std::string& oldId, con
 /// Rewrites the block id in routes, block dependencies, single-track restrictions, station boundaries,
 /// signal-failure incident targets and protected sections of signals.
 void sceneRewriteBlockReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
-/// Rewrites the station id in stops, entrance delays and passenger journeys and legs.
+/// Rewrites the station id in stops, entrance delays, the stations of measures and passenger journeys and legs.
 void sceneRewriteStationReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
 /// Rewrites the platform id in the stops at the platform of that station.
 void sceneRewritePlatformReferences(SceneModel& model, const std::string& stationId, const std::string& oldId,
@@ -46,8 +46,8 @@ void sceneRewriteRouteReferences(SceneModel& model, const std::string& oldId, co
 void sceneRewriteTrainUnitReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
 /// Rewrites the composition id in the composition of services.
 void sceneRewriteCompositionReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
-/// Rewrites the service id in entrance delays, train-breakdown incident targets, passenger legs and the services that couple
-/// virtually.
+/// Rewrites the service id in entrance delays, train-breakdown incident targets, measures, passenger legs and the services that
+/// couple virtually.
 void sceneRewriteServiceReferences(SceneModel& model, const std::string& oldId, const std::string& newId);
 /// Rewrites the scenario id in defaultScenarioId.
 void sceneRewriteScenarioReferences(SceneModel& model, const std::string& oldId, const std::string& newId);

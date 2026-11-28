@@ -303,13 +303,13 @@ static void checkRunnable(const Fixture& fixture, const fs::path& source, const 
 	}
 }
 
-// A number below the current one needs a fixture of that number and either a registered migration path or every fixture
-// of that number listed as OlderUnsupported. Each loop covers the numbers below the current one and does not run while
-// the current number is 1.
-static void checkVersionNumbers(const char* kind, const char* constant, int current, SceneMigrationStepKind stepKind,
+// A number below the oldest current one needs a fixture of that number and either a registered migration path or every fixture
+// of that number listed as OlderUnsupported. Each loop covers the numbers below the oldest current one and does not run while
+// that number is 1.
+static void checkVersionNumbers(const char* kind, const char* constant, int current, int oldestCurrent, SceneMigrationStepKind stepKind,
 	const std::vector<std::pair<int, std::string>>& fixtureNumbers) {
 	const std::string rule = "See the version rule at the end of \"Compatibility boundary\" in docs/architecture/scene-model.md.";
-	for (int number = 1; number < current; ++number) {
+	for (int number = 1; number < oldestCurrent; ++number) {
 		const std::string label = std::string(kind) + " number " + std::to_string(number);
 		bool hasFixture = false;
 		bool allUnsupported = true;
@@ -320,7 +320,7 @@ static void checkVersionNumbers(const char* kind, const char* constant, int curr
 			allUnsupported = allUnsupported && fixture.second == "OlderUnsupported";
 		}
 		QVERIFY2(hasFixture,
-			(label + ", check (i): no fixture in manifest.json has it, and " + constant + " is " + std::to_string(current)
+			(label + ", check (i): no fixture in manifest.json has it, and " + constant + " is " + std::to_string(oldestCurrent)
 				+ ". Add a fixture written by a build with that number. " + rule)
 				.c_str());
 		const bool registered = sceneMigrationPathAvailable(productionSceneMigrationRegistry(), stepKind, number, current);
@@ -472,7 +472,9 @@ void TestSceneVersions::rejectsSchemaNumbersNoBuildWrote() {
 	QVERIFY2(probe.diagnostics.size() == 1, bothNumbers.c_str());
 	QVERIFY2(reason.find(code.toStdString()) != std::string::npos, bothNumbers.c_str());
 	QVERIFY2(reason.find("schema " + std::to_string(schema)) != std::string::npos, bothNumbers.c_str());
-	QVERIFY2(reason.find("schema " + std::to_string(kCurrentSceneSchemaVersion)) != std::string::npos, bothNumbers.c_str());
+	QVERIFY2(reason.find("schema " + std::to_string(kOldestCurrentSceneSchemaVersion) + " to " + std::to_string(kCurrentSceneSchemaVersion))
+			!= std::string::npos,
+		bothNumbers.c_str());
 	const SceneLoadResult loaded = loadScenePath(copy.u8string());
 	QVERIFY2(hasErrorCode(loaded.diagnostics, "scene.version.unsupported"),
 		(name + ": loadScenePath reports " + firstError(loaded.diagnostics) + ", expected scene.version.unsupported").c_str());
@@ -483,7 +485,8 @@ void TestSceneVersions::schemaNumbersHaveFixtures() {
 	std::vector<std::pair<int, std::string>> schemaNumbers;
 	for (const Fixture& fixture : m_fixtures)
 		schemaNumbers.emplace_back(fixture.schemaVersion, fixture.className);
-	checkVersionNumbers("schema", "kCurrentSceneSchemaVersion", kCurrentSceneSchemaVersion, SceneMigrationStepKind::Schema, schemaNumbers);
+	checkVersionNumbers("schema", "kOldestCurrentSceneSchemaVersion", kCurrentSceneSchemaVersion, kOldestCurrentSceneSchemaVersion,
+		SceneMigrationStepKind::Schema, schemaNumbers);
 }
 
 void TestSceneVersions::bundleNumbersHaveFixtures() {
@@ -492,7 +495,8 @@ void TestSceneVersions::bundleNumbersHaveFixtures() {
 		if (fixture.bundleVersion)
 			bundleNumbers.emplace_back(*fixture.bundleVersion, fixture.className);
 	}
-	checkVersionNumbers("bundle", "kCurrentSceneBundleVersion", kCurrentSceneBundleVersion, SceneMigrationStepKind::Bundle, bundleNumbers);
+	checkVersionNumbers("bundle", "kCurrentSceneBundleVersion", kCurrentSceneBundleVersion, kCurrentSceneBundleVersion,
+		SceneMigrationStepKind::Bundle, bundleNumbers);
 }
 
 QTEST_APPLESS_MAIN(TestSceneVersions)

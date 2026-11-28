@@ -11,6 +11,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/EntranceDelayPanel.h"
+#include "editors/MeasurePanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/TrainUnitPanel.h"
@@ -3894,11 +3895,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		};
 		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
 		auto* scenarioHeader = w.findChild<QLabel*>("scenarioHeaderLabel");
-		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 3 || scenarioTabs->tabText(0) != "Scenario"
+		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 4 || scenarioTabs->tabText(0) != "Scenario"
 			|| scenarioTabs->tabText(1) != "Incidents" || scenarioTabs->tabText(2) != "Entrance delays"
-			|| scenarioTabs->widget(0) != scenarioPanel(w) || scenarioTabs->widget(1) != incidentPanel(w)
-			|| scenarioTabs->widget(2) != entranceDelayPanel(w))
-			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents and Entrance delays tabs");
+			|| scenarioTabs->tabText(3) != "Measures" || scenarioTabs->widget(0) != scenarioPanel(w)
+			|| scenarioTabs->widget(1) != incidentPanel(w) || scenarioTabs->widget(2) != entranceDelayPanel(w)
+			|| scenarioTabs->widget(3) != measurePanel(w))
+			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents, Entrance delays and Measures tabs");
 		else if (scenarioHeader->parentWidget() != scenarioTabs->parentWidget()
 			|| scenarioHeader->text() != scenarioPanel(w)->headerText()
 			|| scenarioPanel(w)->headerText() != "Scenario: " + selectedScenarioName())
@@ -5164,8 +5166,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const QDockWidget* results = w.m_runResultsPanel->dock();
 			const QStringList summaryLines = w.m_runResultsPanel->summaryLabel()->text().split('\n');
 			QStringList captions;
+			// The caption of the measures shows only for a run that applied one, which this run did not.
 			for (const QLabel* label : results->findChildren<QLabel*>(QRegularExpression("Caption$")))
-				captions << label->text();
+				if (label->isVisibleTo(results))
+					captions << label->text();
 			if (!w.tabifiedDockWidgets(w.m_loadedDataDock).contains(w.m_runResultsPanel->dock()) || !results->isVisible())
 				facetFailure(ok, "presentation", "Run Results is not shown over Loaded Data, so the check proves nothing");
 			else if (w.width() > 1280 || w.height() > 800)
@@ -5545,6 +5549,59 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.resize(1280, 800);
 			for (QDockWidget* dock : editorDocks)
 				dock->hide();
+
+			// The button Cancel service... of the inspector reaches the window, which says that it needs a run that goes on.
+			if (auto* cancelButton = w.findChild<QPushButton*>("inspectorCancelServiceButton")) {
+				w.statusBar()->clearMessage();
+				w.m_inspector->showCancelServiceAction(true, QString());
+				cancelButton->click();
+				const QString said = w.statusBar()->currentMessage();
+				w.m_inspector->showCancelServiceAction(false, QString());
+				if (said != "Only while the case runs.")
+					facetFailure(ok, "presentation", QString("Cancel service... in the inspector did not reach the window (status '%1')").arg(said));
+			} else {
+				facetFailure(ok, "presentation", "the inspector has no Cancel service... button");
+			}
+
+			// A run that applied a measure lists it under the caption Measures, and one taken by hand offers Save measures to
+			// scenario, which adds it to the scenario in one edit that Undo takes back.
+			{
+				SceneMeasure byHand;
+				byHand.id = "by_hand_e2e";
+				byHand.serviceId = w.m_document->model().services.empty() ? std::string("s") : w.m_document->model().services.front().id;
+				byHand.timeSeconds = 300.0;
+				CompletedRunData measured = *w.m_runController->m_completedRun;
+				measured.measureLines = {"00:05:00 by_hand_1 (by hand): train-1 ends at its next stop, B"};
+				measured.byHandMeasures = std::make_shared<const std::vector<SceneMeasure>>(std::vector<SceneMeasure>{byHand});
+				w.m_runController->m_completedRun = std::make_shared<const CompletedRunData>(measured);
+				const RunController::RunState stateBefore = w.m_runController->m_state;
+				w.m_runController->m_state = RunController::RunState::Completed;
+				w.refreshRunResultsSummary();
+				w.m_runResultsPanel->updateAvailability(true);
+				const QWidget* resultsDock = w.m_runResultsPanel->dock();
+				const bool listed = w.m_runResultsPanel->measuresLabel()->isVisibleTo(resultsDock)
+					&& w.m_runResultsPanel->measuresLabel()->text() == QString::fromStdString(measured.measureLines.front())
+					&& w.m_runResultsPanel->saveMeasuresButton()->isVisibleTo(resultsDock)
+					&& w.m_runResultsPanel->saveMeasuresButton()->isEnabled();
+				const auto measureCount = [&w]() {
+					const SceneScenario* scenario = w.m_runSelection.selectedScenario(static_cast<const SceneModel&>(w.m_document->model()));
+					return scenario ? scenario->measures.size() : std::size_t{0};
+				};
+				const std::size_t before = measureCount();
+				w.m_runResultsPanel->saveMeasuresButton()->click();
+				QApplication::processEvents();
+				const bool saved = measureCount() == before + 1 && w.m_document->lastChangeLabel() == "Save measures to scenario";
+				w.m_undoAction->trigger();
+				QApplication::processEvents();
+				const bool undone = measureCount() == before;
+				w.m_runController->m_state = stateBefore;
+				if (!listed)
+					facetFailure(ok, "presentation", "Run Results does not list the measures of a run or offer to save the ones taken by hand");
+				else if (!saved || !undone)
+					facetFailure(ok, "presentation",
+						QString("Save measures to scenario did not add the measure in one undoable edit (added: %1, undone: %2, last edit '%3')")
+							.arg(saved ? "yes" : "no", undone ? "yes" : "no", w.m_document->lastChangeLabel()));
+			}
 
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();

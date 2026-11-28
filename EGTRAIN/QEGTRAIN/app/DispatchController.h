@@ -25,6 +25,8 @@
 #define signals Q_SIGNALS
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
+// After SceneModel.h, which it includes.
+#include "simulation/DispatchMeasures.h"
 
 struct DispatchLive;
 struct SimulationRun;
@@ -109,6 +111,14 @@ public:
 	/// SimulationWorker, or the one that a run without a worker made for itself. Call this on the thread
 	/// that runs the simulation, or after the run has returned.
 	std::shared_ptr<RunControl> runControl() const { return runControl_; }
+	/// Hands a measure that a dispatcher took by hand to the run that goes on, which applies it at the top of its next step
+	/// (applyQueuedMeasures). False when the run has no step left to apply it in, or no run goes on. It may be called from any
+	/// thread.
+	bool submitMeasure(DispatchMeasure measure) { return byHandMeasures_.submit(std::move(measure)); }
+	/// The stations at which the train of the prepared run with this index still calls when its head is at headMetres along its
+	/// route (stopsAhead), from a copy of its stops that prepareScene makes before the run starts, so that the window does not read
+	/// the trains while the run goes on. Empty for an index that the run does not have. Call this on the GUI thread.
+	std::vector<std::string> trainStopsAhead(int trainIndex, double headMetres) const;
 	/// Sets the output folder that prepareScene applies to the run it prepares; empty keeps the folder of initial_variables.
 	/// Call this on the GUI thread; a run keeps the folder it was prepared with.
 	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
@@ -169,6 +179,9 @@ private:
 	std::atomic<bool> runCompleted_{false};
 	std::string runError_;
 	std::shared_ptr<RunControl> runControl_ = std::make_shared<RunControl>();
+	MeasureQueue byHandMeasures_;
+	// The stops of each train of the prepared run, copied by prepareScene for trainStopsAhead.
+	std::vector<std::vector<RunStop>> trainStops_;
 	std::string nextRunOutputFolder_;
 };
 

@@ -10,11 +10,13 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 class Route;
+struct SceneMeasure;
 struct SceneModel;
 struct SimulationRun;
 
@@ -128,6 +130,16 @@ struct CompletedRunData {
 	SceneSectionLabels sectionLabels;						  ///< Labels of the sections of the scene that was run, for the windows
 	PassengerRunSummary passengerSummary;					  ///< Aggregate passenger figures of the run (zero when settings.hasPassengers is false)
 	std::vector<OriginDestinationSummary> originDestinations; ///< Per-OD passenger statistics of the run (empty when settings.hasPassengers is false)
+	/// A line for each dispatching measure that the run applied, from its scenario and by hand, in the order in which they took
+	/// effect (appliedMeasureText in simulation/DispatchMeasures.h).
+	std::vector<std::string> measureLines;
+	/// A measure of the run changed the run of a train (measureChangedTrain), so the run cannot be the delay baseline.
+	bool measuresChangedATrain = false;
+	/// The measures that were taken by hand during the run, as measures of a scenario of the scene that was run
+	/// (byHandSceneMeasures), or null when there were none. Save measures to scenario adds them; any edit of the scene discards
+	/// the results first. The list is shared, so that this header needs no scene header, which the files that include it after
+	/// Qt could not include.
+	std::shared_ptr<const std::vector<SceneMeasure>> byHandMeasures;
 
 	/// True when routeIndex indexes routes.
 	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }

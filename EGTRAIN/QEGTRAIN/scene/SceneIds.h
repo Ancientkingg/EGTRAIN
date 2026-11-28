@@ -31,5 +31,7 @@ std::string sceneUniqueServiceId(const SceneModel& model, const std::string& bas
 std::string sceneUniqueScenarioId(const SceneModel& model, const std::string& baseId);
 /// An incident id that is free across all scenarios.
 std::string sceneUniqueIncidentId(const SceneModel& model, const std::string& baseId);
+/// A measure id that is free across all scenarios.
+std::string sceneUniqueMeasureId(const SceneModel& model, const std::string& baseId);
 
 #endif // SCENE_IDS_H

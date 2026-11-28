@@ -349,6 +349,8 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		}
 		row.destinationTerminationRequested = train.destinationTerminationRequested;
 		row.destinationTerminated = train.destinationTerminated;
+		// Only a dispatching measure takes a train out of the run before it enters (applyMeasure).
+		row.cancelledBeforeEntry = train.OutOfSimulation && train.earliestActiveTrajectoryIndex < 0;
 		row.entranceDelaySeconds = train.EntranceDelay;
 		row.entranceDelayStationId = train.entranceDelayStationId;
 
@@ -387,12 +389,15 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 	double substationWithRegen = 0.0;
 	double networkStart = std::numeric_limits<double>::infinity();
 	double networkEnd = -std::numeric_limits<double>::infinity();
-	bool networkTimesComplete = !results.trains.empty();
+	bool networkTimesComplete = std::any_of(results.trains.begin(), results.trains.end(),
+		[](const TrainRunResult& row) { return !row.cancelledBeforeEntry; });
 	bool energyConsumedComplete = true;
 	bool energyWithRegenComplete = true;
 	bool substationComplete = true;
 	bool substationWithRegenComplete = true;
 	for (const TrainRunResult& row : results.trains) {
+		if (row.cancelledBeforeEntry)
+			continue;
 		if (!row.startSeconds.available || !row.endSeconds.available || !row.travelSeconds.available) {
 			networkTimesComplete = false;
 		} else {

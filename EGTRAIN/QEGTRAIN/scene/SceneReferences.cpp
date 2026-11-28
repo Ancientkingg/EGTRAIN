@@ -126,6 +126,10 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 			for (const auto& delay : scenario.entranceDelays)
 				if (delay.stationId == id)
 					add("entrance delay for service " + quoted(delay.serviceId) + " in scenario " + quoted(scenario.id));
+		for (const auto& scenario : model.scenarios)
+			for (const auto& measure : scenario.measures)
+				if (measure.fromStationId == id)
+					add("measure " + quoted(measure.id) + " in scenario " + quoted(scenario.id));
 		for (const auto& passenger : model.passengers)
 			for (const auto& journey : passenger.journeys) {
 				if (journey.originStationId == id || journey.destinationStationId == id)
@@ -169,6 +173,9 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 			for (const auto& delay : scenario.entranceDelays)
 				if (delay.serviceId == id)
 					add("entrance delay in scenario " + quoted(scenario.id));
+			for (const auto& measure : scenario.measures)
+				if (measure.serviceId == id)
+					add("measure " + quoted(measure.id) + " in scenario " + quoted(scenario.id));
 		}
 		for (const auto& passenger : model.passengers)
 			for (const auto& journey : passenger.journeys)
@@ -245,9 +252,12 @@ void sceneRewriteStationReferences(SceneModel& model, const std::string& oldId, 
 	for (auto& service : model.services)
 		for (auto& stop : service.stops)
 			replaceId(stop.stationId, oldId, newId);
-	for (auto& scenario : model.scenarios)
+	for (auto& scenario : model.scenarios) {
 		for (auto& delay : scenario.entranceDelays)
 			replaceId(delay.stationId, oldId, newId);
+		for (auto& measure : scenario.measures)
+			replaceId(measure.fromStationId, oldId, newId);
+	}
 	for (auto& passenger : model.passengers)
 		for (auto& journey : passenger.journeys) {
 			replaceId(journey.originStationId, oldId, newId);
@@ -310,6 +320,8 @@ void sceneRewriteServiceReferences(SceneModel& model, const std::string& oldId, 
 		for (auto& incident : scenario.incidents)
 			if (incident.type == IncidentType::TrainBreakdown)
 				replaceId(incident.target, oldId, newId);
+		for (auto& measure : scenario.measures)
+			replaceId(measure.serviceId, oldId, newId);
 	}
 	for (auto& passenger : model.passengers)
 		for (auto& journey : passenger.journeys)

@@ -370,12 +370,17 @@ public:
 	double firstDirectIncidentLocation = -1.0;	  ///< Position in metres where the first direct incident acted; -1 when there is none.
 	bool destinationTerminationRequested = false; ///< True when a breakdown asks to mark the train terminated at the end of its route.
 	bool destinationTerminated = false;			  ///< True once such a train has reached the end of its route.
-	Section Bs;									  ///< Copy of the section of the head in the current step.
-	double Start_Node_X = 0.0;					  ///< X in kilometres where the train enters: the start of its route, or its first stop.
-	int entrySection = 0;						  ///< Index in the route of the section of Start_Node_X.
-	std::string TrainRouteID;					  ///< ID of the route of the train.
-	int indexOfRoute;							  ///< Index of the route in RunInfrastructure::routes, from 0.
-	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
+	/// The stop at which a dispatching measure ends the run of the train (applyMeasure), or -1 while it runs its whole route. The
+	/// train calls there, dwells and leaves the network (leaveNetworkAtStop); it does not call at the later stops.
+	int runEndStop = -1;
+	/// True once the train has left the network at runEndStop (leaveNetworkAtStop). Its blocking times then end when it left.
+	bool leftNetworkAtStop = false;
+	Section Bs;					  ///< Copy of the section of the head in the current step.
+	double Start_Node_X = 0.0;	  ///< X in kilometres where the train enters: the start of its route, or its first stop.
+	int entrySection = 0;		  ///< Index in the route of the section of Start_Node_X.
+	std::string TrainRouteID;	  ///< ID of the route of the train.
+	int indexOfRoute;			  ///< Index of the route in RunInfrastructure::routes, from 0.
+	std::string trainDescription; ///< Service ID and occurrence joined by "-", which names the train everywhere.
 	/// True while the stored braking plan is below its target speed before its last point.
 	bool GradientExceptionInBraking;
 	/// Route position in metres, at each step, where braking for the current target begins. Only PrintTrajectory reads it, so it
@@ -823,6 +828,10 @@ public:
 	/// Takes the train off its route in step time_seconds, once its head was at the end of the route in the step before: sets
 	/// End_Time and OutOfSimulation, writes -9999 as its position and power, and releases the last section of the route.
 	void leaveRouteAtEnd(int time_seconds);
+	/// Takes the train off the network in step time_seconds at runEndStop, where it has stood for its dwell time: sets End_Time and
+	/// OutOfSimulation, writes -9999 as its position and power, releases the sections under it as leaveRouteAtEnd releases the
+	/// last one, and ends a virtual coupling to the train ahead.
+	void leaveNetworkAtStop(int time_seconds);
 
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
 	/// the leader that currentFollowingAuthority found, when it is within the coupling distance of the run
@@ -866,6 +875,11 @@ public:
 	/// simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds.
 	/// AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
 	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
+
+	/// For a train that left the network at a stop: ends the blocking time of a section that it occupied or approached when it
+	/// left, so that the section is held until then. A section that it never approached stays as it is. margin is added to the
+	/// clearing time, as the run time margin of the calling method requires.
+	void closeBlockingTimeAtStopEnd(BlockingTimes& block, double margin) const;
 
 	/// True when the train starts at its first stop and position (m) lies under it there, between its tail and its head.
 	bool standsOverAtEntry(double position) const;

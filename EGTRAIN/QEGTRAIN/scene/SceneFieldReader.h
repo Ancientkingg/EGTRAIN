@@ -88,6 +88,9 @@ private:
 // is not one of the two is reported as scene.incident.type and gives no incident.
 std::optional<SceneIncident> decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
+// Reads a dispatching measure of a scenario, reporting fields as decodeIncident does. A measure type that this version does
+// not know is reported as scene.measure.type and gives no measure.
+std::optional<SceneMeasure> decodeMeasure(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 
 // Reads the scenario file: one scenario object. A name that the file does not allow is an error. The reader must belong to
 // that file and use kScenarioFileFieldCodes.

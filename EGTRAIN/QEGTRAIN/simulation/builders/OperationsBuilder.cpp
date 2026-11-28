@@ -15,6 +15,7 @@
 #include <list>
 #include <map>
 #include <new>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -776,6 +777,49 @@ bool nativeEntranceDelayValid(const SceneEntranceDelay& delay, const NativeIndex
 	return true;
 }
 
+// The measure as the run applies it, or none, with a diagnostic, when it names a service, occurrence or station that the run
+// cannot use or has no valid time.
+std::optional<DispatchMeasure> nativeMeasure(const SceneMeasure& measure, const NativeIndex<SceneService>& serviceById,
+	const std::unordered_map<std::string, const SceneStation*>& stationById, const std::unordered_map<std::string, int>& repeatCounts,
+	std::vector<SceneDiagnostic>& diagnostics) {
+	const std::string path = "measures[" + measure.id + "]";
+	const auto serviceIt = serviceById.find(measure.serviceId);
+	const auto countIt = repeatCounts.find(measure.serviceId);
+	if (serviceIt == serviceById.end() || countIt == repeatCounts.end()) {
+		addNativeDiagnostic(diagnostics, "scene.native.measure.service", "Measure refers to unknown service", "scenarios.json", "measure",
+			measure.id, path + ".service", measure.serviceId);
+		return std::nullopt;
+	}
+	// As for incidents, an occurrence other than 1 counts as given.
+	const bool namesOccurrence = measure.hasOccurrence || measure.occurrence != 1;
+	if (namesOccurrence && (measure.occurrence < 1 || measure.occurrence > countIt->second)) {
+		addNativeDiagnostic(diagnostics, "scene.native.measure.occurrence", "Measure refers to an occurrence that the service does not have",
+			"scenarios.json", "measure", measure.id, path + ".occurrence", measure.serviceId + "-" + std::to_string(measure.occurrence));
+		return std::nullopt;
+	}
+	if (!nativeFinite(measure.timeSeconds) || measure.timeSeconds < 0.0) {
+		addNativeDiagnostic(diagnostics, "scene.native.measure.time", "Measure time must be 0 or more", "scenarios.json", "measure",
+			measure.id, path + ".time_seconds");
+		return std::nullopt;
+	}
+	DispatchMeasure runtime;
+	runtime.id = measure.id;
+	runtime.type = measure.type;
+	runtime.serviceId = measure.serviceId;
+	runtime.occurrence = namesOccurrence ? measure.occurrence : 0;
+	runtime.timeSeconds = measure.timeSeconds;
+	if (!measure.fromStationId.empty()) {
+		const SceneStation* station = nativeStationForId(stationById, measure.fromStationId);
+		if (station == nullptr || nativeStopForStation(*serviceIt->second, measure.fromStationId) == nullptr) {
+			addNativeDiagnostic(diagnostics, "scene.native.measure.station", "Measure station is not a stop of the service", "scenarios.json",
+				"measure", measure.id, path + ".from_station", measure.fromStationId);
+			return std::nullopt;
+		}
+		runtime.fromStation = sceneStationLabel(*station);
+	}
+	return runtime;
+}
+
 void nativeApplyEntranceDelay(NativeTrainPlan& train, const SceneEntranceDelay& delay) {
 	train.entranceDelay = delay.delaySeconds;
 	for (NativeStopPlan& trainStop : train.stops) {
@@ -1271,6 +1315,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			"Lower the repeat counts or select fewer occurrences, to at most " + std::to_string(Max_N_Reg) + " trains");
 
 	std::vector<SimulationIncident> stagedIncidents;
+	std::vector<DispatchMeasure> stagedMeasures;
 	std::map<SceneServiceOccurrence, double> occurrenceDelay;
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
 	if (scenario != nullptr) {
@@ -1321,6 +1366,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			nativeApplyEntranceDelay(trains[trainIt->second], delay);
 		}
 		nativeMarkDestinationTermination(trains, stagedIncidents);
+		for (const SceneMeasure& measure : scenario->measures)
+			if (std::optional<DispatchMeasure> runtime = nativeMeasure(measure, serviceById, stationById, repeatCounts, diagnostics))
+				stagedMeasures.push_back(std::move(*runtime));
+		std::stable_sort(stagedMeasures.begin(), stagedMeasures.end(),
+			[](const DispatchMeasure& a, const DispatchMeasure& b) { return a.timeSeconds < b.timeSeconds; });
 	}
 
 	// Validate passenger references before occurrence selection.  A filtered run
@@ -1439,5 +1489,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	run.platformIndex.build(run.platforms);
 	run.passengerIndex.build(run.passengers);
 	run.incidents = std::move(stagedIncidents);
+	run.measures = std::move(stagedMeasures);
+	run.nextMeasure = 0;
+	run.appliedMeasures.clear();
 	return diagnostics;
 }

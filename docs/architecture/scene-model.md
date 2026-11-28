@@ -31,7 +31,7 @@ every build.
 | `signalling.json` | signals, routes, signalling areas, dependencies, single-track restrictions, and station boundaries | required |
 | `rolling_stock.json` | train units, physical data, traction curves, and compositions | required |
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
-| `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
+| `scenarios.json` | default scenario, named scenarios, incidents, entrance delays, and dispatching measures | optional on load; always written by `SceneWriter` |
 | `passengers.json` | passenger journeys and legs | optional |
 | `views.json` | optional track levels, double switch drawing and station display geometry; consumed only by preview/runtime layout | optional |
 
@@ -86,8 +86,12 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 ## Model ownership
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
-incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
-identified by `default_scenario_id`. `sourceFiles`, the scene files present at
+incidents. Incidents, entrance delays and dispatching measures belong to a
+[`SceneScenario`]; the selected scenario is identified by `default_scenario_id`.
+A measure (`SceneMeasure`) is not an incident: it is an answer to a disruption,
+such as the cancellation of a service from a time, completely or from a station
+on, and it has its own `measures` list next to `incidents`. The writer leaves
+the list out of a scenario that has none. `sourceFiles`, the scene files present at
 load or save, is derived and not saved. The Loaded Data tree is not part of the
 model: `buildLoadedDataSummary` in `scene/LoadedDataSummary.h` derives its rows
 from the model, its source files and the diagnostics of validation, and
@@ -389,15 +393,19 @@ legacy trees are not duplicated.
 
 ### Scene versions in use
 
-Every build so far has written `schema_version` 1, and `bundle_version` 1 in a
-bundle. The loader has accepted no other value since it was introduced
-(`loadScene` in `SceneModel.cpp`, `loadSceneBundle` in `SceneBundle.cpp`), so no
-older version number exists. The older scenes that exist differ from today's in
+Every release up to 1.1 wrote `schema_version` 1, and `bundle_version` 1 in a
+bundle, and its loader accepted no other value (`loadScene` in `SceneModel.cpp`,
+`loadSceneBundle` in `SceneBundle.cpp`), so no older version number exists.
+From 1.2 a case with a dispatching measure in any scenario is written as
+`schema_version` 2 (`sceneSchemaVersionToWrite`); every other case is still
+written as `schema_version` 1. The loader reads 1 and 2 as current, with no
+migration, and the bundle version stays 1. The older scenes that exist differ from today's in
 layout, not in number. The format has grown only by optional keys and optional
 files, such as `views.json`, `saved_with_app_version`, `signalling_areas` in
 `signalling.json`, the service keys `category` and `visualization_color`, and
 `double_switch` in the track views of `views.json`. None of them changed a
-number.
+number. The `measures` list of a scenario is the one optional key that did,
+for the reason given after the table.
 
 The probe reads `scene.json` (directory) or the bundle manifest, and, only
 when `scene.json` has a `legacy_source` key, `infrastructure.json`. A scene
@@ -426,20 +434,30 @@ window start first shows "Cannot Start EGTRAIN".
 
 | Class | How it is recognised | What the application does |
 | --- | --- | --- |
-| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](../guides/scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases). |
+| Current layout | Directory: `schema_version` 1, or 2 for a case with measures, in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](../guides/scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 or 2 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases). |
 | Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). A `scene.json` with a `legacy_source` key and an `infrastructure.json` with no nodes and no arcs; the simulator read the railway from a `legacy/` text tree. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither sign identifies the layout alone: a current scene may carry a `legacy_source` key, and an empty `infrastructure.json` alone is left to the loader. | Deliberately unsupported: these scenes are not converted and no migration is provided, also when one is registered for the number. The probe classes the scene as unsupported with the diagnostic `scene.compatibility.draft`, which names the draft layout and the date and says to import the original legacy case again. The dialog "Older Case Not Supported" says `This case is too old for this version of EGTRAIN to upgrade.` and then gives that message, and `--scene` and `scene_tool` exit with code 1 and print it. Use the current case studies, or convert the original legacy input folder again with **File > Import Legacy Case...** or `scene_tool import`. The Paimpol scene of main-77.1 is stored as a fixture. |
 | Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Case Not Supported". It says `This case is too old for this version of EGTRAIN to upgrade.` and then gives the diagnostic `scene.compatibility.older` with the numbers of the scene and of this version. |
-| Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Case", which says `This case was saved by a newer version of EGTRAIN.` and `Update EGTRAIN to open it.`, gives the scene schema and, for a bundle, the bundle layout against those of this version in its details, and offers **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
+| Newer | `schema_version` above 2 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Case", which says `This case was saved by a newer version of EGTRAIN.` and `Update EGTRAIN to open it.`, gives the scene schema and, for a bundle, the bundle layout against those of this version in its details, and offers **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
 | Unreadable | `schema_version` (in a bundle also `bundle_version`) missing, not an integer, or outside the integer range; a `saved_with_app_version` that is not a string; a directory without a readable `scene.json`; in a bundle also a `format` other than `"egscene"`, a bad manifest, a missing `scene.json`, an unsafe archive, and, for `bundle_version` 1, an entry that is not part of the format or another missing required entry. | The scene is not opened. The dialog is "Cannot Open Case". Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case (for a folder, that the folder holds no EGTRAIN case or that its `scene.json` is damaged), then the message and fix of each of the first three errors, with the file that it is about when the message does not name it and the path in that file, and "1 more error" or "N more errors" for the rest (`diagnosticsDialogText` in `editors/EditorHelpers.h`). The same title and text are used when a scene passes the probe and the loader then reports errors, so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message. |
-| Upgradable | A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty. | The dialog is "Older Case": it says `<file> was saved by an older version of EGTRAIN.` and `Upgrade a copy to open it. The original stays as it is.`, gives the numbers in its details and offers **Upgrade a Copy...** and **Cancel**; the upgrade writes a copy and leaves the original unchanged. The registry is empty because every scene written so far has version number 1; neither a migration nor a no-op migration is registered. |
+| Upgradable | A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty. | The dialog is "Older Case": it says `<file> was saved by an older version of EGTRAIN.` and `Upgrade a copy to open it. The original stays as it is.`, gives the numbers in its details and offers **Upgrade a Copy...** and **Cancel**; the upgrade writes a copy and leaves the original unchanged. The registry is empty because every scene written so far has schema 1 or 2, both read as current; neither a migration nor a no-op migration is registered. |
 
-A scene with one number above 1 and the other below 1 is treated as newer.
+A scene with one number above the newest it reads and the other below 1 is
+treated as newer.
 
 A version number changes only for a change that makes existing scenes
 unreadable. The change that does it registers the migration step for the
 previous number and adds a scene of that number as a test fixture, in the same
 change. Optional keys, optional files and new validation warnings never change
-a number. `test_sceneversions` enforces the rule: raising `schema_version` or
+a number, with one exception. Releases up to 1.1 read the scenarios of a
+schema 1 case without complaint about keys they do not know, and drop those
+keys when they save it. Had the `measures` list been added to schema 1, such a
+release would open a case with measures, run it without them and lose them on
+the next save, without a message. Written as schema 2, the same case is refused
+there as a newer case ("Newer Case"), so the measures are never lost silently.
+A case without measures stays schema 1 and still opens in those releases. An
+optional key that an older release would drop on save, and whose loss changes
+what a run does, therefore raises the schema of the cases that use it.
+`test_sceneversions` enforces the rule: raising `schema_version` or
 `bundle_version` makes it fail until the fixtures in
 `tests/fixtures/scene-versions` are reconsidered. A number below the current one
 passes only with a fixture of that number and either a registered migration for
@@ -456,7 +474,27 @@ The `.egscene` transport container, its manifest, its safety rules and how it is
 The infrastructure/signalling builder accepts an already loaded and validated
 `SceneModel` and populates the run that it is given. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
-delays, and passengers in memory. Each native [`Train`] carries operating code,
+delays, dispatching measures and passengers in memory. Each measure of the
+selected scenario becomes a `DispatchMeasure` (`simulation/DispatchMeasures.h`),
+with the station named as the run names it; the run applies it through
+`applyMeasure` at the start of the step of its time, before passengers plan and
+trains move. A measure taken by hand during a run, and later a dispatching
+strategy, goes through the same function: the window queues it with
+`DispatchController::submitMeasure`, and the run applies it at the top of its
+next step (`applyQueuedMeasures`), or refuses it when it has no step left. The run records every applied measure with
+its step, its source and its effect on each train
+(`SimulationRun::appliedMeasures`). The completed run keeps that list
+(`CompletedRunData::appliedMeasures`) for the Run Results dock, and
+`byHandSceneMeasures` turns the measures taken by hand into measures of the
+scenario of the run, with the station by its scene id and the step as their
+time, so that Save measures to scenario can add them in one edit. A cancellation sets `Train::runEndStop`: the
+train runs to that stop as timetabled, dwells and leaves the network there
+(`Train::leaveNetworkAtStop`), releasing the sections under it; the blocking
+times of the sections that it occupied or approached end when it leaves
+(`Train::closeBlockingTimeAtStopEnd`). A passenger who boarded at the stop where
+the train then ends has ridden nothing, so that trip is dropped and planned
+again. A train that has
+not entered and is cancelled completely, or from its first stop, never enters. Each native [`Train`] carries operating code,
 service ID, occurrence, performance, configured cap, composition maximum, and
 applied maximum-speed provenance. [`RunResults`] copies that provenance to train
 rows and operating code/service identity to timetable rows. `TrackPreview`

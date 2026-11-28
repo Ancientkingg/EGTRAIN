@@ -406,7 +406,7 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	auto error = telemetryDiagnosticError(result.diagnostics);
 	// The bundle save boundary checks this typed value before any filesystem attempt.
 	if (kind == telemetry::ExportKind::SceneBundle && !result.success() && !result.writeAttempted
-		&& m_document->model().schemaVersion != kCurrentSceneSchemaVersion)
+		&& !isCurrentSceneSchemaVersion(m_document->model().schemaVersion))
 		error = telemetry::Error::UnsupportedFormat;
 	operation.exportFinished(kind, result.success(), result.writeAttempted, error);
 	if (!result.success()) {

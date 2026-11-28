@@ -36,7 +36,7 @@ def check_version_rejections(scene_tool: Path, root: Path) -> None:
     draft = root / "EGTRAIN/QEGTRAIN/tests/fixtures/scene-versions/draft-layout-Paimpol"
     with tempfile.TemporaryDirectory(prefix="scene-tool-versions-") as temp_name:
         temp = Path(temp_name)
-        for name, schema_version, saved_with in (("newer", 2, "9.9"), ("older", 0, None)):
+        for name, schema_version, saved_with in (("newer", 3, "9.9"), ("older", 0, None)):
             scene = temp / name
             scene.mkdir()
             manifest = {"name": name, "schema_version": schema_version}
@@ -55,11 +55,11 @@ def check_version_rejections(scene_tool: Path, root: Path) -> None:
         if packed.exists():
             raise SystemExit("scene_tool pack wrote a bundle of a draft scene")
         expect_rejection(scene_tool, ("validate", temp / "newer"),
-            "scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)", "reads schema 1", "Check for Updates")
+            "scene.compatibility.newer", "schema 3 (saved with EGTRAIN 9.9)", "reads schema 1 to 2", "Check for Updates")
         expect_rejection(scene_tool, ("validate", temp / "older"),
-            "scene.compatibility.older", "schema 0 (saved-with version not recorded)", "reads schema 1")
+            "scene.compatibility.older", "schema 0 (saved-with version not recorded)", "reads schema 1 to 2")
         expect_rejection(scene_tool, ("validate", bundle),
-            "scene.compatibility.newer", "schema 1, case file version 2", "reads schema 1, case file version 1")
+            "scene.compatibility.newer", "schema 1, case file version 2", "reads schema 1 to 2, case file version 1")
 
 
 # A path that the file system refuses ends with a diagnostic and exit code 1, not with an abort.

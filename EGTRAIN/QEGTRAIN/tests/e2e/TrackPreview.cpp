@@ -477,8 +477,9 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			} else {
 				QByteArray contents = file.readAll();
 				file.close();
+				// A case without measures is saved with the oldest current schema.
 				const QByteArray currentSchemaMarker = "\"schema_version\": "
-					+ QByteArray::number(kCurrentSceneSchemaVersion);
+					+ QByteArray::number(kOldestCurrentSceneSchemaVersion);
 				const QByteArray newerSchemaMarker = "\"schema_version\": "
 					+ QByteArray::number(kCurrentSceneSchemaVersion + 1);
 				if (!contents.contains(currentSchemaMarker)) {

@@ -1697,6 +1697,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 
 	std::unordered_set<std::string> scenarioIds;
 	std::unordered_set<std::string> incidentIds;
+	std::unordered_set<std::string> measureIds;
 	for (std::size_t scenarioIndex = 0; scenarioIndex < scene.scenarios.size(); ++scenarioIndex) {
 		const SceneScenario& scenario = scene.scenarios[scenarioIndex];
 		const std::string scenarioPath = "scenarios[" + std::to_string(scenarioIndex) + "]";
@@ -1838,6 +1839,45 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					occurrenceValues.emplace(delay.occurrence, delay.delaySeconds);
 				}
 			}
+		}
+		for (std::size_t measureIndex = 0; measureIndex < scenario.measures.size(); ++measureIndex) {
+			const SceneMeasure& measure = scenario.measures[measureIndex];
+			const std::string path = scenarioPath + ".measures[" + std::to_string(measureIndex) + "]";
+			const std::string entry = "Measure " + measure.id;
+			if (!measureIds.insert(measure.id).second)
+				diagnostics.error("scene.id.duplicate", "Duplicate measure ID", "scenarios.json", "measure", measure.id,
+					path + ".id", measure.id);
+			const auto service = services.find(measure.serviceId);
+			if (service == services.end())
+				diagnostics.unresolved(measure.serviceId, entry, "service", "Measure refers to unknown service", "scenarios.json",
+					"measure", measure.id, path + ".service");
+			if (measure.hasOccurrence || measure.occurrence != 1) {
+				if (measure.occurrence <= 0)
+					diagnostics.error("scene.occurrence.invalid", "Measure occurrence must be positive", "scenarios.json", "measure",
+						measure.id, path + ".occurrence");
+				else if (service != services.end() && measure.occurrence > serviceOccurrences[measure.serviceId])
+					diagnostics.error("scene.occurrence.invalid", "Measure refers to an occurrence that the service does not have",
+						"scenarios.json", "measure", measure.id, path + ".occurrence",
+						measure.serviceId + "-" + std::to_string(measure.occurrence), "Choose an occurrence of the service");
+			}
+			if (!measure.fromStationId.empty()) {
+				if (!hasId(stationIds, measure.fromStationId)) {
+					diagnostics.unresolved(measure.fromStationId, entry, "station", "Measure refers to unknown station",
+						"scenarios.json", "measure", measure.id, path + ".from_station");
+				} else if (service != services.end()
+					&& std::none_of(service->second->stops.begin(), service->second->stops.end(),
+						[&measure](const SceneStop& stop) { return stop.stationId == measure.fromStationId; })) {
+					diagnostics.error("scene.measure.station", "Measure station is not a stop of the service", "scenarios.json",
+						"measure", measure.id, path + ".from_station", measure.fromStationId, "Choose a stop of the service");
+				}
+			}
+			if (!std::isfinite(measure.timeSeconds) || measure.timeSeconds < 0.0)
+				diagnostics.error("scene.measure.time", "Measure time must be 0 or more", "scenarios.json", "measure", measure.id,
+					path + ".time_seconds");
+			else if (scene.settings.hasDuration && std::isfinite(scene.settings.durationSeconds)
+				&& measure.timeSeconds >= scene.settings.durationSeconds)
+				diagnostics.error("scene.measure.time", "Measure time is not before the end of the run", "scenarios.json", "measure",
+					measure.id, path + ".time_seconds", "", "Use a time before the duration of the run");
 		}
 	}
 	if (!scene.defaultScenarioId.empty() && !hasId(scenarioIds, scene.defaultScenarioId))

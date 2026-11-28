@@ -461,6 +461,24 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 			{"delay_seconds", delay.delaySeconds},
 		});
 	}
+	// A scenario without measures keeps the shape that older releases read and write.
+	if (!scenario.measures.empty()) {
+		json measures = json::array();
+		for (const SceneMeasure& measure : scenario.measures) {
+			json measureValue = {
+				{"id", measure.id},
+				{"type", measureTypeName(measure.type)},
+				{"service", measure.serviceId},
+				{"time_seconds", measure.timeSeconds},
+			};
+			if (measure.hasOccurrence || measure.occurrence != 1)
+				measureValue["occurrence"] = measure.occurrence;
+			if (!measure.fromStationId.empty())
+				measureValue["from_station"] = measure.fromStationId;
+			measures.push_back(std::move(measureValue));
+		}
+		value["measures"] = std::move(measures);
+	}
 	return value;
 }
 
@@ -671,7 +689,7 @@ json encodeViews(const SceneModel& scene) {
 
 json encodeSceneMetadata(const SceneModel& scene) {
 	json metadata = {
-		{"schema_version", scene.schemaVersion},
+		{"schema_version", sceneSchemaVersionToWrite(scene)},
 		{"name", scene.name},
 		{"saved_with_app_version", EGTRAIN_APP_VERSION},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},

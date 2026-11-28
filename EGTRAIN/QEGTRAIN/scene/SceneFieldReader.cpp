@@ -95,6 +95,20 @@ void decodeIncidentArray(const SceneFieldReader& reader, const json& root, const
 	}
 }
 
+// Reads the optional measures section of root, which is at path; an item that is not an object is reported and left out.
+void decodeMeasureArray(const SceneFieldReader& reader, const json& root, const std::string& path, std::vector<SceneMeasure>& output) {
+	if (!reader.arraySection(root, "measures", path, false))
+		return;
+	for (std::size_t index = 0; index < root["measures"].size(); ++index) {
+		const json& item = root["measures"][index];
+		const std::string itemPath = joinPath(path, "measures[" + std::to_string(index) + "]");
+		if (!reader.objectItem(item, itemPath, "Measure must be an object"))
+			continue;
+		if (auto measure = decodeMeasure(reader, item, itemPath))
+			output.push_back(std::move(*measure));
+	}
+}
+
 // Reads the optional passenger dwell keys of simulation_settings. A key that is absent stays empty. The validator checks the values.
 void decodeDwellSettings(const SceneFieldReader& reader, const json& settings, SceneSimulationSettings& output) {
 	const char* const coefficientsKey = "passenger_dwell_coefficients";
@@ -265,6 +279,23 @@ std::optional<SceneIncident> decodeIncident(const SceneFieldReader& reader, cons
 	return incident;
 }
 
+std::optional<SceneMeasure> decodeMeasure(const SceneFieldReader& reader, const json& value, const std::string& path) {
+	SceneMeasure measure;
+	reader.stringField(value, "id", path, measure.id);
+	std::string typeName;
+	const bool unknownType = reader.stringField(value, "type", path, typeName) && !measureTypeFromName(typeName, measure.type);
+	if (unknownType)
+		reader.report("scene.measure.type", "Unknown measure type " + typeName, joinPath(path, "type"), SceneSeverity::Error,
+			"Use cancel_service, or open the case with the version of EGTRAIN that saved it");
+	reader.stringField(value, "service", path, measure.serviceId, true, kUnchosen);
+	measure.hasOccurrence = reader.integerField(value, "occurrence", path, measure.occurrence, false);
+	reader.numberField(value, "time_seconds", path, measure.timeSeconds);
+	reader.stringField(value, "from_station", path, measure.fromStationId, false, kUnchosen);
+	if (unknownType)
+		return std::nullopt;
+	return measure;
+}
+
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const json& value, const std::string& path) {
 	SceneEntranceDelay delay;
 	reader.stringField(value, "service", path, delay.serviceId, true, kUnchosen);
@@ -277,7 +308,8 @@ SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const jso
 SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& root) {
 	SceneScenario scenario;
 	const auto allowed = [](const std::string& name) {
-		return name == "id" || name == "name" || name == "description" || name == "incidents" || name == "entrance_delays";
+		return name == "id" || name == "name" || name == "description" || name == "incidents" || name == "entrance_delays"
+			|| name == "measures";
 	};
 	for (const auto& field : root.items()) {
 		if (!allowed(field.key()))
@@ -304,6 +336,7 @@ SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& roo
 				scenario.entranceDelays.push_back(decodeEntranceDelay(reader, item, path));
 		}
 	}
+	decodeMeasureArray(reader, root, "", scenario.measures);
 	return scenario;
 }
 
@@ -352,10 +385,10 @@ void decodeSimulationSettings(const SceneFieldReader& reader, const json& root, 
 void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, SceneModel& scene) {
 	if (!root.contains("schema_version")) {
 		reader.report("scene.version.missing", "Missing schema_version", "schema_version");
-	} else if (!readJsonInt(root["schema_version"], kCurrentSceneSchemaVersion,
+	} else if (!readJsonInt(root["schema_version"], kOldestCurrentSceneSchemaVersion,
 				   kCurrentSceneSchemaVersion, scene.schemaVersion)) {
 		reader.report("scene.version.unsupported",
-			"Unsupported schema_version, must be the current integer "
+			"Unsupported schema_version, must be an integer from " + std::to_string(kOldestCurrentSceneSchemaVersion) + " to "
 				+ std::to_string(kCurrentSceneSchemaVersion),
 			"schema_version");
 	}
@@ -954,6 +987,7 @@ void decodeScenarios(const SceneFieldReader& reader, const json& root, SceneMode
 						decodeEntranceDelay(reader, value["entrance_delays"][delayIndex], delayPath));
 				}
 			}
+			decodeMeasureArray(reader, value, path, scenario.measures);
 			scene.scenarios.push_back(scenario);
 		}
 	}

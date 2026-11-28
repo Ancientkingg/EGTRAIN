@@ -488,6 +488,8 @@ std::vector<CaseSpec> buildCaseTable() {
 		{"breakdown-wait", {"Q1", "Q2"}, 0},
 		{"breakdown-terminate", {"Q1", "Q2"}, 0},
 		{"signal-failure-change", {"Q1", "Q3", "Q4"}, 0},
+		{"cancel-from-b", {"Q1", "Q2"}, 0},
+		{"cancel-complete", {"Q1", "Q2"}, 0},
 	};
 	for (const auto& live : livePassengers) {
 		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
@@ -522,6 +524,12 @@ std::vector<CaseSpec> buildCaseTable() {
 	// braking for the stop would, and its stop at B starts then. The breakdown outlasts the dwell and the planned departure,
 	// so F1 leaves when it ends.
 	cases.push_back({"breakdown-stop-approach-level-0", "baseline", {"F1"}, 0, ""});
+	// A measure cancels F1 from B at 200 s, while it runs from A to B: it dwells at B and leaves the network there, and F2 runs
+	// through behind it. At level 4 F2 follows F1 until then.
+	for (int level : {0, 4})
+		cases.push_back({"cancel-from-b-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""});
+	// A measure cancels F1 completely at 30 s, before it is due to enter at 60 s: it never enters, and F2 runs alone.
+	cases.push_back({"cancel-before-entry-level-0", "baseline", {"F1", "F2"}, 0, ""});
 	return cases;
 }
 
@@ -957,6 +965,9 @@ std::vector<TrainTrack> collectTracks() {
 			train.instant_train_speed.size()));
 		track.first = std::max(static_cast<int>(train.departure_time), train.earliestActiveTrajectoryIndex);
 		track.last = std::min(train.End_Time, available - 1);
+		// A train that never entered, such as one that a measure cancelled before its entry, has no active steps.
+		if (train.earliestActiveTrajectoryIndex < 0)
+			track.last = track.first - 1;
 		track.position = &train.instant_spatial_position;
 		track.speed = &train.instant_train_speed;
 		tracks.push_back(track);
@@ -1311,10 +1322,10 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		std::vector<SceneStop>& stops = scene.services.back().stops;
 		stops.insert(stops.end() - 1, {"M", "M.platform.1", true, true, 1020, 1050, 30});
 	}
-	// live-slowed, live-breakdown, live-onboard and the breakdown sets have Q2 on the platform of Q1 at B, without Platform_4, so
-	// that Q1 keeps its planned arrival at B.
+	// live-slowed, live-breakdown, live-onboard, the breakdown sets and the cancel sets have Q2 on the platform of Q1 at B, without
+	// Platform_4, so that Q1 keeps its planned arrival at B.
 	if (transfer || set == "live-slowed" || set == "live-breakdown" || set == "live-onboard" || set == "breakdown-wait"
-		|| set == "breakdown-terminate")
+		|| set == "breakdown-terminate" || set == "cancel-from-b" || set == "cancel-complete")
 		scene.services.push_back(service("Q2", 20, 1000, 1400, false, platformB1, 760, true));
 	// live-late has Q4 on the platform of Q1 at B, where it arrives while Q1 is less than the late threshold late, so that the
 	// passengers who wait there for Q1 do not take it as a standing train that goes direct.
@@ -1413,6 +1424,21 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		// leave now and to reach C before Q2, so e2 boards the held train.
 		scene.passengers.push_back({"e1", {journey("e1.1", 150, 1400, "P", "C", {})}});
 		scene.passengers.push_back({"e2", {journey("e2.1", 900, 1400, "B", "C", {})}});
+	} else if (set == "cancel-from-b") {
+		// A measure cancels Q1 from B at 500 s, while it runs from P to B (see the measure of the case): Q1 dwells at B from 622 s and
+		// leaves the network there. x1 rides Q1 from P to C, is set down at B when Q1 leaves and takes Q2. x2 waits at B for Q1 to C
+		// and plans Q2 when the measure takes effect. x3 appears at B while Q1 dwells there and plans Q2 at once. x4 rides Q1 from
+		// P to B as planned.
+		scene.passengers.push_back({"x1", {journey("x1.1", 150, 1400, "P", "C", {})}});
+		scene.passengers.push_back({"x2", {journey("x2.1", 400, 1400, "B", "C", {})}});
+		scene.passengers.push_back({"x3", {journey("x3.1", 640, 1400, "B", "C", {})}});
+		scene.passengers.push_back({"x4", {journey("x4.1", 150, 760, "P", "B", {})}});
+	} else if (set == "cancel-complete") {
+		// A measure cancels Q1 completely at 300 s, while it stands at P after its dwell (see the measure of the case): Q1 ends its
+		// run there at once. z1 boards Q1 at P for B, is set down at P with no trip ridden and finds no route, as Q2 does not call at P. z2 waits at B
+		// for Q1 to C and plans Q2 when Q1 has left the network.
+		scene.passengers.push_back({"z1", {journey("z1.1", 150, 760, "P", "B", {})}});
+		scene.passengers.push_back({"z2", {journey("z2.1", 200, 1400, "B", "C", {})}});
 	} else if (set == "signal-failure-change") {
 		// As t1 of live-transfer, but without Q2: c1 rides Q1 from P to B and changes there to Q3 on Platform_4. A signal failure
 		// on 1-B0 from 560 to 800 s (see the incident of the case), after Q1 has passed, stops Q3 and Q4 in front of it at 2 km,
@@ -1887,6 +1913,14 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.scenarios[0].incidents.push_back({"stop-e1", IncidentType::TrainBreakdown, "E1", 300.0, 600.0});
 	if (spec.name == "breakdown-stop-approach-level-0")
 		loaded.scene.scenarios[0].incidents.push_back({"stop-f1", IncidentType::TrainBreakdown, "F1", 320.0, 700.0});
+	if (spec.name.find("cancel-from-b-level-") == 0)
+		loaded.scene.scenarios[0].measures.push_back({"cancel-f1", MeasureType::CancelService, "F1", false, 1, 200.0, "B"});
+	if (spec.name == "cancel-before-entry-level-0")
+		loaded.scene.scenarios[0].measures.push_back({"cancel-f1", MeasureType::CancelService, "F1", false, 1, 30.0, ""});
+	if (spec.passengers == "cancel-from-b")
+		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", false, 1, 500.0, "B"});
+	if (spec.passengers == "cancel-complete")
+		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", true, 1, 300.0, ""});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
@@ -2131,6 +2165,15 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			{textField("type", incidentTypeName(incident.type)), textField("target", incident.target),
 				realField("start", incident.startSeconds), integerField("has_end", incident.hasEndSeconds ? 1 : 0),
 				realField("end", incident.endSeconds), textField("sections", joinSet(incident.resolvedSectionIDs))});
+	// Only a run with measures has these lines, with the virtual coupling notices that a train that ends its run gives.
+	for (const AppliedMeasure& applied : simulation.run().appliedMeasures)
+		for (const MeasureEffect& effect : applied.effects)
+			add("measure " + applied.measure.id + " " + effect.trainDescription,
+				{integerField("t", applied.step), textField("effect", measureEffectText(effect))});
+	if (!simulation.run().appliedMeasures.empty())
+		for (std::size_t notice = 0; notice < simulation.run().vcMsgText.size(); ++notice)
+			add("vc_notice " + simulation.run().vcMsgTrain[notice],
+				{integerField("t", simulation.run().vcMsgTimestep[notice]), textField("text", simulation.run().vcMsgText[notice])});
 	for (const StepRecorder::Boundary& boundary : recorder.boundaries()) {
 		add("boundary",
 			{integerField("t", boundary.step), integerField("authorities", static_cast<long long>(boundary.authorities.size())),

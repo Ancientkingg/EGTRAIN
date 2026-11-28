@@ -302,6 +302,8 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 	// Within the step the trains reuse the results that their TrainStepCache holds of this step and the step before
 	for (Train& train : run.trains)
 		train.stepCache.beginStep(t);
+	// The dispatching measures that take effect now, before the passengers plan and the trains move
+	applyDueMeasures(run, t);
 
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",

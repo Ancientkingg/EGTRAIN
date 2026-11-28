@@ -386,9 +386,18 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	// The run reads its settings from this copy.
 	staged->settings = initial_variables;
 	mutableRun().adopt(std::move(*staged));
+	trainStops_.clear();
+	for (int index = 0; index < run().numTrains; ++index)
+		trainStops_.push_back(runStops(run(), run().trains[static_cast<std::size_t>(index)]));
 	outputTime = elapsed(checkpoint, now());
 	reportDetail("success");
 	return diagnostics;
+}
+
+std::vector<std::string> DispatchController::trainStopsAhead(int trainIndex, double headMetres) const {
+	if (trainIndex < 0 || trainIndex >= static_cast<int>(trainStops_.size()))
+		return {};
+	return stopsAhead(trainStops_[static_cast<std::size_t>(trainIndex)], headMetres);
 }
 
 std::optional<SceneDiagnostic> DispatchController::makeNextRunOutputFolders() const {
@@ -404,12 +413,15 @@ std::string DispatchController::resolvedNextRunOutputFolder() const {
 // The trains and passengers of the run that the scene replaces are released before the new ones are built.
 void DispatchController::beginScenePreparation() {
 	snapshotMailbox_.take();
+	byHandMeasures_.take(true);
+	trainStops_.clear();
 	prepareNativeOperationsState(mutableRun());
 }
 
 // Reset all native runtime state before loading another canonical scene.
 void DispatchController::resetState() {
 	snapshotMailbox_.take();
+	trainStops_.clear();
 	resetNativeInfrastructureState(mutableRun());
 	resetNativeOperationsState(mutableRun());
 }
@@ -661,13 +673,21 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers() {
 	std::function<void()> fetchCommands;
 	if (live_ && live_->commands)
 		fetchCommands = [this, &control, &lastStep] { takeLiveCommands(*live_, control, lastStep + 1); };
+	byHandMeasures_.open();
 	for (int t = 0; t < settings.times; t++) {
 		// Queued commands, pause, stop and the step delay take effect here, before the step moves anything.
 		if (!control.beginStep(fetchCommands))
 			break;
 		lastStep = t;
+		// The measures that a dispatcher took by hand since the step before take effect now, as a step begins. The last step
+		// closes the queue, so that a later measure is refused instead of lost.
+		applyQueuedMeasures(run, byHandMeasures_, t, t + 1 == settings.times);
 		runSimulationStep(run, t, order);
 		publishSimulationSnapshot(t);
+	}
+	// A stopped run takes no measure either; one that came after the last step it ran is not applied.
+	if (const std::size_t dropped = byHandMeasures_.take(true).size()) {
+		EG_LOG(AppRun, Info) << dropped << " measure(s) taken by hand came after the last step of the run and were not applied\n";
 	}
 	if (live_) {
 		live_->steps = lastStep + 1;

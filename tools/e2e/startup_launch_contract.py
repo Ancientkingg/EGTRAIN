@@ -511,7 +511,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
         newer = root / "newer"
         newer.mkdir()
         (newer / "scene.json").write_text(
-            json.dumps({"name": "newer", "schema_version": 2, "saved_with_app_version": "9.9"}), encoding="utf-8"
+            json.dumps({"name": "newer", "schema_version": 3, "saved_with_app_version": "9.9"}), encoding="utf-8"
         )
         newer_bundle = root / "newer.egscene"
         with zipfile.ZipFile(newer_bundle, "w") as archive:
@@ -519,7 +519,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
             archive.writestr("future-layout.json", "future")
         cases = (
             ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Import Legacy Case"]),
-            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
+            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 3 (saved with EGTRAIN 9.9)"]),
             ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, case file version 2"]),
         )
         for index, (name, args, details) in enumerate(cases):
@@ -534,7 +534,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
 
         window_cases = (
             ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Import Legacy Case"]),
-            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
+            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 3 (saved with EGTRAIN 9.9)"]),
         )
         for index, (name, args, details) in enumerate(window_cases):
             label = f"window launch with {name}"

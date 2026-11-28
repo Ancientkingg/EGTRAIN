@@ -54,6 +54,9 @@ void SimulationRun::reset() {
 	blocksConnected.clear();
 	etcsMa.clear();
 	incidents.clear();
+	measures.clear();
+	nextMeasure = 0;
+	appliedMeasures.clear();
 	vcMsgTimestep.clear();
 	vcMsgTrain.clear();
 	vcMsgText.clear();
