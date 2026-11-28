@@ -557,17 +557,21 @@ struct WaitingRun {
 	}
 };
 
-// A run that starts at 00:00:00 with these trains and passenger `rider` on board of the first, on a live journey with these trips,
-// the first of them on that train. The first train left its first stop on time and stands at stop `stop`, where it arrived at
-// `arrival`; the others have not moved.
+// A run that starts at 00:00:00 with these trains, each with room for 100 passengers, and passenger `rider` on board of the first,
+// on a live journey with these trips, the first of them on that train. With `riders` above 1, passengers `rider2` and on, after
+// `rider` in the list, ride the same journey. The first train left its first stop on time and stands at stop `stop`, where it
+// arrived at `arrival`; the others have not moved and are empty.
 struct OnBoardRun {
 	SimulationRun run;
 	PassengerFlow flow;
 
-	OnBoardRun(const std::vector<Train>& trains, const std::vector<Trip>& trips, int stop, double arrival) {
+	OnBoardRun(const std::vector<Train>& trains, const std::vector<Trip>& trips, int stop, double arrival, int riders = 1) {
 		run.settings.startingSimulationTime = 0;
-		for (const Train& train : trains)
+		for (const Train& train : trains) {
 			run.trains.push_back(train);
+			run.trains.back().MAX_OnBoard_Passengers = 100;
+			run.trains.back().Current_OnBoard_Passengers = 0;
+		}
 		run.numTrains = static_cast<int>(run.trains.size());
 		Train& riding = run.trains.front();
 		standAt(riding, stop, arrival);
@@ -580,10 +584,17 @@ struct OnBoardRun {
 		riding.CurrentServiceStop = at.stationName;
 		riding.CurrentServiceStopPlatform = at.stationPlatformId;
 		riding.currentServiceStopPlatformNumber = riding.stationPlatformNumber[stop];
-		riding.Current_OnBoard_Passengers = 1;
+		riding.Current_OnBoard_Passengers = riders;
+		for (int n = 1; n <= riders; ++n)
+			addRider(n == 1 ? "rider" : "rider" + std::to_string(n), trips);
+		flow.build(run.passengers);
+	}
 
+	// Adds a passenger with this ID on board of the first train, on a live journey with these trips.
+	void addRider(const std::string& id, const std::vector<Trip>& trips) {
+		const Train& riding = run.trains.front();
 		Journey journey;
-		journey.ID = "r.j";
+		journey.ID = id + ".j";
 		journey.Mode = JourneyMode::Live;
 		journey.Dep_Station_ID = trips.front().Dep_Station_ID;
 		journey.Arr_Station_ID = trips.back().Arr_Station_ID;
@@ -600,7 +611,7 @@ struct OnBoardRun {
 		journey.Waitingtime = 0;
 		journey.Walkingtime = 0;
 		Passenger rider;
-		rider.ID = "rider";
+		rider.ID = id;
 		rider.Journeys.push_back(journey);
 		rider.IsIntheNetwork = true;
 		rider.CurrentStatus = PassengerStatus::OnBoard;
@@ -609,8 +620,7 @@ struct OnBoardRun {
 		rider.Current_Train_Boarded = riding.trainDescription;
 		rider.Current_Arrival_Station = first.Arr_Station_ID;
 		run.passengers.push_back(rider);
-		run.numPassengers = 1;
-		flow.build(run.passengers);
+		run.numPassengers = static_cast<int>(run.passengers.size());
 	}
 
 	// The passenger step at `t` up to the passengers on board of the first train: the number who alighted for an earlier plan.
@@ -769,6 +779,8 @@ private slots:
 	void passengerStaysOnALateTrainBetweenStops();
 	void passengerStaysOnBoardForAChangeFurtherOn();
 	void passengerOnBoardLooksAgainOnlyWhenThePredictionChanges();
+	void passengerStaysOnBoardWhenTheEarlierTrainHasNoRoom();
+	void passengerWhoBoardedAtThisStopStaysOnBoard();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -1641,6 +1653,34 @@ void TestPassengerJourneys::passengerOnBoardLooksAgainOnlyWhenThePredictionChang
 	onBoard.run.trains[0].Stations[1].StepStopped = 41;
 	QCOMPARE(onBoard.offer(840), 1);
 	QCOMPARE(onBoard.rider().Current_Train_To_Wait, std::string("T2"));
+}
+
+// T2 would bring the passengers from B to C earlier than T1, but it has room for two and carries one. The first rider alights for
+// it; the second, who would be one too many with the first waiting for T2, stays on board. With T2 full, nobody leaves T1.
+void TestPassengerJourneys::passengerStaysOnBoardWhenTheEarlierTrainHasNoRoom() {
+	Train second = trainCallingAt("T2", {"B", "C"}, {850, 1100});
+	OnBoardRun room({lateT1(), second}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800, 2);
+	room.run.trains[1].MAX_OnBoard_Passengers = 2;
+	room.run.trains[1].Current_OnBoard_Passengers = 1;
+	QCOMPARE(room.offer(800), 1);
+	QCOMPARE(room.rider().Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(room.run.passengers.back().CurrentStatus, PassengerStatus::OnBoard);
+	QCOMPARE(room.run.trains[0].Current_OnBoard_Passengers, 1);
+	OnBoardRun full({lateT1(), second}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	full.run.trains[1].MAX_OnBoard_Passengers = 1;
+	full.run.trains[1].Current_OnBoard_Passengers = 1;
+	QCOMPARE(full.offer(800), 0);
+	QCOMPARE(full.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!full.journey().IsReplanned);
+}
+
+// The passenger boarded T1 at B, where T1 stands 400 s late. The rule for waiting passengers already offered T2 there, so the
+// passenger stays on board.
+void TestPassengerJourneys::passengerWhoBoardedAtThisStopStaysOnBoard() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, 1100})}, {tripOn("r.1", "T1", "B", "C", 1000)}, 1, 800);
+	QCOMPARE(onBoard.offer(800), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!onBoard.journey().IsReplanned);
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {

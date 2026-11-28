@@ -109,7 +109,10 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// as ridden. The rule is that of a waiting passenger: the passenger takes the new plan only when it reaches the destination more
 /// than kSwitchMarginSeconds earlier, and then alights at this call, counted with the passengers who alight there, and waits for
 /// the new plan (switchOnBoard). A new plan that rides the same train on from here is not taken: the passenger stays on board
-/// and looks again at the next stop. A passenger whose trip ends at this stop alights as usual, and nobody looks between stops.
+/// and looks again at the next stop. Nor is one whose first train has no room for the passenger: its passengers on board and
+/// those who wait for it at the platform where the plan boards it fill its capacity. A passenger who boarded at this stop does
+/// not look here, since the rule for waiting passengers covered the stop. A passenger whose trip ends at this stop alights as
+/// usual, and nobody looks between stops.
 /// A train that ends its run sets everyone down whatever the prediction.
 ///
 /// The transfers count over the whole journey: a plan from where the passenger is now counts the trains the journey has ridden, so
@@ -210,11 +213,16 @@ private:
 	/// before the plan the passenger has (see the rule above). True when it took the new plan; the caller then registers the
 	/// passenger with the flow. alightedAtPlatform as for checkWaiting.
 	bool switchToEarlierPlan(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform);
-	/// For a passenger on board of the train, which stands at `stop` and is late or slowed: plans again from this station and,
-	/// when the new plan reaches the destination more than kSwitchMarginSeconds before staying on board does and does not ride
-	/// this train on, lets the passenger alight here and take it (see the rule above). True when the passenger alighted; the
-	/// caller then registers the passenger with the flow.
-	bool switchOnBoard(SimulationRun& run, Passenger& passenger, int train, int stop, int t);
+	/// For a passenger on board of the train, which stands at `stop` and is late or slowed, and who did not board at this stop:
+	/// plans again from this station and, when the new plan reaches the destination more than kSwitchMarginSeconds before
+	/// staying on board does, does not ride this train on, and its first train has room (hasRoomToBoard), lets the passenger
+	/// alight here and take it (see the rule above). True when the passenger alighted; the caller then registers the passenger
+	/// with the flow.
+	bool switchOnBoard(SimulationRun& run, PassengerFlow& flow, Passenger& passenger, int train, int stop, int t);
+	/// True when the train of the leg can take one more passenger at its boarding call as the run knows it now: the passengers on
+	/// board of it and those who wait for it on the platform of that call (PassengerFlow::waitingFor) are fewer than its capacity
+	/// (Train::MAX_OnBoard_Passengers).
+	bool hasRoomToBoard(const SimulationRun& run, const PassengerFlow& flow, const passenger_routing::Leg& leg) const;
 	/// The plan from origin, for a passenger ready at readyAt on the platform with platformNumber after riding `ridden` trains
 	/// (planFrom), when it reaches the destination more than kSwitchMarginSeconds before `planned`, the arrival of the plan the
 	/// passenger has (tripsArrival); none otherwise, and none when `planned` is below 0, a plan whose times are not known.

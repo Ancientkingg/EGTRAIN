@@ -825,7 +825,16 @@ optional<Plan> PassengerJourneys::earlierPlan(const SimulationRun& run, const Jo
 	return plan;
 }
 
-bool PassengerJourneys::switchOnBoard(SimulationRun& run, Passenger& passenger, int train, int stop, int t) {
+bool PassengerJourneys::hasRoomToBoard(const SimulationRun& run, const PassengerFlow& flow, const Leg& leg) const {
+	const Train& T = run.trains[leg.train];
+	const Node& board = T.Stations[leg.boardStop];
+	const int platform = flow.platformNumber(board.stationName, board.stationPlatformId);
+	const int train = flow.trainNumber(T.trainDescription);
+	const size_t waiting = platform < 0 || train < 0 ? 0 : flow.waitingFor(platform, train).size();
+	return static_cast<size_t>(max(0, T.Current_OnBoard_Passengers)) + waiting < static_cast<size_t>(max(0, T.MAX_OnBoard_Passengers));
+}
+
+bool PassengerJourneys::switchOnBoard(SimulationRun& run, PassengerFlow& flow, Passenger& passenger, int train, int stop, int t) {
 	Journey* journey = activeJourney(passenger);
 	if (journey == nullptr || stop < 0 || stop >= Train::kMaxTimetableStations)
 		return false;
@@ -834,16 +843,18 @@ bool PassengerJourneys::switchOnBoard(SimulationRun& run, Passenger& passenger, 
 		return false;
 	Train& T = run.trains[static_cast<size_t>(train)];
 	const Node& node = T.Stations[static_cast<size_t>(stop)];
-	// A passenger whose trip ends here alights as usual.
-	if (next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept))->Arr_Station_ID == node.stationName)
+	// A passenger whose trip ends here alights as usual, and one who boarded here was offered the earlier plans while waiting.
+	const Trip& current = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
+	if (current.Arr_Station_ID == node.stationName || current.Dep_Station_ID == node.stationName)
 		return false;
 	const int now = t + run.settings.startingSimulationTime;
 	const int platformNumber = T.currentServiceStopPlatformNumber;
 	// Staying on board, and the rest of the plan, against a plan from the platform of the train now that counts the train as ridden.
 	const double planned = tripsArrival(run, *journey, kept, now, platformNumber, node.stationPlatformId, stop);
 	const optional<Plan> plan = earlierPlan(run, *journey, node.stationName, t, now, platformNumber, kept + 1, planned);
-	// A plan that rides this train on from here changes further on: the passenger stays on board and looks again there.
-	if (!plan || plan->legs.front().train == static_cast<size_t>(train))
+	// A plan that rides this train on from here changes further on: the passenger stays on board and looks again there. A passenger
+	// does not leave the train for one that has no room.
+	if (!plan || plan->legs.front().train == static_cast<size_t>(train) || !hasRoomToBoard(run, flow, plan->legs.front()))
 		return false;
 	--T.Current_OnBoard_Passengers;
 	setDownEarly(run, passenger, T, stop, t, &*plan);
@@ -882,7 +893,7 @@ int PassengerJourneys::offerEarlierPlansOnBoard(SimulationRun& run, PassengerFlo
 		return 0;
 	int alighted = 0;
 	for (const int position : flow.onBoard(T.trainDescription))
-		if (switchOnBoard(run, flow.passenger(position), train, stop, t)) {
+		if (switchOnBoard(run, flow, flow.passenger(position), train, stop, t)) {
 			flow.alighted(position);
 			++alighted;
 		}
