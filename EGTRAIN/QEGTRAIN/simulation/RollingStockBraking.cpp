@@ -701,10 +701,12 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID)) || (IsTrainInFollowingMode && authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) { // when the trains have the same next block section, the leading train is approaching the end of its route, or this train is coupled to it and keeps its gap until the routes split
 					target.speed = authority.TrainInfo.TrainSpeed;																																							  // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
 
-					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
-						// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
-						// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
-						// authority stays where the leader reported it.
+					if ((authority.TrainInfo.Acceleration < 0) || (V > target.speed)) {
+						// The leader can brake at any moment and then stops where this train would stop from the speed of the leader. A train
+						// that is faster than the leader, or behind a leader that brakes, keeps its braking distance to that point, so that it
+						// can always stop behind the leader. Without a braking distance (-1) the end of authority stays where the leader
+						// reported it. A train that is not coupled, or that lost its coupling, can couple to a leader that does not brake.
+						target.canCouple = ((this->IsTrainInFollowingMode == 0) || (this->IsInUnintentionalDecoupling == 1)) && (authority.TrainInfo.Acceleration >= 0);
 						const double LeaderBrakingStart = BrakDist_Block(authority.TrainInfo.TrainSpeed, 0, target.position, BS, Blocks);
 						// The inverse ends at X - kBrakingCurveEndMarginM; its holdback is not forward travel.
 						const double LeaderStandstill = LeaderBrakingStart < 0 || authority.TrainInfo.TrainSpeed == 0
@@ -714,24 +716,6 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 						target.position = LeaderStandstill;
 						target.moved = true;
 						target.speed = 0;
-					} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (authority.TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
-						if (V > target.speed) {
-							target.canCouple = true;											// This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
-							double TimeToBrake = ((V - target.speed) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
-							// The braking curve adds the resistances to the deceleration, so it takes less time than the nominal
-							// deceleration gives. A train that assumes the longer time starts to brake too late and reaches the leader
-							// before it has matched its speed.
-							std::vector<double> curvePositions, curveSpeeds;
-							double curveEnd = S;
-							if (predictBraking(S, V, target.speed, BS, Blocks, curveEnd, &curvePositions, &curveSpeeds) && curvePositions.size() > 1)
-								TimeToBrake = static_cast<double>(curvePositions.size() - 1) * timestep;
-							target.distance = authority.TrainInfo.TrainSpeed * TimeToBrake;
-							// With the statement below trains will always try to couple with a train ahead if that is possible
-							if ((target.position + target.distance) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
-								target.position = target.position + target.distance;												  // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
-								target.moved = true;
-							}
-						}
 					}
 				} else { // or if the trains do not have the next block section in common the trains need to split apart and this train will separate from the previous by means of an absolute braking distance
 					target.speed = 0;

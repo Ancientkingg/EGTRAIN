@@ -741,8 +741,8 @@ public:
 	struct AuthorityTarget {
 		double position = 0; ///< Route position (m) of the target.
 		double speed = -1;	 ///< Speed (m/s) to meet at position; -1 when the authority sets no target.
-		/// True when position lies distance (m) ahead of the authority: at the standstill point behind a leader that brakes, or at
-		/// the point where the train is predicted to couple to the leader.
+		/// True when position lies distance (m) ahead of the authority: at the point where the leader would stop if it braked from
+		/// its speed.
 		bool moved = false;
 		double distance = 0;	///< The distance (m) by which a moved position lies ahead of the authority.
 		bool canCouple = false; ///< True when the train can start to couple virtually to the train ahead.
@@ -751,8 +751,10 @@ public:
 	/// The target that authority, on section BS[section] of the Blocks sections of the route, sets for the train at S (m) and V
 	/// (m/s). The speed is 0 for a signal failure and on ETCS Level 3. With virtual coupling it is 0 for an occupied diverging
 	/// switch the train does not share and for a train ahead that runs the other way or does not go on to the next section of this
-	/// route, and otherwise the speed of the train ahead; an end of a train in the same direction that is not its tail ahead of S
-	/// sets no target. Two trains whose services may not couple (InitialParameters::virtualCouplingServices) count as on ETCS Level 3.
+	/// route, and otherwise the speed of the train ahead. A train that is faster than the train ahead, or whose train ahead brakes,
+	/// stops instead at the point where the train ahead would stop from its speed. An end of a train in the same direction that is
+	/// not its tail ahead of S sets no target. Two trains whose services may not couple (InitialParameters::virtualCouplingServices)
+	/// count as on ETCS Level 3.
 	AuthorityTarget authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V);
 
 	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S

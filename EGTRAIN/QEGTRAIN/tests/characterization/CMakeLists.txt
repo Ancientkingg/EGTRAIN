@@ -67,6 +67,8 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-other-platform-level-none
 	late-leader-level-3
 	late-leader-level-4
+	catch-up-level-3
+	catch-up-level-4
 	skip-stop-level-0
 	single-track-level-none
 	single-track-level-0
@@ -160,6 +162,7 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	breakdown-f1-level-0
 	breakdown-line-speed-level-0
 	breakdown-line-speed-level-3
+	breakdown-line-speed-level-4
 	breakdown-pass-station-level-0
 	breakdown-stop-approach-level-0)
 

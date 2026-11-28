@@ -4655,7 +4655,8 @@ void TestOperationsBuilder::level4Transitions() {
 	}
 	{
 		// A coupled train keeps its own leader as a target even where the leader goes on to another section, but a third train that
-		// goes elsewhere is a stop target for it.
+		// goes elsewhere is a stop target for it. Faster than its leader, the train keeps its braking distance to the point where
+		// the leader would stop; at the speed of the leader it follows the leader at that speed.
 		Train live = actual(1000, 20);
 		live.IsTrainInFollowingMode = true;
 		live.LeadingTrainInFollowingMode = "LEADER";
@@ -4664,9 +4665,13 @@ void TestOperationsBuilder::level4Transitions() {
 		diverging.TrainInfo.TrainSpeed = 15;
 		const auto other = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
 		QCOMPARE_EQ(other.speed, 0.0);
+		QVERIFY(!other.moved);
 		diverging.TrainInfo.trainDescription = "LEADER";
 		const auto own = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
-		QCOMPARE_EQ(own.speed, 15.0);
+		QCOMPARE_EQ(own.speed, 0.0);
+		QVERIFY(own.moved && own.position > other.position);
+		const auto matched = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 15);
+		QCOMPARE_EQ(matched.speed, 15.0);
 	}
 	{
 		Train live = actual(1000, 10);

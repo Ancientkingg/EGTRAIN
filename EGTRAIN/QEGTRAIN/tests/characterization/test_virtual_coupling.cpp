@@ -1,15 +1,16 @@
 // Virtual coupling (signalling level 4) on the line fixture.
 //
-//   test_virtual_coupling --fixture DIR [--trace] [--trace-level N [--leader KMH] [--stop-at-b] [--split] [--coupling-distance M]
-//                         [--coupling-services A,B]]
+//   test_virtual_coupling --fixture DIR [--trace] [--trace-level N [--leader KMH] [--stop-at-b] [--both-stop-at-b] [--split]
+//                         [--coupling-distance M] [--coupling-services A,B]]
 //
 // A slow leader runs ahead of a faster follower on the one route of the fixture, without stops. At level 4 the follower has to
-// catch up, couple, follow the leader at a bounded gap and never overlap it. At level 3 the same scenario is the control: fixed
-// blocks never put a train in following mode. The checks cover the cruise of the leader, up to the step in which it starts to
-// brake for the end of the route. With --trace the run prints one line per step of the follower; --trace-level N prints it for
-// level N, and --leader sets the speed limit of the leader in km/h. --stop-at-b makes the leader stop at B, and --split puts the
-// follower on a route that leaves the route of the leader at B. --coupling-distance M sets virtual_coupling_distance_m and
-// --coupling-services A,B sets virtual_coupling_services of the traced run.
+// catch up, couple, follow the leader at a bounded gap and never come closer to its tail than the safety margin. At level 3 the
+// same scenario is the control: fixed blocks never put a train in following mode. The checks cover the cruise of the leader, up to
+// the step in which it starts to brake for the end of the route. With --trace the run prints one line per step of the follower;
+// --trace-level N prints it for level N, and --leader sets the speed limit of the leader in km/h. --stop-at-b makes the leader stop
+// at B, --both-stop-at-b makes the follower stop there too, and --split puts the follower on a route that leaves the route of the
+// leader at B. --coupling-distance M sets virtual_coupling_distance_m and --coupling-services A,B sets virtual_coupling_services of
+// the traced run.
 
 #include "app/DispatchController.h"
 #include "scene/SceneModel.h"
@@ -47,6 +48,9 @@ constexpr double kLeaderBrakingShare = 0.999;
 // the follower does not couple while both run; a coupling distance of 60 m lets it couple (docs/guides/signalling-levels.md).
 constexpr double kWindowLeaderKmh = 108.0;
 constexpr double kWideCouplingDistance = 60.0;
+// The follower keeps its braking distance to the point where the leader would stop, so it closes the last metres to a leader at
+// 108 km/h slowly and couples about a minute before the leader brakes for the end of the route.
+constexpr int kWideSettledSteps = 50;
 // A coupled follower may differ in speed from the leader by this much, for the few steps after the reported authority jumps to the
 // start of the next section.
 constexpr double kFollowingSpeedTolerance = 5.0;
@@ -90,9 +94,10 @@ struct Outcome {
 
 // What differs between the scenarios besides the level and the speed of the leader.
 struct Variant {
-	bool leaderStopsAtB = false; // The leader keeps its stop at B, 8 km from the start; the follower never stops there.
-	bool split = false;			 // The follower runs on a route that leaves the route of the leader at B.
-	double leaderLengthM = 0.0;	 // When above 0, the length of the leader in m; the unit of the fixture otherwise.
+	bool leaderStopsAtB = false;   // The leader keeps its stop at B, 8 km from the start.
+	bool followerStopsAtB = false; // The follower keeps its stop at B too; otherwise it never stops there.
+	bool split = false;			   // The follower runs on a route that leaves the route of the leader at B.
+	double leaderLengthM = 0.0;	   // When above 0, the length of the leader in m; the unit of the fixture otherwise.
 	// virtual_coupling_distance_m and virtual_coupling_services of the scene.
 	double couplingDistanceM = kDefaultVirtualCouplingDistanceM;
 	std::vector<std::string> couplingServices;
@@ -147,7 +152,7 @@ Outcome runScenario(const std::string& fixture, int level, double leaderLimitKmh
 			continue;
 		if (variant.leaderLengthM > 0.0 && service.id == "F1")
 			service.composition = "shortComposition";
-		const bool keepB = variant.leaderStopsAtB && service.id == "F1";
+		const bool keepB = service.id == "F1" ? variant.leaderStopsAtB : variant.followerStopsAtB;
 		const bool dropC = variant.split && service.id == "F2";
 		service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [&](const SceneStop& stop) {
 			return (stop.stationId == "B" && !keepB) || (stop.stationId == "C" && dropC);
@@ -269,6 +274,12 @@ double gapAt(const Outcome& outcome, int t) {
 	return step.leaderPosition - outcome.leaderLength - step.position;
 }
 
+// True when the follower is closer to the tail of the leader than the safety margin in step t. The braking curve of the follower
+// ends 0.002 m before its target, so a follower that stops at the authority keeps the margin.
+bool insideMargin(const Outcome& outcome, int t) {
+	return gapAt(outcome, t) < outcome.authorityMargin;
+}
+
 void printTrace(const Outcome& outcome) {
 	for (int t = outcome.bothFirst; t <= outcome.bothLast; ++t) {
 		const Step& step = outcome.steps[static_cast<std::size_t>(t)];
@@ -295,19 +306,19 @@ int firstCruiseStep(const Outcome& outcome) {
 }
 
 // The first step in which the follower and the leader are both in the network and the leader cruises, to the last cruising step.
-void checkNoOverlap(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
+void checkMargin(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
 	for (int t = firstCruiseStep(outcome); t <= outcome.cruiseLast; ++t)
-		if (gapAt(outcome, t) < 0.0) {
-			failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
+		if (insideMargin(outcome, t)) {
+			failures.push_back(assertion + ": the follower comes within the safety margin of the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
 			return;
 		}
 }
 
-// The follower never overlaps the leader in a step in which both run.
-void checkNoOverlapUntilEnd(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
+// The follower keeps the safety margin behind the leader in every step in which both run.
+void checkMarginUntilEnd(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
 	for (int t = firstCruiseStep(outcome); t <= outcome.bothLast; ++t)
-		if (gapAt(outcome, t) < 0.0) {
-			failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
+		if (insideMargin(outcome, t)) {
+			failures.push_back(assertion + ": the follower comes within the safety margin of the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
 			return;
 		}
 }
@@ -324,7 +335,7 @@ void checkBlockLevel(const std::string& fixture, int level, std::vector<std::str
 		failures.push_back(assertion + ": the leader never cruises with the follower in the network");
 		return;
 	}
-	checkNoOverlap(assertion, outcome, failures);
+	checkMargin(assertion, outcome, failures);
 	for (int t = outcome.bothFirst; t <= outcome.bothLast; ++t) {
 		const Step& step = outcome.steps[static_cast<std::size_t>(t)];
 		if (step.following || step.coupling || step.unintentional || step.leading != "None") {
@@ -335,7 +346,7 @@ void checkBlockLevel(const std::string& fixture, int level, std::vector<std::str
 }
 
 // A follower that is faster than its leader catches up, couples, follows it at a bounded gap and couples again after an
-// unintentional decoupling, without ever overlapping it.
+// unintentional decoupling, without ever coming closer to its tail than the safety margin.
 void checkCoupling(const std::string& fixture, bool trace, std::vector<std::string>& failures) {
 	const std::string assertion = "level 4, leader at " + number(kSlowLeaderKmh) + " km/h";
 	const Outcome outcome = runScenario(fixture, 4, kSlowLeaderKmh);
@@ -350,7 +361,7 @@ void checkCoupling(const std::string& fixture, bool trace, std::vector<std::stri
 		failures.push_back(assertion + ": the leader never cruises with the follower in the network");
 		return;
 	}
-	checkNoOverlap(assertion, outcome, failures);
+	checkMargin(assertion, outcome, failures);
 
 	int firstFollowing = -1;
 	int followingSteps = 0;
@@ -386,7 +397,7 @@ void checkCoupling(const std::string& fixture, bool trace, std::vector<std::stri
 		failures.push_back(assertion + ": the follower is in following mode in only " + std::to_string(followingSteps) + " steps");
 	if (largestSpeedDifference > kFollowingSpeedTolerance)
 		failures.push_back(assertion + ": the follower differs " + number(largestSpeedDifference) + " m/s from the leader while following");
-	if (smallestGap < 0.0 || largestGap > kMaximumCruiseGap)
+	if (smallestGap < outcome.authorityMargin || largestGap > kMaximumCruiseGap)
 		failures.push_back(assertion + ": the gap while following ranges from " + number(smallestGap) + " m to " + number(largestGap) + " m");
 	// The follower is faster than the leader before it couples, and it couples at nearly the speed of the leader.
 	const Step& coupled = outcome.steps[static_cast<std::size_t>(firstFollowing)];
@@ -420,9 +431,10 @@ void checkCoupling(const std::string& fixture, bool trace, std::vector<std::stri
 			  << ", speed difference up to " << number(largestSpeedDifference) << " m/s, gap " << number(smallestGap) << " to " << number(largestGap) << " m\n";
 }
 
-// A leader at the given speed: the follower catches up and couples while both run, holds the speed of the leader, and does not run through it.
+// A leader at the given speed: the follower catches up and couples while both run, holds the speed of the leader, and does not run
+// through it. It is coupled and settled in the last settledSteps steps of the cruise.
 void checkCouplesWhileRunning(const std::string& fixture, double leaderKmh, std::vector<std::string>& failures, const Variant& variant = {},
-	const std::string& what = "") {
+	const std::string& what = "", int settledSteps = kSettledSteps) {
 	const std::string assertion = "level 4, leader at " + number(leaderKmh) + " km/h" + what;
 	const Outcome outcome = runScenario(fixture, 4, leaderKmh, variant);
 	for (const std::string& problem : outcome.problems)
@@ -430,11 +442,11 @@ void checkCouplesWhileRunning(const std::string& fixture, double leaderKmh, std:
 	if (!outcome.problems.empty())
 		return;
 	const int from = firstCruiseStep(outcome);
-	if (outcome.cruiseLast <= from + kSettledSteps) {
+	if (outcome.cruiseLast <= from + settledSteps) {
 		failures.push_back(assertion + ": the leader cruises with the follower in the network for too few steps");
 		return;
 	}
-	checkNoOverlap(assertion, outcome, failures);
+	checkMargin(assertion, outcome, failures);
 	int firstFollowing = -1;
 	for (int t = from; t <= outcome.cruiseLast && firstFollowing < 0; ++t)
 		if (outcome.steps[static_cast<std::size_t>(t)].following)
@@ -449,7 +461,7 @@ void checkCouplesWhileRunning(const std::string& fixture, double leaderKmh, std:
 	double settledDifference = 0.0;
 	double smallestGap = 1e9;
 	double largestGap = 0.0;
-	for (int t = outcome.cruiseLast - kSettledSteps; t <= outcome.cruiseLast; ++t) {
+	for (int t = outcome.cruiseLast - settledSteps; t <= outcome.cruiseLast; ++t) {
 		const Step& step = outcome.steps[static_cast<std::size_t>(t)];
 		settledDifference = std::max(settledDifference, std::fabs(step.speed - step.leaderSpeed));
 		smallestGap = std::min(smallestGap, gapAt(outcome, t));
@@ -461,14 +473,15 @@ void checkCouplesWhileRunning(const std::string& fixture, double leaderKmh, std:
 	}
 	if (settledDifference > kSettledSpeedTolerance)
 		failures.push_back(assertion + ": the speed of the follower still differs " + number(settledDifference) + " m/s from the leader at the end of the cruise");
-	if (smallestGap <= 0.0 || largestGap > kMaximumCruiseGap)
+	if (smallestGap < outcome.authorityMargin || largestGap > kMaximumCruiseGap)
 		failures.push_back(assertion + ": the gap at the end of the cruise ranges from " + number(smallestGap) + " m to " + number(largestGap) + " m");
 	std::cout << assertion << ": coupled at step " << firstFollowing << ", speed difference " << number(settledDifference) << " m/s, gap "
 			  << number(smallestGap) << " to " << number(largestGap) << " m at the end of the cruise\n";
 }
 
-// The follower never overlaps the leader in any step in which both run, up to the last stop of the leader at the end of the route.
-void checkNeverOverlaps(const std::string& fixture, double leaderKmh, const Variant& variant, const std::string& what, std::vector<std::string>& failures) {
+// The follower keeps the safety margin behind the leader in every step in which both run, up to the last stop of the leader at the
+// end of the route.
+void checkMarginToLastStop(const std::string& fixture, double leaderKmh, const Variant& variant, const std::string& what, std::vector<std::string>& failures) {
 	const std::string assertion = "level 4, leader at " + number(leaderKmh) + " km/h" + what;
 	const Outcome outcome = runScenario(fixture, 4, leaderKmh, variant);
 	for (const std::string& problem : outcome.problems)
@@ -485,8 +498,8 @@ void checkNeverOverlaps(const std::string& fixture, double leaderKmh, const Vari
 		}
 		following += outcome.steps[static_cast<std::size_t>(t)].following ? 1 : 0;
 	}
-	if (smallestGap < 0.0)
-		failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(smallestStep) + ", gap " + number(smallestGap) + " m");
+	if (smallestGap < outcome.authorityMargin)
+		failures.push_back(assertion + ": the follower comes within the safety margin of the leader at step " + std::to_string(smallestStep) + ", gap " + number(smallestGap) + " m");
 	if (following == 0)
 		failures.push_back(assertion + ": the follower never couples");
 	// The leader that stops at B brakes for it from speed while the follower is coupled.
@@ -522,8 +535,8 @@ void checkSplitRoutes(const std::string& fixture, std::vector<std::string>& fail
 			coupled = t;
 		else if (coupled >= 0 && uncoupled < 0 && !step.following)
 			uncoupled = t;
-		if (atSplit < 0 && gapAt(outcome, t) < 0.0) {
-			failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
+		if (atSplit < 0 && insideMargin(outcome, t)) {
+			failures.push_back(assertion + ": the follower comes within the safety margin of the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
 			break;
 		}
 	}
@@ -567,7 +580,8 @@ void checkSplitRoutes(const std::string& fixture, std::vector<std::string>& fail
 }
 
 // A leader shorter than the 50 m margin of a front authority runs with the follower coupled close behind it. The follower is
-// no leader for it: the leader keeps cruising at its limit until it is near the end of the route, and the follower never overlaps it.
+// no leader for it: the leader keeps cruising at its limit until it is near the end of the route, and the follower keeps the safety
+// margin behind it.
 void checkShortLeaderCruises(const std::string& fixture, std::vector<std::string>& failures) {
 	constexpr double kLeaderKmh = 54.0;
 	constexpr double kShortLeaderLength = 15.0;
@@ -593,7 +607,7 @@ void checkShortLeaderCruises(const std::string& fixture, std::vector<std::string
 			+ std::to_string(slowedAt) + " although the line ahead of it is free");
 	if (following == 0)
 		failures.push_back(assertion + ": the follower never couples");
-	checkNoOverlapUntilEnd(assertion, outcome, failures);
+	checkMarginUntilEnd(assertion, outcome, failures);
 	std::cout << assertion << ": " << following << " steps coupled, leader slows at step " << slowedAt << "\n";
 }
 
@@ -620,11 +634,11 @@ void checkCouplingDistance(const std::string& fixture, std::vector<std::string>&
 	if (coupled >= 0)
 		failures.push_back(assertion + ": the follower couples at step " + std::to_string(coupled) + " while the leader cruises, with a coupling distance of "
 			+ number(outcome.couplingDistance) + " m");
-	checkNoOverlap(assertion, outcome, failures);
+	checkMargin(assertion, outcome, failures);
 	std::cout << assertion << ": no coupling while the leader cruises with a coupling distance of " << number(outcome.couplingDistance) << " m\n";
 	Variant wide;
 	wide.couplingDistanceM = kWideCouplingDistance;
-	checkCouplesWhileRunning(fixture, kWindowLeaderKmh, failures, wide, ", coupling distance " + number(kWideCouplingDistance) + " m");
+	checkCouplesWhileRunning(fixture, kWindowLeaderKmh, failures, wide, ", coupling distance " + number(kWideCouplingDistance) + " m", kWideSettledSteps);
 }
 
 // The step from which the two runs differ in a position or a speed of either train, or -1 when they are the same.
@@ -675,7 +689,7 @@ void checkCouplingServices(const std::string& fixture, std::vector<std::string>&
 	const int asBlocks = firstDifference(unlisted, blocks);
 	if (asBlocks >= 0)
 		failures.push_back(unlistedAssertion + ": the trains differ from the level 3 run from step " + std::to_string(asBlocks));
-	checkNoOverlapUntilEnd(unlistedAssertion, unlisted, failures);
+	checkMarginUntilEnd(unlistedAssertion, unlisted, failures);
 	const std::string listedAssertion = "level 4, F1 and F2 couple";
 	const int asEveryTrain = firstDifference(listed, everyTrain);
 	if (asEveryTrain >= 0)
@@ -706,6 +720,8 @@ int main(int argc, char** argv) {
 			traceLevel = std::atoi(argv[++i]);
 		else if (arg == "--stop-at-b")
 			variant.leaderStopsAtB = true;
+		else if (arg == "--both-stop-at-b")
+			variant.leaderStopsAtB = variant.followerStopsAtB = true;
 		else if (arg == "--split")
 			variant.split = true;
 		else if (arg == "--leader-length" && i + 1 < argc)
@@ -724,8 +740,8 @@ int main(int argc, char** argv) {
 		}
 	}
 	if (fixture.empty()) {
-		std::cerr << "usage: test_virtual_coupling --fixture DIR [--trace] [--trace-level N [--leader KMH] [--stop-at-b] [--split] [--coupling-distance M] "
-					 "[--coupling-services A,B]]\n";
+		std::cerr << "usage: test_virtual_coupling --fixture DIR [--trace] [--trace-level N [--leader KMH] [--stop-at-b] [--both-stop-at-b] [--split] "
+					 "[--coupling-distance M] [--coupling-services A,B]]\n";
 		return 2;
 	}
 
@@ -738,10 +754,13 @@ int main(int argc, char** argv) {
 	for (const double kmh : {54.0, kFastLeaderKmh, 90.0})
 		checkCouplesWhileRunning(fixture, kmh, failures);
 	for (const double kmh : {kSlowLeaderKmh, 54.0, kFastLeaderKmh, 90.0}) {
-		checkNeverOverlaps(fixture, kmh, {}, ", to its last stop", failures);
+		checkMarginToLastStop(fixture, kmh, {}, ", to its last stop", failures);
 		Variant braking;
 		braking.leaderStopsAtB = true;
-		checkNeverOverlaps(fixture, kmh, braking, ", stopping at B", failures);
+		checkMarginToLastStop(fixture, kmh, braking, ", stopping at B", failures);
+		Variant bothStop;
+		bothStop.leaderStopsAtB = bothStop.followerStopsAtB = true;
+		checkMarginToLastStop(fixture, kmh, bothStop, ", both stopping at B", failures);
 	}
 	checkSplitRoutes(fixture, failures);
 	checkShortLeaderCruises(fixture, failures);
