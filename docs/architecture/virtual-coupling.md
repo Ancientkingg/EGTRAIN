@@ -2,8 +2,9 @@
 
 At signalling level 4 a train may run closer to the train ahead than its braking
 distance: it couples virtually to that train and follows it at its speed. This
-page describes how a run decides when a train couples and decouples and what a
-coupled pair does in a disruption. [Signalling levels](../guides/signalling-levels.md) describes the
+page describes how a run decides when a train couples and decouples, what a
+coupled pair does in a disruption, and how coupling works at a diverging
+switch. [Signalling levels](../guides/signalling-levels.md) describes the
 levels for users.
 
 The code is in `simulation/RollingStockOccupation.cpp`
@@ -83,3 +84,40 @@ behaviour below; the `-level-3` cases are the same runs at level 3.
 
 At level 3 the follower keeps its braking distance to the leader's tail, so it
 starts braking earlier and stands at the same point later. It never couples.
+
+## Diverging switches
+
+The cases `vc-split-level-4` and `vc-merge-level-4` define how coupling works at
+a diverging switch.
+
+**Split.** A coupled pair whose routes part at a diverging switch stays coupled
+while the leader's tail is on the part of the block before the switch that the
+follower's switch section shares. While the leader occupies the switch, the
+switch is locked: at level 4 the lock ends are a stop target at the switch for
+every train except one on the same section as the locking train with the same
+next section, and at level 3 for every train. The follower, whose next section
+is on the other branch, therefore cannot enter the switch before the leader's
+tail has cleared it. In the step after the leader's tail has passed
+the switch, the leader reports no end on the follower's route and the follower
+is **Decoupled** there. It then runs on its own branch with the authority of its
+own route.
+
+**Merge.** A train that comes from the branch is held at the switch while a
+train on the main line occupies it. Once the tail of that train has passed the
+switch, its tail lies on the part of the block that the switch section shares,
+and the train on the branch sees it there. The two trains may couple from then
+on, under the usual conditions: the same next section and speeds within the
+tolerance. Trains on different branches never couple before the switch, because
+neither sees the other's ends there.
+
+Before trains on a plain block reported their ends on the switch sections that
+share that block, a train on a switch section did not see the train ahead of it
+on the shared block. It ran into that train's tail in both junction cases, at
+levels 3 and 4.
+
+A known gap remains: the ends that a train on one switch section reports on its
+plain block are not passed on to a second switch section that shares the same
+block. Two trains on two switch sections that leave the same block at different
+switches, for example one on `@4-B0@-8.5/@0-B2@-8.55` at 8.3 km and one on
+`@4-B0@-9.5/@0-B1@-9.55` at 8.0 km, do not see each other on that block. No
+characterization case has such a layout.

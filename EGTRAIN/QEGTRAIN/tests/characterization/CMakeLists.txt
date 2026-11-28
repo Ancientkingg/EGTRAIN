@@ -177,7 +177,11 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	vc-breakdown-slow-level-3
 	vc-breakdown-slow-level-4
 	vc-signal-failure-level-3
-	vc-signal-failure-level-4)
+	vc-signal-failure-level-4
+	vc-split-level-3
+	vc-split-level-4
+	vc-merge-level-3
+	vc-merge-level-4)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}

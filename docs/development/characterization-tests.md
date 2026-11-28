@@ -28,7 +28,12 @@ baseline scenario, in the test. The case `sf-other-platform-level-none` adds
 `3-B0` from 150 s to 500 s, and its B stops have no planned arrival.
 The `vc-*` cases limit `F1` and `R1` to 72 km/h and take the B stops out of
 `F1`, `F2`, `R1` and `R2`, so that the second train catches up with the first
-and, at level 4, couples to it.
+and, at level 4, couples to it. The `vc-split-*` and `vc-merge-*` cases add a
+branch in the test: a diverging switch from `B0` at 9.5 km to track `B1` at
+9.55 km. `B1` runs from 9.5 km in three blocks to 16 km and ends at station `D`. The
+route `routeSplit` runs from A over the switch to D and `routeMerge` from D over
+the switch to A. `F2` takes `routeSplit` and `R2` takes `routeMerge`, due 80 s
+later than in the fixture, with D in place of C.
 
 The passenger cases add station `P`, services `Q1` to `Q4` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
@@ -112,6 +117,8 @@ A case is a scenario, a set of services and a level. The case table is in
 | `vc-breakdown-hold-level-3`, `-4` | trains `F1` and `F2` with a breakdown of `F1` from 420 s to 540 s; at level 4 `F2` has coupled at 316 s and brakes with `F1`, which stands at 7251 m from 444 s; `F2` stands 50 m behind its tail and stays coupled, decouples unintentionally at 564 s while both start again and couples again at 574 s. At level 3 `F2` brakes from its braking distance and stands at the same point from 458 s |
 | `vc-breakdown-slow-level-3`, `-4` | the same trains with a breakdown of `F1` from 420 s to 600 s that caps its speed at 40 km/h; at level 4 `F2` stays coupled and runs at 40 km/h behind `F1` |
 | `vc-signal-failure-level-3`, `-4` | the same trains with a signal failure on `5-B0` from 420 s to 600 s; `F1` stands at the end of `4-B0` from 582 s, at level 4 `F2` stands 50 m behind it coupled, decouples unintentionally after the restart at 614 s and couples again at 626 s |
+| `vc-split-level-3`, `-4` | trains `F1` on `route0` and `F2` on `routeSplit`; at level 4 `F2` stays coupled to `F1` up to the switch and is decoupled at 551 s, the step after the tail of `F1` has passed the switch; `F2` passes it from 552 s, 69 m behind the tail of `F1` at the closest, and runs on to D. At level 3 `F2` stays at least 285 m behind |
+| `vc-merge-level-3`, `-4` | trains `R1` on `route1` and `R2` on `routeMerge`; `R1` passes the switch from 393 s to 399 s and `R2` from 407 s; at level 4 `R2` couples to `R1` behind the switch at 491 s and follows it to A |
 
 Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -372,7 +379,10 @@ block boundary, behind another train or where a breakdown holds the train, no ov
 train closer to the tail of the train ahead on its route than the safety margin (`end_of_authority_margin_m`), and in every
 station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
 that equal the sum and the number of the arrival delays of its `result` lines
-(only the late ones in the sum for `stats`). At level 4 in a `vc-*` case with an incident, a
+(only the late ones in the sum for `stats`). In a `vc-split-*` or `vc-merge-*` case the two trains are
+checked for overlap and the margin only while the second train is on `B0`,
+whichever of them is ahead, and a stop counts as behind the other train only
+there. At level 4 in a `vc-*` case with an incident, a
 train that is coupled when the incident starts must be coupled again at some
 time after it ends. In a `single-track-*` case `S1` and
 `R1` are never inside the restricted section at the same time. In a stub case
