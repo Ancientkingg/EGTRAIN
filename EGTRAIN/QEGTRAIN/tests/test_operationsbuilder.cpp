@@ -6215,6 +6215,18 @@ void TestOperationsBuilder::singleTrackRoomOrder() {
 	updateSingleTrackLocks(defaultRun(), 1);
 	QVERIFY(reservesZone(1));
 	QCOMPARE(defaultRun().infra.singleTrackKeptOut[3], char(1));
+
+	// The same for a train that starts at the entry of the second zone of its route: zones A (a.1), B (b.3) and C (c.5), with
+	// room for one train on t.4 between B and C. The train in the network between A and B has B first.
+	setLockRoutes({{{"u.0", "a.1", "s.2", "b.3", "t.4", "c.5", "e.6"}, false}}, 2);
+	defaultRun().infra.singleTrackLimits = {{"b.3", "b.3", "b.3", "b.3"}, {"a.1", "a.1", "a.1", "a.1"}, {"c.5", "c.5", "c.5", "c.5"}};
+	resetSingleTrackLocks(defaultRun());
+	waitToEnter(0, 0, 6000.0 - kStopHoldbackM, 0.0);
+	placeLockTrain(1, 0, 5500.0, true);
+	updateSingleTrackLocks(defaultRun(), 1);
+	QCOMPARE(defaultRun().infra.singleTrackKeptOut[0], char(1));
+	QVERIFY(!reservesZone(0));
+	QVERIFY(reservesZone(1));
 }
 
 // True when every route section has the number of its ID and different IDs have different numbers.

@@ -220,10 +220,12 @@ it is bound for the stretch once its head is on it.
 A train that is due at its entry and would find no room after its first zone
 does not enter the network (`RunInfrastructure::singleTrackKeptOut`,
 `Train::checkEntrance`). Otherwise it would wait on its first platform, which at
-a terminal is the way out of that zone for the trains that arrive there. Trains
-in the network that have still to reach that zone have the room first, then the
-waiting trains in the order in which they are due, the order in which
-`Train::checkEntrance` lets them in. A train that is let in keeps the room while
+a terminal is the way out of that zone for the trains that arrive there. Its
+first zone is the one it starts in or reaches first; a train that starts at a
+stop in the middle of its route may have passed earlier zones of the route.
+Every train in the network whose route passes that zone and that has still to
+reach it has the room first, then the waiting trains in the order in which they
+are due, the order in which `Train::checkEntrance` lets them in. A train that is let in keeps the room while
 it cannot enter yet, so a train due later does not overtake it. A train that is
 kept out asks for no zone and keeps no reservation, so it does not hold a zone
 that a train in the network needs.
@@ -250,7 +252,8 @@ released again.
 - A follower behind a train that dwells in front of a zone, a follower that asks
   in the same step as the train ahead, a holder that has passed the way out with
   a train behind it, and a train kept out of the network next to a train that
-  has still to reach the zone (`singleTrackRoomOrder` in
+  has still to reach the zone, also when it starts at the entry of the second
+  zone of its route (`singleTrackRoomOrder` in
   `tests/test_operationsbuilder.cpp`).
 
 ## Limits

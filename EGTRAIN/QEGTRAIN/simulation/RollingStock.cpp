@@ -629,22 +629,25 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 	listCandidates();
 
 	// A train that waits to enter the network and has no room after its first zone stays out of the network, so that it does not
-	// stand on the way out of that zone for a route of the other direction. The trains in the network that have still to reach
-	// that zone have the room first, then the waiting trains in the order in which they are due, as Train::checkEntrance lets them
-	// in; a train let in keeps the room while it cannot enter yet, so that a train due later does not take it. A train kept out
-	// asks for no zone and keeps no reservation.
-	std::vector<int> firstZoneOf(routeCount, -2); // by route: the limit of the first zone on it, or -1
+	// stand on the way out of that zone for a route of the other direction. Its first zone is the one that it starts in or reaches
+	// first, which need not be the first zone of its route. The trains in the network that have still to reach that zone have the
+	// room first, then the waiting trains in the order in which they are due, as Train::checkEntrance lets them in; a train let in
+	// keeps the room while it cannot enter yet, so that a train due later does not take it. A train kept out asks for no zone and
+	// keeps no reservation.
 	auto firstZone = [&](const LockTrain& train) {
-		int& found = firstZoneOf[static_cast<std::size_t>(train.route)];
-		if (found == -2) {
-			found = -1;
-			for (std::size_t l = 0; l < limits; ++l) {
-				const int first = singleTrackZone(run, l, train.route).first;
-				if (first >= 0 && (found < 0 || first < singleTrackZone(run, static_cast<std::size_t>(found), train.route).first))
-					found = static_cast<int>(l);
-			}
+		int found = -1;
+		for (std::size_t l = 0; l < limits; ++l) {
+			const SingleTrackZone& zone = singleTrackZone(run, l, train.route);
+			if (zone.first >= 0 && sectionEnd(train.route, zone.last) > train.head
+				&& (found < 0 || zone.first < singleTrackZone(run, static_cast<std::size_t>(found), train.route).first))
+				found = static_cast<int>(l);
 		}
 		return found;
+	};
+	// Whether other has still to reach the entry of zone l, which its route passes, and does not hold it yet.
+	auto stillToReach = [&](const LockTrain& other, std::size_t l) {
+		const int entry = singleTrackZone(run, l, other.route).first;
+		return other.holds[l] == 0 && entry >= 0 && other.head <= sectionStart(other.route, entry);
 	};
 	infra.singleTrackKeptOut.assign(run.trains.size(), 0);
 	std::vector<LockTrain*> due;
@@ -661,11 +664,10 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 		// Those that hold the zone already count as bound; the others count as holding it.
 		std::vector<const LockTrain*> ahead;
 		for (const LockTrain* other : candidates)
-			if (!other->waiting && other->holds[l] == 0 && firstZone(*other) == static_cast<int>(l)
-				&& other->head <= sectionStart(other->route, singleTrackZone(run, l, other->route).first))
+			if (!other->waiting && stillToReach(*other, l))
 				ahead.push_back(other);
 		for (const LockTrain* other : letIn)
-			if (other->holds[l] == 0 && firstZone(*other) == static_cast<int>(l))
+			if (stillToReach(*other, l))
 				ahead.push_back(other);
 		if (roomAfter(l, *train, ahead)) {
 			letIn.push_back(train);
