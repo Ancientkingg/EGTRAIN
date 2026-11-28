@@ -245,6 +245,10 @@ CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel*
 	data.settings.caseName = provenance.caseName;
 	data.settings.passengerOnboardCrowdingThreshold = run.settings.passengerOnboardCrowdingThreshold;
 	data.settings.hasPassengers = !run.passengers.empty();
+	if (data.settings.hasPassengers) {
+		data.passengerSummary = summarisePassengerRun(run);
+		data.originDestinations = summariseOriginDestinations(run.passengers);
+	}
 	data.provenance = provenance;
 	if (scene)
 		data.sectionLabels = sceneSectionLabels(buildSceneSectionInventory(*scene));

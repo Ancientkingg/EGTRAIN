@@ -8,6 +8,8 @@
 
 #include <QTest>
 
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <list>
 #include <string>
@@ -682,6 +684,8 @@ private slots:
 	void extremePredictionCountsAsTheLargestLateness();
 	void heldTrainHasANewPredictionOnceAMinute();
 	void cappedTrainHeldBetweenStopsHasANewPredictionOnceAMinute();
+	void onlyATrainMissedAfterARideIsAMissedConnection();
+	void lateTrainsKeepTheMissedConnectionRule();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -1414,6 +1418,62 @@ void TestPassengerJourneys::cappedTrainHeldBetweenStopsHasANewPredictionOnceAMin
 	for (int t = 490; t <= 609; ++t)
 		evaluations += static_cast<int>(run.passengerJourneys.trainsWithNewPrediction(run, t).size());
 	QCOMPARE(evaluations, 3);
+}
+
+// A missed connection is a train that the passenger missed after riding a train of the journey (Journey::MissedConnections). A train
+// missed at the origin, a train that ends its service early, a full train and a switch to a standing train make the passenger plan
+// again, but none of them is a missed connection.
+void TestPassengerJourneys::onlyATrainMissedAfterARideIsAMissedConnection() {
+	const MissedChangeRun missed;
+	QCOMPARE(missed.passenger("rider").Journeys.front().MissedConnections, std::uint16_t(1));
+	const Journey& atOrigin = missed.passenger("waiter").Journeys.front();
+	QVERIFY(atOrigin.IsReplanned);
+	QCOMPARE(atOrigin.MissedConnections, std::uint16_t(0));
+
+	EndedTrainRun ended(true);
+	ended.run.passengerJourneys.settleTrains(ended.run, ended.flow, 150);
+	Passenger& setDown = ended.run.passengers.front();
+	QVERIFY(setDown.Journeys.front().IsReplanned);
+	QCOMPARE(setDown.Journeys.front().MissedConnections, std::uint16_t(0));
+	// The passenger, who rode T1, is refused at B by a full T2 and plans again.
+	ended.run.passengerJourneys.replanRefused(ended.run, setDown, ended.run.trains[1], 150);
+	QCOMPARE(setDown.Journeys.front().RefusedBy.size(), std::size_t(1));
+	QCOMPARE(setDown.Journeys.front().MissedConnections, std::uint16_t(0));
+
+	const StandingTrainRun standing(650);
+	QVERIFY(standing.rider().Journeys.front().IsReplanned);
+	QCOMPARE(standing.rider().Journeys.front().MissedConnections, std::uint16_t(0));
+}
+
+// With late trains the rule stays: a passenger who leaves a late train for an earlier route has missed nothing, while a train that
+// left without a passenger who rode a train of the journey is a missed connection, also when that train ran late.
+// - The passenger rode T1 to B and waits there for T2, which is 400 s late at 800 s, and takes T3 and T4: no missed connection.
+// - T2 stood at B and now stands at C, 350 s late, so it is late and no longer calls at B. The passenger who waited for it at B
+//   and the passenger who has just come there from T1 to wait for it each count one missed connection, and plan again.
+void TestPassengerJourneys::lateTrainsKeepTheMissedConnectionRule() {
+	Train first = trainCallingAt("T1", {"A", "B"}, {100, 300});
+	first.OutOfSimulation = true;
+	WaitingRun switching({first, trainCallingAt("T2", {"B", "D"}, {400, 1000}), trainCallingAt("T3", {"B", "C"}, {820, 900}),
+							 trainCallingAt("T4", {"C", "D"}, {950, 1050})},
+		{tripOn("w.1", "T1", "A", "B", 300), tripOn("w.2", "T2", "B", "D", 1000)}, 1, 300);
+	switching.run.settings.passengerMaxTransfers = 2;
+	switching.settle(800);
+	QCOMPARE(switching.trains(), (std::vector<std::string>{"T1", "T3", "T4"}));
+	QVERIFY(switching.journey().IsReplanned);
+	QCOMPARE(switching.journey().MissedConnections, std::uint16_t(0));
+
+	Train gone = trainCallingAt("T2", {"B", "C", "D"}, {400, 700, 1000});
+	standAt(gone, 1, 1050);
+	const std::vector<Train> trains{first, gone, trainCallingAt("T3", {"B", "D"}, {1200, 1400})};
+	const std::vector<Trip> trips{tripOn("w.1", "T1", "A", "B", 300), tripOn("w.2", "T2", "B", "D", 1000)};
+	WaitingRun waited(trains, trips, 1, 300);
+	waited.settle(1060);
+	QCOMPARE(waited.journey().MissedConnections, std::uint16_t(1));
+	QCOMPARE(waited.trains(), (std::vector<std::string>{"T1", "T3"}));
+	WaitingRun arriving(trains, trips, 1, 1060);
+	arriving.run.passengerJourneys.checkWaiting(arriving.run, arriving.run.passengers.front(), 1060, 1);
+	QCOMPARE(arriving.journey().MissedConnections, std::uint16_t(1));
+	QCOMPARE(arriving.trains(), (std::vector<std::string>{"T1", "T3"}));
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {

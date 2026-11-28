@@ -84,6 +84,7 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// the scene. A passenger plans again from the station where it is when it misses its train (the train left, or cannot call
 /// there any more), when the train is full, when the train ends its service before the stop where the passenger leaves it, and
 /// when the train it waits for runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
+/// A missed train after the passenger has ridden a train of the journey is a missed connection (Journey::MissedConnections).
 ///
 /// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
 /// destination without a change no later than the plan does (on the times that liveTrainState gives for both trains, and
@@ -172,6 +173,10 @@ private:
 		const passenger_routing::Plan* given = nullptr);
 	void replanWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt,
 		const passenger_routing::Plan* given = nullptr);
+	/// The train of the leg that the passenger waits for left the stop without the passenger, or no longer calls at the platform:
+	/// counts a missed connection when the passenger has ridden a train of the journey (Journey::MissedConnections), and plans
+	/// again. The one place where a missed train is handled.
+	void missedTrain(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt);
 	/// The direct ride of the earliest train that stands at the platform of the passenger and beats the plan (see the rule above),
 	/// or none; with onlyTrain at least 0, only that train. A passenger who alighted just now is ready after the walk from the
 	/// platform of the train that was left.

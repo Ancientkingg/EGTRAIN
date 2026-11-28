@@ -12,6 +12,7 @@
 #include "app/StartupTiming.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
+#include "diagrams/PassengerComparisonWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "editors/CountText.h"
 #include "editors/ServicePanel.h"
@@ -467,6 +468,9 @@ DelayRunSnapshot RunController::completedDelaySnapshot() const {
 	snapshot.provenance = run.provenance;
 	snapshot.run = run.results;
 	snapshot.timetable = run.timetable;
+	snapshot.hasPassengers = run.settings.hasPassengers;
+	snapshot.passengerSummary = run.passengerSummary;
+	snapshot.originDestinations = run.originDestinations;
 	return snapshot;
 }
 
@@ -477,6 +481,8 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 		&& !current.hasIncidents && !current.hasEntranceDelays;
 	state.canCompare = resultsShown && m_delayBaseline.has_value()
 		&& (current.hasIncidents || current.hasEntranceDelays);
+	state.canComparePassengers = resultsShown && m_delayBaseline.has_value()
+		&& m_delayBaseline->hasPassengers && current.hasPassengers;
 
 	// The tooltips of the two buttons say why one is disabled.
 	if (m_delayBaseline)
@@ -518,6 +524,27 @@ DelayAnalysisWindow* RunController::openDelayAnalysis() {
 		return nullptr;
 	}
 	auto* window = new DelayAnalysisWindow(completedDelaySnapshot(), m_delayBaseline, m_window);
+	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	window->setAttribute(Qt::WA_DeleteOnClose);
+	window->show();
+	return window;
+}
+
+PassengerComparisonWindow* RunController::openPassengerComparison() {
+	if (!m_delayBaseline) {
+		m_window->statusBar()->showMessage("Set a baseline first", 5000);
+		return nullptr;
+	}
+	const DelayRunSnapshot current = completedDelaySnapshot();
+	if (current.run.trains.empty()) {
+		m_window->statusBar()->showMessage("Run the case first", 5000);
+		return nullptr;
+	}
+	if (!m_delayBaseline->hasPassengers || !current.hasPassengers) {
+		m_window->statusBar()->showMessage("Both the baseline and this run need passengers to compare", 5000);
+		return nullptr;
+	}
+	auto* window = new PassengerComparisonWindow(*m_delayBaseline, current, m_window);
 	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();

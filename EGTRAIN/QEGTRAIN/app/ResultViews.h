@@ -114,6 +114,8 @@ public slots:
 	void showDelayAnalysis();
 	/// Opens ResultViewName::kDelayAnalysis on its baseline comparison.
 	void showDelayComparison();
+	/// Opens the passenger comparison window against the baseline.
+	void showPassengerComparison();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
 	/// Asks for the occurrences and the section of the route to analyse, starting with the trains of the first block that

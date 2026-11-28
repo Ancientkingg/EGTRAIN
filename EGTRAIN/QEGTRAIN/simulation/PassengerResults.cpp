@@ -207,10 +207,60 @@ vector<OriginDestinationSummary> summariseOriginDestinations(const list<Passenge
 			summary.p95Wait = nearestRankPercentile(pair.waits, 95);
 			summary.meanTravel = mean(pair.travels);
 			summary.meanDelay = mean(pair.delays);
+			double positiveDelay = 0.0;
+			for (const double delay : pair.delays)
+				if (delay > 0.0)
+					positiveDelay += delay;
+			summary.passengerHoursLost = positiveDelay / 3600.0;
 		}
 		summaries.push_back(summary);
 	}
 	return summaries;
+}
+
+PassengerRunSummary summarisePassengerRun(const SimulationRun& run) {
+	PassengerRunSummary summary;
+	double positiveDelaySeconds = 0.0;
+	for (const Passenger& passenger : run.passengers) {
+		bool refused = !isNoneId(passenger.TrainThatRefusedBoarding) || passenger.StopThatRefusedBoarding >= 0;
+		for (const Journey& journey : passenger.Journeys) {
+			++summary.journeys;
+			if (!journey.RefusedBy.empty())
+				refused = true;
+			if (journey.IsReplanned)
+				++summary.replannedJourneys;
+			if (journey.MissedConnections > 0)
+				++summary.missedConnectionJourneys;
+			if (journey.IsJourneyCompleted) {
+				++summary.completedJourneys;
+				summary.totalDelaySeconds += journey.totalJourneyArrivalDelay;
+				if (journey.totalJourneyArrivalDelay > 0)
+					positiveDelaySeconds += journey.totalJourneyArrivalDelay;
+			} else if (journey.Outcome == JourneyOutcome::NoRoute) {
+				++summary.noRouteJourneys;
+			} else {
+				++summary.inProgressJourneys;
+			}
+		}
+		if (refused)
+			++summary.refusedPassengers;
+	}
+	if (summary.completedJourneys > 0) {
+		summary.meanDelaySeconds = summary.totalDelaySeconds / static_cast<double>(summary.completedJourneys);
+		summary.passengerHoursLost = positiveDelaySeconds / 3600.0;
+	}
+	const int trains = min(run.numTrains, static_cast<int>(run.trains.size()));
+	for (int n = 0; n < trains; ++n) {
+		const Train& train = run.trains[static_cast<size_t>(n)];
+		const int stops = min({train.numStations, static_cast<int>(Train::kMaxTimetableStations), static_cast<int>(train.Stations.size())});
+		for (int stop = 0; stop < stops; ++stop) {
+			if (train.Stations[static_cast<size_t>(stop)].StepStopped <= 0)
+				continue;
+			if (const StopCallCounts* counts = run.stopCalls.find(n, stop))
+				summary.leftBehindEvents += counts->leftBehind;
+		}
+	}
+	return summary;
 }
 
 namespace {

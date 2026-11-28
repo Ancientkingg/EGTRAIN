@@ -118,14 +118,16 @@ struct CompletedRoute {
 
 /// The finished run that the result windows show and export.
 struct CompletedRunData {
-	CompletedRunSettings settings;			   ///< Time frame of the run
-	std::vector<std::string> blockNames;	   ///< Names of the blocks that the trajectories refer to
-	std::vector<CompletedTrain> trains;		   ///< In run order
-	std::vector<CompletedRoute> routes;		   ///< In the order of the simulation's routes
-	RunResults results;						   ///< Run Results table
-	std::vector<TimetableResultRow> timetable; ///< Planned and simulated times of every stop
-	RunProvenance provenance;				   ///< Inputs and settings of the run, for the export sidecars
-	SceneSectionLabels sectionLabels;		   ///< Labels of the sections of the scene that was run, for the windows
+	CompletedRunSettings settings;							  ///< Time frame of the run
+	std::vector<std::string> blockNames;					  ///< Names of the blocks that the trajectories refer to
+	std::vector<CompletedTrain> trains;						  ///< In run order
+	std::vector<CompletedRoute> routes;						  ///< In the order of the simulation's routes
+	RunResults results;										  ///< Run Results table
+	std::vector<TimetableResultRow> timetable;				  ///< Planned and simulated times of every stop
+	RunProvenance provenance;								  ///< Inputs and settings of the run, for the export sidecars
+	SceneSectionLabels sectionLabels;						  ///< Labels of the sections of the scene that was run, for the windows
+	PassengerRunSummary passengerSummary;					  ///< Aggregate passenger figures of the run (zero when settings.hasPassengers is false)
+	std::vector<OriginDestinationSummary> originDestinations; ///< Per-OD passenger statistics of the run (empty when settings.hasPassengers is false)
 
 	/// True when routeIndex indexes routes.
 	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }

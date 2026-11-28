@@ -405,6 +405,22 @@ egtrain_add_test(test_delayanalysiswindow
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_passengercomparison SIMULATION_HEADERS
+	SOURCES
+		${SRC_DIR}/tests/test_passengercomparison.cpp
+		${SRC_DIR}/app/ResultViews.cpp
+		${SRC_DIR}/app/RunController.cpp
+		${SRC_DIR}/app/RunResultsDock.cpp
+		${SRC_DIR}/app/SceneOutputDirectory.cpp
+		${SRC_DIR}/app/SceneSession.cpp
+		${SRC_DIR}/app/StartupTiming.cpp
+		${SRC_DIR}/app/UpdateTelemetryController.cpp
+		${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+		${SRC_DIR}/update/SelfUpdater.cpp
+	LIBS egtrain_dispatch egtrain_editors egtrain_diagrams egtrain_widgets egtrain_graphics egtrain_telemetry egtrain_update egtrain_runselection egtrain_sim egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets Qt::Charts
+	DEFINITIONS EGTRAIN_BUILD_TYPE="$<CONFIG>"
+	LABELS unit gui)
+
 egtrain_add_test(test_simulationworker SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationworker.cpp
 	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts

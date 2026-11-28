@@ -12,6 +12,7 @@
 #include "diagrams/CapacityWindow.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/PassengerComparisonWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RouteDiagramCoordinates.h"
@@ -174,6 +175,13 @@ void ResultViews::showDelayComparison() {
 		window->setPrompts(&m_prompts);
 		showWindow(window);
 		window->showBaselineTab();
+	}
+}
+
+void ResultViews::showPassengerComparison() {
+	if (PassengerComparisonWindow* window = m_runController->openPassengerComparison()) {
+		window->setPrompts(&m_prompts);
+		showWindow(window);
 	}
 }
 

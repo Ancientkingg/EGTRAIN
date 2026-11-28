@@ -2,6 +2,7 @@
 #define RUNRESULTS_H
 
 #include "simulation/InitialParameters.h"
+#include "simulation/PassengerSummary.h"
 
 #include <string>
 #include <vector>
@@ -154,16 +155,19 @@ struct RunResults {
 
 /// One completed run as values for the delay analysis. It holds no pointer into the simulation, so it outlives the run.
 struct DelayRunSnapshot {
-	std::string caseRevision;				   ///< Revision of the scene document at the run, as text
-	std::string scenarioId;					   ///< Id of the applied scenario, empty for none
-	double baseTimeSeconds = 0.0;			   ///< Base time of the scene, in seconds since midnight
-	double durationSeconds = 0.0;			   ///< CompletedRunSettings::horizonSteps; seconds with the 1 s timestep
-	double timestep = 0.0;					   ///< Length of one step in seconds
-	bool hasIncidents = false;				   ///< True when the applied scenario has an incident
-	bool hasEntranceDelays = false;			   ///< True when the applied scenario has an entrance delay
-	RunProvenance provenance;				   ///< Inputs and settings of the run
-	RunResults run;							   ///< Run Results of the run
-	std::vector<TimetableResultRow> timetable; ///< Planned and simulated times of the run
+	std::string caseRevision;								  ///< Revision of the scene document at the run, as text
+	std::string scenarioId;									  ///< Id of the applied scenario, empty for none
+	double baseTimeSeconds = 0.0;							  ///< Base time of the scene, in seconds since midnight
+	double durationSeconds = 0.0;							  ///< CompletedRunSettings::horizonSteps; seconds with the 1 s timestep
+	double timestep = 0.0;									  ///< Length of one step in seconds
+	bool hasIncidents = false;								  ///< True when the applied scenario has an incident
+	bool hasEntranceDelays = false;							  ///< True when the applied scenario has an entrance delay
+	RunProvenance provenance;								  ///< Inputs and settings of the run
+	RunResults run;											  ///< Run Results of the run
+	std::vector<TimetableResultRow> timetable;				  ///< Planned and simulated times of the run
+	bool hasPassengers = false;								  ///< True when the run simulated passengers
+	PassengerRunSummary passengerSummary;					  ///< Aggregate passenger figures of the run
+	std::vector<OriginDestinationSummary> originDestinations; ///< Per-OD passenger statistics of the run
 };
 
 /// Factor from MJ to kWh that the text outputs and the run results use: 1 / 3.6 rounded to five decimals.

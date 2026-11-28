@@ -72,12 +72,18 @@ public:
 	QTableWidget* table() const { return m_table; }
 	/// The lines that say which run the table shows.
 	QLabel* summaryLabel() const { return m_summaryLabel; }
+	/// The lines that summarise the passengers of the run; hidden when the run had no passengers.
+	QLabel* passengerSummaryLabel() const { return m_passengerSummaryLabel; }
 	/// The text about the delay baseline (RunController::DelayBaselineState::feedback).
 	QLabel* delayFeedbackLabel() const { return m_delayFeedbackLabel; }
+	/// The button that exports the passenger summary as CSV; hidden when the run had no passengers.
+	QPushButton* exportPassengerCsvButton() const { return m_exportPassengerCsvButton; }
 	/// The button that makes the completed run the delay baseline.
 	QPushButton* setDelayBaselineButton() const { return m_setDelayBaselineButton; }
 	/// The button that compares the completed run with the delay baseline.
 	QPushButton* compareDelayButton() const { return m_compareDelayButton; }
+	/// The button that compares the passengers of the completed run with the baseline; hidden when the run had no passengers.
+	QPushButton* comparePassengersButton() const { return m_comparePassengersButton; }
 
 	/// Writes the table and the summary of the completed run and shows the dock, a third of the window high when it opens at
 	/// the bottom. Does nothing without trains in the results.
@@ -103,9 +109,12 @@ private:
 	QDockWidget* m_dock = nullptr;
 	QTableWidget* m_table = nullptr;
 	QLabel* m_summaryLabel = nullptr;
+	QLabel* m_passengerSummaryLabel = nullptr;
 	QLabel* m_delayFeedbackLabel = nullptr;
+	QPushButton* m_exportPassengerCsvButton = nullptr;
 	QPushButton* m_setDelayBaselineButton = nullptr;
 	QPushButton* m_compareDelayButton = nullptr;
+	QPushButton* m_comparePassengersButton = nullptr;
 };
 
 #endif // RUNRESULTSDOCK_H

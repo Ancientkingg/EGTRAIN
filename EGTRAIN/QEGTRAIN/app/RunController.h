@@ -24,6 +24,7 @@
 #include <vector>
 
 class DelayAnalysisWindow;
+class PassengerComparisonWindow;
 class QMainWindow;
 class SceneDocument;
 class SceneSession;
@@ -66,6 +67,8 @@ public:
 		bool canSet = false;
 		/// The results are shown, a baseline exists, and the completed run has incidents or entrance delays to compare.
 		bool canCompare = false;
+		/// The results are shown, a baseline exists, and both the baseline and the completed run simulated passengers.
+		bool canComparePassengers = false;
 		/// One line on the baseline: "Baseline: <run>", why it was cleared, or "No baseline set".
 		QString feedback;
 	};
@@ -198,6 +201,9 @@ public:
 	/// Opens the delay analysis window for the completed run and the delay baseline. The window deletes itself when it
 	/// closes. Null when there is no run.
 	DelayAnalysisWindow* openDelayAnalysis();
+	/// Opens the passenger comparison window for the completed run and the baseline. The window deletes itself when it
+	/// closes. Null when either run is missing or has no passengers.
+	PassengerComparisonWindow* openPassengerComparison();
 	/// Forgets the delay baseline because the case was replaced, and says why.
 	void clearDelayBaseline(const QString& reason);
 
