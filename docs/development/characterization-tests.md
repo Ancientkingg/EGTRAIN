@@ -26,6 +26,9 @@ station `P` at 4 km, the station of the passenger cases below, where `F1` and
 baseline scenario, in the test. The case `sf-other-platform-level-none` adds
 `Platform_4` of the transfer cases below to B, at 6 km, and a signal failure on
 `3-B0` from 150 s to 500 s, and its B stops have no planned arrival.
+The `vc-*` cases limit `F1` and `R1` to 72 km/h and take the B stops out of
+`F1`, `F2`, `R1` and `R2`, so that the second train catches up with the first
+and, at level 4, couples to it.
 
 The passenger cases add station `P`, services `Q1` to `Q4` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
@@ -106,6 +109,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `breakdown-stop-approach-level-0` | train `F1` alone with a breakdown from 320 s to 700 s, which finds it braking for its stop at B, 46 m before it; `F1` stands at B from 331 s as without the breakdown, and its stop starts then: the arrival at B is 331 s. The breakdown outlasts the dwell and the planned departure, 660 s, so `F1` sets off in the step of its end, 700 s, and B shows the departure 699 s, its last second at the platform |
 | `cancel-from-b-level-0`, `-4` | trains `F1` and `F2` with a measure that cancels `F1` from B at 200 s, while it runs from A to B; `F1` stops at B at 331 s, dwells 60 s and leaves the network at 392 s, which clears `3-B0`, and has no times at C. Its blocking times of `3-B0` and of `4-B0`, which it approached, end when it leaves. `F2` runs through to C; at level 4 it couples to `F1` at 387 s, behind it at B, and decouples when `F1` has left |
 | `cancel-before-entry-level-0` | the same trains with a measure that cancels `F1` completely at 30 s, before it is due to enter at 60 s; `F1` is never in the network and `F2` runs alone. The network totals leave the cancelled train out |
+| `vc-breakdown-hold-level-3`, `-4` | trains `F1` and `F2` with a breakdown of `F1` from 420 s to 540 s; at level 4 `F2` has coupled at 316 s and brakes with `F1`, which stands at 7251 m from 444 s; `F2` stands 50 m behind its tail and stays coupled, decouples unintentionally at 564 s while both start again and couples again at 574 s. At level 3 `F2` brakes from its braking distance and stands at the same point from 458 s |
+| `vc-breakdown-slow-level-3`, `-4` | the same trains with a breakdown of `F1` from 420 s to 600 s that caps its speed at 40 km/h; at level 4 `F2` stays coupled and runs at 40 km/h behind `F1` |
+| `vc-signal-failure-level-3`, `-4` | the same trains with a signal failure on `5-B0` from 420 s to 600 s; `F1` stands at the end of `4-B0` from 582 s, at level 4 `F2` stands 50 m behind it coupled, decouples unintentionally after the restart at 614 s and couples again at 626 s |
 
 Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -285,6 +291,9 @@ one fact: some key words, then `name=value` fields.
   measures. A measure line gives the step at which the measure took effect and its
   effect on the train, as the results show it; the notices are the virtual coupling
   messages of the run, with their step and text.
+- `vc_notice`: in the `vc-*` cases, each virtual coupling notice of the run
+  (**Virtually coupled**, **Unintentional decoupling**, **Decoupled**) with its
+  step, its train and its text, spaces written as `_`.
 - `train <id> destination_termination`: only for a train that a breakdown with
   `terminate_at_destination` targets; `terminated=1` when it reached the end of
   its route.
@@ -363,7 +372,9 @@ block boundary, behind another train or where a breakdown holds the train, no ov
 train closer to the tail of the train ahead on its route than the safety margin (`end_of_authority_margin_m`), and in every
 station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
 that equal the sum and the number of the arrival delays of its `result` lines
-(only the late ones in the sum for `stats`). In a `single-track-*` case `S1` and
+(only the late ones in the sum for `stats`). At level 4 in a `vc-*` case with an incident, a
+train that is coupled when the incident starts must be coupled again at some
+time after it ends. In a `single-track-*` case `S1` and
 `R1` are never inside the restricted section at the same time. In a stub case
 both trains reach their last stop and are never inside the stub together. The
 terminating running approaches also must all reach their last stop, and every

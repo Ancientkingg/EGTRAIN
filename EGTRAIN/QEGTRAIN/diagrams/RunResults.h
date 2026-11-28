@@ -40,6 +40,8 @@ struct RunProvenance {
 	double recoveryPercent = 0.0;				   ///< Running time recovery in percent
 	int paxMode = 0;							   ///< 1 when InitialParameters::PAX_GUI was set, else 0
 	unsigned long randomSeed = kDefaultRandomSeed; ///< Seed of the passenger sampling
+	/// The change of the moving-block levels that the run applied to the signalling areas of the scene (--signalling-level-override)
+	SignallingLevelOverride signallingLevelOverride = SignallingLevelOverride::None;
 	/// The trains of the run, in run order.
 	std::vector<RunOccurrenceProvenance> selectedOccurrences;
 };

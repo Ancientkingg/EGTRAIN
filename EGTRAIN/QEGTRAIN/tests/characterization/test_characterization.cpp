@@ -234,8 +234,11 @@ struct CaseSpec {
 	bool stub = false;
 	// Adds the service E1 to the scene: F1 without its stop at B.
 	bool skipStop = false;
-	// F1 runs at no more than 90 km/h, so that F2 catches up with it between B and C.
-	bool slowLeader = false;
+	// F1, F2, R1 and R2 do not call at B.
+	bool passB = false;
+	// Writes a vc_notice line for every virtual coupling notice of the run: its step, its train and the text that the window
+	// shows.
+	bool couplingLines = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
 	// F1 stands at B until 1050 s, in front of the restriction, and R1 runs on routeCB from C to B from 650 s.
@@ -249,6 +252,8 @@ struct CaseSpec {
 	// Adds Platform_4 of B at 6 km, before B.platform.1 where the trains call at B, and a signal failure on 3-B0 from 150 s to
 	// 500 s. The B stops have no planned arrival, as in the transfer cases.
 	bool otherPlatform = false;
+	// When above 0, F1 and R1 run at no more than this speed in km/h, so that F2 or R2 catches up with them.
+	double leaderKmh = 0.0;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -341,7 +346,7 @@ std::vector<CaseSpec> buildCaseTable() {
 	// its coupling. F2 then catches up with F1 at line speed and has to brake behind it when F1 brakes for C.
 	for (int level = 3; level <= 4; ++level) {
 		CaseSpec catchUp{"catch-up-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""};
-		catchUp.slowLeader = true;
+		catchUp.leaderKmh = 90.0;
 		cases.push_back(catchUp);
 	}
 	// E1 does not stop at B. F2 stops there and moves first in every step, while E1 runs ahead of it towards B.
@@ -533,6 +538,17 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back({"cancel-from-b-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""});
 	// A measure cancels F1 completely at 30 s, before it is due to enter at 60 s: it never enters, and F2 runs alone.
 	cases.push_back({"cancel-before-entry-level-0", "baseline", {"F1", "F2"}, 0, ""});
+	// F1 runs at 72 km/h and neither train calls at B, so F2 catches up with F1 and couples to it at level 4. Then F1 breaks down
+	// and is held, F1 breaks down and runs at no more than 40 km/h, or a signal failure stops both trains in front of 5-B0. Level 3
+	// is the control.
+	for (const char* incident : {"breakdown-hold", "breakdown-slow", "signal-failure"})
+		for (int level = 3; level <= 4; ++level) {
+			CaseSpec disrupted{"vc-" + std::string(incident) + "-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""};
+			disrupted.leaderKmh = 72.0;
+			disrupted.passB = true;
+			disrupted.couplingLines = true;
+			cases.push_back(disrupted);
+		}
 	return cases;
 }
 
@@ -1069,6 +1085,46 @@ std::string missedConnections(const SimulationRun& run) {
 			if (journey.MissedConnections > 0)
 				missed += (missed.empty() ? "" : " ") + journey.ID + "=" + std::to_string(journey.MissedConnections);
 	return missed;
+}
+
+// At level 4 a follower that is coupled when the first incident starts is coupled again at some time after the last incident
+// has ended, before its leader leaves it at the end of the run.
+std::vector<std::string> findRecouplingViolations(const CaseSpec& spec, const SimulationRun& run, const std::vector<SceneIncident>& incidents) {
+	if (!spec.couplingLines || spec.level != 4 || incidents.empty())
+		return {};
+	double firstStart = std::numeric_limits<double>::infinity();
+	double lastEnd = 0.0;
+	for (const SceneIncident& incident : incidents) {
+		firstStart = std::min(firstStart, incident.startSeconds);
+		lastEnd = std::max(lastEnd, incident.endSeconds);
+	}
+	std::map<std::string, bool> coupled;
+	std::map<std::string, bool> coupledAtStart;
+	std::map<std::string, bool> coupledAfterEnd;
+	const std::size_t notices = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
+	for (std::size_t i = 0; i < notices; ++i) {
+		const std::string& train = run.vcMsgTrain[i];
+		const double t = run.vcMsgTimestep[i];
+		if (t >= firstStart && coupledAtStart.count(train) == 0)
+			coupledAtStart[train] = coupled[train];
+		if (t >= lastEnd && coupled[train])
+			coupledAfterEnd[train] = true;
+		coupled[train] = run.vcMsgText[i] == "Virtually coupled";
+		if (t >= lastEnd && coupled[train])
+			coupledAfterEnd[train] = true;
+	}
+	// A train keeps the state of its last notice until the end of the run, which lasts beyond the incidents. A train without a
+	// notice after the start of the incident had that state when it started.
+	for (const auto& [train, state] : coupled) {
+		if (coupledAtStart.count(train) == 0)
+			coupledAtStart[train] = state;
+		coupledAfterEnd[train] = coupledAfterEnd[train] || state;
+	}
+	std::vector<std::string> failures;
+	for (const auto& [train, atStart] : coupledAtStart)
+		if (atStart && !coupledAfterEnd[train])
+			failures.push_back(train + " is not coupled again after the incidents end at " + std::to_string(lastEnd) + " s");
+	return failures;
 }
 
 // Checks that hold for the fixture whatever the golden file says.
@@ -1734,12 +1790,19 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
 	}
-	if (spec.slowLeader)
+	if (spec.leaderKmh > 0.0)
 		for (SceneService& service : loaded.scene.services)
-			if (service.id == "F1") {
+			if (service.id == "F1" || service.id == "R1") {
 				service.hasMaximumSpeed = true;
-				service.maximumSpeedKmh = 90.0;
+				service.maximumSpeedKmh = spec.leaderKmh;
 			}
+	if (spec.passB)
+		for (SceneService& service : loaded.scene.services)
+			if (service.id == "F1" || service.id == "F2" || service.id == "R1" || service.id == "R2")
+				service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [](const SceneStop& stop) {
+					return stop.stationId == "B";
+				}),
+					service.stops.end());
 	if (spec.skipStop) {
 		const auto f1 = std::find_if(loaded.scene.services.begin(), loaded.scene.services.end(), [](const SceneService& service) {
 			return service.id == "F1";
@@ -1943,6 +2006,16 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", false, 1, 500.0, "B"});
 	if (spec.passengers == "cancel-complete")
 		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", true, 1, 300.0, ""});
+	if (spec.name.find("vc-breakdown-hold-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"hold-f1", IncidentType::TrainBreakdown, "F1", 420.0, 540.0});
+	if (spec.name.find("vc-breakdown-slow-") == 0) {
+		SceneIncident slow{"slow-f1", IncidentType::TrainBreakdown, "F1", 420.0, 600.0};
+		slow.hasReducedSpeed = true;
+		slow.reducedSpeedKmh = 40.0;
+		loaded.scene.scenarios[0].incidents.push_back(slow);
+	}
+	if (spec.name.find("vc-signal-failure-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"fail-5", IncidentType::SignalFailure, "5-B0", 420.0, 600.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
@@ -2181,6 +2254,15 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		const Observation delays = delayObservation("", rows, results);
 		obs.insert(obs.end(), delays.begin(), delays.end());
 	}
+	if (spec.couplingLines) {
+		const SimulationRun& run = simulation.run();
+		const std::size_t notices = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
+		for (std::size_t i = 0; i < notices; ++i) {
+			std::string text = run.vcMsgText[i];
+			std::replace(text.begin(), text.end(), '\n', ' ');
+			add("vc_notice", {integerField("t", run.vcMsgTimestep[i]), textField("train", run.vcMsgTrain[i]), textField("text", text)});
+		}
+	}
 
 	for (const SimulationIncident& incident : simulation.run().incidents)
 		add("incident " + incident.id,
@@ -2266,6 +2348,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		outcome.invariantFailures.insert(outcome.invariantFailures.end(), statisticsFailures.begin(), statisticsFailures.end());
 		if (const std::string missed = missedConnections(simulation.run()); missed != spec.missedConnections)
 			outcome.invariantFailures.push_back("missed connections \"" + missed + "\", expected \"" + spec.missedConnections + "\"");
+		for (const SceneScenario& scenario : loaded.scene.scenarios)
+			if (scenario.id == spec.scenario)
+				for (const std::string& failure : findRecouplingViolations(spec, simulation.run(), scenario.incidents))
+					outcome.invariantFailures.push_back(failure);
 	}
 	if (!keptOutputDir.empty())
 		simulation.printLastTrainServicePathDiagram();

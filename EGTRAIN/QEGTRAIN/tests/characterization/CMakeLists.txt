@@ -171,7 +171,13 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	breakdown-stop-approach-level-0
 	cancel-from-b-level-0
 	cancel-from-b-level-4
-	cancel-before-entry-level-0)
+	cancel-before-entry-level-0
+	vc-breakdown-hold-level-3
+	vc-breakdown-hold-level-4
+	vc-breakdown-slow-level-3
+	vc-breakdown-slow-level-4
+	vc-signal-failure-level-3
+	vc-signal-failure-level-4)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}

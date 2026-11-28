@@ -30,7 +30,8 @@ class SceneDocument;
 class SceneSession;
 
 /// The run of a scene named by its case and scenario, for titles and messages: "case / scenario", one of the two when the
-/// other is empty, or "(none)" when both are.
+/// other is empty, or "(none)" when both are, with " (level 3 run as 4)" or " (level 4 run as 3)" after it for a run with
+/// --signalling-level-override (runContextText).
 QString completedRunContext(const RunProvenance& provenance);
 
 /// The run of the scene that the window holds. The controller asks the user to review the run, prepares the scene in the

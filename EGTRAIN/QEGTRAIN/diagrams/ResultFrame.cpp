@@ -470,9 +470,16 @@ ExportWriter runProvenanceWriter(RunProvenance provenance) {
 QString runContextText(const RunProvenance& provenance) {
 	const QString caseName = QString::fromStdString(provenance.caseName);
 	const QString scenario = QString::fromStdString(provenance.appliedScenario);
+	QString text;
 	if (caseName.isEmpty())
-		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
-	return scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
+		text = scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
+	else
+		text = scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
+	if (provenance.signallingLevelOverride == SignallingLevelOverride::Level3To4)
+		text += QStringLiteral(" (level 3 run as 4)");
+	else if (provenance.signallingLevelOverride == SignallingLevelOverride::Level4To3)
+		text += QStringLiteral(" (level 4 run as 3)");
+	return text;
 }
 
 QWidget* resultTableArea(const QList<QWidget*>& widgets) {
