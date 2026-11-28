@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <list>
 #include <string>
 #include <vector>
@@ -73,6 +74,13 @@ void Train::checkEntrance(int i, Section* BS) {
 	for (std::size_t slot = static_cast<std::size_t>(indexOfRoute); waiting && routeCount > 0 && slot < closures.size(); slot += routeCount)
 		if (closures[slot] >= 0 && closures[slot] <= entrySection && entrySection < singleTrackZone(*run_, slot / routeCount, indexOfRoute).first)
 			return;
+	// Nor while the single-track rule keeps it out (RunInfrastructure::singleTrackKeptOut).
+	const std::vector<char>& keptOut = run_->infra.singleTrackKeptOut;
+	const Train* const first = run_->trains.data();
+	const Train* const end = first + std::min(keptOut.size(), run_->trains.size());
+	if (waiting && !std::less<const Train*>()(this, first) && std::less<const Train*>()(this, end)
+		&& keptOut[static_cast<std::size_t>(this - first)] != 0)
+		return;
 	if (waiting && separated && i >= departure_time && (entryConflictsWithCrossover(i, entry) || entryCutsOffTrain(i, BS)))
 		return;
 	if (isMovingBlockLevel(entry.SignallingLevel)) { // if the signalling system of the entry section is ETCS Level 3 or Level 4 (Virtual Coupling)

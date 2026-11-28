@@ -13,6 +13,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -2917,11 +2918,39 @@ void resetSingleTrackLocks(SimulationRun& run) {
 	infra.singleTrackRouteZone.clear();
 	infra.singleTrackZonesDerived = false;
 	infra.singleTrackClosures.clear();
+	infra.singleTrackKeptOut.clear();
 }
 
 namespace {
+// By section ID, the IDs of the sections that share track with it: itself and every section connected to it
+// (Section::IDConnectedBS), in either direction, such as a main-track block and the switch section that overlaps it.
+using SharedSections = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
+SharedSections sharedSectionsOfRoutes(const RunInfrastructure& infra) {
+	SharedSections shared;
+	for (const Route& route : infra.routes)
+		for (int b = 0; b < route.N_Block_Sections; ++b) {
+			const Section& section = route.sequence_of_block_sections[b];
+			shared[section.ID].insert(section.ID);
+			for (int c = 0; c < section.N_ConnectedBS; ++c) {
+				shared[section.ID].insert(section.IDConnectedBS[c]);
+				shared[section.IDConnectedBS[c]].insert(section.ID);
+			}
+		}
+	return shared;
+}
+
+// Adds id and every section that shares track with it to ids.
+void insertShared(std::unordered_set<std::string>& ids, const SharedSections& shared, const std::string& id) {
+	const auto found = shared.find(id);
+	if (found == shared.end())
+		ids.insert(id);
+	else
+		ids.insert(found->second.begin(), found->second.end());
+}
+
 // Derives SingleTrackZone::waitBefore and exitUntil of every limit and route from the zones and their section IDs.
-void deriveSingleTrackWaysOut(RunInfrastructure& infra, const std::vector<std::unordered_set<std::string>>& zones) {
+void deriveSingleTrackWaysOut(RunInfrastructure& infra, const std::vector<std::unordered_set<std::string>>& zones, const SharedSections& shared) {
 	const std::size_t routeCount = infra.singleTrackZoneRoutes;
 	for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
 		auto zoneOf = [&](std::size_t limit, std::size_t r) -> SingleTrackZone& { return infra.singleTrackZones[limit * routeCount + r]; };
@@ -2937,7 +2966,7 @@ void deriveSingleTrackWaysOut(RunInfrastructure& infra, const std::vector<std::u
 			const Route& outRoute = infra.routes[out];
 			std::unordered_set<std::string> after;
 			for (int b = leaving.last + 1; b < outRoute.N_Block_Sections; ++b)
-				after.insert(outRoute.sequence_of_block_sections[b].ID);
+				insertShared(after, shared, outRoute.sequence_of_block_sections[b].ID);
 			for (std::size_t m = 0; m < infra.singleTrackZoneLimits; ++m)
 				if (m != k && zoneOf(m, out).last > leaving.last)
 					after.insert(zones[m].begin(), zones[m].end());
@@ -2952,7 +2981,7 @@ void deriveSingleTrackWaysOut(RunInfrastructure& infra, const std::vector<std::u
 				entering.waitBefore[out] = start;
 				std::unordered_set<std::string> stretch;
 				for (int b = start; b < entering.first; ++b)
-					stretch.insert(inRoute.sequence_of_block_sections[b].ID);
+					insertShared(stretch, shared, inRoute.sequence_of_block_sections[b].ID);
 				int until = leaving.last;
 				while (until + 1 < outRoute.N_Block_Sections && stretch.count(outRoute.sequence_of_block_sections[until + 1].ID) != 0)
 					++until;
@@ -2972,6 +3001,7 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 		infra.singleTrackZones.assign(infra.singleTrackZoneLimits * infra.singleTrackZoneRoutes, SingleTrackZone());
 		infra.singleTrackRouteZone.assign(infra.singleTrackZoneRoutes, 0);
 		std::vector<std::unordered_set<std::string>> zones(infra.singleTrackZoneLimits);
+		const SharedSections shared = sharedSectionsOfRoutes(infra);
 		for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
 			const auto& limit = infra.singleTrackLimits[k];
 			std::unordered_set<std::string>& zone = zones[k];
@@ -2990,6 +3020,11 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 					for (int b = first; b <= last; ++b)
 						zone.insert(route.sequence_of_block_sections[b].ID);
 			}
+			// A section that shares track with a zone section belongs to the zone too: a train on the main-track block of an
+			// end switch blocks the switch section, so it waits in front of that block.
+			const std::unordered_set<std::string> plain = zone;
+			for (const std::string& id : plain)
+				insertShared(zone, shared, id);
 			for (std::size_t r = 0; r < infra.singleTrackZoneRoutes; ++r) {
 				SingleTrackZone& onRoute = infra.singleTrackZones[k * infra.singleTrackZoneRoutes + r];
 				const Route& route = infra.routes[r];
@@ -3011,7 +3046,39 @@ const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int ro
 				}
 			}
 		}
-		deriveSingleTrackWaysOut(infra, zones);
+		deriveSingleTrackWaysOut(infra, zones, shared);
+		// The zone that each route passes next after each zone.
+		for (std::size_t r = 0; r < infra.singleTrackZoneRoutes; ++r)
+			for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
+				SingleTrackZone& onRoute = infra.singleTrackZones[k * infra.singleTrackZoneRoutes + r];
+				for (std::size_t m = 0; m < infra.singleTrackZoneLimits && onRoute.last >= 0; ++m) {
+					const int first = infra.singleTrackZones[m * infra.singleTrackZoneRoutes + r].first;
+					if (m != k && first > onRoute.last
+						&& (onRoute.next < 0 || first < infra.singleTrackZones[static_cast<std::size_t>(onRoute.next) * infra.singleTrackZoneRoutes + r].first))
+						onRoute.next = static_cast<int>(m);
+				}
+			}
+		// Where each route of the same direction joins the stretch between each zone and the next one.
+		for (std::size_t r = 0; r < infra.singleTrackZoneRoutes; ++r)
+			for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
+				SingleTrackZone& onRoute = infra.singleTrackZones[k * infra.singleTrackZoneRoutes + r];
+				if (onRoute.next < 0)
+					continue;
+				const std::size_t next = static_cast<std::size_t>(onRoute.next) * infra.singleTrackZoneRoutes;
+				const Route& route = infra.routes[r];
+				std::unordered_set<std::string> stretch;
+				for (int b = onRoute.last + 1; b < infra.singleTrackZones[next + r].first; ++b)
+					stretch.insert(route.sequence_of_block_sections[b].ID);
+				onRoute.nextStretchFrom.assign(infra.singleTrackZoneRoutes, -1);
+				for (std::size_t q = 0; q < infra.singleTrackZoneRoutes; ++q) {
+					const Route& other = infra.routes[q];
+					for (int b = 0; other.reversed_direction == route.reversed_direction && b < infra.singleTrackZones[next + q].first; ++b)
+						if (stretch.count(other.sequence_of_block_sections[b].ID) != 0) {
+							onRoute.nextStretchFrom[q] = b;
+							break;
+						}
+				}
+			}
 		infra.singleTrackZonesDerived = true;
 	}
 	if (l >= infra.singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= infra.singleTrackZoneRoutes)

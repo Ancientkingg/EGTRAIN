@@ -70,6 +70,9 @@ struct RunInfrastructure {
 	/// this route (SingleTrackZone::waitBefore); -1 for none. The zone itself is then closed to the route too.
 	/// updateSingleTrackLocks sets it.
 	std::vector<int> singleTrackClosures;
+	/// By train index: 1 for a train that waits to enter the network and stays out of it at this step, because it would find no
+	/// room after its first single-track zone and stand on the way out of that zone. updateSingleTrackLocks sets it.
+	std::vector<char> singleTrackKeptOut;
 	/// The station entrance sections.
 	std::vector<StationBoundarySection> stationBoundaries;
 

@@ -512,12 +512,13 @@ struct SingleTrackReservation {
 
 /// Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
 /// neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
-/// between its first and last plain section on a route that has both, plus the two protected sections.
+/// between its first and last plain section on a route that has both, plus the two protected sections, plus every section
+/// that shares track with one of these (Section::IDConnectedBS, in either direction).
 ///
 /// The way out of the zone for a route toward a route of the other direction is the stretch just before the zone on the
-/// other route whose sections the first route uses after the zone, or which belong to a further zone that it passes after
-/// this one. A train of the other route waits in front of that stretch, and not on it, so that a train leaving the zone
-/// onto it is not blocked.
+/// other route whose sections share track with sections that the first route uses after the zone, or which belong to a
+/// further zone that it passes after this one. A train of the other route waits in front of that stretch, and not on it,
+/// so that a train leaving the zone onto it is not blocked.
 struct SingleTrackZone {
 	std::vector<std::pair<double, double>> intervals; ///< Intervals [from, to) of route position in metres.
 	std::vector<std::string> sectionIDs;			  ///< IDs of the zone sections in route order.
@@ -529,6 +530,13 @@ struct SingleTrackZone {
 	/// By route index, for each route of the other direction that passes the zone: the index on this route of the last
 	/// section after the zone on its way out toward that route, or last when it has none. -1 for the other routes.
 	std::vector<int> exitUntil;
+	/// The limit whose zone the route passes next after this one, or -1 when it passes none. The sections between the two
+	/// zones are where a train of the route waits for the next zone.
+	int next = -1;
+	/// By route index, for each route of the same direction: the index on that route of its first section on the stretch
+	/// between this zone and next on this route, before it reaches its own zone of next, or -1 when it has none there. Empty
+	/// when next is -1.
+	std::vector<int> nextStretchFrom;
 };
 /// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
 void resetSingleTrackLocks(SimulationRun& run);
