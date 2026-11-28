@@ -3,6 +3,7 @@
 
 #include "scene/SceneModel.h"
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -72,5 +73,58 @@ void applyDueMeasures(SimulationRun& run, int t);
 
 /// The effect as the results show it, after the name of the train, such as "ends at its next stop, B".
 std::string measureEffectText(const MeasureEffect& effect);
+
+/// True when the effect changed the run of the train: it does not enter or ends at another stop than before. A train that had left,
+/// already ended earlier or had no stop left to end at runs as it would have without the measure.
+bool measureChangedTrain(const MeasureEffect& effect);
+
+/// The line of the results about an applied measure: the clock time at which it took effect, with second 0 of the run at
+/// startOffsetSeconds after midnight, its id, where it came from and its effect on each train, such as
+/// "08:10:00 cancel-q1 (scenario): Q1-1 ends at B".
+std::string appliedMeasureText(const AppliedMeasure& applied, long long startOffsetSeconds);
+
+/// Measures that a dispatcher takes by hand while a run goes on, which the thread of the run applies at the top of its next step
+/// (applyQueuedMeasures). The queue takes measures only while it is open: the run opens it before its first step and closes it
+/// when it takes the measures of its last step, so a measure is either applied or refused. Every function may be called from any
+/// thread.
+class MeasureQueue {
+public:
+	/// Empties the queue and opens it.
+	void open();
+	/// Queues the measure for the top of the next step of the run. False, and nothing is queued, while the queue is closed.
+	bool submit(DispatchMeasure measure);
+	/// Takes the queued measures, in the order in which they were submitted, and leaves the queue empty. With close, the queue
+	/// refuses the measures that follow.
+	std::vector<DispatchMeasure> take(bool close = false);
+
+private:
+	std::mutex mutex_;						///< Guards measures_ and open_.
+	std::vector<DispatchMeasure> measures_; ///< The measures that wait for the next step, in the order of their submits.
+	bool open_ = false;						///< The queue takes measures.
+};
+
+/// Applies the measures of the queue in step t, in the order of their submits, as measures by hand that take effect at t
+/// (MeasureSource::ByHand, timeSeconds t). The run calls it at the top of every step, before the step moves anything, with
+/// lastStep at its last step, which closes the queue.
+void applyQueuedMeasures(SimulationRun& run, MeasureQueue& queue, int t, bool lastStep = false);
+
+/// A stop of a train: the station by its name in the run and its position along the route of the train.
+struct RunStop {
+	std::string station;	  ///< The name of the station (Node::stationName).
+	double routeMetres = 0.0; ///< The position of the stop along the route, in metres.
+};
+
+/// The stops of the train in the order of its timetable. Read them before the run starts: a run fills in the position of the
+/// first and the last stop when it starts, which this function does in the same way, from the station of that name.
+std::vector<RunStop> runStops(const SimulationRun& run, const Train& train);
+
+/// The stops that are not behind a head at headMetres along the route, by their names, in the order of the timetable; every stop
+/// while the train has not entered (a negative head). They are the stations from which a dispatcher can still cancel the train.
+std::vector<std::string> stopsAhead(const std::vector<RunStop>& stops, double headMetres);
+
+/// The measures that the run applied by hand, as measures of a scenario of the scene, so that a run of that scenario repeats them:
+/// each takes effect at the step at which it was applied, names the station by its id in the scene and gets an id that the scene
+/// does not use yet. The measures of the scenario of the run are left out.
+std::vector<SceneMeasure> byHandSceneMeasures(const SceneModel& model, const std::vector<AppliedMeasure>& applied);
 
 #endif // DISPATCHMEASURES_H

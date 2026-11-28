@@ -114,10 +114,15 @@ public:
 	/// Shows the button under the form that adds an incident for the selected signal or train, with this text, or hides it
 	/// for an empty text. A reason that is not empty disables the button and is its tooltip. Closing the form hides it.
 	void showIncidentAction(const QString& text, const QString& blocked);
+	/// Shows or hides the button "Cancel service..." under the form of a train. A reason that is not empty disables the button
+	/// and is its tooltip. Closing the form hides it.
+	void showCancelServiceAction(bool shown, const QString& blocked);
 
 Q_SIGNALS:
 	/// The button that adds an incident was clicked.
 	void incidentRequested();
+	/// The button "Cancel service..." was clicked.
+	void cancelServiceRequested();
 
 public slots:
 	/// Hides every form, forgets the selection, removes the passenger information and the highlight. The dock itself stays
@@ -199,6 +204,7 @@ private:
 	QLineEdit* m_trainLengthText = nullptr;
 	QLineEdit* m_trainWagonsText = nullptr;
 	QPushButton* m_incidentButton = nullptr;
+	QPushButton* m_cancelServiceButton = nullptr;
 
 	// What is selected. A station of a run is known by its node and track, or by its name when the overlay has no node. A
 	// station of the preview is known by its id.

@@ -84,6 +84,7 @@
 #include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
+#include "widgets/CancelServiceDialog.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/FindDialog.h"
@@ -1304,6 +1305,8 @@ void MainWindow::connectIncidentTargetPick() {
 		QString selected;
 		addIncidentFromView(selectedIncidentTarget(selected));
 	});
+	// The button of the inspector that cancels the train that it shows during a run.
+	connect(m_inspector, &InspectorPanel::cancelServiceRequested, this, [this] { cancelServiceFromView(m_inspector->selectedTrainIndex()); });
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
 	m_editorDocks.incidentPanel()->setDefaultTarget([this] {
@@ -1715,6 +1718,7 @@ bool MainWindow::startupTimingHoldsRun(bool identityOk) {
 
 void MainWindow::runStarting() {
 	clearReplay();
+	m_byHandMeasureCount = 0;
 	progressBar->show();
 }
 
@@ -2613,6 +2617,97 @@ void MainWindow::updateInspectorIncidentAction() {
 		m_inspector->showIncidentAction(viewIncidentText(selected), viewIncidentBlocked(target, selected, why));
 	else
 		m_inspector->showIncidentAction(QString(), QString());
+	// A train of a run, not of the preview, can be cancelled while the run goes on.
+	const int trainIndex = m_inspector->selectedTrainIndex();
+	m_inspector->showCancelServiceAction(selected == "train" && !m_showingTrackPreview && trainIndex >= 0, cancelServiceBlocked(trainIndex));
+}
+
+QString MainWindow::cancelServiceBlocked(int trainIndex) const {
+	if (m_replayActive)
+		return QStringLiteral("Not available in a replay");
+	if (!m_runController->running() || m_runController->stopRequested())
+		return QStringLiteral("Only while the case runs");
+	const GuiTrainState* train = nullptr;
+	if (m_snapshot)
+		for (const GuiTrainState& state : m_snapshot->trains)
+			if (state.index == trainIndex && !train)
+				train = &state;
+	if (!train)
+		return QStringLiteral("The run has no data on this train");
+	if (train->serviceId.empty())
+		return QStringLiteral("This train runs no service");
+	if (train->outOfSimulation)
+		return QStringLiteral("This train has left the network");
+	return {};
+}
+
+void MainWindow::cancelServiceFromView(int trainIndex) {
+	if (const QString blocked = cancelServiceBlocked(trainIndex); !blocked.isEmpty()) {
+		statusBar()->showMessage(blocked + QLatin1Char('.'), 8000);
+		return;
+	}
+	GuiTrainState train;
+	for (const GuiTrainState& state : m_snapshot->trains)
+		if (state.index == trainIndex)
+			train = state;
+	QStringList stops;
+	for (const std::string& stop : simulation.trainStopsAhead(trainIndex, train.routeAxisPosition))
+		stops << QString::fromStdString(stop);
+	const QString name = QString::fromStdString(guiTrainDisplayIdentifier(train));
+	CancelServiceDialog dialog(name, stops, this);
+	if (dialog.exec() != QDialog::Accepted)
+		return;
+	// The run can have ended while the dialog was open.
+	if (const QString blocked = cancelServiceBlocked(trainIndex); !blocked.isEmpty()) {
+		statusBar()->showMessage(QStringLiteral("%1 was not cancelled: %2.").arg(name, blocked.toLower()), 8000);
+		return;
+	}
+	DispatchMeasure measure;
+	measure.id = "by_hand_" + std::to_string(++m_byHandMeasureCount);
+	measure.serviceId = train.serviceId;
+	measure.occurrence = train.occurrence;
+	measure.fromStation = dialog.fromStation().toStdString();
+	measure.source = MeasureSource::ByHand;
+	if (!simulation.submitMeasure(measure)) {
+		--m_byHandMeasureCount;
+		statusBar()->showMessage(QStringLiteral("%1 was not cancelled: the run has no step left.").arg(name), 8000);
+		return;
+	}
+	statusBar()->showMessage(dialog.fromStation().isEmpty()
+			? QStringLiteral("%1 is cancelled from the next step.").arg(name)
+			: QStringLiteral("%1 is cancelled from %2 on, from the next step.").arg(name, dialog.fromStation()),
+		8000);
+}
+
+void MainWindow::saveMeasuresToScenario() {
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+	if (!run || !m_runController->resultsAvailable() || !m_document->isEditable())
+		return;
+	commitPendingEditorValues();
+	// A pending value that was committed can have discarded the results.
+	if (!m_runController->resultsAvailable())
+		return;
+	if (!run->byHandMeasures)
+		return;
+	const std::vector<SceneMeasure>& measures = *run->byHandMeasures;
+	const std::string scenarioId = m_runSelection.appliedScenarioId();
+	std::string savedTo;
+	const bool saved = m_document->edit(SceneDocument::Scenarios, "Save measures to scenario", [&](SceneModel& model) {
+		// The scenario that the run used, else the one that the editors show, which a scene without scenarios gets.
+		auto scenario = std::find_if(model.scenarios.begin(), model.scenarios.end(),
+			[&scenarioId](const SceneScenario& candidate) { return candidate.id == scenarioId; });
+		SceneScenario* target = scenario != model.scenarios.end() ? &*scenario : m_runSelection.selectedScenario(model);
+		target->measures.insert(target->measures.end(), measures.begin(), measures.end());
+		m_runSelection.markScenarioModified(target->id);
+		savedTo = target->id;
+	});
+	if (!saved)
+		return;
+	refreshIncidentPanel();
+	statusBar()->showMessage(QStringLiteral("Saved %1 to scenario %2. Run results discarded.")
+								 .arg(measures.size() == 1 ? QStringLiteral("1 measure") : QStringLiteral("%1 measures").arg(measures.size()),
+									 QString::fromStdString(savedTo)),
+		8000);
 }
 
 void MainWindow::addIncidentFromView(const IncidentTarget& target) {
@@ -3116,6 +3211,15 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		QString why;
 		const IncidentTarget target = trainIncidentTarget(trainIndex, &why);
 		addIncidentEntry(menu, "train", target, why);
+		QAction* cancel = menu->addAction("Cancel service...");
+		const QString cancelBlocked = cancelServiceBlocked(trainIndex);
+		cancel->setEnabled(cancelBlocked.isEmpty());
+		cancel->setToolTip(cancelBlocked);
+		cancel->setStatusTip(cancelBlocked);
+		// The dialog waits until the menu has been handled.
+		connect(cancel, &QAction::triggered, this,
+			[this, trainIndex] { QTimer::singleShot(0, this, [this, trainIndex] { cancelServiceFromView(trainIndex); }); });
+		menu->addSeparator();
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, trainIndex]() {
 			if (auto* current = resolveTrainItem(trainIndex))
@@ -3587,6 +3691,7 @@ void MainWindow::setupRunResultsDock() {
 		[this](const QStringList& sectionIds, const QStringList& emphasisIds) { m_presenter->markRunSections(sectionIds, emphasisIds); });
 	m_runResultsPanel.reset(new RunResultsDock(this, m_runController, m_resultViews, *this));
 	m_runResultsPanel->dock()->setProperty("manualSection", QStringLiteral("run-results"));
+	connect(m_runResultsPanel.get(), &RunResultsDock::saveMeasuresRequested, this, &MainWindow::saveMeasuresToScenario);
 }
 
 void MainWindow::refreshRunResults() {

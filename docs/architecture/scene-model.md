@@ -479,9 +479,15 @@ selected scenario becomes a `DispatchMeasure` (`simulation/DispatchMeasures.h`),
 with the station named as the run names it; the run applies it through
 `applyMeasure` at the start of the step of its time, before passengers plan and
 trains move. A measure taken by hand during a run, and later a dispatching
-strategy, goes through the same function, and the run records every applied
-measure with its step, its source and its effect on each train
-(`SimulationRun::appliedMeasures`). A cancellation sets `Train::runEndStop`: the
+strategy, goes through the same function: the window queues it with
+`DispatchController::submitMeasure`, and the run applies it at the top of its
+next step (`applyQueuedMeasures`), or refuses it when it has no step left. The run records every applied measure with
+its step, its source and its effect on each train
+(`SimulationRun::appliedMeasures`). The completed run keeps that list
+(`CompletedRunData::appliedMeasures`) for the Run Results dock, and
+`byHandSceneMeasures` turns the measures taken by hand into measures of the
+scenario of the run, with the station by its scene id and the step as their
+time, so that Save measures to scenario can add them in one edit. A cancellation sets `Train::runEndStop`: the
 train runs to that stop as timetabled, dwells and leaves the network there
 (`Train::leaveNetworkAtStop`), releasing the sections under it; the blocking
 times of the sections that it occupied or approached end when it leaves

@@ -1,6 +1,7 @@
 #include "diagrams/CompletedRunData.h"
 
 #include "diagrams/SimulationHeaders.h"
+#include "simulation/DispatchMeasures.h"
 #include "simulation/SimulationRun.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
@@ -256,6 +257,16 @@ CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel*
 	const std::vector<const Train*> trains = runResultTrainPointers(run);
 	data.results = buildRunResults(trains, timestep);
 	data.timetable = buildTimetableResults(trains);
+	for (const AppliedMeasure& applied : run.appliedMeasures) {
+		data.measureLines.push_back(appliedMeasureText(applied, startOffsetSeconds));
+		data.measuresChangedATrain = data.measuresChangedATrain
+			|| std::any_of(applied.effects.begin(), applied.effects.end(), measureChangedTrain);
+	}
+	if (scene) {
+		std::vector<SceneMeasure> byHand = byHandSceneMeasures(*scene, run.appliedMeasures);
+		if (!byHand.empty())
+			data.byHandMeasures = std::make_shared<const std::vector<SceneMeasure>>(std::move(byHand));
+	}
 
 	BlockNameTable blocks(data.blockNames);
 	StationSections sections(run.infra.routes);

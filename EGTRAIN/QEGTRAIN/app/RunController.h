@@ -62,10 +62,11 @@ public:
 
 	/// What the Run Results dock shows about the delay baseline.
 	struct DelayBaselineState {
-		/// The results are shown and the completed run has a scenario with no incidents and no entrance delays, so it
-		/// can become the baseline.
+		/// The results are shown and the completed run has a scenario with no incidents and no entrance delays and no measure
+		/// that changed a train, so it can become the baseline.
 		bool canSet = false;
-		/// The results are shown, a baseline exists, and the completed run has incidents or entrance delays to compare.
+		/// The results are shown, a baseline exists, and the completed run has incidents, entrance delays or measures to
+		/// compare.
 		bool canCompare = false;
 		/// The results are shown, a baseline exists, and both the baseline and the completed run simulated passengers.
 		bool canComparePassengers = false;
@@ -275,7 +276,7 @@ public slots:
 	void runScene();
 	/// Asks for the folder that the next runs write to. A run that is going on keeps its folder.
 	void chooseOutputFolder();
-	/// Makes the completed run the delay baseline. It has to have no incidents and no entrance delays.
+	/// Makes the completed run the delay baseline. It has to have no incidents and no entrance delays, and no measure that changed a train.
 	void setDelayBaseline();
 
 private:

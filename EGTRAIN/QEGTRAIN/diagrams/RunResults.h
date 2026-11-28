@@ -166,6 +166,7 @@ struct DelayRunSnapshot {
 	double timestep = 0.0;									  ///< Length of one step in seconds
 	bool hasIncidents = false;								  ///< True when the applied scenario has an incident
 	bool hasEntranceDelays = false;							  ///< True when the applied scenario has an entrance delay
+	bool hasMeasures = false;								  ///< True when a dispatching measure of the run, from its scenario or by hand, changed a train
 	RunProvenance provenance;								  ///< Inputs and settings of the run
 	RunResults run;											  ///< Run Results of the run
 	std::vector<TimetableResultRow> timetable;				  ///< Planned and simulated times of the run

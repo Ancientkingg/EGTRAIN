@@ -465,6 +465,7 @@ DelayRunSnapshot RunController::completedDelaySnapshot() const {
 		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
 		break;
 	}
+	snapshot.hasMeasures = run.measuresChangedATrain;
 	snapshot.provenance = run.provenance;
 	snapshot.run = run.results;
 	snapshot.timetable = run.timetable;
@@ -478,9 +479,9 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 	DelayBaselineState state;
 	const DelayRunSnapshot current = completedDelaySnapshot();
 	state.canSet = resultsShown && !current.scenarioId.empty()
-		&& !current.hasIncidents && !current.hasEntranceDelays;
+		&& !current.hasIncidents && !current.hasEntranceDelays && !current.hasMeasures;
 	state.canCompare = resultsShown && m_delayBaseline.has_value()
-		&& (current.hasIncidents || current.hasEntranceDelays);
+		&& (current.hasIncidents || current.hasEntranceDelays || current.hasMeasures);
 	state.canComparePassengers = resultsShown && m_delayBaseline.has_value()
 		&& m_delayBaseline->hasPassengers && current.hasPassengers;
 
@@ -497,11 +498,11 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 void RunController::setDelayBaseline() {
 	const DelayRunSnapshot snapshot = completedDelaySnapshot();
 	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
-		showError("Delay Baseline Unavailable", "Complete a run with no incidents or entrance delays first.");
+		showError("Delay Baseline Unavailable", "Complete a run with no incidents, entrance delays or measures first.");
 		return;
 	}
-	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
-		showError("Delay Baseline Rejected", "The delay baseline must have no incidents and no entrance delays.");
+	if (snapshot.hasIncidents || snapshot.hasEntranceDelays || snapshot.hasMeasures) {
+		showError("Delay Baseline Rejected", "The delay baseline must have no incidents, no entrance delays and no measures.");
 		return;
 	}
 	m_delayBaseline = snapshot;

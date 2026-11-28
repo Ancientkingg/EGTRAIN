@@ -267,6 +267,7 @@ target_link_libraries(egtrain_graphics
 
 add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/AboutDialog.cpp
+    ${SRC_DIR}/widgets/CancelServiceDialog.cpp
     ${SRC_DIR}/widgets/CaseChooserDialog.cpp
     ${SRC_DIR}/widgets/ColorChoiceButton.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp

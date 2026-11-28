@@ -1,8 +1,10 @@
 #include "simulation/DispatchMeasures.h"
 
+#include "scene/SceneIds.h"
 #include "simulation/PassengerJourneys.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
+#include "util/TimeFormat.h"
 
 #include <algorithm>
 
@@ -112,4 +114,133 @@ std::string measureEffectText(const MeasureEffect& effect) {
 			return "already ends at " + effect.endStation;
 	}
 	return {};
+}
+
+bool measureChangedTrain(const MeasureEffect& effect) {
+	switch (effect.outcome) {
+		case MeasureOutcome::NotEntered:
+		case MeasureOutcome::EndsAtStop:
+		case MeasureOutcome::EndsAtNextStop:
+		case MeasureOutcome::StationBehind:
+		case MeasureOutcome::CannotEndThere:
+			return true;
+		case MeasureOutcome::NoStopLeft:
+		case MeasureOutcome::AlreadyLeft:
+		case MeasureOutcome::AlreadyEndsEarlier:
+			return false;
+	}
+	return false;
+}
+
+void MeasureQueue::open() {
+	const std::lock_guard<std::mutex> lock(mutex_);
+	measures_.clear();
+	open_ = true;
+}
+
+bool MeasureQueue::submit(DispatchMeasure measure) {
+	const std::lock_guard<std::mutex> lock(mutex_);
+	if (!open_)
+		return false;
+	measures_.push_back(std::move(measure));
+	return true;
+}
+
+std::vector<DispatchMeasure> MeasureQueue::take(bool close) {
+	const std::lock_guard<std::mutex> lock(mutex_);
+	std::vector<DispatchMeasure> taken;
+	taken.swap(measures_);
+	if (close)
+		open_ = false;
+	return taken;
+}
+
+void applyQueuedMeasures(SimulationRun& run, MeasureQueue& queue, int t, bool lastStep) {
+	for (DispatchMeasure& measure : queue.take(lastStep)) {
+		measure.source = MeasureSource::ByHand;
+		measure.timeSeconds = t;
+		applyMeasure(run, measure, t);
+	}
+}
+
+std::vector<RunStop> runStops(const SimulationRun& run, const Train& train) {
+	std::vector<RunStop> stops;
+	const int count = std::min(train.numStations, static_cast<int>(train.Stations.size()));
+	for (int stop = 0; stop < count; ++stop) {
+		const Node& node = train.Stations[static_cast<std::size_t>(stop)];
+		RunStop result{node.stationName, node.X * 1000.0};
+		// Train::checkTrainArrDep gives the first and the last stop the position of their station when the run starts.
+		if (node.X == 0 && (stop == 0 || stop == count - 1))
+			for (const Stations& station : run.infra.stations)
+				if (station.stationName == node.stationName) {
+					result.routeMetres = station.X * 1000.0;
+					break;
+				}
+		stops.push_back(std::move(result));
+	}
+	return stops;
+}
+
+std::vector<std::string> stopsAhead(const std::vector<RunStop>& stops, double headMetres) {
+	// A head that stands at a stop is a little short of it.
+	constexpr double kStandingToleranceMetres = 1.0;
+	std::vector<std::string> ahead;
+	for (const RunStop& stop : stops)
+		if (headMetres < 0.0 || stop.routeMetres + kStandingToleranceMetres >= headMetres)
+			ahead.push_back(stop.station);
+	return ahead;
+}
+
+std::vector<SceneMeasure> byHandSceneMeasures(const SceneModel& model, const std::vector<AppliedMeasure>& applied) {
+	std::vector<SceneMeasure> measures;
+	SceneModel withMeasures;
+	withMeasures.scenarios = model.scenarios;
+	withMeasures.scenarios.emplace_back();
+	for (const AppliedMeasure& record : applied) {
+		const DispatchMeasure& measure = record.measure;
+		if (measure.source != MeasureSource::ByHand)
+			continue;
+		SceneMeasure scene;
+		scene.id = sceneUniqueMeasureId(withMeasures, "by_hand");
+		scene.type = measure.type;
+		scene.serviceId = measure.serviceId;
+		scene.hasOccurrence = measure.occurrence > 0;
+		scene.occurrence = measure.occurrence > 0 ? measure.occurrence : 1;
+		scene.timeSeconds = record.step;
+		// The run names a station by its label (sceneStationLabel); the label of a station that the scene lacks is its id. Of the
+		// stations with that label, one at which the service calls comes first, so that the saved measure validates.
+		scene.fromStationId = measure.fromStation;
+		if (!measure.fromStation.empty()) {
+			const auto service = std::find_if(model.services.begin(), model.services.end(),
+				[&measure](const SceneService& candidate) { return candidate.id == measure.serviceId; });
+			const auto servedBy = [&service, &model](const std::string& stationId) {
+				return service != model.services.end()
+					&& std::any_of(service->stops.begin(), service->stops.end(),
+						[&stationId](const SceneStop& stop) { return stop.stationId == stationId; });
+			};
+			bool found = false;
+			for (const SceneStation& station : model.stations)
+				if (sceneStationLabel(station) == measure.fromStation && (!found || servedBy(station.id))) {
+					const bool served = servedBy(station.id);
+					scene.fromStationId = station.id;
+					found = true;
+					if (served)
+						break;
+				}
+		}
+		withMeasures.scenarios.back().measures.push_back(scene);
+		measures.push_back(std::move(scene));
+	}
+	return measures;
+}
+
+std::string appliedMeasureText(const AppliedMeasure& applied, long long startOffsetSeconds) {
+	const DispatchMeasure& measure = applied.measure;
+	std::string text = formatSimTime(applied.step, startOffsetSeconds) + " " + measure.id
+		+ (measure.source == MeasureSource::ByHand ? " (by hand): " : " (scenario): ");
+	if (applied.effects.empty())
+		return text + "no train of service " + measure.serviceId + " in the run";
+	for (std::size_t n = 0; n < applied.effects.size(); ++n)
+		text += (n > 0 ? "; " : "") + applied.effects[n].trainDescription + " " + measureEffectText(applied.effects[n]);
+	return text;
 }

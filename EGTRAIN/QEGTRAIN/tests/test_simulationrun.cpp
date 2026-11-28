@@ -11,6 +11,7 @@
 
 #include "app/DispatchController.h"
 #include "scene/SceneModel.h"
+#include "simulation/DispatchMeasures.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Passengers.h"
@@ -465,6 +466,7 @@ private slots:
 	void resetReturnsNewRun();
 	void laterRunsWriteFilesOfFirstRun();
 	void runKeepsCopyOfSettings();
+	void byHandMeasureTakesEffectAtTheNextStep();
 	void secondRunFollowsRunOfProcess();
 	void stepsRunWithoutController();
 	void trainWithoutEntryTimeLeavesFirstStopOnTime();
@@ -658,6 +660,56 @@ void TestSimulationRun::runKeepsCopyOfSettings() {
 
 	simulation.resetState();
 	QVERIFY2(isNewRun(defaultRun()), "a reset returns the settings of the run to those of a new run");
+}
+
+// A measure taken by hand while the run goes on reaches the run through the queue of the controller and takes effect at the top
+// of the next step, through applyMeasure, which records it. The run refuses a measure once it has no step left. The window submits
+// from its own thread; here the measure is submitted right after the snapshot of a step, on the thread of the run.
+void TestSimulationRun::byHandMeasureTakesEffectAtTheNextStep() {
+	QTemporaryDir output;
+	initial_variables.GUI = 0;
+	initial_variables.PAX_GUI = false;
+	initial_variables.durationOverride = true;
+	initial_variables.times = 600;
+	initial_variables.exportDetailedTrajectories = false;
+	initial_variables.OutputMainFolder = output.path().toStdString();
+	CoutSilencer silencer;
+	QVERIFY(!hasErrors(simulation.prepareScene(m_line, "baseline", {{"T1", 1}})));
+	QCOMPARE(simulation.run().numTrains, 1);
+	// Before the run, the window offers every stop of the train.
+	QVERIFY(!simulation.trainStopsAhead(0, -9999.0).empty());
+	QVERIFY(simulation.trainStopsAhead(1, -9999.0).empty());
+	DispatchMeasure measure;
+	measure.id = "by_hand_1";
+	measure.serviceId = "T1";
+	measure.occurrence = 1;
+	// No run goes on yet.
+	QVERIFY(!simulation.submitMeasure(measure));
+
+	int submittedAt = -1;
+	QObject context;
+	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
+		const auto snapshot = simulation.takeSimulationSnapshot();
+		if (snapshot && submittedAt < 0 && snapshot->timestep >= 200 && simulation.submitMeasure(measure))
+			submittedAt = snapshot->timestep; }, Qt::DirectConnection);
+	simulation.runSimulation();
+	QVERIFY(simulation.lastRunCompleted());
+	QCOMPARE_GE(submittedAt, 200);
+	const SimulationRun& run = simulation.run();
+	QCOMPARE(run.appliedMeasures.size(), std::size_t{1});
+	const AppliedMeasure& applied = run.appliedMeasures.front();
+	QCOMPARE(applied.measure.id, std::string("by_hand_1"));
+	QVERIFY(applied.measure.source == MeasureSource::ByHand);
+	QCOMPARE(applied.step, submittedAt + 1);
+	QCOMPARE_EQ(applied.measure.timeSeconds, static_cast<double>(submittedAt + 1));
+	QCOMPARE(applied.effects.size(), std::size_t{1});
+	QVERIFY2(measureChangedTrain(applied.effects.front()), measureEffectText(applied.effects.front()).c_str());
+	QVERIFY(run.trains[0].OutOfSimulation);
+	QCOMPARE_LT(run.trains[0].End_Time, 600);
+	// After the last step the queue refuses a measure instead of keeping it.
+	QVERIFY(!simulation.submitMeasure(measure));
+
+	simulation.resetState();
 }
 
 // The builders and the routines of a step work on the run that they are given. A second run, built from the scene and stepped while

@@ -201,6 +201,24 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	delayRow->addWidget(m_comparePassengersButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
+	m_measuresCaption = new QLabel(container);
+	m_measuresCaption->setObjectName("measuresCaption");
+	DialogLayout::setHelp(m_measuresCaption, "Measures");
+	containerLayout->addWidget(m_measuresCaption);
+	m_measuresLabel = EditorLayout::wrappedLabel(QString(), container);
+	m_measuresLabel->setObjectName("measuresLabel");
+	m_measuresLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	containerLayout->addWidget(m_measuresLabel);
+	QHBoxLayout* measuresRow = new QHBoxLayout();
+	m_saveMeasuresButton = new QPushButton("Save measures to scenario", container);
+	m_saveMeasuresButton->setObjectName("saveMeasuresButton");
+	QObject::connect(m_saveMeasuresButton, &QPushButton::clicked, this, &RunResultsDock::saveMeasuresRequested);
+	measuresRow->addWidget(m_saveMeasuresButton);
+	measuresRow->addStretch();
+	containerLayout->addLayout(measuresRow);
+	m_measuresCaption->hide();
+	m_measuresLabel->hide();
+	m_saveMeasuresButton->hide();
 	auto* scroll = new EditorLayout::VerticalScrollArea(m_dock);
 	scroll->setFocusPolicy(Qt::NoFocus);
 	scroll->setWidget(container);
@@ -323,6 +341,14 @@ void RunResultsDock::refreshSummary() {
 		m_passengerSummaryLabel->clear();
 		m_passengerSummaryLabel->hide();
 	}
+
+	QStringList measures;
+	for (const std::string& line : completed.measureLines)
+		measures << QString::fromStdString(line);
+	m_measuresLabel->setText(measures.join('\n'));
+	m_measuresCaption->setVisible(!measures.isEmpty());
+	m_measuresLabel->setVisible(!measures.isEmpty());
+	m_saveMeasuresButton->setVisible(completed.byHandMeasures != nullptr);
 }
 
 QString RunResultsDock::durationText(long long seconds) {
@@ -354,11 +380,15 @@ void RunResultsDock::updateAvailability(bool resultsAvailable) {
 	m_setDelayBaselineButton->setEnabled(delay.canSet);
 	m_setDelayBaselineButton->setToolTip(delay.canSet
 			? QStringLiteral("Use this run as the delay baseline")
-			: QStringLiteral("Needs a completed run without incidents or entrance delays"));
+			: QStringLiteral("Needs a completed run without incidents, entrance delays or measures"));
 	m_compareDelayButton->setEnabled(delay.canCompare);
+	m_saveMeasuresButton->setEnabled(resultsAvailable);
+	m_saveMeasuresButton->setToolTip(resultsAvailable
+			? QStringLiteral("Add the measures taken by hand to the scenario of this run, so that running it again repeats them")
+			: QStringLiteral("Needs the results of a completed run"));
 	m_compareDelayButton->setToolTip(delay.canCompare
 			? QStringLiteral("Compare this run with the delay baseline")
-			: QStringLiteral("Needs a baseline and a run with incidents or entrance delays"));
+			: QStringLiteral("Needs a baseline and a run with incidents, entrance delays or measures"));
 	const bool currentHasPassengers = resultsAvailable && m_runController->completedRun()
 		&& m_runController->completedRun()->settings.hasPassengers;
 	const bool baselineSet = m_runController->delayBaseline().has_value();

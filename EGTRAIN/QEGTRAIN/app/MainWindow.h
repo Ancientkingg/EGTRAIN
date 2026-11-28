@@ -330,6 +330,8 @@ private:
 	QComboBox* m_replaySpeedCombo = nullptr;
 	QTimer* m_replayTimer = nullptr;
 	bool m_replayActive = false;
+	// The measures taken by hand in the run that goes on, which numbers their ids.
+	int m_byHandMeasureCount = 0;
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
 	// True while an item of the preview selects its row in the Infrastructure panel (selectInfrastructureRow). The
@@ -540,6 +542,14 @@ private:
 	// Incident does, and shows it on the Incidents tab with the focus on its start. Nothing happens when the incident
 	// panel does not offer the target or the scene cannot be edited.
 	void addIncidentFromView(const IncidentTarget& target);
+	// Why the train of the run with this index cannot be cancelled by hand now, or empty when it can: only a run that goes on
+	// takes a measure, not a replay or a finished run, and only for a train of a service that has not left the network.
+	QString cancelServiceBlocked(int trainIndex) const;
+	// Asks how to cancel the train of the run with this index and hands the measure to the run, which applies it at the top of its
+	// next step through the same interface as the measures of a scenario.
+	void cancelServiceFromView(int trainIndex);
+	// Adds the measures taken by hand during the completed run to the scenario of the run, in one edit that Undo takes back.
+	void saveMeasuresToScenario();
 	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
 	// the status bar and the Esc shortcut.
 	void setIncidentTargetPick(bool picking);
