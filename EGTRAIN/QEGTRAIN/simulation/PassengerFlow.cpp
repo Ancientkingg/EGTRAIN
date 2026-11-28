@@ -292,6 +292,18 @@ std::vector<int> PassengerFlow::waitingAt(int platform) const {
 	return positions;
 }
 
+std::vector<int> PassengerFlow::onBoard(const string& train) const {
+	std::vector<int> positions;
+	const int trainId = findId(train);
+	if (trainId < 0)
+		return positions;
+	for (const auto& [key, bucket] : onBoard_)
+		if (static_cast<std::uint32_t>(key >> 32) == static_cast<std::uint32_t>(trainId))
+			positions.insert(positions.end(), bucket.begin(), bucket.end());
+	std::sort(positions.begin(), positions.end());
+	return positions;
+}
+
 std::vector<int> PassengerFlow::takeAllOnBoard(const string& train) {
 	std::vector<int> positions;
 	const int trainId = findId(train);
@@ -655,7 +667,9 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 	// The occupation rate of the platform counts the passengers who waited there before the train let anyone off and those who
 	// alight. A passenger who alights and waits there for another train is among the second and not among the first.
 	const int waitingBefore = stop != nullptr ? flow.waitingCount(stop->StationID, stop->ID) : 0;
-	const int N_AlightPax = alightPassengers(flow, run, T, t, SimulationStartingTime);
+	int N_AlightPax = alightPassengers(flow, run, T, t, SimulationStartingTime);
+	// Passengers on board of a late or slowed train may alight here for an earlier plan.
+	N_AlightPax += run.passengerJourneys.offerEarlierPlansOnBoard(run, flow, train, t);
 	const double CurrentPlatformOccupationRate = stop != nullptr ? passengerOccupancyRatio(waitingBefore + N_AlightPax, stop->Max_Passenger_Volume) : 0.0;
 	const int N_BoardedPax = stop != nullptr ? boardPassengers(flow, run, T, *stop, t, SimulationStartingTime, counts) : 0;
 	if (counts != nullptr) {

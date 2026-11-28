@@ -31,7 +31,9 @@ The passenger cases add station `P`, services `Q1` to `Q4` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
 walking time calculation, while `B.platform.1` reads as 0. Only transfer cases
 and `sf-other-platform-level-none` have this platform, because its node adds a
-second timetable point named B. Their B stops have no planned arrival. The
+second timetable point named B. Their B stops have no planned arrival.
+`pax-live-onboard` also adds station `M` at 12 km, the edge between `5-B0` and
+`6-B0`, where `Q1` calls and `Q2` does not. The
 passenger cases set `PAX_GUI` directly with the window off; the
 [command line](../guides/command-line.md) reads `-pax` only with `-g 1`.
 
@@ -90,6 +92,7 @@ A case is a scenario, a set of services and a level. The case table is in
 | `pax-live-slowed` | a breakdown caps `Q1` at 40 km/h from 130 s, so passengers plan it on predicted times; `s1` (P to C) rides `Q1` to B and changes there to `Q2`, which reaches C first, `s2` (P to B) stays on `Q1`, and `s3` comes to B while `Q1` stands there and takes `Q2` |
 | `pax-live-breakdown` | a breakdown holds `Q1` at P from 250 s to 1300 s; `b1` (B to C) appears at 600 s and waits for `Q1`, and at 761 s, when `Q1` is more than the late threshold of 300 s late, it is predicted at C more than the margin of 60 s after `Q2`, which stands at B, so `b1` takes `Q2`; the journey counts as planned again and its delay is measured against the arrival of `Q1` |
 | `pax-live-late` | `Q1` is held at P until 790 s, at most 330 s late, and `Q4` stands at B from 671 s on the platform of `Q1`; `l1` (B to C) waits for `Q1` and plans again from 761 s, but `Q4` reaches C at most 30 s before `Q1` is predicted there, within the margin of 60 s, so `l1` keeps waiting and rides `Q1`, which reaches C before `Q4` |
+| `pax-live-onboard` | a breakdown caps `Q1` at 40 km/h from 470 s, after it has left P with `o1`, `o2` (P to C) and `o3` (P to M) on board, who planned it direct; `Q1` comes to a stand at B at 834 s, slowed and predicted at C long after `Q2`, which stands there, so `o1` and `o2` alight at B, count among its alighting passengers and take `Q2`, and their journeys count as planned again; `Q2` does not call at M, so `o3` stays on board of the slowed `Q1` and alights at M |
 | `pax-breakdown-wait` | a breakdown holds `Q1` at P from 400 s to 800 s; `w1` and `w2` (B to C) plan `Q1` before it is late enough to lose to `Q2`, wait for it, and at 761 s, when `Q1` has stood at P 301 s past its planned departure, take `Q2`, which stands on their platform; `w3` appears after `Q1` left P 339 s late, more than the late threshold, and takes `Q2` |
 | `pax-breakdown-terminate` | a breakdown with `terminate_at_destination` holds `Q1` at B from 700 s to 1100 s; `Q1` still runs to C, where its run is marked as ended, `e1` (P to C) stays on board, and `e2` appears at B during the hold and boards `Q1`, which is predicted to leave at once |
 | `pax-signal-failure-change` | a signal failure on `1-B0` from 560 s to 800 s holds `Q3` and `Q4` at 2 km; `c1` (P to C) changes at B from `Q1` to `Q3` and waits for it, and `c2` appears at B after the planned departure of `Q3`, plans `Q4` and takes `Q3` when it arrives |

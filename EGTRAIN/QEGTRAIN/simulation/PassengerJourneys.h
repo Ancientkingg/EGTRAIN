@@ -83,7 +83,7 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// stations and platforms exactly as the stops of the train name them, so that boarding and alighting treat them like trips from
 /// the scene. A passenger plans again from the station where it is when it misses its train (the train left, or cannot call
 /// there any more), when the train is full, when the train ends its service before the stop where the passenger leaves it, and
-/// when the train it waits for runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
+/// when the train it waits for, or rides, runs late (below). A journey with no route ends with JourneyOutcome::NoRoute, and the passenger leaves the network at the station it is at.
 /// A missed train after the passenger has ridden a train of the journey is a missed connection (Journey::MissedConnections).
 ///
 /// A passenger who has a plan boards another train that stands at the platform where the passenger waits and reaches the
@@ -101,6 +101,19 @@ std::vector<int> predictionSignature(const passenger_routing::TrainTimetable& ti
 /// boarded in time does not reach it, and a plan whose times are not known is kept. Otherwise the passenger keeps waiting. A
 /// passenger who waits for a train that is at most the late threshold late and not slowed is not planned again, because the plans
 /// use the planned times of that train. The passengers whose train changed in a step plan in the order of the passenger list.
+///
+/// A passenger on board of a train that is late or slowed looks for an earlier plan at each stop where the train stands and that
+/// is not its last: once when the train comes to a stand there, and again whenever its prediction changes while it stands there,
+/// also while a breakdown or a signal holds it. The plan the passenger has is to stay on board to where the trip leaves the train
+/// and then follow the rest of the plan (tripsArrival); the new plan starts on the platform of the train now and counts the train
+/// as ridden. The rule is that of a waiting passenger: the passenger takes the new plan only when it reaches the destination more
+/// than kSwitchMarginSeconds earlier, and then alights at this call, counted with the passengers who alight there, and waits for
+/// the new plan (switchOnBoard). A new plan that rides the same train on from here is not taken: the passenger stays on board
+/// and looks again at the next stop. Nor is one whose first train has no room for the passenger: its passengers on board and
+/// those who wait for it at the platform where the plan boards it fill its capacity. A passenger who boarded at this stop does
+/// not look here, since the rule for waiting passengers covered the stop. A passenger whose trip ends at this stop alights as
+/// usual, and nobody looks between stops.
+/// A train that ends its run sets everyone down whatever the prediction.
 ///
 /// The transfers count over the whole journey: a plan from where the passenger is now counts the trains the journey has ridden, so
 /// that the journey has at most passengerMaxTransfers + 1 trains. A passenger who has used them up, such as one set down by a train
@@ -150,8 +163,14 @@ public:
 	/// Settles the trains at the start of the passenger step at `t`: the passengers who wait for a train that has left a stop,
 	/// or cannot call there any more, plan again, and the passengers on a train that ended its service are set down at its last
 	/// stop and plan again from there. Then the passengers who wait for a train whose prediction changed look for an earlier
-	/// plan (see the rule above).
+	/// plan (see the rule above). The trains whose prediction changed are kept for offerEarlierPlansOnBoard in the same step.
 	void settleTrains(SimulationRun& run, PassengerFlow& flow, int t);
+
+	/// The train stands at its stop at `t`, after settleTrains of this step and after the passengers whose trip ends there have
+	/// alighted: when the train is late or slowed and has just come to a stand, or its prediction changed in this step, the
+	/// passengers on board look for an earlier plan from this station (see the rule above). Returns the number who alighted to take
+	/// one; the caller counts them with the passengers who alight at this call.
+	int offerEarlierPlansOnBoard(SimulationRun& run, PassengerFlow& flow, int train, int t);
 
 private:
 	struct Watch {
@@ -184,7 +203,9 @@ private:
 		const Trip& current, int t, std::optional<int> alightedAtPlatform, int onlyTrain = -1) const;
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
-	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t);
+	/// The passenger leaves the train at `stop` now, before the end of the trip, and plans the rest of the journey from its platform:
+	/// with `given` that plan, otherwise the earliest arrival from the station.
+	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t, const passenger_routing::Plan* given = nullptr);
 	/// The passengers who wait for one of these trains at a stop that it still makes look for an earlier plan
 	/// (switchToEarlierPlan), in the order of the passenger list.
 	void offerEarlierPlans(SimulationRun& run, PassengerFlow& flow, const std::vector<int>& trains, int t);
@@ -192,6 +213,21 @@ private:
 	/// before the plan the passenger has (see the rule above). True when it took the new plan; the caller then registers the
 	/// passenger with the flow. alightedAtPlatform as for checkWaiting.
 	bool switchToEarlierPlan(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform);
+	/// For a passenger on board of the train, which stands at `stop` and is late or slowed, and who did not board at this stop:
+	/// plans again from this station and, when the new plan reaches the destination more than kSwitchMarginSeconds before
+	/// staying on board does, does not ride this train on, and its first train has room (hasRoomToBoard), lets the passenger
+	/// alight here and take it (see the rule above). True when the passenger alighted; the caller then registers the passenger
+	/// with the flow.
+	bool switchOnBoard(SimulationRun& run, PassengerFlow& flow, Passenger& passenger, int train, int stop, int t);
+	/// True when the train of the leg can take one more passenger at its boarding call as the run knows it now: the passengers on
+	/// board of it and those who wait for it on the platform of that call (PassengerFlow::waitingFor) are fewer than its capacity
+	/// (Train::MAX_OnBoard_Passengers).
+	bool hasRoomToBoard(const SimulationRun& run, const PassengerFlow& flow, const passenger_routing::Leg& leg) const;
+	/// The plan from origin, for a passenger ready at readyAt on the platform with platformNumber after riding `ridden` trains
+	/// (planFrom), when it reaches the destination more than kSwitchMarginSeconds before `planned`, the arrival of the plan the
+	/// passenger has (tripsArrival); none otherwise, and none when `planned` is below 0, a plan whose times are not known.
+	std::optional<passenger_routing::Plan> earlierPlan(const SimulationRun& run, const Journey& journey, const std::string& origin, int t, int readyAt,
+		int platformNumber, std::size_t ridden, double planned);
 	/// When the trips of the journey from index `from` on reach its destination on the times of states_, for a passenger who is
 	/// ready at readyAt (seconds of the day) on the platform with platformNumber, and who boards the first of them at platformId.
 	/// Each trip boards at the first call of its train at its station and platform, from TrainState::firstStop on, that the passenger
@@ -199,8 +235,10 @@ private:
 	/// arrival station that has an arrival, at TrainState::alightingTime: the rules of a search, which also cover a trip that boards
 	/// where the timetable has no departure. passenger_routing::kUnreached when a train cannot be boarded in time or does not call
 	/// where the trip says; below 0 when the trip leaves the train only where it has no arrival, so that the time is not known.
+	/// With onBoardAt at least 0 the passenger is on board of the train of the first trip, which stands at that stop, and stays on
+	/// it from there.
 	double tripsArrival(const SimulationRun& run, const Journey& journey, std::size_t from, double readyAt, int platformNumber,
-		const std::string& platformId) const;
+		const std::string& platformId, int onBoardAt = -1) const;
 
 	std::unique_ptr<passenger_routing::Router> router_;
 	std::unordered_map<std::string, int> stationIndices_;
@@ -209,6 +247,8 @@ private:
 	std::vector<passenger_routing::TrainState> states_;
 	/// What passengers have seen of the prediction of each train (predictionSignature) at the last call of trainsWithNewPrediction.
 	std::vector<std::vector<int>> predictions_;
+	/// The trains that trainsWithNewPrediction returned in the settleTrains of this step, in ascending order.
+	std::vector<int> newPredictions_;
 	bool statesFresh_ = false;
 	int statesTime_ = 0;
 	/// The searches of this phase by origin station, ready time, platform number and transfers.

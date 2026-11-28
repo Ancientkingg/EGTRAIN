@@ -557,6 +557,93 @@ struct WaitingRun {
 	}
 };
 
+// A run that starts at 00:00:00 with these trains, each with room for 100 passengers, and passenger `rider` on board of the first,
+// on a live journey with these trips, the first of them on that train. With `riders` above 1, passengers `rider2` and on, after
+// `rider` in the list, ride the same journey. The first train left its first stop on time and stands at stop `stop`, where it
+// arrived at `arrival`; the others have not moved and are empty.
+struct OnBoardRun {
+	SimulationRun run;
+	PassengerFlow flow;
+
+	OnBoardRun(const std::vector<Train>& trains, const std::vector<Trip>& trips, int stop, double arrival, int riders = 1) {
+		run.settings.startingSimulationTime = 0;
+		for (const Train& train : trains) {
+			run.trains.push_back(train);
+			run.trains.back().MAX_OnBoard_Passengers = 100;
+			run.trains.back().Current_OnBoard_Passengers = 0;
+		}
+		run.numTrains = static_cast<int>(run.trains.size());
+		Train& riding = run.trains.front();
+		standAt(riding, stop, arrival);
+		for (int earlier = 0; earlier < stop; ++earlier) {
+			riding.StationArrivals[earlier] = riding.ScheduledArrivals[earlier];
+			riding.StationDepartures[earlier] = riding.ScheduledDepartures[earlier];
+		}
+		riding.StationDepartures[stop] = -1;
+		const Node& at = riding.Stations[static_cast<std::size_t>(stop)];
+		riding.CurrentServiceStop = at.stationName;
+		riding.CurrentServiceStopPlatform = at.stationPlatformId;
+		riding.currentServiceStopPlatformNumber = riding.stationPlatformNumber[stop];
+		riding.Current_OnBoard_Passengers = riders;
+		for (int n = 1; n <= riders; ++n)
+			addRider(n == 1 ? "rider" : "rider" + std::to_string(n), trips);
+		flow.build(run.passengers);
+	}
+
+	// Adds a passenger with this ID on board of the first train, on a live journey with these trips.
+	void addRider(const std::string& id, const std::vector<Trip>& trips) {
+		const Train& riding = run.trains.front();
+		Journey journey;
+		journey.ID = id + ".j";
+		journey.Mode = JourneyMode::Live;
+		journey.Dep_Station_ID = trips.front().Dep_Station_ID;
+		journey.Arr_Station_ID = trips.back().Arr_Station_ID;
+		for (Trip trip : trips) {
+			trip.JourneyID = journey.ID;
+			journey.Trips.push_back(trip);
+		}
+		Trip& first = journey.Trips.front();
+		first.IsTripStarted = true;
+		first.Actual_Departure_Time = 50;
+		first.Actual_Boarding_Time = static_cast<int>(riding.ScheduledDepartures[0]);
+		journey.N_Trips = static_cast<int>(trips.size());
+		journey.IsJourneyStarted = true;
+		journey.Waitingtime = 0;
+		journey.Walkingtime = 0;
+		Passenger rider;
+		rider.ID = id;
+		rider.Journeys.push_back(journey);
+		rider.IsIntheNetwork = true;
+		rider.CurrentStatus = PassengerStatus::OnBoard;
+		rider.current_JourneyID = journey.ID;
+		rider.current_TripID = first.TripID;
+		rider.Current_Train_Boarded = riding.trainDescription;
+		rider.Current_Arrival_Station = first.Arr_Station_ID;
+		run.passengers.push_back(rider);
+		run.numPassengers = static_cast<int>(run.passengers.size());
+	}
+
+	// The passenger step at `t` up to the passengers on board of the first train: the number who alighted for an earlier plan.
+	int offer(int t) {
+		run.passengerJourneys.settleTrains(run, flow, t);
+		return run.passengerJourneys.offerEarlierPlansOnBoard(run, flow, 0, t);
+	}
+	const Passenger& rider() const { return run.passengers.front(); }
+	const Journey& journey() const { return rider().Journeys.front(); }
+	// The trains of the trips of the journey, in order.
+	std::vector<std::string> trains() const {
+		std::vector<std::string> names;
+		for (const Trip& trip : journey().Trips)
+			names.push_back(trip.TrainServiceDescription);
+		return names;
+	}
+};
+
+// T1 from A to C, planned at B at 400 s and at C at 1,000 s.
+Train lateT1() {
+	return trainCallingAt("T1", {"A", "B", "C"}, {100, 400, 1000});
+}
+
 // A run whose route 0 is one section of three arcs: 0 to 1,000 m with a track speed limit of 10 m/s, 1,000 to 3,000 m with 30 m/s
 // and 3,000 to 4,000 m with 40 m/s. Its train S-1 (threeStops) runs on it at up to 50 m/s and stops at 0, 1 and 3 km. With
 // `capped`, a breakdown caps S-1 at 72 km/h (20 m/s) from 50 s to 1,000 s.
@@ -686,6 +773,14 @@ private slots:
 	void cappedTrainHeldBetweenStopsHasANewPredictionOnceAMinute();
 	void onlyATrainMissedAfterARideIsAMissedConnection();
 	void lateTrainsKeepTheMissedConnectionRule();
+	void passengerOnALateTrainLeavesItForAnEarlierRoute();
+	void passengerStaysOnALateTrainThatStillArrivesFirst();
+	void passengerStaysOnATrainLateUpToTheThreshold();
+	void passengerStaysOnALateTrainBetweenStops();
+	void passengerStaysOnBoardForAChangeFurtherOn();
+	void passengerOnBoardLooksAgainOnlyWhenThePredictionChanges();
+	void passengerStaysOnBoardWhenTheEarlierTrainHasNoRoom();
+	void passengerWhoBoardedAtThisStopStaysOnBoard();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -1474,6 +1569,118 @@ void TestPassengerJourneys::lateTrainsKeepTheMissedConnectionRule() {
 	arriving.run.passengerJourneys.checkWaiting(arriving.run, arriving.run.passengers.front(), 1060, 1);
 	QCOMPARE(arriving.journey().MissedConnections, std::uint16_t(1));
 	QCOMPARE(arriving.trains(), (std::vector<std::string>{"T1", "T3"}));
+}
+
+// T1 arrived at B at 800 s, 400 s late, and is predicted at C at 1,400 s. T2 leaves B at 870 s and reaches C at 1,100 s, so the
+// passenger alights at B for it: the trip on T1 ends at B, the seat is free, and the journey counts as planned again, with its delay
+// measured against the arrival of T1.
+void TestPassengerJourneys::passengerOnALateTrainLeavesItForAnEarlierRoute() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, 1100})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	QCOMPARE(onBoard.offer(800), 1);
+	const Passenger& rider = onBoard.rider();
+	QCOMPARE(rider.CurrentStatus, PassengerStatus::OnPlatform);
+	QCOMPARE(rider.Current_WaitingStationID, std::string("B"));
+	QCOMPARE(rider.Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(onBoard.trains(), (std::vector<std::string>{"T1", "T2"}));
+	const Trip& left = onBoard.journey().Trips.front();
+	QCOMPARE(left.Arr_Station_ID, std::string("B"));
+	QCOMPARE(left.Actual_Arrival_Time, 800);
+	QVERIFY(left.IsTripCompleted);
+	QVERIFY(onBoard.journey().IsReplanned);
+	QCOMPARE(onBoard.journey().FirstPlanArrival, 1000);
+	QCOMPARE(onBoard.run.trains[0].Current_OnBoard_Passengers, 0);
+	QVERIFY(onBoard.flow.onBoard("T1").empty());
+	const std::vector<int> waiting{0};
+	QCOMPARE(onBoard.flow.waitingFor(onBoard.flow.platformNumber("B", "B.platform.1"), onBoard.flow.trainNumber("T2")), waiting);
+}
+
+// T2 reaches C at 1,500 s, after T1 is predicted there, and at 1,370 s, 30 s before it, which is within the margin: the passenger
+// stays on board of T1 in both cases.
+void TestPassengerJourneys::passengerStaysOnALateTrainThatStillArrivesFirst() {
+	for (const double second : {1500.0, 1370.0}) {
+		OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, second})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+		QCOMPARE(onBoard.offer(800), 0);
+		QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+		QVERIFY(!onBoard.journey().IsReplanned);
+		QCOMPARE(onBoard.run.trains[0].Current_OnBoard_Passengers, 1);
+		QCOMPARE(onBoard.flow.onBoard("T1"), std::vector<int>{0});
+	}
+}
+
+// T1 arrived at B at 600 s, 200 s late, within the late threshold: the passenger stays on board, although T2 reaches C earlier.
+void TestPassengerJourneys::passengerStaysOnATrainLateUpToTheThreshold() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {650, 900})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 600);
+	QCOMPARE(onBoard.offer(600), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+}
+
+// T1 left B at 820 s, 400 s late, and runs to C. T2 stands at B and reaches C first, but the passenger is between stations and
+// stays on board.
+void TestPassengerJourneys::passengerStaysOnALateTrainBetweenStops() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, 1100})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	Train& gone = onBoard.run.trains[0];
+	gone.Stations[1].StepStopped = 21;
+	gone.StationDepartures[1] = 820;
+	gone.StoppedForServiceStop = false;
+	gone.CurrentServiceStop = kNoneId;
+	QCOMPARE(onBoard.offer(830), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!onBoard.journey().IsReplanned);
+}
+
+// T1 arrived at B at 800 s, 400 s late, and goes on to C and D. The earliest route from B to D rides T1 on to C and changes there to
+// T3: the passenger stays on board, to look again at C.
+void TestPassengerJourneys::passengerStaysOnBoardForAChangeFurtherOn() {
+	OnBoardRun onBoard({trainCallingAt("T1", {"A", "B", "C", "D"}, {100, 400, 600, 1000}), trainCallingAt("T3", {"C", "D"}, {1100, 1200})},
+		{tripOn("r.1", "T1", "A", "D", 1000)}, 1, 800);
+	QCOMPARE(onBoard.offer(800), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QCOMPARE(onBoard.trains(), std::vector<std::string>{"T1"});
+}
+
+// T1 has stood at B since 800 s, 400 s or 6 whole minutes late, and that prediction is first seen while nobody is on board. At 801 s
+// it is still 6 whole minutes late and has not just come to a stand, so the passenger is not offered T2. At 840 s T1 is 7 whole
+// minutes late, and the passenger alights for T2.
+void TestPassengerJourneys::passengerOnBoardLooksAgainOnlyWhenThePredictionChanges() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {900, 1100})}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	std::list<Passenger> nobody;
+	onBoard.flow.build(nobody);
+	onBoard.run.passengerJourneys.settleTrains(onBoard.run, onBoard.flow, 800);
+	onBoard.flow.build(onBoard.run.passengers);
+	onBoard.run.trains[0].Stations[1].StepStopped = 2;
+	QCOMPARE(onBoard.offer(801), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	onBoard.run.trains[0].Stations[1].StepStopped = 41;
+	QCOMPARE(onBoard.offer(840), 1);
+	QCOMPARE(onBoard.rider().Current_Train_To_Wait, std::string("T2"));
+}
+
+// T2 would bring the passengers from B to C earlier than T1, but it has room for two and carries one. The first rider alights for
+// it; the second, who would be one too many with the first waiting for T2, stays on board. With T2 full, nobody leaves T1.
+void TestPassengerJourneys::passengerStaysOnBoardWhenTheEarlierTrainHasNoRoom() {
+	Train second = trainCallingAt("T2", {"B", "C"}, {850, 1100});
+	OnBoardRun room({lateT1(), second}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800, 2);
+	room.run.trains[1].MAX_OnBoard_Passengers = 2;
+	room.run.trains[1].Current_OnBoard_Passengers = 1;
+	QCOMPARE(room.offer(800), 1);
+	QCOMPARE(room.rider().Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(room.run.passengers.back().CurrentStatus, PassengerStatus::OnBoard);
+	QCOMPARE(room.run.trains[0].Current_OnBoard_Passengers, 1);
+	OnBoardRun full({lateT1(), second}, {tripOn("r.1", "T1", "A", "C", 1000)}, 1, 800);
+	full.run.trains[1].MAX_OnBoard_Passengers = 1;
+	full.run.trains[1].Current_OnBoard_Passengers = 1;
+	QCOMPARE(full.offer(800), 0);
+	QCOMPARE(full.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!full.journey().IsReplanned);
+}
+
+// The passenger boarded T1 at B, where T1 stands 400 s late. The rule for waiting passengers already offered T2 there, so the
+// passenger stays on board.
+void TestPassengerJourneys::passengerWhoBoardedAtThisStopStaysOnBoard() {
+	OnBoardRun onBoard({lateT1(), trainCallingAt("T2", {"B", "C"}, {850, 1100})}, {tripOn("r.1", "T1", "B", "C", 1000)}, 1, 800);
+	QCOMPARE(onBoard.offer(800), 0);
+	QCOMPARE(onBoard.rider().CurrentStatus, PassengerStatus::OnBoard);
+	QVERIFY(!onBoard.journey().IsReplanned);
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {
