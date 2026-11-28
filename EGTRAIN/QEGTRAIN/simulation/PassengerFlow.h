@@ -5,6 +5,7 @@
 #include "simulation/Passengers.h"
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <list>
 #include <map>
@@ -179,7 +180,8 @@ private:
 	std::vector<std::string> idNames_;		   // the name of each number
 	std::map<std::pair<std::string, std::string>, int> platformKeys_;
 	std::vector<std::pair<std::string, std::string>> platformIds_;
-	std::vector<PlatformQueues> queues_;
+	// std::deque keeps elements in place so iterators into held queues remain valid as new platforms are added.
+	std::deque<PlatformQueues> queues_;
 	int totalHeld_ = 0;
 	std::unordered_map<std::uint64_t, std::vector<int>> onBoard_;
 	std::vector<int> dirtyPlatforms_;

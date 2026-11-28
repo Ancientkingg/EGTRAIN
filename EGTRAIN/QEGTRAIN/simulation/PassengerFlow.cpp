@@ -771,7 +771,14 @@ void holdIfPlatformFull(SimulationRun& run, const PassengerFlow& flow, Passenger
 	if (flow.waitingCount(platform->StationID, platform->ID) >= platform->Max_Passenger_Volume
 		|| flow.heldCount(platform->StationID, platform->ID) > 0) {
 		passenger.CurrentStatus = PassengerStatus::HeldAtEntrance;
-		passenger.HeldSince = now;
+		int holdStart = now;
+		if (const Journey* const journey = activeJourneyOf(passenger)) {
+			const auto trip = std::find_if(journey->Trips.begin(), journey->Trips.end(),
+				[&passenger](const Trip& candidate) { return candidate.TripID == passenger.current_TripID; });
+			if (trip != journey->Trips.end() && trip->Actual_Departure_Time >= 0)
+				holdStart = std::max(now, static_cast<int>(std::ceil(trip->Actual_Departure_Time)));
+		}
+		passenger.HeldSince = holdStart;
 	}
 }
 
@@ -788,6 +795,8 @@ void admitHeldPassengers(SimulationRun& run, PassengerFlow& flow, int now) {
 			if (capacity > 0 && flow.waitingCount(id.first, id.second) >= capacity)
 				break;
 			Passenger& passenger = flow.passenger(*next);
+			if (passenger.HeldSince > now)
+				break;
 			if (passenger.HeldSince >= 0) {
 				if (Journey* const journey = activeJourneyOf(passenger))
 					if (now > passenger.HeldSince)

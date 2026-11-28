@@ -789,6 +789,7 @@ private slots:
 	void platformCapacityLimitHoldsAndAdmitsFifo();
 	void heldPassengerReplansOnMissedTrainAndWalkOutAdmits();
 	void heldPassengerSwitchesOnLateTrainAndAlightingNeverBlocks();
+	void heldPassengerSwitchWithWalkDoesNotOverlapHeldTime();
 };
 
 void TestPassengerJourneys::trainBeforeItsFirstStopCanBeBoardedThere() {
@@ -1815,8 +1816,8 @@ void TestPassengerJourneys::platformCapacityLimitHoldsAndAdmitsFifo() {
 	QVERIFY(withoutHeld.find("\tHeld\n") == std::string::npos);
 }
 
-// A held passenger replans when its train leaves while it is held, keeping its FIFO place on the same platform, and a walk-out
-// on the platform frees a spot and admits the next held passenger.
+// A held passenger replans when its train leaves while it is held, keeping its FIFO place on the same platform,
+// updates its registration to the new train, and a walk-out on the platform frees a spot and admits the held passenger.
 void TestPassengerJourneys::heldPassengerReplansOnMissedTrainAndWalkOutAdmits() {
 	SimulationRun run;
 	run.settings.startingSimulationTime = 0;
@@ -1826,18 +1827,31 @@ void TestPassengerJourneys::heldPassengerReplansOnMissedTrainAndWalkOutAdmits() 
 	plat.ID = "B.platform.1";
 	plat.Max_Passenger_Volume = 1;
 	run.platforms.push_back(plat);
-	// T1 goes B -> C (leaves at 220), T2 goes B -> D (leaves at 420) from the same platform.
+
+	// T0 goes B -> D (leaves at 320).
+	Train t0 = trainFromB("T0", 1, 300);
+	t0.run_ = &run;
+	t0.Stations[1].stationName = "D";
+	t0.Stations[1].stationPlatformId = "D.platform.1";
+	t0.ScheduledDepartures[0] = 320;
+	// T1 goes B -> C (leaves at 220), T2 goes B -> C (leaves at 420) from the same platform.
 	Train t1 = trainFromB("T1", 1, 200);
 	t1.run_ = &run;
 	Train t2 = trainFromB("T2", 1, 400);
 	t2.run_ = &run;
-	t2.Stations[1].stationName = "D";
-	t2.Stations[1].stationPlatformId = "D.platform.1";
+	// T5 goes B -> E (leaves at 500).
+	Train t5 = trainFromB("T5", 1, 480);
+	t5.run_ = &run;
+	t5.Stations[1].stationName = "E";
+	t5.Stations[1].stationPlatformId = "E.platform.1";
+	t5.ScheduledDepartures[0] = 500;
+	run.trains.push_back(t0);
 	run.trains.push_back(t1);
 	run.trains.push_back(t2);
-	run.numTrains = 2;
+	run.trains.push_back(t5);
+	run.numTrains = 4;
 
-	// p1 (B -> C) enters the platform; p2 (B -> D) and p3 (B -> C) are held at the entrance in FIFO order.
+	// p1 (B -> D) enters the platform for T0; p2 (B -> C) and p3 (B -> E) are held at the entrance in FIFO order.
 	const auto addPax = [&run](const std::string& id, const std::string& dest, int dep) {
 		Journey j;
 		j.ID = id + ".1";
@@ -1850,32 +1864,58 @@ void TestPassengerJourneys::heldPassengerReplansOnMissedTrainAndWalkOutAdmits() 
 		p.Journeys.push_back(j);
 		run.passengers.push_back(p);
 	};
-	addPax("p1", "C", 100);
-	addPax("p2", "D", 110);
-	addPax("p3", "C", 120);
+	addPax("p1", "D", 100);
+	addPax("p2", "C", 110);
+	addPax("p3", "E", 120);
 	enterPassengersAndRefreshPlatforms(run, 100);
 	enterPassengersAndRefreshPlatforms(run, 110);
 	enterPassengersAndRefreshPlatforms(run, 120);
 	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.1"), 1);
 	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.1"), 2);
+	const int platKey = run.passengerFlow.platformNumber("B", "B.platform.1");
+	QCOMPARE(run.passengerFlow.nextHeld(platKey), 1);
 
-	// T1 leaves B without boarding anyone (e.g. passed or departed): p1 and p3 have NoRoute and walk out; p2 is admitted!
-	run.trains[0].Stations[0].StepStopped = 10;
-	run.trains[0].StoppedForServiceStop = false;
-	run.trains[0].StationDepartures[0] = 220;
+	// T1 leaves B without stopping/boarding: p2 misses T1 and replans to T2 from the same platform.
+	// Because p1 is still on the platform waiting for T0, the platform is full:
+	// p2 stays HeldAtEntrance, stays ahead of p3 (which waits for T5 and did not replan),
+	// waitingFor(platform, T2) includes p2, and p2's Heldtime is not yet finalized.
+	run.trains[1].Stations[0].StepStopped = 10;
+	run.trains[1].StoppedForServiceStop = false;
+	run.trains[1].StationDepartures[0] = 220;
 	simulateTrainPassengerInteractions(run, 221);
 
 	auto it = run.passengers.begin();
+	QCOMPARE(it->CurrentStatus, PassengerStatus::OnPlatform);
+	QCOMPARE(it->Current_Train_To_Wait, std::string("T0"));
+	++it;
+	QCOMPARE(it->CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(it->Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(it->Journeys.front().Heldtime, 0.0);
+	QCOMPARE(run.passengerFlow.nextHeld(platKey), 1);
+	const int t2Id = run.passengerFlow.trainNumber("T2");
+	const std::vector<int> t2Waiters = run.passengerFlow.waitingFor(platKey, t2Id);
+	QVERIFY(std::find(t2Waiters.begin(), t2Waiters.end(), 1) != t2Waiters.end());
+
+	// T0 leaves B without boarding p1: p1 has NoRoute and walks out.
+	// Room opens on the platform, and p2 is admitted in FIFO order ahead of p3.
+	// Its Heldtime equals admission time minus the first hold time (counted once: 321 - 110 = 211).
+	run.trains[0].Stations[0].StepStopped = 10;
+	run.trains[0].StoppedForServiceStop = false;
+	run.trains[0].StationDepartures[0] = 320;
+	simulateTrainPassengerInteractions(run, 321);
+
+	it = run.passengers.begin();
 	QCOMPARE(it->Journeys.front().Outcome, JourneyOutcome::NoRoute);
 	++it;
 	QCOMPARE(it->CurrentStatus, PassengerStatus::OnPlatform);
-	QCOMPARE(it->Journeys.front().Heldtime, 111.0);
+	QCOMPARE(it->Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(it->Journeys.front().Heldtime, 211.0);
 	++it;
-	QCOMPARE(it->Journeys.front().Outcome, JourneyOutcome::NoRoute);
-	QCOMPARE(it->Journeys.front().Heldtime, 101.0);
-	QCOMPARE(it->Journeys.front().Waitingtime, 101.0);
+	QCOMPARE(it->CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(it->Current_Train_To_Wait, std::string("T5"));
 	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.1"), 1);
-	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.1"), 0);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.1"), 1);
+	QCOMPARE(run.passengerFlow.nextHeld(platKey), 2);
 }
 
 // A held passenger switches to another platform with room when its train runs late, and alighting passengers always get off
@@ -2014,6 +2054,108 @@ void TestPassengerJourneys::heldPassengerSwitchesOnLateTrainAndAlightingNeverBlo
 	QCOMPARE(transferred.CurrentStatus, PassengerStatus::OnPlatform);
 	QCOMPARE(alightRun.passengerFlow.waitingCount("B", "B.platform.1"), 2);
 	QCOMPARE(alightRun.passengerFlow.heldCount("B", "B.platform.1"), 0);
+}
+
+// When a held passenger replans to another platform with a walk, the hold starts at the end of the walk,
+// admission does not admit before the walk is over, and Heldtime counts only time after the walk.
+void TestPassengerJourneys::heldPassengerSwitchWithWalkDoesNotOverlapHeldTime() {
+	SimulationRun run;
+	run.settings.startingSimulationTime = 0;
+	run.settings.passengerPlatformCapacityLimit = true;
+	run.settings.passengerWalkingSecondsPerPlatform = 30;
+	StationPlatform plat1;
+	plat1.StationID = "B";
+	plat1.ID = "B.platform.1";
+	plat1.Max_Passenger_Volume = 1;
+	StationPlatform plat2;
+	plat2.StationID = "B";
+	plat2.ID = "B.platform.2";
+	plat2.Max_Passenger_Volume = 1;
+	run.platforms.push_back(plat1);
+	run.platforms.push_back(plat2);
+
+	// T1 calls at B.platform.1 at 200 (arrives C at 360).
+	// T2 calls at B.platform.2 at 640 (leaves at 660, arrives C at 690).
+	// T3 calls at B.platform.2 at 300 (goes to D, departs B at 615).
+	// T4 calls at B.platform.1 at 1000 (goes to E).
+	Train t1 = trainFromB("T1", 1, 200);
+	t1.run_ = &run;
+	Train t2 = trainFromB("T2", 2, 640);
+	t2.run_ = &run;
+	t2.ScheduledArrivals[1] = 690;
+	Train t3 = trainFromB("T3", 2, 300);
+	t3.run_ = &run;
+	t3.Stations[1].stationName = "D";
+	t3.Stations[1].stationPlatformId = "D.platform.1";
+	t3.ScheduledDepartures[0] = 615;
+	t3.ScheduledArrivals[1] = 770;
+	Train t4 = trainFromB("T4", 1, 1000);
+	t4.run_ = &run;
+	t4.Stations[1].stationName = "E";
+	t4.Stations[1].stationPlatformId = "E.platform.1";
+	run.trains.push_back(t1);
+	run.trains.push_back(t2);
+	run.trains.push_back(t3);
+	run.trains.push_back(t4);
+	run.numTrains = 4;
+
+	const auto addPax = [&run](const std::string& id, const std::string& dest, int dep) {
+		Journey j;
+		j.ID = id + ".1";
+		j.Mode = JourneyMode::Live;
+		j.Dep_Station_ID = "B";
+		j.Arr_Station_ID = dest;
+		j.Planned_Departure_Time = j.Actual_Planned_Departure_Time = dep;
+		Passenger p;
+		p.ID = id;
+		p.Journeys.push_back(j);
+		run.passengers.push_back(p);
+	};
+	addPax("w", "D", 90);
+	addPax("p1", "E", 100);
+	addPax("p2", "C", 110);
+	enterPassengersAndRefreshPlatforms(run, 90);
+	enterPassengersAndRefreshPlatforms(run, 100);
+	enterPassengersAndRefreshPlatforms(run, 110);
+
+	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.1"), 1);
+	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.2"), 1);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.1"), 1);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.2"), 0);
+
+	// At step 601, T1 is delayed (has not reached B, due 200).
+	// p2 switches to T2 on B.platform.2 (leaves 660, arrives C at 690).
+	// Platform difference is 1, so walk is 30 s: walk ends at 601 + 30 = 631 <= 660.
+	// Platform 2 is full (w waits there), so p2 is held at Platform 2's entrance starting at walk end 631.
+	simulateTrainPassengerInteractions(run, 601);
+
+	auto it = std::next(run.passengers.begin(), 2);
+	QCOMPARE(it->CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(it->Current_WaitingStationPlatformID, std::string("B.platform.2"));
+	QCOMPARE(it->HeldSince, 631);
+	QCOMPARE(it->Journeys.front().Heldtime, 491.0);
+
+	// At step 616, T3 departs B, and w leaves (NoRoute), freeing Platform 2.
+	// p2 is still walking until 631: admission must not admit before the walk is over.
+	run.trains[2].Stations[0].StepStopped = 10;
+	run.trains[2].StoppedForServiceStop = false;
+	run.trains[2].StationDepartures[0] = 615;
+	simulateTrainPassengerInteractions(run, 616);
+
+	QCOMPARE(it->CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.2"), 0);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.2"), 1);
+	QCOMPARE(it->Journeys.front().Heldtime, 491.0);
+
+	// At step 640 (> 631 walk end), room is still available on Platform 2 and p2 is admitted.
+	// Heldtime counts only time after the walk: 491 + (640 - 631) = 500 s.
+	simulateTrainPassengerInteractions(run, 640);
+
+	QCOMPARE(it->CurrentStatus, PassengerStatus::OnPlatform);
+	QCOMPARE(it->HeldSince, -1);
+	QCOMPARE(it->Journeys.front().Heldtime, 500.0);
+	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.2"), 1);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.2"), 0);
 }
 
 QTEST_APPLESS_MAIN(TestPassengerJourneys)
