@@ -95,6 +95,8 @@ public:
 	std::vector<int> waitingFor(int platform, int train) const;
 	/// The places of the passengers who wait at the platform for any train, one for each passenger, in the order of the waiting lines.
 	std::vector<int> waitingAt(int platform) const;
+	/// The places of the passengers on board of the train, in list order. The flow keeps them.
+	std::vector<int> onBoard(const std::string& train) const;
 	/// Removes every passenger on board of the train from the flow and returns their places in list order, like
 	/// takeOnBoardArrivingAt for all stations.
 	std::vector<int> takeAllOnBoard(const std::string& train);
