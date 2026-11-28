@@ -73,6 +73,11 @@ void Train::checkEntrance(int i, Section* BS) {
 	for (std::size_t slot = static_cast<std::size_t>(indexOfRoute); waiting && routeCount > 0 && slot < closures.size(); slot += routeCount)
 		if (closures[slot] >= 0 && closures[slot] <= entrySection && entrySection < singleTrackZone(*run_, slot / routeCount, indexOfRoute).first)
 			return;
+	// Nor while the single-track rule keeps it out (RunInfrastructure::singleTrackKeptOut).
+	const std::vector<char>& keptOut = run_->infra.singleTrackKeptOut;
+	for (std::size_t k = 0; waiting && k < keptOut.size() && k < run_->trains.size(); ++k)
+		if (&run_->trains[k] == this && keptOut[k] != 0)
+			return;
 	if (waiting && separated && i >= departure_time && (entryConflictsWithCrossover(i, entry) || entryCutsOffTrain(i, BS)))
 		return;
 	if (isMovingBlockLevel(entry.SignallingLevel)) { // if the signalling system of the entry section is ETCS Level 3 or Level 4 (Virtual Coupling)

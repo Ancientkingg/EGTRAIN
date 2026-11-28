@@ -8,15 +8,24 @@ This page describes how a run decides, step by step, which train may enter.
 The code is in `simulation/Signalling.cpp` (`singleTrackZone`,
 `occupySingleTrackForRoute`, `Apply_Single_Track_Authorities_Mixed_Signalling`)
 and `simulation/RollingStock.cpp` (`updateSingleTrackLocks`). The state is in
-`RunInfrastructure`: `singleTrackHeld`, `singleTrackReservations` and
-`singleTrackClosures`.
+`RunInfrastructure`: `singleTrackHeld`, `singleTrackReservations`,
+`singleTrackClosures` and `singleTrackKeptOut`.
 
 ## Zones
 
 `singleTrackZone` derives, once per run, where the zone of each restriction lies
 on each route: its sections, the index of its first and last section, and its
 intervals of route position. It also derives the way out of the zone between
-every pair of routes of opposite directions, described [below](#ways-out).
+every pair of routes of opposite directions, described [below](#ways-out), and
+for each route the zone that the route passes next (`SingleTrackZone::next`).
+
+Sections that share track count as one. A switch section shares track with the
+plain block under it, which `Section::IDConnectedBS` records in one direction
+only: the switch `@32-B0@-9.539000/@0-B4@-9.549000` lies over `@32-B0@`. The
+zone of a restriction holds every such section in either direction, so a
+restriction that ends on `31-B0`, next to the switch over `32-B0`, still takes
+in `32-B0` and the switch, and a route that runs only over the switch passes the
+zone too. The ways out compare sections in the same way.
 
 ## The lock in a step
 
@@ -77,8 +86,9 @@ on r, the last section after the zone that lies in the stretch.
 ### The rule
 
 A train gets a new reservation of a zone only when no train of the other
-direction blocks its way out. A train of route q blocks the way out of route r
-when:
+direction blocks its way out, and when it has room after the zone (see
+[Room after the zone](#room-after-the-zone)). A train of route q blocks the way
+out of route r when:
 
 - it stands on the way out, while it moves or waits at a stop;
 - it runs toward the way out and can no longer stop in front of it; or
@@ -145,10 +155,83 @@ the other train, which then does not enter the zone.
   (`running-through-level-*` in the
   [characterization tests](../development/characterization-tests.md)).
 
-### Limits
+## Room after the zone
 
-The rule looks only at trains of the other direction. A train can still enter a
-zone toward a track that a train of its own direction occupies and cannot leave,
-for example when that train waits for the next zone. A way out lasts as long as
-the two routes share track, so where both directions use the same track through
-a station, trains cross only at a station where they use different tracks.
+The ways out keep a train of the other direction off the track after a zone.
+Trains of the same direction need a second rule. A train that waits at a loop
+for the next zone holds the loop track. If more trains of its direction enter
+the zone behind it, the last of them stands in the zone and keeps it held for
+its direction. Trains of the other direction then cannot leave the next zone
+toward that loop, and the lines on both sides of the station lock up.
+
+### The stretches after a zone
+
+The stretch after a zone on a route is the track between the zone and the zone
+that the route passes next (`SingleTrackZone::next`). A train is bound to wait
+on that stretch when its route passes it, it does not hold the next zone, and it
+is between the entry of the requested zone and the end of the stretch, or holds
+the requested zone. A train holds a zone when a part of it is inside or when it
+keeps a reservation. A train that dwells at a service stop keeps no
+reservation.
+
+The bound trains are queued on the stretch from the entry of the next zone, each
+in front of the block under the tail of the train ahead, as fixed blocks hold
+them. There is room for the requesting train when it fits behind them clear of
+the zone. A stretch that no train is bound for has room: a train alone may still
+wait inside the zone for the next one, which the ways out keep free of the other
+direction.
+
+When a route of the other direction uses part of the stretch after the next
+zone, waiting there would block that route, so the check goes on to the stretch
+after the next zone, and so on. It stops at the first stretch that no such route
+uses, or at the last zone of the route.
+
+### The rule
+
+A new request of a zone is refused when the requesting train has no room on one
+of these stretches (`roomAfter` in `updateSingleTrackLocks`). Requests are
+checked in order, and a train that a new request gave the zone earlier in the
+step counts as bound. A train that keeps a reservation is never refused. The
+refusal closes the route of the train in front of the first way out of the zone,
+for a route of the other direction, that the train has not reached yet, or else
+at the zone entry. A refused train does not count as running toward a way out
+behind the zone. The closure is skipped while a train of the same route that
+holds the zone has still to pass the closed section, because that train is
+ahead and the refused one cannot pass it.
+
+### Entering the network
+
+A train that is due at its entry and would find no room after its first zone
+does not enter the network (`RunInfrastructure::singleTrackKeptOut`,
+`Train::checkEntrance`). Otherwise it would wait on its first platform, which at
+a terminal is the way out of that zone for the trains that arrive there. Trains
+in the network that have still to reach that zone, and waiting trains let in
+earlier in the step, have the room first.
+
+### The invariant
+
+A train enters a zone only when, for every stretch after it up to a place where
+it blocks no train of the other direction, the trains of its direction that are
+bound for that stretch leave it room there clear of the zones. So every train in
+a zone can leave it, and every zone held by a direction is released again.
+
+### Cases
+
+- The eight trains of Paimpol, twice each, with long dwells: trains of both
+  directions wait at Pontrieaux, and trains that are due while the line ahead is
+  full wait to enter. All sixteen reach the end of their routes
+  (`paimpolLongDwellsTwiceCrossOnSingleTrack` in `tests/test_simulationrun.cpp`).
+- The Paimpol restrictions one block shorter at each end: the zones still take
+  in the blocks under the switch sections at their ends
+  (`paimpolNarrowRestrictionsCrossOnSingleTrack`).
+
+## Limits
+
+The rule keeps each train out of a zone until there is room for it, but it does
+not plan ahead: when the room is short, trains cross in the order in which they
+ask, not in the order of the timetable, and a timetable that sends more trains
+than the line can hold waits longer than needed. A way out lasts as long as the
+two routes share track, so where both directions use the same track through a
+station, trains cross only at a station where they use different tracks.
+Closures act on a whole route, so a refused train holds back the trains of its
+route behind it too.

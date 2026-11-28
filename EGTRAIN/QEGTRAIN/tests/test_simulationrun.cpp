@@ -66,7 +66,8 @@ std::string arrayText(const std::vector<Element>& elements, Used used) {
 
 Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 	const auto& [tracks, links, stationArray, trackCount, linkCount, stationCount, sections, blockCount, detectionSections, infraEvents,
-		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, closures, boundaries, routes, routeCount,
+		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, closures, keptOut, boundaries, routes,
+		routeCount,
 		sectionIdNumbers, routeSectionNumbers] = infrastructure;
 	return {{"infra.blockSets", arrayText(tracks, [](const BlockSet& track) { return !track.sceneTrackId.empty() || !track.N.empty(); })},
 		{"infra.connections", arrayText(links, [](const Connections& link) { return !link.ID.empty(); })},
@@ -88,6 +89,7 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 		{"infra.singleTrackRouteZone", std::to_string(routeZone.size())},
 		{"infra.singleTrackZonesDerived", std::to_string(zonesDerived)},
 		{"infra.singleTrackClosures", std::to_string(closures.size())},
+		{"infra.singleTrackKeptOut", std::to_string(keptOut.size())},
 		{"infra.stationBoundaries", std::to_string(boundaries.size())},
 		{"infra.routes", std::to_string(routes.size())},
 		{"infra.numRoutes", std::to_string(routeCount)},
@@ -237,6 +239,7 @@ void fill(SimulationRun& run) {
 	infrastructure.singleTrackRouteZone.push_back(1);
 	infrastructure.singleTrackZonesDerived = true;
 	infrastructure.singleTrackClosures.push_back(0);
+	infrastructure.singleTrackKeptOut.push_back(1);
 	infrastructure.stationBoundaries.emplace_back(&infrastructure.sections[0], false, nullptr);
 	infrastructure.routes.resize(1);
 	infrastructure.numRoutes = 1;
@@ -463,6 +466,8 @@ private slots:
 	void trainStartingAtStopWaitsForItsSections();
 	void trainStartingAtStopWaitsForSingleTrack();
 	void paimpolTrainsCrossOnSingleTrack();
+	void paimpolNarrowRestrictionsCrossOnSingleTrack();
+	void paimpolLongDwellsTwiceCrossOnSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
 	void trainStartingAtStopBlocksSectionsUnderIt_data();
@@ -943,6 +948,52 @@ void TestSimulationRun::paimpolTrainsCrossOnSingleTrack() {
 			++expressAtPontrieaux;
 	}
 	QCOMPARE(expressAtPontrieaux, 2);
+}
+
+// The single-track restrictions of Paimpol one block shorter at each end, as they were before they reached the switch sections
+// at their ends. Such a switch section shares track with the main-track block next to it, so the zones still take that block in,
+// and the eight trains reach the end of their routes. Before, Paim-Guin-EXPRESS-2 entered 32-B0 while Guin-Paim-ALL-STOPS-1
+// still needed the switch section over it, and both stood there from about 2500 s to the end of the run.
+void TestSimulationRun::paimpolNarrowRestrictionsCrossOnSingleTrack() {
+	SceneModel scene = m_passengers;
+	scene.settings.durationSeconds = 11000.0;
+	auto shifted = [](const std::string& block, int by) {
+		const std::size_t dash = block.find('-');
+		return std::to_string(std::stoi(block.substr(0, dash)) + by) + block.substr(dash);
+	};
+	for (SceneSingleTrackRestriction& restriction : scene.singleTrackRestrictions) {
+		restriction.startBlock = shifted(restriction.startBlock, 1);
+		restriction.endBlock = shifted(restriction.endBlock, -1);
+	}
+	SceneRunSelection firstRuns;
+	for (const SceneService& service : scene.services)
+		firstRuns.insert({service.id, 1});
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, firstRuns, 11000);
+	if (run == nullptr || run->numTrains != 8)
+		QFAIL("the run is not built");
+	for (const Regional& train : run->trains)
+		QVERIFY2(train.OutOfSimulation, train.trainDescription.c_str());
+}
+
+// The first two runs of the eight Paimpol services, with the passenger dwell coefficients beta2 and beta5 ten times their
+// defaults, so that the all-stops trains dwell long. Trains of one direction wait at a loop for the next zone while more trains
+// of that direction come up behind them, and the trains that are due when the line ahead of them is full wait to enter. All
+// sixteen trains reach the end of their routes. Before, trains of both directions stood in the zones on either side of
+// Pontrieaux, behind the trains that waited on its loop and main track, from about 15000 s to the end of the run.
+void TestSimulationRun::paimpolLongDwellsTwiceCrossOnSingleTrack() {
+	SceneModel scene = m_passengers;
+	scene.settings.durationSeconds = 27000.0;
+	scene.settings.passengerDwellCoefficients = std::vector<double>{7.0, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	SceneRunSelection twoRuns;
+	for (const SceneService& service : scene.services) {
+		twoRuns.insert({service.id, 1});
+		twoRuns.insert({service.id, 2});
+	}
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, twoRuns, 27000);
+	if (run == nullptr || run->numTrains != 16)
+		QFAIL("the run is not built");
+	for (const Regional& train : run->trains)
+		QVERIFY2(train.OutOfSimulation, train.trainDescription.c_str());
 }
 
 void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt_data() {
