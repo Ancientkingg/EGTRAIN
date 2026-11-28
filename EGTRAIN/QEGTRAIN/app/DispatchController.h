@@ -51,7 +51,9 @@ public:
 	~DispatchController() override;
 
 	/// Builds the run of the scene apart from the run of the controller and puts it in its place when the scene is
-	/// ready. A scene that is not ready ends the run that was there: the controller then holds a new run.
+	/// ready. A scene that is not ready ends the run that was there: the controller then holds a new run. The run gets the
+	/// signalling areas of the scene with the levels that InitialParameters::signallingLevelOverride gives them; the scene
+	/// itself is not changed.
 	///
 	/// selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene,
 	/// or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of

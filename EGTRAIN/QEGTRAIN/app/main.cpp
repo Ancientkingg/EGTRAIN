@@ -12,6 +12,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
+#include "scene/SignallingLevel.h"
 #include "scene/Utf8Path.h"
 #include "simulation/SimulationRun.h"
 #if EGTRAIN_BUILD_TESTS
@@ -145,6 +146,7 @@ static const CommandLineOption commandLineOptions[] = {
 	{"--live-every", "N", "1", "With --live: sends a state frame every N steps"},
 	{"--live-commands", nullptr, "off", "With --live: accepts pause, resume and stop commands"},
 	{"--seed", "N", "789350715", "Seed of the random draws, 1 to 2147483646"},
+	{"--signalling-level-override", "3to4|4to3", "off", "Runs every level 3 area at level 4, or every level 4 area at level 3"},
 	{"--help", nullptr, "off", "Prints this list and exits"},
 };
 
@@ -167,7 +169,7 @@ static void printHelp() {
 	std::cout << "Usage: QEGTRAIN [options] [file.egscene]\n\nOptions:\n";
 	for (const CommandLineOption& option : commandLineOptions) {
 		const std::string usage = option.value ? std::string(option.name) + ' ' + option.value : option.name;
-		std::cout << "  " << std::left << std::setw(25) << usage << ' ' << option.description << " (default: " << option.defaultText << ")\n";
+		std::cout << "  " << std::left << std::setw(37) << usage << ' ' << option.description << " (default: " << option.defaultText << ")\n";
 	}
 }
 
@@ -473,6 +475,13 @@ static int runMain(int argc, char* argv[]) {
 			return 1;
 		}
 		initial_variables.randomSeed = static_cast<unsigned long>(seed);
+	}
+	if (cmdOptionEntered(argv, argv + argc, "--signalling-level-override")) {
+		const char* overrideArgument = getCmdOption(argv, argv + argc, "--signalling-level-override");
+		if (!overrideArgument || !parseSignallingLevelOverride(overrideArgument, initial_variables.signallingLevelOverride)) {
+			std::cerr << "ERROR: --signalling-level-override requires 3to4 or 4to3.\n";
+			return 1;
+		}
 	}
 	if (!readLiveOptions(argc, argv))
 		return 1;

@@ -1020,6 +1020,7 @@ void TestRunResults::recordsRunProvenance() {
 	provenance.recoveryPercent = 12.5;
 	provenance.paxMode = 1;
 	provenance.randomSeed = 123456789;
+	provenance.signallingLevelOverride = SignallingLevelOverride::Level3To4;
 	provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 	const QString artifactPath = temp.filePath("result.csv");
 	QVERIFY2(writeRunArtifactWithProvenance(artifactPath.toStdString(), "csv", "header\nrow\n", provenance).empty(),
@@ -1043,6 +1044,8 @@ void TestRunResults::recordsRunProvenance() {
 	QCOMPARE(input.value("sha256").toString(), QString::fromStdString(clean.sha256));
 	// sidecar records the random seed of the run
 	QCOMPARE_EQ(run.value("random_seed").toDouble(), 123456789.0);
+	// sidecar records the change of the moving-block levels of the run
+	QCOMPARE(run.value("signalling_level_override").toString(), "3to4");
 	// sidecar preserves exact selected occurrence identities
 	QCOMPARE(occurrences.size(), qsizetype(2));
 	QCOMPARE(occurrences.at(0).toObject().value("service_id").toString(), "service-A");

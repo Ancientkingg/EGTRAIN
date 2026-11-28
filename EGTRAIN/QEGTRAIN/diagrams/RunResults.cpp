@@ -90,6 +90,7 @@ QJsonObject runJson(const RunProvenance& run) {
 	result.insert(QStringLiteral("recovery_percent"), finiteJsonNumber(run.recoveryPercent));
 	result.insert(QStringLiteral("pax_mode"), run.paxMode);
 	result.insert(QStringLiteral("random_seed"), static_cast<qint64>(run.randomSeed));
+	result.insert(QStringLiteral("signalling_level_override"), QString::fromLatin1(signallingLevelOverrideName(run.signallingLevelOverride)));
 	result.insert(QStringLiteral("selected_occurrences"), selected);
 	return result;
 }

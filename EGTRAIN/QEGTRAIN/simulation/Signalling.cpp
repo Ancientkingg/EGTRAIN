@@ -53,6 +53,16 @@ bool parseConnectedSectionIdentity(const std::string& id, ConnectedSectionIdenti
 			result.secondCoordinate);
 }
 
+// Adds MA to run.etcsMa unless the train already has an end of authority on the same section within 1 mm of it, which rounding
+// would otherwise add again.
+void addMovementAuthority(SimulationRun& run, const MovementAuthority& MA) {
+	for (const MovementAuthority& listed : run.etcsMa)
+		if (listed.BSID == MA.BSID && std::abs(listed.AbsPosEoA - MA.AbsPosEoA) < 0.001
+			&& listed.TrainInfo.trainDescription == MA.TrainInfo.trainDescription)
+			return;
+	run.etcsMa.push_back(MA);
+}
+
 bool resolveDoubleSwitchSections(SimulationRun& run, const Section& current, const Section& previous,
 	const Section* sections[2], ConnectedSectionIdentity identities[2],
 	Section* branches[2][2]) {
@@ -2299,21 +2309,24 @@ void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, c
 	MA.TrainInfo.NextSectionID = NextSectionID;
 
 	// Reporting the train position to the list of movement authorities
-	if (run.etcsMa.empty() == 1) {
-		// Create a movement authority if the list is empty
-		run.etcsMa.push_back(MA); // add the MA to the list
-	} else {					  // if the list of ETCS MAs is not empty then check is this MA has been already reported
-		bool IsMA_BSID_AlreadyThere = false;
-		for (list<MovementAuthority>::iterator it = run.etcsMa.begin(); it != run.etcsMa.end(); it++) {
-			if ((it->BSID == MA.BSID) && (std::abs(it->AbsPosEoA - MA.AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == MA.TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
-				IsMA_BSID_AlreadyThere = true;
-				break; // break the for loop over the EoAs
-			}
-		}
-		// if the MA is already in ETCS MA then do not add it otherwise add it
-		if (IsMA_BSID_AlreadyThere == 0) { // if the Movement authority was not there yet then add it to the ETCS_MA list
-			run.etcsMa.push_back(MA);	   // add the MA to the list
-		}
+	addMovementAuthority(run, MA);
+
+	// A diverging switch section shares the part of this block before or after its switch. The end of a train on the plain block
+	// that lies on that part is also an end on the switch section, so that a train on the switch section sees it. The ends that a
+	// train on another switch section reports on this block (BLS.withSwitchDiv is set in those copies) are not passed on.
+	if (type != AuthorityKind::TrainEnd || BLS.withSwitchDiv || MA.BSID != BLS.ID)
+		return;
+	for (int i = 0; i < BLS.N_ConnectedBS; i++) {
+		ConnectedSectionIdentity identity;
+		if (!parseConnectedSectionIdentity(BLS.IDConnectedBS[i], identity))
+			continue;
+		const bool beforeSwitch = identity.firstBlockId == BLS.ID && MA.AbsPosEoA <= identity.firstCoordinate * 1000;
+		const bool afterSwitch = identity.secondBlockId == BLS.ID && MA.AbsPosEoA >= identity.secondCoordinate * 1000;
+		if (!beforeSwitch && !afterSwitch)
+			continue;
+		MovementAuthority shared = MA;
+		shared.BSID = BLS.IDConnectedBS[i];
+		addMovementAuthority(run, shared);
 	}
 }
 

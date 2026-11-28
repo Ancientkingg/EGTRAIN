@@ -215,6 +215,14 @@ constexpr double kBorderKm = 8.0;
 // The edge between 1-B0 and 2-B0. The first section behind the border is the third section of the route.
 constexpr double kNearBorderKm = 4.0;
 
+// The diverging switch of the junction cases, from this chainage in km on B0 to kBranchKm on B1.
+constexpr double kSwitchKm = 9.5;
+constexpr double kBranchKm = 9.55;
+// The section of the switch: 4-B0 up to the switch, the connection and 0-B1 after it.
+const char* const kSwitchSection = "@4-B0@-9.500000/@0-B1@-9.550000";
+// R2 of the merge cases is due this much later than in the fixture.
+constexpr double kMergeDelaySeconds = 80.0;
+
 struct CaseSpec {
 	std::string name;
 	std::string scenario;
@@ -234,8 +242,16 @@ struct CaseSpec {
 	bool stub = false;
 	// Adds the service E1 to the scene: F1 without its stop at B.
 	bool skipStop = false;
-	// F1 runs at no more than 90 km/h, so that F2 catches up with it between B and C.
-	bool slowLeader = false;
+	// F1, F2, R1 and R2 do not call at B.
+	bool passB = false;
+	// Writes a vc_notice line for every virtual coupling notice of the run: its step, its train and the text that the window
+	// shows.
+	bool couplingLines = false;
+	// Adds the branch of addBranch. F2 runs on routeSplit, from A over the diverging switch to D, behind F1, which stays on the
+	// line to C.
+	bool split = false;
+	// Adds the branch of addBranch. R2 runs on routeMerge, from D over the diverging switch to A, behind R1, which comes from C.
+	bool merge = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
 	// F1 stands at B until 1050 s, in front of the restriction, and R1 runs on routeCB from C to B from 650 s.
@@ -249,6 +265,8 @@ struct CaseSpec {
 	// Adds Platform_4 of B at 6 km, before B.platform.1 where the trains call at B, and a signal failure on 3-B0 from 150 s to
 	// 500 s. The B stops have no planned arrival, as in the transfer cases.
 	bool otherPlatform = false;
+	// When above 0, F1 and R1 run at no more than this speed in km/h, so that F2 or R2 catches up with them.
+	double leaderKmh = 0.0;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -341,7 +359,7 @@ std::vector<CaseSpec> buildCaseTable() {
 	// its coupling. F2 then catches up with F1 at line speed and has to brake behind it when F1 brakes for C.
 	for (int level = 3; level <= 4; ++level) {
 		CaseSpec catchUp{"catch-up-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""};
-		catchUp.slowLeader = true;
+		catchUp.leaderKmh = 90.0;
 		cases.push_back(catchUp);
 	}
 	// E1 does not stop at B. F2 stops there and moves first in every step, while E1 runs ahead of it towards B.
@@ -533,6 +551,31 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back({"cancel-from-b-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""});
 	// A measure cancels F1 completely at 30 s, before it is due to enter at 60 s: it never enters, and F2 runs alone.
 	cases.push_back({"cancel-before-entry-level-0", "baseline", {"F1", "F2"}, 0, ""});
+	// F1 runs at 72 km/h and neither train calls at B, so F2 catches up with F1 and couples to it at level 4. Then F1 breaks down
+	// and is held, F1 breaks down and runs at no more than 40 km/h, or a signal failure stops both trains in front of 5-B0. Level 3
+	// is the control.
+	for (const char* incident : {"breakdown-hold", "breakdown-slow", "signal-failure"})
+		for (int level = 3; level <= 4; ++level) {
+			CaseSpec disrupted{"vc-" + std::string(incident) + "-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, ""};
+			disrupted.leaderKmh = 72.0;
+			disrupted.passB = true;
+			disrupted.couplingLines = true;
+			cases.push_back(disrupted);
+		}
+	// The junction of addBranch. F2 couples to F1, which runs at 72 km/h, before their routes split at the diverging switch; R2
+	// comes from the branch behind R1, which runs at 72 km/h, and couples to it after the switch. Level 3 is the control.
+	for (const char* junction : {"split", "merge"})
+		for (int level = 3; level <= 4; ++level) {
+			const bool split = std::string(junction) == "split";
+			const std::string name = "vc-" + std::string(junction) + "-level-" + std::to_string(level);
+			CaseSpec spec{name, "baseline", split ? std::vector<std::string>{"F1", "F2"} : std::vector<std::string>{"R1", "R2"}, level, ""};
+			spec.split = split;
+			spec.merge = !split;
+			spec.leaderKmh = 72.0;
+			spec.passB = true;
+			spec.couplingLines = true;
+			cases.push_back(spec);
+		}
 	return cases;
 }
 
@@ -980,8 +1023,17 @@ std::vector<TrainTrack> collectTracks() {
 	return tracks;
 }
 
-// Each train with the train that entered before it on the same route.
-std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks) {
+// True when a train of a junction case with its head at route position head (m) is on the part of B0 that both routes share:
+// up to the switch on routeSplit and route0, from the switch on routeMerge and route1, which start at 16 km.
+bool onSharedLine(const CaseSpec& spec, double head) {
+	return spec.split ? head <= kSwitchKm * 1000.0 : head >= (kFixtureLengthKm - kSwitchKm) * 1000.0;
+}
+
+// Each train with the train that entered before it on the same route. In the junction cases the two trains run on different
+// routes, and they share only B0: the gap is measured in the steps in which the head of the later train is on B0, from the
+// tail of the train ahead to the head of the train behind, whichever of the two is ahead.
+std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks, const CaseSpec& spec) {
+	const bool junction = spec.split || spec.merge;
 	std::vector<size_t> byEntry(tracks.size());
 	for (size_t i = 0; i < tracks.size(); ++i)
 		byEntry[i] = i;
@@ -993,7 +1045,7 @@ std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks
 		const TrainTrack& follower = tracks[byEntry[i]];
 		const TrainTrack* leader = nullptr;
 		for (size_t j = i; j-- > 0;) {
-			if (tracks[byEntry[j]].routeIndex == follower.routeIndex) {
+			if (junction || tracks[byEntry[j]].routeIndex == follower.routeIndex) {
 				leader = &tracks[byEntry[j]];
 				break;
 			}
@@ -1005,7 +1057,12 @@ std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks
 		separation.follower = follower.name;
 		separation.gap = std::numeric_limits<double>::infinity();
 		for (int t = std::max(leader->first, follower.first); t <= std::min(leader->last, follower.last); ++t) {
-			const double gap = ((*leader->position)[t] - leader->length) - (*follower.position)[t];
+			const double leaderHead = (*leader->position)[t];
+			const double followerHead = (*follower.position)[t];
+			if (junction && !onSharedLine(spec, followerHead))
+				continue;
+			const double gap = junction && followerHead > leaderHead ? followerHead - follower.length - leaderHead
+																	 : leaderHead - leader->length - followerHead;
 			if (gap < separation.gap) {
 				separation.gap = gap;
 				separation.step = t;
@@ -1071,6 +1128,46 @@ std::string missedConnections(const SimulationRun& run) {
 	return missed;
 }
 
+// At level 4 a follower that is coupled when the first incident starts is coupled again at some time after the last incident
+// has ended, before its leader leaves it at the end of the run.
+std::vector<std::string> findRecouplingViolations(const CaseSpec& spec, const SimulationRun& run, const std::vector<SceneIncident>& incidents) {
+	if (!spec.couplingLines || spec.level != 4 || incidents.empty())
+		return {};
+	double firstStart = std::numeric_limits<double>::infinity();
+	double lastEnd = 0.0;
+	for (const SceneIncident& incident : incidents) {
+		firstStart = std::min(firstStart, incident.startSeconds);
+		lastEnd = std::max(lastEnd, incident.endSeconds);
+	}
+	std::map<std::string, bool> coupled;
+	std::map<std::string, bool> coupledAtStart;
+	std::map<std::string, bool> coupledAfterEnd;
+	const std::size_t notices = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
+	for (std::size_t i = 0; i < notices; ++i) {
+		const std::string& train = run.vcMsgTrain[i];
+		const double t = run.vcMsgTimestep[i];
+		if (t >= firstStart && coupledAtStart.count(train) == 0)
+			coupledAtStart[train] = coupled[train];
+		if (t >= lastEnd && coupled[train])
+			coupledAfterEnd[train] = true;
+		coupled[train] = run.vcMsgText[i] == "Virtually coupled";
+		if (t >= lastEnd && coupled[train])
+			coupledAfterEnd[train] = true;
+	}
+	// A train keeps the state of its last notice until the end of the run, which lasts beyond the incidents. A train without a
+	// notice after the start of the incident had that state when it started.
+	for (const auto& [train, state] : coupled) {
+		if (coupledAtStart.count(train) == 0)
+			coupledAtStart[train] = state;
+		coupledAfterEnd[train] = coupledAfterEnd[train] || state;
+	}
+	std::vector<std::string> failures;
+	for (const auto& [train, atStart] : coupledAtStart)
+		if (atStart && !coupledAfterEnd[train])
+			failures.push_back(train + " is not coupled again after the incidents end at " + std::to_string(lastEnd) + " s");
+	return failures;
+}
+
 // Checks that hold for the fixture whatever the golden file says.
 std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std::vector<TrainTrack>& tracks,
 	const std::vector<Separation>& separations, const std::vector<TimetableResultRow>& rows) {
@@ -1130,7 +1227,10 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			for (const TrainTrack& other : tracks) {
 				if (&other == &track || stop.first < other.first || stop.first > other.last)
 					continue;
-				if (other.routeIndex != track.routeIndex) {
+				// The two trains of a junction case run in the same direction, with the same route positions on B0, where a train can
+				// stop behind the other.
+				const bool sharedLine = (spec.split || spec.merge) && onSharedLine(spec, stop.position);
+				if (other.routeIndex != track.routeIndex && !sharedLine) {
 					// On the through line there is no passing loop. A winner can stop 50 m before the opposing head
 					// outside the zone; this is a stop behind a real train, not an arbitrary mid-block stop.
 					const std::vector<Route>& routes = simulation.run().infra.routes;
@@ -1266,6 +1366,56 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 }
 
 constexpr int kPassengerBaseTime = 7 * 60 * 60;
+
+// Adds the track B1, which leaves B0 at a diverging switch in 4-B0 and runs next to it to station D at 16 km, and the routes
+// routeSplit from A to D and routeMerge from D to A over the switch. The connection has the line speed, so that no train brakes
+// for the switch.
+void addBranch(SceneModel& scene) {
+	const std::string switchNode = "B0.node.switch";
+	scene.nodes.push_back({switchNode, "B0", kSwitchKm, 0.0});
+	for (SceneArc& arc : scene.arcs)
+		if (arc.fromNodeId == "B0.node.5" && arc.toNodeId == "B0.node.6") {
+			SceneArc rest = arc;
+			rest.id = arc.id + ".switch";
+			rest.fromNodeId = switchNode;
+			arc.toNodeId = switchNode;
+			scene.arcs.push_back(rest);
+			break;
+		}
+	scene.tracks.push_back({"B1"});
+	const double positions[] = {kSwitchKm, kBranchKm, 12.0, 14.0, kFixtureLengthKm};
+	for (int index = 0; index < 5; ++index) {
+		scene.nodes.push_back({"B1.node." + std::to_string(index + 1), "B1", positions[index], 1.0});
+		if (index == 0)
+			continue;
+		SceneArc arc;
+		arc.id = "B1.arc." + std::to_string(index);
+		arc.trackId = "B1";
+		arc.fromNodeId = "B1.node." + std::to_string(index);
+		arc.toNodeId = "B1.node." + std::to_string(index + 1);
+		arc.curvatureRadiusM = 10000.0;
+		arc.speedLimitMs = 36.111111111111;
+		scene.arcs.push_back(arc);
+	}
+	scene.blocks.push_back({"0-B1", "B1", 12.0 - kSwitchKm});
+	scene.blocks.push_back({"1-B1", "B1", 2.0});
+	scene.blocks.push_back({"2-B1", "B1", 2.0});
+	scene.connections.push_back({"connection.junction", switchNode, "B1.node.2", true, 36.111111111111});
+	SceneStation d;
+	d.id = d.name = "D";
+	d.hasPosition = true;
+	d.positionKm = kFixtureLengthKm;
+	d.platforms = {{"D.platform.1", {"B1.node.5"}}};
+	scene.stations.push_back(d);
+	SceneRoute split;
+	split.id = "routeSplit";
+	split.blocks = {"0-B0", "1-B0", "2-B0", "3-B0", kSwitchSection, "1-B1", "2-B1"};
+	SceneRoute merge;
+	merge.id = "routeMerge";
+	merge.blocks = {split.blocks.rbegin(), split.blocks.rend()};
+	scene.routes.push_back(split);
+	scene.routes.push_back(merge);
+}
 
 // Station P at 4 km, the edge between 1-B0 and 2-B0, with its platform on the node there.
 void addStationP(SceneModel& scene) {
@@ -1734,12 +1884,41 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
 	}
-	if (spec.slowLeader)
+	if (spec.leaderKmh > 0.0)
 		for (SceneService& service : loaded.scene.services)
-			if (service.id == "F1") {
+			if (service.id == "F1" || service.id == "R1") {
 				service.hasMaximumSpeed = true;
-				service.maximumSpeedKmh = 90.0;
+				service.maximumSpeedKmh = spec.leaderKmh;
 			}
+	if (spec.split || spec.merge) {
+		addBranch(loaded.scene);
+		// The train on the branch ends or starts at D instead of C.
+		for (SceneService& service : loaded.scene.services) {
+			if (service.id != (spec.split ? "F2" : "R2"))
+				continue;
+			service.route = spec.split ? "routeSplit" : "routeMerge";
+			// R2 is due later than in the fixture, so that it reaches the switch just after R1 has passed it.
+			const double delay = spec.merge ? kMergeDelaySeconds : 0.0;
+			service.entryTimeSeconds += delay;
+			for (SceneStop& stop : service.stops) {
+				if (stop.stationId == "C") {
+					stop.stationId = "D";
+					stop.platformId = "D.platform.1";
+				}
+				if (stop.hasPlannedArrival)
+					stop.plannedArrivalSeconds += delay;
+				if (stop.hasPlannedDeparture)
+					stop.plannedDepartureSeconds += delay;
+			}
+		}
+	}
+	if (spec.passB)
+		for (SceneService& service : loaded.scene.services)
+			if (service.id == "F1" || service.id == "F2" || service.id == "R1" || service.id == "R2")
+				service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [](const SceneStop& stop) {
+					return stop.stationId == "B";
+				}),
+					service.stops.end());
 	if (spec.skipStop) {
 		const auto f1 = std::find_if(loaded.scene.services.begin(), loaded.scene.services.end(), [](const SceneService& service) {
 			return service.id == "F1";
@@ -1943,6 +2122,16 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", false, 1, 500.0, "B"});
 	if (spec.passengers == "cancel-complete")
 		loaded.scene.scenarios[0].measures.push_back({"cancel-q1", MeasureType::CancelService, "Q1", true, 1, 300.0, ""});
+	if (spec.name.find("vc-breakdown-hold-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"hold-f1", IncidentType::TrainBreakdown, "F1", 420.0, 540.0});
+	if (spec.name.find("vc-breakdown-slow-") == 0) {
+		SceneIncident slow{"slow-f1", IncidentType::TrainBreakdown, "F1", 420.0, 600.0};
+		slow.hasReducedSpeed = true;
+		slow.reducedSpeedKmh = 40.0;
+		loaded.scene.scenarios[0].incidents.push_back(slow);
+	}
+	if (spec.name.find("vc-signal-failure-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"fail-5", IncidentType::SignalFailure, "5-B0", 420.0, 600.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
@@ -2107,7 +2296,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		}
 	}
 
-	const std::vector<Separation> separations = measureSeparations(tracks);
+	const std::vector<Separation> separations = measureSeparations(tracks, spec);
 	for (const Separation& separation : separations) {
 		const std::string key = "separation " + separation.leader + ">" + separation.follower;
 		if (separation.overlap)
@@ -2180,6 +2369,15 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	if (spec.delayLines) {
 		const Observation delays = delayObservation("", rows, results);
 		obs.insert(obs.end(), delays.begin(), delays.end());
+	}
+	if (spec.couplingLines) {
+		const SimulationRun& run = simulation.run();
+		const std::size_t notices = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
+		for (std::size_t i = 0; i < notices; ++i) {
+			std::string text = run.vcMsgText[i];
+			std::replace(text.begin(), text.end(), '\n', ' ');
+			add("vc_notice", {integerField("t", run.vcMsgTimestep[i]), textField("train", run.vcMsgTrain[i]), textField("text", text)});
+		}
 	}
 
 	for (const SimulationIncident& incident : simulation.run().incidents)
@@ -2266,6 +2464,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		outcome.invariantFailures.insert(outcome.invariantFailures.end(), statisticsFailures.begin(), statisticsFailures.end());
 		if (const std::string missed = missedConnections(simulation.run()); missed != spec.missedConnections)
 			outcome.invariantFailures.push_back("missed connections \"" + missed + "\", expected \"" + spec.missedConnections + "\"");
+		for (const SceneScenario& scenario : loaded.scene.scenarios)
+			if (scenario.id == spec.scenario)
+				for (const std::string& failure : findRecouplingViolations(spec, simulation.run(), scenario.incidents))
+					outcome.invariantFailures.push_back(failure);
 	}
 	if (!keptOutputDir.empty())
 		simulation.printLastTrainServicePathDiagram();

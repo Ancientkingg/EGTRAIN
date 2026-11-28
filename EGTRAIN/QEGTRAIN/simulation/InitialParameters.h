@@ -2,6 +2,7 @@
 #define INITIALPARAMETERS_H
 
 #include "scene/PassengerDwellModel.h"
+#include "scene/SignallingLevel.h"
 
 #include <array>
 #include <string>
@@ -96,6 +97,9 @@ public:
 	bool exportDetailedTrajectories = false;
 	/// Seeds the passenger sampling of a run (--seed, 1 to kMaxRandomSeed). Equal seeds give equal runs.
 	unsigned long randomSeed = kDefaultRandomSeed;
+	/// The change of the moving-block levels that prepareScene applies to the signalling areas of every run it builds
+	/// (--signalling-level-override). The scene keeps its own levels.
+	SignallingLevelOverride signallingLevelOverride = SignallingLevelOverride::None;
 	/// The live stream (--live): the port of its state socket, 0 for a free port, or -1 when the stream is off.
 	int livePort = -1;
 	/// A state frame for every liveEvery-th step (--live-every).

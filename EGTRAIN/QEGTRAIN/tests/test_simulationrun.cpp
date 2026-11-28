@@ -12,6 +12,7 @@
 #include "app/DispatchController.h"
 #include "scene/SceneModel.h"
 #include "simulation/DispatchMeasures.h"
+#include "scene/SignallingLevel.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Passengers.h"
@@ -467,6 +468,10 @@ private slots:
 	void laterRunsWriteFilesOfFirstRun();
 	void runKeepsCopyOfSettings();
 	void byHandMeasureTakesEffectAtTheNextStep();
+	void readsSignallingLevelOverride_data();
+	void readsSignallingLevelOverride();
+	void signallingLevelOverrideChangesRunOnly_data();
+	void signallingLevelOverrideChangesRunOnly();
 	void secondRunFollowsRunOfProcess();
 	void stepsRunWithoutController();
 	void trainWithoutEntryTimeLeavesFirstStopOnTime();
@@ -710,6 +715,79 @@ void TestSimulationRun::byHandMeasureTakesEffectAtTheNextStep() {
 	QVERIFY(!simulation.submitMeasure(measure));
 
 	simulation.resetState();
+}
+
+// --signalling-level-override takes 3to4 and 4to3 and nothing else.
+void TestSimulationRun::readsSignallingLevelOverride_data() {
+	QTest::addColumn<QString>("text");
+	QTest::addColumn<bool>("valid");
+	QTest::addColumn<int>("expected");
+	QTest::newRow("3to4 runs level 3 as 4") << "3to4" << true << static_cast<int>(SignallingLevelOverride::Level3To4);
+	QTest::newRow("4to3 runs level 4 as 3") << "4to3" << true << static_cast<int>(SignallingLevelOverride::Level4To3);
+	QTest::newRow("none is not a value") << "none" << false << static_cast<int>(SignallingLevelOverride::None);
+	QTest::newRow("an empty text is not a value") << "" << false << static_cast<int>(SignallingLevelOverride::None);
+	QTest::newRow("capitals are not read") << "3TO4" << false << static_cast<int>(SignallingLevelOverride::None);
+	QTest::newRow("another pair of levels is not read") << "0to4" << false << static_cast<int>(SignallingLevelOverride::None);
+}
+
+void TestSimulationRun::readsSignallingLevelOverride() {
+	QFETCH(QString, text);
+	QFETCH(bool, valid);
+	QFETCH(int, expected);
+	SignallingLevelOverride value = SignallingLevelOverride::None;
+	// The text is read, or refused without a change to the value.
+	QCOMPARE(parseSignallingLevelOverride(text.toStdString(), value), valid);
+	QCOMPARE(static_cast<int>(value), expected);
+	// A value that is read is written back as the same text.
+	if (valid)
+		QCOMPARE(QString::fromLatin1(signallingLevelOverrideName(value)), text);
+}
+
+// The override gives the sections of the run the other moving-block level and leaves every other level. The scene keeps the
+// level of its area, and the settings of the run record the override.
+void TestSimulationRun::signallingLevelOverrideChangesRunOnly_data() {
+	QTest::addColumn<int>("areaLevel");
+	QTest::addColumn<int>("change");
+	QTest::addColumn<int>("runLevel");
+	const int threeToFour = static_cast<int>(SignallingLevelOverride::Level3To4);
+	const int fourToThree = static_cast<int>(SignallingLevelOverride::Level4To3);
+	QTest::newRow("level 3 runs as 4 with 3to4") << 3 << threeToFour << 4;
+	QTest::newRow("level 4 runs as 3 with 4to3") << 4 << fourToThree << 3;
+	QTest::newRow("level 4 stays with 3to4") << 4 << threeToFour << 4;
+	QTest::newRow("level 3 stays with 4to3") << 3 << fourToThree << 3;
+	QTest::newRow("level 0 stays with 3to4") << 0 << threeToFour << 0;
+	QTest::newRow("level 3 stays without an override") << 3 << static_cast<int>(SignallingLevelOverride::None) << 3;
+}
+
+void TestSimulationRun::signallingLevelOverrideChangesRunOnly() {
+	QFETCH(int, areaLevel);
+	QFETCH(int, change);
+	QFETCH(int, runLevel);
+	QTemporaryDir output;
+	SceneModel scene = movingBlockLine(m_line);
+	scene.signallingAreas[0].level = areaLevel;
+	initial_variables.GUI = 0;
+	initial_variables.OutputMainFolder = output.path().toStdString();
+	initial_variables.signallingLevelOverride = static_cast<SignallingLevelOverride>(change);
+	const auto restore = qScopeGuard([] {
+		initial_variables.signallingLevelOverride = SignallingLevelOverride::None;
+		simulation.resetState();
+	});
+
+	CoutSilencer silencer;
+	// The scene is prepared.
+	QVERIFY(!hasErrors(simulation.prepareScene(scene, "baseline", {{"T1", 1}})));
+	QCOMPARE_GT(simulation.run().infra.numRoutes, 0);
+	for (int r = 0; r < simulation.run().infra.numRoutes; ++r) {
+		const Route& route = simulation.run().infra.routes[r];
+		for (int b = 0; b < route.N_Block_Sections; ++b)
+			// Every section of the run has the level that the override gives the area.
+			QCOMPARE(route.sequence_of_block_sections[b].SignallingLevel, runLevel);
+	}
+	// The scene keeps its level.
+	QCOMPARE(scene.signallingAreas[0].level, areaLevel);
+	// The settings of the run record the override.
+	QCOMPARE(static_cast<int>(defaultRun().settings.signallingLevelOverride), change);
 }
 
 // The builders and the routines of a step work on the run that they are given. A second run, built from the scene and stepped while

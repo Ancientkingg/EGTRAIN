@@ -3,6 +3,7 @@
 #include "io/LiveFrame.h"
 #include "io/LiveServer.h"
 #include "scene/SceneValidator.h"
+#include "scene/SignallingLevel.h"
 #include "scene/Utf8Path.h"
 #include "simulation/Simulation.h"
 #include "simulation/PassengerResults.h"
@@ -349,10 +350,19 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		return diagnostics;
 	}
 
+	// --signalling-level-override changes the levels of the signalling areas of the run, not those of the scene.
+	std::optional<SceneModel> overridden;
+	if (initial_variables.signallingLevelOverride != SignallingLevelOverride::None) {
+		overridden = scene;
+		for (SceneSignallingArea& area : overridden->signallingAreas)
+			area.level = overriddenSignallingLevel(area.level, initial_variables.signallingLevelOverride);
+	}
+	const SceneModel& runScene = overridden ? *overridden : scene;
+
 	// The run is built apart from the run of the controller, which a failed scene must not leave half built.
 	const auto staged = std::make_unique<SimulationRun>();
 	const std::vector<SceneDiagnostic> infrastructure =
-		buildInfrastructureAndSignallingFromScene(*staged, scene);
+		buildInfrastructureAndSignallingFromScene(*staged, runScene);
 	diagnostics.insert(diagnostics.end(), infrastructure.begin(), infrastructure.end());
 	const bool infrastructureFailed = hasErrors(diagnostics);
 	if (infrastructureFailed)
@@ -366,7 +376,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 
 	const std::vector<SceneDiagnostic> operations =
-		buildOperationsFromScene(*staged, scene, selectedScenarioId, selectedOccurrences);
+		buildOperationsFromScene(*staged, runScene, selectedScenarioId, selectedOccurrences);
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();

@@ -209,7 +209,9 @@ QImage fullTableImage(const QTableView& table);
 ExportWriter runProvenanceWriter(RunProvenance provenance);
 
 /// The run of a result window named by its case and scenario, for its header and for messages: "case / scenario", one of
-/// the two when the other is empty, or "(none)" when both are.
+/// the two when the other is empty, or "(none)" when both are. A run with --signalling-level-override adds "(level 3 run as
+/// 4)" or "(level 4 run as 3)", so that its result windows show that its levels are not those of the scene. The override holds
+/// for every run of the process, so a delay comparison shows the same suffix for the run and its baseline.
 QString runContextText(const RunProvenance& provenance);
 
 /// The main widget of a table window, for ResultFrame: `widgets` in a column on white, inside the margins of the main area,

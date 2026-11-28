@@ -402,6 +402,7 @@ private slots:
 	void showsMissingCall();
 	void listsEveryIncompatibility();
 	void saysThatNoBaselineIsSet();
+	void namesSignallingLevelOverride();
 	void opensOnCallsTab();
 	void describesReasonsStatusesAndTotals();
 	void exportsEveryTab();
@@ -1419,6 +1420,17 @@ void TestDelayAnalysisWindow::asksForCsvFileOnExport() {
 	// a file that cannot be written is named as the person reads it, with the reason
 	QVERIFY(!writeFailure(path).isEmpty());
 	QCOMPARE(shown.warnings, QStringList(expected));
+}
+
+// The header of the window names the run and its delay baseline. A run with --signalling-level-override says so, so that the
+// window shows that the levels of the run are not those of the scene.
+void TestDelayAnalysisWindow::namesSignallingLevelOverride() {
+	DelayRunSnapshot run = lineSnapshot("follow-level-3", kFollowLevel0);
+	QCOMPARE(runContextText(run.provenance), QStringLiteral("Case A / follow-level-3"));
+	run.provenance.signallingLevelOverride = SignallingLevelOverride::Level3To4;
+	QCOMPARE(runContextText(run.provenance), QStringLiteral("Case A / follow-level-3 (level 3 run as 4)"));
+	run.provenance.signallingLevelOverride = SignallingLevelOverride::Level4To3;
+	QCOMPARE(runContextText(run.provenance), QStringLiteral("Case A / follow-level-3 (level 4 run as 3)"));
 }
 
 QTEST_MAIN(TestDelayAnalysisWindow)

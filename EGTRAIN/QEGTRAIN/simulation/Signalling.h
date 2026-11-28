@@ -435,6 +435,8 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 /// Adds to run.etcsMa an end of authority of the given type and typePart for the train at route position S_i (m) on BLS, with its
 /// speed V_i (m/s) and acceleration Acc_i (m/s2), unless the train has one on the same section within 1 mm. A position before the
 /// route is moved to the start of its first section; on a reversed route AbsPosEoA is in the coordinates of the original direction.
+/// A "TrainEnd" end on a section without a diverging switch is also added on each diverging switch section of BLS.IDConnectedBS
+/// that covers its position, the part of BLS before or after the switch.
 void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, AuthorityKind type, AuthorityTrainEnd typePart);
 
 /// The form of elaborateRbcMas for the section BS with a diverging switch: adds "TrainEnd" ends of authority at S_i (m) on BS and on

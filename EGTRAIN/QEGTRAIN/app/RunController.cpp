@@ -437,6 +437,7 @@ RunProvenance RunController::captureRunProvenance() const {
 	provenance.recoveryPercent = initial_variables.recoveryTimePercentage;
 	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
 	provenance.randomSeed = initial_variables.randomSeed;
+	provenance.signallingLevelOverride = initial_variables.signallingLevelOverride;
 	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, simulation.run().numTrains)));
 	for (int index = 0; index < simulation.run().numTrains; ++index) {
 		const Train& train = simulation.run().trains[index];
