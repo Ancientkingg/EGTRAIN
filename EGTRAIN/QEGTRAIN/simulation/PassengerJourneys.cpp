@@ -774,23 +774,27 @@ void PassengerJourneys::replanCutTrips(SimulationRun& run, PassengerFlow& flow, 
 	sort(waiting.begin(), waiting.end());
 	waiting.erase(unique(waiting.begin(), waiting.end()), waiting.end());
 	ensureStates(run, t);
+	const int now = t + run.settings.startingSimulationTime;
 	for (const int position : waiting) {
 		Passenger& passenger = flow.passenger(position);
-		const Journey* journey = activeJourney(passenger);
+		Journey* const journey = activeJourney(passenger);
 		if (journey == nullptr)
 			continue;
 		const auto trip = find_if(journey->Trips.begin(), journey->Trips.end(),
 			[&passenger](const Trip& candidate) { return candidate.TripID == passenger.current_TripID; });
 		if (trip == journey->Trips.end())
 			continue;
+		const bool wasHeld = passenger.CurrentStatus == PassengerStatus::HeldAtEntrance;
+		const string oldStation = passenger.Current_WaitingStationID;
+		const string oldPlatform = passenger.Current_WaitingStationPlatformID;
 		// As in checkWaiting: a train that no longer calls here is a missed train, one that ends before the stop where the
-		// passenger would leave it is not.
+		// passenger would leave it is not. A passenger held at the entrance stays held, or queues again, as in flushLeftStops.
 		if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID)) {
 			missedTrain(run, passenger, t);
-			flow.alighted(position);
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
 		} else if (!takesToTripEnd(run, train, passenger, *trip)) {
 			replanWaiting(run, passenger, t);
-			flow.alighted(position);
+			settleReplannedWaiting(run, flow, position, wasHeld, oldStation, oldPlatform, journey, now);
 		}
 	}
 }

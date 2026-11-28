@@ -790,6 +790,8 @@ private slots:
 	void heldPassengerReplansOnMissedTrainAndWalkOutAdmits();
 	void heldPassengerSwitchesOnLateTrainAndAlightingNeverBlocks();
 	void heldPassengerSwitchWithWalkDoesNotOverlapHeldTime();
+	void heldPassengerStaysHeldWhenAMeasureCutsItsTrain();
+	void heldPassengerStaysHeldWhenAMeasureEndsItsTrainBeforeItsStation();
 };
 
 void TestPassengerJourneys::trainBeforeItsFirstStopCanBeBoardedThere() {
@@ -2055,6 +2057,82 @@ void TestPassengerJourneys::heldPassengerSwitchesOnLateTrainAndAlightingNeverBlo
 	QCOMPARE(alightRun.passengerFlow.waitingCount("B", "B.platform.1"), 2);
 	QCOMPARE(alightRun.passengerFlow.heldCount("B", "B.platform.1"), 0);
 }
+
+// p1 waits for T0 on a platform with room for one; p2 is held at the entrance for T1. A measure ends the run of T1 at stop
+// `endStop`, so p2 plans again, on T2 from the same platform. The platform is still full, so p2 stays held in its place and waits
+// for T2. With `viaX`, T1 runs B, X, C, so a measure that ends it at X still calls at B but no longer takes p2 to C.
+static void checkHeldPassengerAfterMeasure(int endStop, bool viaX) {
+	SimulationRun run;
+	run.settings.startingSimulationTime = 0;
+	run.settings.passengerPlatformCapacityLimit = true;
+	StationPlatform plat;
+	plat.StationID = "B";
+	plat.ID = "B.platform.1";
+	plat.Max_Passenger_Volume = 1;
+	run.platforms.push_back(plat);
+	Train t0 = trainFromB("T0", 1, 300);
+	t0.Stations[1].stationName = "D";
+	t0.Stations[1].stationPlatformId = "D.platform.1";
+	Train t1 = trainFromB("T1", 1, 200);
+	if (viaX) {
+		t1.numStations = 3;
+		t1.Stations.resize(3);
+		t1.Stations[2] = t1.Stations[1];
+		t1.Stations[2].X = 4.0;
+		t1.Stations[1].stationName = "X";
+		t1.Stations[1].stationPlatformId = "X.platform.1";
+		t1.stationPlatformNumber[2] = 1;
+		t1.StationDepartures[2] = -1;
+		t1.ScheduledDepartures[1] = 380;
+		t1.ScheduledArrivals[2] = 500;
+		t1.ScheduledDepartures[2] = -1;
+	}
+	for (Train train : {t0, t1, trainFromB("T2", 1, 400)}) {
+		train.run_ = &run;
+		run.trains.push_back(train);
+	}
+	run.numTrains = 3;
+	const auto addPax = [&run](const std::string& id, const std::string& dest, int dep) {
+		Journey j;
+		j.ID = id + ".1";
+		j.Mode = JourneyMode::Live;
+		j.Dep_Station_ID = "B";
+		j.Arr_Station_ID = dest;
+		j.Planned_Departure_Time = j.Actual_Planned_Departure_Time = dep;
+		Passenger p;
+		p.ID = id;
+		p.Journeys.push_back(j);
+		run.passengers.push_back(p);
+	};
+	addPax("p1", "D", 100);
+	addPax("p2", "C", 110);
+	enterPassengersAndRefreshPlatforms(run, 100);
+	enterPassengersAndRefreshPlatforms(run, 110);
+	const Passenger& p2 = *std::next(run.passengers.begin());
+	QCOMPARE(p2.CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(p2.Current_Train_To_Wait, std::string("T1"));
+
+	run.trains[1].runEndStop = endStop;
+	simulateTrainPassengerInteractions(run, 150);
+
+	QCOMPARE(p2.CurrentStatus, PassengerStatus::HeldAtEntrance);
+	QCOMPARE(p2.Current_Train_To_Wait, std::string("T2"));
+	QCOMPARE(p2.HeldSince, 110);
+	QCOMPARE(run.passengerFlow.waitingCount("B", "B.platform.1"), 1);
+	QCOMPARE(run.passengerFlow.heldCount("B", "B.platform.1"), 1);
+	const int platform = run.passengerFlow.platformNumber("B", "B.platform.1");
+	const std::vector<int> waiters = run.passengerFlow.waitingFor(platform, run.passengerFlow.trainNumber("T2"));
+	QVERIFY(std::find(waiters.begin(), waiters.end(), 1) != waiters.end());
+}
+
+void TestPassengerJourneys::heldPassengerStaysHeldWhenAMeasureCutsItsTrain() {
+	checkHeldPassengerAfterMeasure(0, false);
+}
+
+void TestPassengerJourneys::heldPassengerStaysHeldWhenAMeasureEndsItsTrainBeforeItsStation() {
+	checkHeldPassengerAfterMeasure(1, true);
+}
+
 
 // When a held passenger replans to another platform with a walk, the hold starts at the end of the walk,
 // admission does not admit before the walk is over, and Heldtime counts only time after the walk.
